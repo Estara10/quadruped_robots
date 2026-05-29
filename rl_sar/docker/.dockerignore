@@ -1,0 +1,32 @@
+# Ignore build artifacts (will be rebuilt inside container)
+cmake_build/
+build/
+install/
+devel/
+log/
+logs/
+.catkin_tools/
+
+# Downloaded libraries (will be re-downloaded)
+library/
+
+# Git (repo cloned fresh in Docker)
+.git/
+.gitignore
+.gitmodules
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Source code (cloned from GitHub in Docker)
+src/
+scripts/
+VERSION
+*.md
+
+# Keep policy and docker folders
+!policy/
+!docker/

@@ -1,0 +1,63 @@
+# rl_sar Docker Compose
+#
+# Usage (from docker/ directory):
+#   docker compose up -d             # Start container
+#   docker compose exec rl_sar bash  # Enter container
+#
+#   # Run MuJoCo simulation
+#   ./cmake_build/bin/rl_sim_mujoco g1 scene_29dof
+#
+# GUI Setup (run on host first):
+#   xhost +local:docker
+#
+# Rendering modes:
+#   GPU (default):      docker compose up -d
+#   Software only:      docker compose --profile software up -d rl_sar_software
+#   Switch to software: docker compose down && docker compose --profile software up -d rl_sar_software
+#
+# Common configuration anchor
+x-common: &common
+  build:
+    context: ..
+    dockerfile: docker/Dockerfile
+  image: rl_sar:humble
+  network_mode: host
+  stdin_open: true
+  tty: true
+  environment:
+    - DISPLAY=${DISPLAY}
+    - QT_X11_NO_MITSHM=1
+    - MESA_GL_VERSION_OVERRIDE=${MESA_GL_VERSION_OVERRIDE:-3.3}
+  volumes:
+    - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    - ${HOME}/.Xauthority:/root/.Xauthority:rw
+    - ../policy:/rl_sar/policy:ro
+  devices:
+    - /dev/input:/dev/input
+  command: bash
+
+services:
+  # GPU mode (default) - with NVIDIA runtime and full device access
+  rl_sar:
+    <<: *common
+    container_name: rl_sar
+    runtime: nvidia
+    privileged: true
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - MESA_GL_VERSION_OVERRIDE=${MESA_GL_VERSION_OVERRIDE:-3.3}
+
+  # Software mode - no NVIDIA runtime, Mesa llvmpipe rendering
+  rl_sar_software:
+    <<: *common
+    container_name: rl_sar_sw
+    profiles: ["software"]
+    privileged: true
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - LIBGL_ALWAYS_SOFTWARE=1
+      - MESA_GL_VERSION_OVERRIDE=${MESA_GL_VERSION_OVERRIDE:-3.3}

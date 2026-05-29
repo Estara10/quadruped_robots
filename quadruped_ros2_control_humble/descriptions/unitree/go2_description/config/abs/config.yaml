@@ -1,0 +1,57 @@
+# ABS (Agile But Safe) Policy Config for Go2
+# Matches ABS training: go2_pos_rough (61-dim observation)
+
+model_name: "policy.pt"
+framework: "isaacgym"
+decimation: 4
+num_observations: 61
+observations: ["contact", "ang_vel", "gravity_vec", "commands", "timer", "dof_pos", "dof_vel", "actions", "ray2d"]
+
+# ABS 不使用 observations_history
+# observations_history: []
+
+clip_obs: 100.0
+clip_actions_lower: [-100, -100, -100,
+                     -100, -100, -100,
+                     -100, -100, -100,
+                     -100, -100, -100]
+clip_actions_upper: [100, 100, 100,
+                      100, 100, 100,
+                      100, 100, 100,
+                      100, 100, 100]
+
+# Go2 PD gains (Kp=30, Kd=0.65 — matches training)
+rl_kp: [30, 30, 30,
+        30, 30, 30,
+        30, 30, 30,
+        30, 30, 30]
+rl_kd: [0.65, 0.65, 0.65,
+        0.65, 0.65, 0.65,
+        0.65, 0.65, 0.65,
+        0.65, 0.65, 0.65]
+
+hip_scale_reduction: 1.0
+hip_scale_reduction_indices: [0, 3, 6, 9]
+num_of_dofs: 12
+action_scale: 0.25
+
+# ABS observation scales (raw values, no scaling)
+lin_vel_scale: 1.0
+ang_vel_scale: 1.0
+dof_pos_scale: 1.0
+dof_vel_scale: 0.2   # ABS uses 0.2 (not 0.05 like himloco)
+
+# commands_scale derived from lin_vel_scale / ang_vel_scale (see StateRL.cpp L245)
+# ABS sends raw commands: lin_vel_x, lin_vel_y, ang_vel_yaw — all unscaled
+
+torque_limits: [33.5, 33.5, 33.5,
+                33.5, 33.5, 33.5,
+                33.5, 33.5, 33.5,
+                33.5, 33.5, 33.5]
+
+# ABS-specific parameters (not in standard config, used by StateRL.cpp when model_folder="abs")
+abs:
+  max_episode_length_s: 9.0        # timer = elapsed / this
+  contact_threshold: 1.0           # force > this → contact detected
+  ray2d_count: 11                  # number of ray2d beams
+  ray2d_max_range: 6.0             # max range (log2 transformed, ~2.58)

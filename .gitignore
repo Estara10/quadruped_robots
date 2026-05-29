@@ -1,0 +1,48 @@
+# ROS2 build artifacts
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+
+# Training logs and checkpoints (large, regeneratable)
+ABS/training/legged_gym/logs/
+ABS/training/legged_gym/legged_gym/depth_logs/
+
+# Isaac Gym (not tracked)
+isaacgym/
+
+# Legacy sub-repo .git backups
+ABS/.git_backup/
+quadruped_ros2_control_humble/.git_backup/
+rl_sar/.git_backup/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Conda env
+.env/
+anaconda3/
+
+
+# PDFs and temp files
+*.pdf
+
+# Nested third-party git repos
+rl_sar/src/rl_sar/library/thirdparty/robot_sdk/unitree/unitree_sdk2/.git_backup/
+build/qpoases_colcon/
+.mcp.json

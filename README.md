@@ -1,38 +1,128 @@
-# Quadruped Robots — ABS 论文复现与 Go2 部署
+# Go2 Quadruped Robot — ABS (Agile But Safe) Reproduction & Deployment
 
-复现 RSS 2024 论文 *Agile But Safe (ABS)* —— 一种基于强化学习的双策略四足机器人高速避障运动框架。
+Reproduce the **ABS paper** (RSS 2024, CMU & ETH Zurich) — RL-based collision-free high-speed quadruped locomotion (max 3.1 m/s). Deploy to Unitree Go2 robot via ROS2 + MuJoCo.
 
-包含**敏捷策略、恢复策略、RA 价值网络和光线预测网络**四个模块的完整训练管线，以及基于 **ROS2 Humble + MuJoCo** 的 Go2 仿真与真机部署代码。
+Paper: https://agile-but-safe.github.com/ | Code: https://github.com/LeCAR-Lab/ABS
 
-## 成果
+## Results (Go2)
 
-| 指标 | Go2 (我们) | 论文 Go1 参考 |
-|------|-----------|---------------|
-| 碰撞率 | 1.22% | ~1% |
-| 到达率 | 87.97% | ~90% |
-| 平均速度 | 1.45 m/s | ~1.5 m/s |
-| 最大速度 | 2.82 m/s | ~3.1 m/s |
-| RA 碰撞召回率 | 78.42% | ~80% |
-| Recovery 成功率 | 97.75% | ~97% |
+| Metric | Go2 (Ours) | Paper (Go1) |
+|--------|-----------|-------------|
+| Collision Rate | 1.22% | ~1% |
+| Goal-Reaching Rate | 87.97% | ~90% |
+| Avg Speed | 1.45 m/s | ~1.5 m/s |
+| Max Speed | 2.82 m/s | ~3.1 m/s |
+| RA Collision Recall | 78.42% | ~80% |
+| Recovery Success Rate | 97.75% | ~97% |
 
-## 目录结构
+## Quick Start
 
-| 目录 | 内容 |
-|------|------|
-| `ABS/` | 论文训练代码：agile policy + recovery policy + RA value network + ray-prediction |
-| `quadruped_ros2_control_humble/` | Go2 ROS2 Humble 控制框架 (MuJoCo/Gazebo 仿真 + 真机) |
-| `rl_sar/` | RL sim-and-real 框架，多模拟器多机器人 |
-| `scripts/` | 工具脚本（日报生成等） |
-| `日报/` | 工作日报 |
+### Training (Isaac Gym + Server GPUs)
 
-## 环境
+```bash
+conda activate abs
+cd ABS/training/legged_gym/legged_gym
+python scripts/train.py --task=go2_pos_rough --num_envs=1280 --max_iterations=4000 --headless
+```
 
-- **训练**: Isaac Gym Preview 4 + PyTorch 2.0.1 + CUDA 11.8
-- **部署**: ROS2 Humble + libtorch 2.0.1 CPU + MuJoCo
-- **机器人**: Unitree Go2
+### MuJoCo Simulation (3 Terminals)
 
-## 参考
+**Terminal 1** — MuJoCo physics engine (start first):
+```bash
+cd unitree_mujoco && export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:$LD_LIBRARY_PATH
+./simulate/build2/unitree_mujoco
+```
 
-- 论文: [Agile But Safe (RSS 2024)](https://arxiv.org/abs/2405.12345)
-- 原代码: https://github.com/LeCAR-Lab/ABS
-- ROS2 控制: https://github.com/legubiao/quadruped_ros2_control
+**Terminal 2** — ROS2 RL controller (**must use rl_quadruped_controller, NOT unitree_guide_controller**):
+```bash
+source /opt/ros/humble/setup.bash
+source quadruped_ros2_control_humble/install/setup.bash
+export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:$LD_LIBRARY_PATH
+ros2 launch rl_quadruped_controller mujoco.launch.py
+```
+
+**Terminal 3** — Keyboard teleop:
+```bash
+source /opt/ros/humble/setup.bash
+source quadruped_ros2_control_humble/install/setup.bash
+ros2 run keyboard_input keyboard_input
+```
+
+**FSM flow**: Press W many times → `2` (fixed down) → `2` (fixed stand) → `3` (RL mode) → keep pressing W
+
+### ROS2 Build
+
+```bash
+cd quadruped_ros2_control_humble && source /opt/ros/humble/setup.bash
+colcon build --packages-select rl_quadruped_controller --symlink-install \
+  --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_PREFIX_PATH="/home/lidio/Libraries/libtorch-cpu-2.0.1:/opt/ros/humble" \
+  -DTorch_DIR=/home/lidio/Libraries/libtorch-cpu-2.0.1/share/cmake/Torch \
+  -DCaffe2_DIR=/home/lidio/Libraries/libtorch-cpu-2.0.1/share/cmake/Caffe2
+```
+
+## Repositories
+
+| Repo | Purpose | Framework |
+|------|---------|-----------|
+| `ABS/` | Target paper — agile + recovery + RA value + ray-prediction | Isaac Gym, PyTorch, ROS1 |
+| `legged_gym/` | Base RL training framework (vanilla Legged Gym) | Isaac Gym, RSL-RL |
+| `quadruped_ros2_control_humble/` | Go2 ROS2 control (MuJoCo/Gazebo, OCS2 MPC + RL) | ROS2 Humble, MuJoCo, Gazebo |
+| `rl_sar/` | RL sim-and-real framework | Isaac Gym, MuJoCo, ROS1/ROS2 |
+| `legged_control/` | NMPC+WBC (deprecated, reference only) | ROS1 Noetic, OCS2 |
+| `unitree_mujoco/` | Standalone MuJoCo physics sim for Go2 | MuJoCo 3.3.3, DDS |
+
+## Status (2026-05-31)
+
+| Phase | Status |
+|-------|--------|
+| Go1 Training (agile, recovery, RA, ray) | ✅ Complete |
+| Go2 Training (all 4 modules, end-to-end test) | ✅ Complete |
+| ROS2 Compilation | ✅ Complete |
+| MuJoCo Simulation Pipeline | ✅ Complete |
+| Agile Policy MuJoCo Test | 🔴 **Walks in circles** — debugging |
+| Recovery Policy Integration | ✅ Code written, compiling |
+| Ray-Prediction Integration | ❌ Not started |
+| RA Value + Auto-Switch | ❌ Not started |
+| Real Go2 Deployment | ❌ Not started |
+
+## Environment
+
+| Component | Path/Value |
+|-----------|-----------|
+| CUDA | 11.8 (`/usr/local/cuda-11.8`) |
+| Conda | `abs` (Python 3.8.20) |
+| PyTorch | 2.0.1+cu118 |
+| Isaac Gym | Preview 4 (`/home/lidio/isaacgym/isaacgym/`) |
+| libtorch (CPU) | 2.0.1 (`/home/lidio/Libraries/libtorch-cpu-2.0.1/`) |
+| ROS2 | Humble (`/opt/ros/humble/`) |
+| MuJoCo | 3.3.3 (`unitree_mujoco/simulate/build2/`) |
+| unitree_sdk2 | `/home/lidio/Libraries/unitree_sdk2/` |
+| Server GPU | 4× A800 80GB (shared) |
+
+## Documentation Index
+
+| Document | Audience | Content |
+|----------|----------|---------|
+| `README.md` | **All AI tools + humans** | This file — overview and quick start |
+| `CLAUDE.md` | **Claude Code** | Full technical manual: architecture, observation layout, debugging |
+| `ABS复现计划.md` | Humans | High-level progress tracker |
+| `服务器训练指南.md` | Humans | Server SSH, tmux, TensorBoard |
+| `仿真部署手册.md` | Humans | MuJoCo simulation setup |
+| `.github/copilot-instructions.md` | **GitHub Copilot** | Coding conventions + technical context |
+
+## Key Conventions
+
+- **Joint order** (must match everywhere): FR, FL, RR, RL
+- **Foot/contact order**: FR, FL, RR, RL
+- **Agile obs**: 61-dim (contact+ang_vel+gravity+commands+timer+dof_pos+dof_vel+actions+ray2d)
+- **Recovery obs**: 49-dim (same minus timer and ray2d)
+- **PD gains** (Go2): Kp=30, Kd=0.65
+- **RL controller**: `rl_quadruped_controller` (NOT `unitree_guide_controller`)
+- **Server safety**: never modify `/data/isaacgym/`, never kill others' processes
+
+## License
+
+- ABS training: CC BY-NC 4.0
+- Legged Gym, RSL-RL: BSD-3-Clause
+- quadruped_ros2_control, rl_sar: Apache 2.0

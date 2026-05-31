@@ -1,17 +1,22 @@
- 结果很好，对标论文水平：
+● 三个终端，按顺序操作：
+     
+  终端 1 — 启动 MuJoCo 物理引擎：
+  cd ~/quadruped_robots/unitree_mujoco
+  export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:$LD_LIBRARY_PATH
+  ./build/bin/unitree_mujoco
 
-  ┌─────────────────┬────────────┬───────────────┐
-  │      指标       │ Go2 (我们) │ 论文 Go1 参考 │
-  ├─────────────────┼────────────┼───────────────┤
-  │ 碰撞率          │ 1.22%      │ ~1%           │
-  ├─────────────────┼────────────┼───────────────┤
-  │ 到达率          │ 87.97%     │ ~90%          │
-  ├─────────────────┼────────────┼───────────────┤
-  │ 平均速度        │ 1.45 m/s   │ ~1.5 m/s      │
-  ├─────────────────┼────────────┼───────────────┤
-  │ 最大速度        │ 2.82 m/s   │ ~3.1 m/s      │
-  ├─────────────────┼────────────┼───────────────┤
-  │ RA 碰撞召回率   │ 78.42%     │ ~80%          │
-  ├─────────────────┼────────────┼───────────────┤
-  │ Recovery 成功率 │ 97.75%     │ ~97%          │
+  终端 2 — 启动 ROS2 控制器：
+  source /opt/ros/humble/setup.bash
+  source ~/quadruped_robots/quadruped_ros2_control_humble/install/setup.bash
+  export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:$LD_LIBRARY_PATH
+  ros2 launch unitree_guide_controller mujoco.launch.py
 
+  终端 3 — 遥控键盘：
+  source /opt/ros/humble/setup.bash
+  ros2 run control_input control_input_keyboard
+  
+  操作顺序：
+  1. 在终端 3 按 2 → 2 → 3 进入 RL 模式
+  2. 机器人开始行动后，按 W 给前进指令
+  3. 等 5-10 秒收集日志
+  4. 在终端 2 的输出中搜 DEBUG-，把 [DEBUG-0] 到 [DEBUG-9] 的行全部贴给我

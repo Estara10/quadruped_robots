@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Last updated**: 2026-05-31 — MuJoCo simulation debugging session
+**Last updated**: 2026-06-04 — Phase D: obstacle detection + recovery twist optimization working, Go2 recovery retraining on server
 
 ## Project Goal
 
@@ -117,7 +117,7 @@ PASSIVE --(key 2)--> FIXEDDOWN --(key 2)--> FIXEDSTAND --(key 3)--> RL --(key 4)
 
 All state transitions happen via keyboard `command` values. The keyboard publishes to `/control_input` topic.
 
-### Joint Order Convention
+### Joint Order Convention — CRITICAL
 
 **The entire system MUST use the same joint order: FR, FL, RR, RL** (matches Isaac Gym training URDF and MuJoCo XML):
 
@@ -128,7 +128,27 @@ All state transitions happen via keyboard `command` values. The keyboard publish
 | 6-8 | hip, thigh, calf | RR (Rear Right) |
 | 9-11 | hip, thigh, calf | RL (Rear Left) |
 
-Earlier versions had FL-first ordering in `robot_control.yaml` which caused the RL controller to send commands to wrong legs. This has been fixed.
+#### Why FR-first matters (2026-06-01 root cause analysis)
+
+The full data flow: **MuJoCo → DDS → HardwareInterface → ros2_control.xacro → YAML → Controller → Policy**
+
+Every layer in this chain uses FR-first order, verified on 2026-06-01:
+
+| Layer | File | Order |
+|-------|------|-------|
+| MuJoCo actuators | `unitree_mujoco/unitree_robots/go2/go2.xml` L228-239 | FR, FL, RR, RL |
+| DDS motor_state | `unitree_mujoco/simulate/src/unitree_sdk2_bridge.h` L148 | FR, FL, RR, RL |
+| ros2_control.xacro | `descriptions/.../xacro/ros2_control.xacro` L13-155 | FR, FL, RR, RL |
+| Training URDF | `ABS/.../resources/robots/go2/urdf/go2.urdf` | FR, FL, RR, RL |
+| robot_control.yaml | `descriptions/.../config/robot_control.yaml` | **MUST be FR, FL, RR, RL** |
+
+**MuJoCo touch sensor order**: FR_touch, FL_touch, RR_touch, RL_touch → DDS foot_force: FR, FL, RR, RL → training contact: FR, FL, RR, RL
+
+**Earlier versions had FL-first ordering in `robot_control.yaml`** which caused FR↔FL joint data swap in observations AND actions. Due to left-right symmetry, the robot walked but veered left. This has been fixed on 2026-06-01.
+
+**Key lesson**: Do NOT add index remapping (like `contact_map`) to fix order mismatches — fix the root cause (YAML order). See full analysis at `docs/joint-order-root-cause.md`.
+
+**⚠️ config.yaml `policy_joint_order` must be `"ros1_fl_fr_rl_rr"`**: IsaacGym's `get_asset_dof_names()` returns dof names in **alphabetical order** (FL→FR→RL→RR), NOT URDF document order. The Go2 policy was trained FL-first. The remap converts our FR-first controller data to FL-first policy observations. Removing this remap causes the robot to flip (front hips swing backward instead of forward). Do NOT disable it. (Verified 2026-06-02 via empirical test)
 
 ### 61-Dim Agile Policy Observation Layout
 
@@ -140,7 +160,7 @@ Index in `computeObservation()` flat tensor `obs[0][i]`:
 | 4-6 | ang_vel | 3 | Angular velocity from IMU gyro [x, y, z] (body frame) |
 | 7-9 | gravity_vec | 3 | Gravity direction in body frame (computed from quaternion) |
 | 10-12 | commands | 3 | Position commands in body frame [x, y, yaw] |
-| 13 | timer | 1 | Countdown timer: 1.0 → 0.0 (inverted from episode_timer_) |
+| 13 | timer | 1 | Constant 0.5 (matches ROS1 ABS deployment) |
 | 14-25 | dof_pos | 12 | Joint positions (FR_hip..RL_calf) |
 | 26-37 | dof_vel | 12 | Joint velocities |
 | 38-49 | actions | 12 | Previous action output (from policy) |
@@ -187,60 +207,50 @@ Key mapping:
 
 **Server guide**: `/home/lidio/quadruped_robots/服务器训练指南.md` — SSH, tmux, TensorBoard 操作
 
-## Current Status (2026-05-31)
+## Current Status (2026-06-03)
 
 ### Training: All Complete ✅
 
 | Module | Robot | Status | Details |
 |--------|-------|--------|---------|
-| Agile Policy | Go1 | Done | 4000 iters, exported |
-| RA Value Network | Go1 | Done | trained |
-| Recovery Policy | Go1 | Done | 6000 iters, exported |
-| Agile Policy | Go2 | Done | 4000 iters, exported, 端到端碰撞率 1.22% |
+| Agile Policy | Go2 | Done | 4000 iters, exported |
 | Recovery Policy | Go2 | Done | 6000 iters, exported |
-| RA Value Network | Go2 | Done | 135k steps |
-| Ray-Prediction | Go2 | Done | ResNet18, 250 epochs |
+| RA Value Network | Go2 | Done | 135k steps, TorchScript converted |
+| Ray-Prediction | Go2 | Done | ResNet18, 250 epochs (not deployed) |
 
-### ROS2 Deployment: In Progress 🔴
+### ROS2 Deployment Status
 
 | Milestone | Status | Details |
 |-----------|--------|---------|
 | M1: Basic colcon build | ✅ | libtorch CPU, Humble branch |
-| M2: 61-dim observation | ✅ | StateRL computeObservation() with contact/timer/ray2d |
-| M3: MuJoCo sim pipeline | ✅ | unitree_mujoco + ROS2 controller + DDS comm |
-| M4: Agile Policy running | 🔴 | Policy loads and infers, but **robot walks in circles** — root cause under investigation |
-| M5: Recovery Policy | ✅ | StateRLRec created, model loads (49-dim), manual switch working |
-| M6: Ray-Prediction | ❌ | ray2d is constant log2(6.0) — "blind" mode |
-| M7: RA Value + Auto-switch | ❌ | Not started |
+| M2: 61-dim observation | ✅ | contact/timer/ray2d |
+| M3: MuJoCo sim pipeline | ✅ | unitree_mujoco + DDS |
+| M4: Agile Policy running | ✅ | policy_joint_order: ros1_fl_fr_rl_rr (essential!) |
+| M5: Recovery Policy | ✅ | StateRLRec (49-dim), manual switch |
+| M6: Ray2d (MuJoCo) | ✅ | mj_ray() → shm → StateRL, z=0.25 origin |
+| M7: RA Value + Auto-switch | ✅ | ra_value inference, auto-switch at threshold -0.05 |
+| M6b: Ray-Prediction | ❌ | Depth-camera-based ray prediction not integrated |
 | M8: Real Go2 deployment | ❌ | Not started |
 
-### 🔴 Current Blocking Issue: Agile Policy Walks in Circles
+### Ray2d Architecture (Phase B, 2026-06-03)
 
-**Symptom**: Robot enters RL mode successfully, policy infers, robot moves but walks in circles/arcs instead of straight.
+```
+MuJoCo Bridge (unitree_sdk2_bridge.h)
+  mj_ray() × 11 → log2 transform → /mujoco_ray2d (POSIX shm)
+       ↓ shared memory (zero-copy)
+StateRL::runModel()
+  read shm → obs_.ray2d → policy + RA model
+```
 
-**Fixes Applied (all confirmed via colcon build, none resolved the circle issue)**:
+**Key parameters**: theta [-45°, +45°], step 9° → 11 rays, origin (-0.05, 0, 0.25) body-frame, max 6.0m, log2 transform.
 
-| # | Problem Found | File Changed | What Was Changed | Verdict |
-|---|--------------|-------------|-----------------|---------|
-| 1 | `default_dof_pos` thigh=0.67, calf=-1.3 (wrong) | `RlQuadrupedController.h` | thigh→0.8, calf→-1.5 (match training) | ❌ Still circles |
-| 2 | Timer counting up 0→1 (training counts down 1→0) | `StateRL.cpp:~254` | `t = 1.0 - elapsed/max` | ❌ Still circles |
-| 3 | Commands treated as velocity (training uses position targets) | `StateRL.cpp:~449` | `cmd * [6.0, 2.0, 0.3]` to map to training range | ❌ Still circles |
-| 4 | Joint order mismatch in yaml (FL-first vs FR-first) | `robot_control.yaml` | Changed joints/stand_pos/down_pos/feet/forces to FR,FL,RR,RL order | 🔄 Not yet tested |
-| 5 | `use_rl_thread: true` causing cmd=0 (thread race) | `robot_control.yaml` | Changed to `false` for synchronous execution | 🔄 Not yet tested |
-| 6 | Wrong launch file (guide_controller instead of rl_controller) | Launch command | Use `ros2 launch rl_quadruped_controller mujoco.launch.py` | 🔄 Not yet tested with W key |
+**Critical finding**: `mj_ray()` `bodyexclude` only excludes bodies connected by weld constraints. Go2 legs are hinge joints → rays hit own legs. Fix: raised ray origin z to 0.25 (above hips).
 
-**Debug infrastructure added** (in `StateRL::runModel()`):
-- `[VERIFY-*]` one-time logs for observation shape, model output shape, contact, etc.
-- `[DEBUG-0]` through `[DEBUG-9]` logs for first 10 RL steps showing: contact, ang_vel, gravity_vec, commands, timer, dof_pos, raw actions, target joint positions, raw sensor positions
-- `static int debug_step` — only fires once per process (won't re-trigger on re-entry)
+**Fallback**: If shm not available (MuJoCo not started), auto-fallback to constant log2(6.0).
 
-**Key findings from debug logs so far (without W key pressed)**:
-- `cmd=0.00 -0.00 -0.00` — user couldn't get keyboard input to reach the controller due to thread race (fix #5 above)
-- `contact=1 1 1 1` — all four feet touching ground
-- `grav=(0, 0, -1)` — gravity vector correct
-- Raw actions show asymmetry: e.g., FR_hip=+0.019, later +0.337 vs different FL values
-- Target joint positions show FR vs FL differences (expected for forward walking)
-- Raw sensor positions show symmetry at start: FR hip=+0.026, FL hip=-0.026
+**Verification** (scene.xml, flat):
+- ray2d: all 2.585 (max range, no obstacles)
+- ra_value: -0.7372 (negative = safe, no auto-switch)
 
 ### Strategy/Model Files (Local Paths)
 
@@ -337,6 +347,8 @@ colcon build --symlink-install \
 | `controllers/rl_quadruped_controller/CMakeLists.txt` | Added StateRLRec.cpp |
 
 ## Key Constraints
+
+0. **先看 ROS1 源码再动手** — 遇到任何部署问题，第一步是查看 `ABS/deployment/src/abs_src/` 下 ROS1 的对应实现。ABS 是一个复现项目，ROS1 代码是唯一权威参考。只有在 ROS1 方案在 ROS2/LibTorch 中确实不可行时，才考虑替代方案。这条规则适用于所有模块：ray2d、recovery、RA 推理、observation 构造、命令处理等。
 
 1. **Isaac Gym Preview 4 is required** — closed-source. Do not try to substitute without understanding the codebase.
 2. **Python 3.8 only** — Legged Gym fork in ABS depends on numpy <1.24 and Isaac Gym Preview 4 bindings.

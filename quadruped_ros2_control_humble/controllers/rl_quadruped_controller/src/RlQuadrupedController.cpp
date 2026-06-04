@@ -216,6 +216,7 @@ namespace rl_quadruped_controller
         state_list_.fixedDown = std::make_shared<StateFixedDown>(ctrl_interfaces_, down_pos_, stand_kp_, stand_kd_);
         state_list_.fixedStand = std::make_shared<StateFixedStand>(ctrl_interfaces_, stand_pos_, stand_kp_, stand_kd_);
         state_list_.rl = std::make_shared<StateRL>(ctrl_interfaces_, ctrl_component_, stand_pos_);
+        state_list_.rlRec = std::make_shared<StateRLRec>(ctrl_interfaces_, ctrl_component_, stand_pos_);
 
         // Initialize FSM
         current_state_ = state_list_.passive;
@@ -265,6 +266,8 @@ namespace rl_quadruped_controller
             return state_list_.fixedStand;
         case FSMStateName::RL:
             return state_list_.rl;
+        case FSMStateName::RL_REC:
+            return state_list_.rlRec;
         default:
             return state_list_.invalid;
         }

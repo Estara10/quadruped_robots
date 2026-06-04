@@ -1,22 +1,13 @@
-● 三个终端，按顺序操作：
-     
-  终端 1 — 启动 MuJoCo 物理引擎：
-  cd ~/quadruped_robots/unitree_mujoco
-  export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:$LD_LIBRARY_PATH
-  ./build/bin/unitree_mujoco
+  测试（3 终端，同之前）：
 
-  终端 2 — 启动 ROS2 控制器：
-  source /opt/ros/humble/setup.bash
-  source ~/quadruped_robots/quadruped_ros2_control_humble/install/setup.bash
-  export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:$LD_LIBRARY_PATH
-  ros2 launch unitree_guide_controller mujoco.launch.py
+  # 终端1：MuJoCo
+  cd ~/quadruped_robots/unitree_mujoco && export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:$LD_LIBRARY_PATH && ./simulate/build2/unitree_mujoco
 
-  终端 3 — 遥控键盘：
-  source /opt/ros/humble/setup.bash
-  ros2 run control_input control_input_keyboard
-  
-  操作顺序：
-  1. 在终端 3 按 2 → 2 → 3 进入 RL 模式
-  2. 机器人开始行动后，按 W 给前进指令
-  3. 等 5-10 秒收集日志
-  4. 在终端 2 的输出中搜 DEBUG-，把 [DEBUG-0] 到 [DEBUG-9] 的行全部贴给我
+  # 终端2：RL控制器
+  source /opt/ros/humble/setup.bash && source ~/quadruped_robots/quadruped_ros2_control_humble/install/setup.bash && export
+  LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:$LD_LIBRARY_PATH && ros2 launch rl_quadruped_controller mujoco.launch.py
+
+  # 终端3：键盘
+  source /opt/ros/humble/setup.bash && source ~/quadruped_robots/quadruped_ros2_control_humble/install/setup.bash && ros2 run keyboard_input keyboard_input
+
+  操作：W×20 → 2 → 2 → 3 → 继续按 W。看 debug 日志中 cmd= 是否在 [1.5, 7.5] 范围，以及 MuJoCo 中机器人是否走直线。

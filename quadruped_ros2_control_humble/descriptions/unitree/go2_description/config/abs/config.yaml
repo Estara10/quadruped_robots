@@ -3,6 +3,7 @@
 
 model_name: "policy.pt"
 framework: "isaacgym"
+policy_joint_order: "ros1_fl_fr_rl_rr"
 decimation: 4
 num_observations: 61
 observations: ["contact", "ang_vel", "gravity_vec", "commands", "timer", "dof_pos", "dof_vel", "actions", "ray2d"]
@@ -55,3 +56,19 @@ abs:
   contact_threshold: 1.0           # force > this → contact detected
   ray2d_count: 11                  # number of ray2d beams
   ray2d_max_range: 6.0             # max range (log2 transformed, ~2.58)
+  ra_model_name: "ra_value.pt"     # RA value network (TorchScript)
+  ra_threshold: -0.05              # RA > this → trigger recovery (ROS1 convention)
+
+  # Recovery twist optimization (ROS1 gradient descent)
+  twist_lam: 3.0                   # RA penalty weight (lower=more conservative)
+  twist_lr: 0.5                    # gradient descent learning rate
+  twist_tau: 0.05                  # position integral time constant
+  twist_eps: 0.05                  # RA safety margin
+  twist_vx_min: -1.5               # min forward velocity
+  twist_vx_max: 1.5                # max forward velocity
+  twist_vy_min: -0.15              # min lateral velocity (tightened)
+  twist_vy_max: 0.15               # max lateral velocity (tightened)
+  twist_wz_min: -3.0               # min yaw rate
+  twist_wz_max: 3.0                # max yaw rate
+  recovery_steps: 150              # recovery auto-return steps (~3s)
+  rl_cooldown_steps: 150           # min RL steps before next auto-switch

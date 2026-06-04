@@ -42,6 +42,7 @@ add_library(${PROJECT_NAME} SHARED
 
         src/FSM/StateFixedStand.cpp
         src/FSM/StateRL.cpp
+        src/FSM/StateRLRec.cpp
 
         src/control/LowPassFilter.cpp
         src/control/Estimator.cpp
@@ -60,6 +61,7 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PUBLIC
         "${TORCH_LIBRARIES}"
         yaml-cpp
+        rt
 )
 ament_target_dependencies(
         ${PROJECT_NAME} PUBLIC

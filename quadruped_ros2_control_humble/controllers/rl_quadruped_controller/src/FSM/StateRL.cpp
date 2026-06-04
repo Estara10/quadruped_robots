@@ -4,8 +4,14 @@
 
 #include "rl_quadruped_controller/FSM/StateRL.h"
 #include <ament_index_cpp/get_package_share_directory.hpp>
+#include <algorithm>
 #include <rclcpp/logging.hpp>
 #include <yaml-cpp/yaml.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <cstring>
 
 template <typename T>
 std::vector<T> ReadVectorFromYaml(const YAML::Node& node)
@@ -23,6 +29,7 @@ StateRL::StateRL(CtrlInterfaces& ctrl_interfaces,
                  const std::vector<double>& target_pos) :
     FSMState(FSMStateName::RL, "rl", ctrl_interfaces),
     node_(ctrl_component.node_),
+    ctrl_component_(ctrl_component),
     enable_estimator_(ctrl_component.enable_estimator_),
     estimator_(ctrl_component.estimator_)
 {
@@ -71,7 +78,7 @@ StateRL::StateRL(CtrlInterfaces& ctrl_interfaces,
     RCLCPP_INFO(node_->get_logger(), "[VERIFY] scales: action=%.2f lin_vel=%.2f ang_vel=%.2f dof_pos=%.2f dof_vel=%.2f",
                 params_.action_scale, params_.lin_vel_scale, params_.ang_vel_scale,
                 params_.dof_pos_scale, params_.dof_vel_scale);
-    RCLCPP_INFO(node_->get_logger(), "[VERIFY] default_dof_pos: %.4f %.4f %.4f (first 3 joints = FL hip/thigh/calf)",
+    RCLCPP_INFO(node_->get_logger(), "[VERIFY] default_dof_pos: %.4f %.4f %.4f (first 3 joints = FR hip/thigh/calf)",
                 params_.default_dof_pos[0][0].item<double>(), params_.default_dof_pos[0][1].item<double>(),
                 params_.default_dof_pos[0][2].item<double>());
     RCLCPP_INFO(node_->get_logger(), "[VERIFY] ABS: max_ep_len=%.1fs contact_thr=%.1fN ray2d_count=%d ray2d_max_range=%.1fm",
@@ -80,8 +87,28 @@ StateRL::StateRL(CtrlInterfaces& ctrl_interfaces,
     RCLCPP_INFO(node_->get_logger(), "[VERIFY] decimation=%d frequency=%dHz dt=%.4fs",
                 params_.decimation, ctrl_interfaces_.frequency_,
                 static_cast<double>(params_.decimation) / ctrl_interfaces_.frequency_);
+    RCLCPP_INFO(node_->get_logger(), "[VERIFY] use_rl_thread=%s policy_joint_order=%s",
+                use_rl_thread_ ? "true" : "false", params_.policy_joint_order.c_str());
     // ===== End verification logs =====
 
+    // Load RA value network (optional — skip if model file not found)
+    try
+    {
+        ra_model_ = torch::jit::load(model_path + "/" + params_.ra_model_name);
+        ra_loaded_ = true;
+        // Share RA model with CtrlComponent for recovery use
+        ctrl_component_.ra_model = &ra_model_;
+        ctrl_component_.ra_loaded = true;
+        ctrl_component_.ra_threshold = params_.ra_threshold;
+        ctrl_component_.recovery_steps = params_.recovery_steps;
+        RCLCPP_INFO(node_->get_logger(), "[RA] Value network loaded: %s", params_.ra_model_name.c_str());
+    }
+    catch (const std::exception& e)
+    {
+        RCLCPP_WARN(node_->get_logger(), "[RA] Value network not found (%s), RA disabled",
+                    params_.ra_model_name.c_str());
+        ra_loaded_ = false;
+    }
 
     // for (const auto &param: model_.parameters()) {
     //     std::cout << "Parameter dtype: " << param.dtype() << std::endl;
@@ -116,6 +143,68 @@ StateRL::StateRL(CtrlInterfaces& ctrl_interfaces,
     }
 }
 
+bool StateRL::useRos1PolicyOrder() const
+{
+    return params_.policy_joint_order == "ros1_fl_fr_rl_rr";
+}
+
+torch::Tensor StateRL::ctrlToPolicyDofOrder(const torch::Tensor& ctrl_order) const
+{
+    if (!useRos1PolicyOrder())
+    {
+        return ctrl_order;
+    }
+
+    // Controller order is FR, FL, RR, RL. ROS1 ABS policy order is FL, FR, RL, RR.
+    static const std::vector<int64_t> indices = {3, 4, 5, 0, 1, 2, 9, 10, 11, 6, 7, 8};
+    const auto index = torch::tensor(indices, torch::TensorOptions().dtype(torch::kLong).device(ctrl_order.device()));
+    return ctrl_order.index_select(1, index);
+}
+
+torch::Tensor StateRL::policyToCtrlDofOrder(const torch::Tensor& policy_order) const
+{
+    if (!useRos1PolicyOrder())
+    {
+        return policy_order;
+    }
+
+    // Inverse of ctrlToPolicyDofOrder.
+    static const std::vector<int64_t> indices = {3, 4, 5, 0, 1, 2, 9, 10, 11, 6, 7, 8};
+    const auto index = torch::tensor(indices, torch::TensorOptions().dtype(torch::kLong).device(policy_order.device()));
+    return policy_order.index_select(1, index);
+}
+
+torch::Tensor StateRL::ctrlToPolicyContactOrder(const torch::Tensor& ctrl_order) const
+{
+    if (!useRos1PolicyOrder())
+    {
+        return ctrl_order;
+    }
+
+    // Controller contact order is FR, FL, RR, RL. ROS1 observation order is FL, FR, RL, RR.
+    static const std::vector<int64_t> indices = {1, 0, 3, 2};
+    const auto index = torch::tensor(indices, torch::TensorOptions().dtype(torch::kLong).device(ctrl_order.device()));
+    return ctrl_order.index_select(1, index);
+}
+
+StateRL::~StateRL()
+{
+    running_ = false;
+    if (rl_thread_.joinable())
+    {
+        rl_thread_.join();
+    }
+    // Cleanup ray2d shared memory
+    if (ray2d_shm_ptr_ != nullptr && ray2d_shm_ptr_ != MAP_FAILED)
+    {
+        munmap(ray2d_shm_ptr_, 11 * sizeof(float));
+    }
+    if (ray2d_shm_fd_ >= 0)
+    {
+        close(ray2d_shm_fd_);
+    }
+}
+
 void StateRL::enter()
 {
     // Init observations
@@ -128,9 +217,38 @@ void StateRL::enter()
     obs_.dof_vel = torch::zeros({1, params_.num_of_dofs});
     obs_.actions = torch::zeros({1, params_.num_of_dofs});
     obs_.contact = torch::zeros({1, 4});
+    // Init ray2d from shared memory (or fallback to constant)
+    ray2d_shm_fd_ = shm_open("/mujoco_ray2d", O_RDONLY, 0666);
+    if (ray2d_shm_fd_ >= 0)
+    {
+        ray2d_shm_ptr_ = static_cast<float*>(
+            mmap(NULL, 11 * sizeof(float), PROT_READ, MAP_SHARED, ray2d_shm_fd_, 0));
+        if (ray2d_shm_ptr_ == MAP_FAILED)
+        {
+            RCLCPP_WARN(rclcpp::get_logger("StateRL"),
+                "[Ray2D] mmap failed: %s, using constant ray2d", strerror(errno));
+            ray2d_shm_ptr_ = nullptr;
+            close(ray2d_shm_fd_);
+            ray2d_shm_fd_ = -1;
+        }
+        else
+        {
+            RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+                "[Ray2D] Shared memory connected: /mujoco_ray2d");
+        }
+    }
+    else
+    {
+        RCLCPP_WARN(rclcpp::get_logger("StateRL"),
+            "[Ray2D] shm_open failed: %s, using constant ray2d", strerror(errno));
+    }
+
+    // Always initialize obs_.ray2d (will be updated from shm in runModel if available)
     obs_.ray2d = torch::ones({1, params_.abs_ray2d_count}) * std::log2(params_.abs_ray2d_max_range);
     episode_timer_ = 0.0;
     rl_step_count_ = 0;
+    sync_decimation_counter_ = 0;
+    accumulated_yaw_ = 0.0;
 
     // Init output
     output_torques = torch::zeros({1, params_.num_of_dofs});
@@ -158,18 +276,12 @@ void StateRL::enter()
 
     running_ = true;
 
-    // ===== Verification logs (remove after confirmed) =====
-    RCLCPP_INFO(rclcpp::get_logger("StateRL"), "[VERIFY-ENTER] contact shape=%ldx%ld init_values=[%.0f %.0f %.0f %.0f]",
-                obs_.contact.size(0), obs_.contact.size(1),
-                obs_.contact[0][0].item<double>(), obs_.contact[0][1].item<double>(),
-                obs_.contact[0][2].item<double>(), obs_.contact[0][3].item<double>());
-    RCLCPP_INFO(rclcpp::get_logger("StateRL"), "[VERIFY-ENTER] ray2d values (first 3): %.4f %.4f %.4f (log2(%.1f)=%.4f)",
-                obs_.ray2d[0][0].item<double>(), obs_.ray2d[0][1].item<double>(),
-                obs_.ray2d[0][2].item<double>(), params_.abs_ray2d_max_range,
-                std::log2(params_.abs_ray2d_max_range));
-    RCLCPP_INFO(rclcpp::get_logger("StateRL"), "[VERIFY-ENTER] episode_timer=%.1f, running_=%d",
-                episode_timer_, running_);
-    // ===== End verification logs =====
+    // Confirm ray2d shared memory status on each RL entry
+    if (ray2d_shm_ptr_ != nullptr) {
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"), "[RL] Ray2d: shm connected, policy active");
+    } else {
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"), "[RL] Ray2d: using constant log2(%.1f)", params_.abs_ray2d_max_range);
+    }
 }
 
 void StateRL::run(const rclcpp::Time&/*time*/, const rclcpp::Duration&/*period*/)
@@ -177,7 +289,12 @@ void StateRL::run(const rclcpp::Time&/*time*/, const rclcpp::Duration&/*period*/
     getState();
     if (!use_rl_thread_)
     {
-        runModel();
+        sync_decimation_counter_++;
+        if (sync_decimation_counter_ >= params_.decimation)
+        {
+            sync_decimation_counter_ = 0;
+            runModel();
+        }
     }
     setCommand();
 }
@@ -189,18 +306,112 @@ void StateRL::exit()
     rl_step_count_ = 0;
 }
 
+void StateRL::computeRecoveryTwist()
+{
+    // Port of ROS1 depth_obstacle_depth_goal_ros.py lines 495-526
+    torch::autograd::GradMode::set_enabled(true);
+    using torch::indexing::Slice;
+
+    const double twist_tau = params_.twist_tau;
+    const double twist_eps = params_.twist_eps;
+    const double twist_lam = params_.twist_lam;
+    const double twist_lr = params_.twist_lr;
+    const torch::Tensor twist_min = torch::tensor(
+        {{params_.twist_vx_min, params_.twist_vy_min, params_.twist_wz_min}}, torch::kFloat32);
+    const torch::Tensor twist_max = torch::tensor(
+        {{params_.twist_vx_max, params_.twist_vy_max, params_.twist_wz_max}}, torch::kFloat32);
+
+    // Init twist from current velocity
+    auto twist = torch::tensor(
+        {{obs_.lin_vel[0][0].item<double>(),
+          obs_.lin_vel[0][1].item<double>(),
+          obs_.ang_vel[0][2].item<double>()}},
+        torch::kFloat32);
+    twist.set_requires_grad(true);
+
+    auto lin_vel_z = obs_.lin_vel.index({Slice(), Slice(2, 3)});
+    auto ang_vel_xy = obs_.ang_vel.index({Slice(), Slice(0, 2)});
+    auto cmd_xy = obs_.commands.index({Slice(), Slice(0, 2)});
+    auto ray2d = obs_.ray2d;
+
+    for (int iter = 0; iter < 3; iter++) {
+        auto ra_obs = torch::cat({
+            twist.index({Slice(), Slice(0, 2)}),
+            lin_vel_z,
+            ang_vel_xy,
+            twist.index({Slice(), Slice(2, 3)}),
+            cmd_xy,
+            ray2d
+        }, 1);
+
+        auto ra_val = ra_model_.forward({ra_obs}).toTensor();
+        auto pos = twist * twist_tau;
+        auto ra_penalty = twist_lam * ra_val.add(2.0 * twist_eps).clamp_min(0.0);
+        auto pos_dev = 0.02 * ((pos[0][0] - cmd_xy[0][0]).pow(2) +
+                                (pos[0][1] - cmd_xy[0][1]).pow(2));
+        auto loss = ra_penalty.sum() + pos_dev;
+        loss.backward();
+
+        if (twist.grad().defined()) {
+            auto grad = twist.grad().clone();
+            grad.clamp_(-1.0, 1.0);
+            twist.data() = twist.data() - twist_lr * grad;
+            twist.data().clamp_(twist_min, twist_max);
+            twist.grad().zero_();
+        }
+    }
+
+    double vx = twist[0][0].item<double>();
+    double vy = twist[0][1].item<double>();
+    double wz = twist[0][2].item<double>();
+
+    // Fallback: if gradient descent fails (stuck at zero), back up and turn
+    if (std::abs(vx) < 0.01 && std::abs(vy) < 0.01 && std::abs(wz) < 0.01) {
+        vx = -0.3;  // back up slowly
+        vy = 0.0;
+        wz = 0.5;   // slight turn
+        RCLCPP_WARN(rclcpp::get_logger("StateRL"),
+            "[TWIST-OPT] zero twist, using fallback: vx=%.1f wz=%.1f", vx, wz);
+    }
+
+    ctrl_component_.recovery_twist_vx = vx;
+    ctrl_component_.recovery_twist_vy = vy;
+    ctrl_component_.recovery_twist_wz = wz;
+
+    RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+        "[TWIST-OPT] twist: vx=%.3f vy=%.3f wz=%.3f", vx, vy, wz);
+
+    torch::autograd::GradMode::set_enabled(false);
+}
+
 FSMStateName StateRL::checkChange()
 {
     if (enable_estimator_ and !estimator_->safety())
     {
         return FSMStateName::PASSIVE;
     }
+
+    // RA-based auto-switch: require ~2 seconds (100 steps) of RL before auto-switch
+    // (prevents death loop: RL→recovery→RL→immediate re-switch)
+    if (ra_loaded_ && ra_value_ > params_.ra_threshold && rl_step_count_ > params_.rl_cooldown_steps)
+    {
+        RCLCPP_WARN(rclcpp::get_logger("StateRL"),
+            "[RA-SWITCH] ra_value=%.4f > threshold=%.4f, optimizing twist...",
+            ra_value_, params_.ra_threshold);
+        computeRecoveryTwist();
+        return FSMStateName::RL_REC;
+    }
+
     switch (ctrl_interfaces_.control_inputs_.command)
     {
     case 1:
         return FSMStateName::PASSIVE;
     case 2:
         return FSMStateName::FIXEDDOWN;
+    case 4:
+        // Manual switch: also optimize twist
+        if (ra_loaded_) computeRecoveryTwist();
+        return FSMStateName::RL_REC;
     default:
         return FSMStateName::RL;
     }
@@ -230,24 +441,26 @@ torch::Tensor StateRL::computeObservation()
         }
         else if (observation == "dof_pos")
         {
-            obs_list.push_back((obs_.dof_pos - params_.default_dof_pos) * params_.dof_pos_scale);
+            obs_list.push_back(
+                (ctrlToPolicyDofOrder(obs_.dof_pos) - ctrlToPolicyDofOrder(params_.default_dof_pos)) *
+                params_.dof_pos_scale);
         }
         else if (observation == "dof_vel")
         {
-            obs_list.push_back(obs_.dof_vel * params_.dof_vel_scale);
+            obs_list.push_back(ctrlToPolicyDofOrder(obs_.dof_vel) * params_.dof_vel_scale);
         }
         else if (observation == "actions")
         {
-            obs_list.push_back(obs_.actions);
+            obs_list.push_back(ctrlToPolicyDofOrder(obs_.actions));
         }
         else if (observation == "contact")
         {
-            obs_list.push_back(obs_.contact);
+            obs_list.push_back(ctrlToPolicyContactOrder(obs_.contact));
         }
         else if (observation == "timer")
         {
-            double t = std::min(episode_timer_ / params_.abs_max_episode_length_s, 1.0);
-            obs_list.push_back(torch::tensor({{t}}));
+            // Match the ROS1 ABS deployment, which keeps timer fixed at 0.5.
+            obs_list.push_back(torch::tensor({{0.5}}));
         }
         else if (observation == "ray2d")
         {
@@ -256,16 +469,40 @@ torch::Tensor StateRL::computeObservation()
     }
 
     const torch::Tensor obs = cat(obs_list, 1);
-
-    static bool obs_dim_printed = false;
-    if (!obs_dim_printed) {
-        RCLCPP_INFO(rclcpp::get_logger("StateRL"), "[VERIFY-OBS] computed observation shape: %ldx%ld (expected 1x%d)",
-                    obs.size(0), obs.size(1), params_.num_observations);
-        obs_dim_printed = true;
-    }
-
     torch::Tensor clamped_obs = clamp(obs, -params_.clip_obs, params_.clip_obs);
     return clamped_obs;
+}
+
+torch::Tensor StateRL::computeRAObservation()
+{
+    // RA 19-dim observation (matches training and ROS1):
+    //   lin_vel(3) + ang_vel(3) + commands[0:2](2) + ray2d(11) = 19
+    using torch::indexing::Slice;
+    auto cmds = obs_.commands.index({Slice(), Slice(0, 2)});
+    return torch::cat({obs_.lin_vel, obs_.ang_vel, cmds, obs_.ray2d}, 1);
+}
+
+void StateRL::runRAModel()
+{
+    if (!ra_loaded_)
+        return;
+
+    torch::autograd::GradMode::set_enabled(false);
+    torch::Tensor ra_obs = computeRAObservation();
+    auto output = ra_model_.forward({ra_obs}).toTensor();
+    ra_value_ = output.item<double>();
+
+    static bool diag = false;
+    if (!diag) {
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+            "[RA] ra=%.4f ray2d=[%.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f]",
+            ra_value_,
+            ra_obs[0][8].item<double>(), ra_obs[0][9].item<double>(), ra_obs[0][10].item<double>(),
+            ra_obs[0][11].item<double>(), ra_obs[0][12].item<double>(), ra_obs[0][13].item<double>(),
+            ra_obs[0][14].item<double>(), ra_obs[0][15].item<double>(), ra_obs[0][16].item<double>(),
+            ra_obs[0][17].item<double>(), ra_obs[0][18].item<double>());
+        diag = true;
+    }
 }
 
 void StateRL::loadYaml(const std::string& config_path)
@@ -329,6 +566,11 @@ void StateRL::loadYaml(const std::string& config_path)
 
     params_.default_dof_pos = torch::from_blob(init_pos_, {12}, torch::kDouble).clone().to(torch::kFloat).unsqueeze(0);
 
+    if (config["policy_joint_order"])
+    {
+        params_.policy_joint_order = config["policy_joint_order"].as<std::string>();
+    }
+
     // ABS-specific parameters
     if (config["abs"])
     {
@@ -337,6 +579,23 @@ void StateRL::loadYaml(const std::string& config_path)
         params_.abs_contact_threshold = abs_node["contact_threshold"].as<double>();
         params_.abs_ray2d_count = abs_node["ray2d_count"].as<int>();
         params_.abs_ray2d_max_range = abs_node["ray2d_max_range"].as<double>();
+        if (abs_node["ra_model_name"])
+            params_.ra_model_name = abs_node["ra_model_name"].as<std::string>();
+        if (abs_node["ra_threshold"])
+            params_.ra_threshold = abs_node["ra_threshold"].as<double>();
+        // Recovery twist optimization params (with defaults)
+        if (abs_node["twist_lam"]) params_.twist_lam = abs_node["twist_lam"].as<double>();
+        if (abs_node["twist_lr"]) params_.twist_lr = abs_node["twist_lr"].as<double>();
+        if (abs_node["twist_tau"]) params_.twist_tau = abs_node["twist_tau"].as<double>();
+        if (abs_node["twist_eps"]) params_.twist_eps = abs_node["twist_eps"].as<double>();
+        if (abs_node["twist_vx_min"]) params_.twist_vx_min = abs_node["twist_vx_min"].as<double>();
+        if (abs_node["twist_vx_max"]) params_.twist_vx_max = abs_node["twist_vx_max"].as<double>();
+        if (abs_node["twist_vy_min"]) params_.twist_vy_min = abs_node["twist_vy_min"].as<double>();
+        if (abs_node["twist_vy_max"]) params_.twist_vy_max = abs_node["twist_vy_max"].as<double>();
+        if (abs_node["twist_wz_min"]) params_.twist_wz_min = abs_node["twist_wz_min"].as<double>();
+        if (abs_node["twist_wz_max"]) params_.twist_wz_max = abs_node["twist_wz_max"].as<double>();
+        if (abs_node["recovery_steps"]) params_.recovery_steps = abs_node["recovery_steps"].as<int>();
+        if (abs_node["rl_cooldown_steps"]) params_.rl_cooldown_steps = abs_node["rl_cooldown_steps"].as<int>();
     }
 }
 
@@ -377,15 +636,6 @@ torch::Tensor StateRL::forward()
     else
     {
         actions = model_.forward({clamped_obs}).toTensor();
-    }
-
-    static bool action_verified = false;
-    if (!action_verified) {
-        RCLCPP_INFO(rclcpp::get_logger("StateRL"), "[VERIFY-ACTION] model output shape: %ldx%ld (expected 1x%d)",
-                    actions.size(0), actions.size(1), params_.num_of_dofs);
-        RCLCPP_INFO(rclcpp::get_logger("StateRL"), "[VERIFY-ACTION] first 3 actions: %.4f %.4f %.4f",
-                    actions[0][0].item<double>(), actions[0][1].item<double>(), actions[0][2].item<double>());
-        action_verified = true;
     }
 
     if (params_.clip_actions_upper.numel() != 0 && params_.clip_actions_lower.numel() != 0)
@@ -442,7 +692,38 @@ void StateRL::runModel()
             to(torch::kFloat).unsqueeze(0);
     }
     obs_.ang_vel = torch::tensor(robot_state_.imu.gyroscope).unsqueeze(0);
-    obs_.commands = torch::tensor({{control_.x, control_.y, control_.yaw}});
+
+    // === Yaw drift correction ===
+    // Training commands are body-frame errors to a WORLD-FRAME target.
+    // When the robot yaws, the body-frame error rotates, providing corrective signal.
+    // We emulate this by treating joystick as world-frame target and rotating
+    // to body frame using accumulated yaw from gyro integration.
+    const double rl_dt = static_cast<double>(params_.decimation) / ctrl_interfaces_.frequency_;
+    accumulated_yaw_ += obs_.ang_vel[0][2].item<double>() * rl_dt;
+
+    // Convert joystick to world-frame position targets (relative to RL-start orientation)
+    const double forward_input = std::clamp(control_.x, 0.0, 1.0);
+    const double lateral_input = std::clamp(control_.y, -1.0, 1.0);
+    const double heading_input = std::clamp(control_.yaw, -1.0, 1.0);
+    double world_x = 1.5 + forward_input * 6.0;   // [1.5, 7.5]
+    double world_y = lateral_input * 2.0;          // [-2.0, 2.0]
+
+    // Command scaling factor (ROS1: min(1, 5/dist+0.01))
+    double dist = std::sqrt(world_x * world_x + world_y * world_y);
+    double scale = std::min(1.0, 5.0 / dist + 0.01);
+    world_x *= scale;
+    world_y *= scale;
+
+    // Rotate world-frame target to body frame using accumulated yaw
+    double cy = std::cos(accumulated_yaw_);
+    double sy = std::sin(accumulated_yaw_);
+    double body_x =  world_x * cy + world_y * sy;
+    double body_y = -world_x * sy + world_y * cy;
+
+    // Heading error: joystick yaw input minus accumulated drift
+    double heading_cmd = heading_input * 0.3 - accumulated_yaw_;
+
+    obs_.commands = torch::tensor({{body_x, body_y, heading_cmd}});
     obs_.base_quat = torch::tensor(robot_state_.imu.quaternion).unsqueeze(0);
     obs_.dof_pos = torch::tensor(robot_state_.motor_state.q).narrow(0, 0, params_.num_of_dofs).unsqueeze(0);
     obs_.dof_vel = torch::tensor(robot_state_.motor_state.dq).narrow(0, 0, params_.num_of_dofs).unsqueeze(0);
@@ -453,6 +734,11 @@ void StateRL::runModel()
         episode_timer_ = 0.0;
 
     // Update contact from foot forces
+    // Training order: FR, FL, RR, RL (matches IsaacGym URDF body order)
+    // DDS footForce: FR, FL, RR, RL (matches MuJoCo touch sensor order)
+    // ros2_control.xacro: FR, FL, RR, RL
+    // YAML foot_force_interfaces: FR, FL, RR, RL
+    // All aligned — no remapping needed
     {
         torch::Tensor contact = torch::zeros({1, 4});
         int foot_count = static_cast<int>(ctrl_interfaces_.foot_force_state_interface_.size());
@@ -462,23 +748,15 @@ void StateRL::runModel()
             contact[0][i] = 2.0 * (force > params_.abs_contact_threshold ? 1.0 : 0.0) - 1.0;
         }
         obs_.contact = contact;
-
-        static bool contact_verified = false;
-        if (!contact_verified) {
-            RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-                "[VERIFY-CONTACT] foot_count=%d forces=[%.1f %.1f %.1f %.1f] contact=[%.0f %.0f %.0f %.0f]",
-                foot_count,
-                (foot_count > 0 ? ctrl_interfaces_.foot_force_state_interface_[0].get().get_value() : -1.0),
-                (foot_count > 1 ? ctrl_interfaces_.foot_force_state_interface_[1].get().get_value() : -1.0),
-                (foot_count > 2 ? ctrl_interfaces_.foot_force_state_interface_[2].get().get_value() : -1.0),
-                (foot_count > 3 ? ctrl_interfaces_.foot_force_state_interface_[3].get().get_value() : -1.0),
-                contact[0][0].item<double>(), contact[0][1].item<double>(),
-                contact[0][2].item<double>(), contact[0][3].item<double>());
-            contact_verified = true;
-        }
     }
 
-    const torch::Tensor clamped_actions = forward();
+    // Update ray2d from shared memory (if available), otherwise keep constant
+    if (ray2d_shm_ptr_ != nullptr)
+    {
+        obs_.ray2d = torch::from_blob(ray2d_shm_ptr_, {1, 11}, torch::kFloat32).clone();
+    }
+
+    torch::Tensor clamped_actions = policyToCtrlDofOrder(forward());
 
     for (const int i : params_.hip_scale_reduction_indices)
     {
@@ -493,6 +771,20 @@ void StateRL::runModel()
 
     output_dof_pos_ = actions_scaled + params_.default_dof_pos;
 
+    // Clip target positions to Go2 joint limits (ROS1 deployment does this for Go1)
+    // Go2 limits from URDF: hip [-1.0472, 1.0472], thigh [-1.5708, 3.4907], calf [-2.7227, -0.83776]
+    for (int i = 0; i < params_.num_of_dofs; ++i)
+    {
+        double q = output_dof_pos_[0][i].item<double>();
+        if (i % 3 == 0)
+            q = std::clamp(q, -1.0472, 1.0472);       // hip
+        else if (i % 3 == 1)
+            q = std::clamp(q, -1.5708, 3.4907);       // thigh
+        else
+            q = std::clamp(q, -2.7227, -0.83776);     // calf
+        output_dof_pos_[0][i] = q;
+    }
+
     for (int i = 0; i < params_.num_of_dofs; ++i)
     {
         robot_command_.motor_command.q[i] = output_dof_pos_[0][i].item<double>();
@@ -502,16 +794,10 @@ void StateRL::runModel()
         robot_command_.motor_command.tau[i] = 0;
     }
 
-    static bool cmd_verified = false;
     rl_step_count_++;
-    if (!cmd_verified) {
-        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-            "[VERIFY-CMD] FL_hip: q=%.4f kp=%.2f kd=%.2f | FL_thigh: q=%.4f kp=%.2f kd=%.2f | FL_calf: q=%.4f kp=%.2f kd=%.2f",
-            robot_command_.motor_command.q[0], robot_command_.motor_command.kp[0], robot_command_.motor_command.kd[0],
-            robot_command_.motor_command.q[1], robot_command_.motor_command.kp[1], robot_command_.motor_command.kd[1],
-            robot_command_.motor_command.q[2], robot_command_.motor_command.kp[2], robot_command_.motor_command.kd[2]);
-        cmd_verified = true;
-    }
+
+    // RA value network inference (after observation is ready)
+    runRAModel();
 }
 
 void StateRL::setCommand() const

@@ -151,49 +151,51 @@ rl_quadruped_controller:
   ros__parameters:
     update_rate: 200  # Hz
     robot_pkg: "go2_description"
-#    use_rl_thread: false
+    use_rl_thread: false
     model_folder: "abs"
+    # CRITICAL: Joint order MUST be FR, FL, RR, RL to match IsaacGym training URDF order
+    # MuJoCo actuators, DDS motor_state, and ros2_control.xacro all use this same order
     joints:
-      - FL_hip_joint
-      - FL_thigh_joint
-      - FL_calf_joint
       - FR_hip_joint
       - FR_thigh_joint
       - FR_calf_joint
-      - RL_hip_joint
-      - RL_thigh_joint
-      - RL_calf_joint
+      - FL_hip_joint
+      - FL_thigh_joint
+      - FL_calf_joint
       - RR_hip_joint
       - RR_thigh_joint
       - RR_calf_joint
+      - RL_hip_joint
+      - RL_thigh_joint
+      - RL_calf_joint
 
     stand_pos:
-      - 0.0000
-      - 0.8000
-      - -1.5000
-      - -0.0000
-      - 0.8000
-      - -1.5000
-      - 0.0000
-      - 0.8000
-      - -1.5000
-      - -0.0000
-      - 0.8000
-      - -1.5000
+      - 0.0000   # FR hip
+      - 0.8000   # FR thigh
+      - -1.5000  # FR calf
+      - -0.0000  # FL hip
+      - 0.8000   # FL thigh
+      - -1.5000  # FL calf
+      - 0.0000   # RR hip
+      - 0.8000   # RR thigh
+      - -1.5000  # RR calf
+      - -0.0000  # RL hip
+      - 0.8000   # RL thigh
+      - -1.5000  # RL calf
 
     down_pos:
-      - 0.01
-      - 1.27
-      - -2.8
-      - -0.01
-      - 1.27
-      - -2.8
-      - 0.3
-      - 1.31
-      - -2.8
-      - -0.3
-      - 1.31
-      - -2.8
+      - 0.01     # FR hip
+      - 1.27     # FR thigh
+      - -2.8     # FR calf
+      - -0.01    # FL hip
+      - 1.27     # FL thigh
+      - -2.8     # FL calf
+      - 0.3      # RR hip
+      - 1.31     # RR thigh
+      - -2.8     # RR calf
+      - -0.3     # RL hip
+      - 1.31     # RL thigh
+      - -2.8     # RL calf
 
     command_interfaces:
       - effort
@@ -208,17 +210,17 @@ rl_quadruped_controller:
       - velocity
 
     feet_names:
-      - FL_foot
       - FR_foot
-      - RL_foot
+      - FL_foot
       - RR_foot
+      - RL_foot
 
     foot_force_name: "foot_force"
     foot_force_interfaces:
-      - FL
-      - RL
       - FR
+      - FL
       - RR
+      - RL
 
     imu_name: "imu_sensor"
     base_name: "base"

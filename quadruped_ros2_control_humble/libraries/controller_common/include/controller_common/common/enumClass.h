@@ -19,7 +19,8 @@ enum class FSMStateName
     BALANCETEST,
 
     OCS2,
-    RL
+    RL,
+    RL_REC
 };
 
 enum class FSMMode

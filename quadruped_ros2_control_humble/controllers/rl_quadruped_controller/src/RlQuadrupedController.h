@@ -6,6 +6,7 @@
 #define LEGGEDGYMCONTROLLER_H
 #include <controller_interface/controller_interface.hpp>
 #include <rl_quadruped_controller/FSM/StateRL.h>
+#include <rl_quadruped_controller/FSM/StateRLRec.h>
 #include <std_msgs/msg/string.hpp>
 
 #include "rl_quadruped_controller/control/CtrlComponent.h"
@@ -22,6 +23,7 @@ namespace rl_quadruped_controller
         std::shared_ptr<StateFixedDown> fixedDown;
         std::shared_ptr<StateFixedStand> fixedStand;
         std::shared_ptr<StateRL> rl;
+        std::shared_ptr<StateRLRec> rlRec;
     };
 
     class LeggedGymController final : public controller_interface::ControllerInterface
@@ -76,19 +78,20 @@ namespace rl_quadruped_controller
         std::string foot_force_name_;
         std::vector<std::string> foot_force_interface_types_;
 
-        // FR FL RR RL
+        // FR FL RR RL (matches IsaacGym training URDF, MuJoCo actuators, DDS motor_state)
+        // Values match training default_joint_angles: hip=0, thigh=0.8, calf=-1.5
         std::vector<double> stand_pos_ = {
-            0.0, 0.67, -1.3,
-            0.0, 0.67, -1.3,
-            0.0, 0.67, -1.3,
-            0.0, 0.67, -1.3
+            0.0, 0.8, -1.5,   // FR hip, thigh, calf
+            0.0, 0.8, -1.5,   // FL hip, thigh, calf
+            0.0, 0.8, -1.5,   // RR hip, thigh, calf
+            0.0, 0.8, -1.5    // RL hip, thigh, calf
         };
 
         std::vector<double> down_pos_ = {
-            0.0, 1.3, -2.4,
-            0.0, 1.3, -2.4,
-            0.0, 1.3, -2.4,
-            0.0, 1.3, -2.4
+            0.0, 1.3, -2.4,   // FR
+            0.0, 1.3, -2.4,   // FL
+            0.0, 1.3, -2.4,   // RR
+            0.0, 1.3, -2.4    // RL
         };
 
         double stand_kp_ = 80.0;

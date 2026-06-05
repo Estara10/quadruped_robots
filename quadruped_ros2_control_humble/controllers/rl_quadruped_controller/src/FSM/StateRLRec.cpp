@@ -110,6 +110,10 @@ void StateRLRec::enter()
     control_.y = 0.0;
     control_.yaw = 0.0;
 
+    // Clear command to prevent stale keyboard/auto-launch commands from
+    // triggering immediate exit back to RL or other states.
+    ctrl_interfaces_.control_inputs_.command = 0;
+
     if (!params_.observations_history.empty())
         history_obs_buf_->clear();
 
@@ -140,6 +144,41 @@ void StateRLRec::exit()
     running_ = false;
     RCLCPP_INFO(rclcpp::get_logger("StateRLRec"), "[REC-EXIT] RL steps executed: %d", rl_step_count_);
     rl_step_count_ = 0;
+}
+
+bool StateRLRec::useRos1PolicyOrder() const
+{
+    return params_.policy_joint_order == "ros1_fl_fr_rl_rr";
+}
+
+torch::Tensor StateRLRec::ctrlToPolicyDofOrder(const torch::Tensor& ctrl_order) const
+{
+    if (!useRos1PolicyOrder())
+        return ctrl_order;
+    // Controller order: FR, FL, RR, RL → Policy order: FL, FR, RL, RR
+    static const std::vector<int64_t> indices = {3, 4, 5, 0, 1, 2, 9, 10, 11, 6, 7, 8};
+    const auto index = torch::tensor(indices, torch::TensorOptions().dtype(torch::kLong).device(ctrl_order.device()));
+    return ctrl_order.index_select(1, index);
+}
+
+torch::Tensor StateRLRec::policyToCtrlDofOrder(const torch::Tensor& policy_order) const
+{
+    if (!useRos1PolicyOrder())
+        return policy_order;
+    // Policy order: FL, FR, RL, RR → Controller order: FR, FL, RR, RL
+    static const std::vector<int64_t> indices = {3, 4, 5, 0, 1, 2, 9, 10, 11, 6, 7, 8};
+    const auto index = torch::tensor(indices, torch::TensorOptions().dtype(torch::kLong).device(policy_order.device()));
+    return policy_order.index_select(1, index);
+}
+
+torch::Tensor StateRLRec::ctrlToPolicyContactOrder(const torch::Tensor& ctrl_order) const
+{
+    if (!useRos1PolicyOrder())
+        return ctrl_order;
+    // Controller contact: FR, FL, RR, RL → Policy contact: FL, FR, RL, RR
+    static const std::vector<int64_t> indices = {1, 0, 3, 2};
+    const auto index = torch::tensor(indices, torch::TensorOptions().dtype(torch::kLong).device(ctrl_order.device()));
+    return ctrl_order.index_select(1, index);
 }
 
 FSMStateName StateRLRec::checkChange()
@@ -176,13 +215,15 @@ torch::Tensor StateRLRec::computeObservation()
         else if (observation == "commands")
             obs_list.push_back(obs_.commands * params_.commands_scale);
         else if (observation == "dof_pos")
-            obs_list.push_back((obs_.dof_pos - params_.default_dof_pos) * params_.dof_pos_scale);
+            obs_list.push_back(
+                (ctrlToPolicyDofOrder(obs_.dof_pos) - ctrlToPolicyDofOrder(params_.default_dof_pos)) *
+                params_.dof_pos_scale);
         else if (observation == "dof_vel")
-            obs_list.push_back(obs_.dof_vel * params_.dof_vel_scale);
+            obs_list.push_back(ctrlToPolicyDofOrder(obs_.dof_vel) * params_.dof_vel_scale);
         else if (observation == "actions")
-            obs_list.push_back(obs_.actions);
+            obs_list.push_back(ctrlToPolicyDofOrder(obs_.actions));
         else if (observation == "contact")
-            obs_list.push_back(obs_.contact);
+            obs_list.push_back(ctrlToPolicyContactOrder(obs_.contact));
     }
 
     const torch::Tensor obs = cat(obs_list, 1);
@@ -249,6 +290,9 @@ void StateRLRec::loadYaml(const std::string& config_path)
     params_.torque_limits = torch::tensor(ReadVectorFromYamlRec<double>(config["torque_limits"])).view({1, -1});
 
     params_.default_dof_pos = torch::from_blob(init_pos_, {12}, torch::kDouble).clone().to(torch::kFloat).unsqueeze(0);
+
+    if (config["policy_joint_order"])
+        params_.policy_joint_order = config["policy_joint_order"].as<std::string>();
 
     // contact_threshold
     if (config["abs"] && config["abs"]["contact_threshold"])
@@ -386,7 +430,8 @@ void StateRLRec::runModel()
         obs_.contact = contact;
     }
 
-    const torch::Tensor clamped_actions = forward();
+    // Actions come from policy in training order (FL-first). Remap to controller order (FR-first).
+    torch::Tensor clamped_actions = policyToCtrlDofOrder(forward());
 
     for (const int i : params_.hip_scale_reduction_indices)
         clamped_actions[0][i] *= params_.hip_scale_reduction;

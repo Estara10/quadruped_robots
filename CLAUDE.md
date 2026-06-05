@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Last updated**: 2026-06-04 — Phase D: obstacle detection + recovery twist optimization working, Go2 recovery retraining on server
+**Last updated**: 2026-06-05 — Phase D.3 auto-launch + Phase E safety (DDS timeout, soft start)
 
 ## Project Goal
 
@@ -229,7 +229,12 @@ Key mapping:
 | M5: Recovery Policy | ✅ | StateRLRec (49-dim), manual switch |
 | M6: Ray2d (MuJoCo) | ✅ | mj_ray() → shm → StateRL, z=0.25 origin |
 | M7: RA Value + Auto-switch | ✅ | ra_value inference, auto-switch at threshold -0.05 |
+| D.3: Auto-launch | ✅ | launch_abs_sim.sh: auto FSM transitions to RL |
+| E.1: DDS timeout | ✅ | 200ms frozen joints → force PASSIVE + FATAL log |
+| E.3: Soft start | ✅ | Kp/Kd ramp 0→target over 0.5s |
 | M6b: Ray-Prediction | ❌ | Depth-camera-based ray prediction not integrated |
+| E.2: Remote emergency | ❌ | `/rt/wirelesscontroller` not subscribed |
+| E.4: Temperature monitor | ❌ | Motor temp not exposed to controller |
 | M8: Real Go2 deployment | ❌ | Not started |
 
 ### Ray2d Architecture (Phase B, 2026-06-03)
@@ -345,6 +350,18 @@ colcon build --symlink-install \
 | `descriptions/unitree/go2_description/config/abs/policy.pt` | **New file** — TorchScript agile policy (783K) |
 | `descriptions/unitree/go2_description/config/rec/policy.pt` | **New file** — TorchScript recovery policy (759K) |
 | `controllers/rl_quadruped_controller/CMakeLists.txt` | Added StateRLRec.cpp |
+
+## Key Modified Files (2026-06-05 — Phase D.3 + E safety)
+
+| File | Change Summary |
+|------|---------------|
+| `scripts/launch_abs_sim.sh` | Auto-enter RL: `ros2 topic pub` sends FSM commands (2→2→3), auto ly=1.0 |
+| `controllers/rl_quadruped_controller/src/RlQuadrupedController.h` | DDS timeout: `last_joint_positions_`, `dds_timeout_counter_`, threshold=100 steps |
+| `controllers/rl_quadruped_controller/src/RlQuadrupedController.cpp` | DDS timeout check in `update()`: frozen joints >200ms → force PASSIVE + FATAL log |
+| `controllers/rl_quadruped_controller/include/.../FSM/StateRL.h` | Soft start: `mutable soft_start_step_`, `soft_start_steps_=250` |
+| `controllers/rl_quadruped_controller/src/FSM/StateRL.cpp` | `setCommand()` scales Kp/Kd by ratio; `enter()` resets counter; YAML reads `soft_start_steps` |
+| `descriptions/unitree/go2_description/config/abs/config.yaml` | Added `soft_start_steps: 250` (~0.5s ramp) |
+| `controllers/rl_quadruped_controller/doc/real_go2_deployment.md` | Updated safety feature status (DDS timeout ✅, Soft start ✅) |
 
 ## Key Constraints
 

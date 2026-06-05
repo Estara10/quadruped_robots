@@ -169,7 +169,9 @@ private:
     torch::Tensor computeObservation();
     torch::Tensor computeRAObservation();
     void runRAModel();
-    void computeRecoveryTwist();  // ROS1 gradient descent: optimize twist for recovery
+    // ROS1: gradient descent twist optimization + recovery action (lines 498-538)
+    void computeRecoveryTwist();
+    torch::Tensor computeRecoveryObservation(const torch::Tensor& twist);  // 49-dim for recovery policy
 
     void loadYaml(const std::string& config_path);
 
@@ -211,8 +213,10 @@ private:
     // rl module
     torch::jit::script::Module model_;
     torch::jit::script::Module ra_model_;
+    torch::jit::script::Module rec_model_;    // recovery policy (ROS1: loaded at startup)
     double ra_value_ = -1.0;
     bool ra_loaded_ = false;
+    bool rec_loaded_ = false;
     bool use_rl_thread_ = true;
     std::thread rl_thread_;
     bool running_ = false;
@@ -234,6 +238,17 @@ private:
     // Yaw tracking: integrate gyro_z to detect heading drift
     // Commands are treated as world-frame targets, rotated to body frame each step
     double accumulated_yaw_ = 0.0;
+
+    // Inline ABS recovery state. Keep recovery active briefly after entry so
+    // single-frame RA dips do not interrupt the escape maneuver.
+    bool in_recovery_ = false;
+    int recovery_hold_count_ = 0;
+    int recovery_hold_steps_ = 25;
+
+    // Soft start: ramp Kp/Kd from 0 to target over first N steps
+    // Counter increments at controller rate (500Hz), so 250 steps ≈ 0.5s
+    mutable int soft_start_step_ = 0;
+    int soft_start_steps_ = 250;
 
     bool useRos1PolicyOrder() const;
     torch::Tensor ctrlToPolicyDofOrder(const torch::Tensor& ctrl_order) const;

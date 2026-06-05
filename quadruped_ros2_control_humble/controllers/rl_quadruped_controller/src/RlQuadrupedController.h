@@ -125,6 +125,12 @@ namespace rl_quadruped_controller
         FSMStateList state_list_;
         std::shared_ptr<FSMState> current_state_;
         std::shared_ptr<FSMState> next_state_;
+
+        // DDS timeout detection
+        std::vector<double> last_joint_positions_;
+        int dds_timeout_counter_ = 0;
+        int dds_timeout_threshold_ = 100;  // ~200ms at 500Hz
+        bool dds_timeout_triggered_ = false;
     };
 }
 #endif //LEGGEDGYMCONTROLLER_H

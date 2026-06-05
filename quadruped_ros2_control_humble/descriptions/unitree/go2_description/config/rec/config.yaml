@@ -4,6 +4,7 @@
 
 model_name: "policy.pt"
 framework: "isaacgym"
+policy_joint_order: "ros1_fl_fr_rl_rr"
 decimation: 4
 num_observations: 49
 observations: ["contact", "ang_vel", "gravity_vec", "commands", "dof_pos", "dof_vel", "actions"]

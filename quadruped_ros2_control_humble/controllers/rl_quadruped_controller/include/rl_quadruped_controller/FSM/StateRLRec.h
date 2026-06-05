@@ -105,6 +105,7 @@ struct ModelParamsRec
     torch::Tensor commands_scale;
     torch::Tensor default_dof_pos;
     double contact_threshold = 1.0;
+    std::string policy_joint_order = "fr_first";
 };
 
 struct ObservationsRec
@@ -172,6 +173,12 @@ private:
 
     int rl_step_count_ = 0;
     int sync_decimation_counter_ = 0;
+
+    // Joint order remapping (same as StateRL: controller FR-first ↔ policy FL-first)
+    bool useRos1PolicyOrder() const;
+    torch::Tensor ctrlToPolicyDofOrder(const torch::Tensor& ctrl_order) const;
+    torch::Tensor policyToCtrlDofOrder(const torch::Tensor& policy_order) const;
+    torch::Tensor ctrlToPolicyContactOrder(const torch::Tensor& ctrl_order) const;
 };
 
 #endif //STATERLREC_H

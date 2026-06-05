@@ -60,6 +60,47 @@ namespace rl_quadruped_controller
     controller_interface::return_type LeggedGymController::
     update(const rclcpp::Time& time, const rclcpp::Duration& period)
     {
+        // ===== DDS Timeout Detection =====
+        // Check if joint positions have frozen (DDS communication lost)
+        if (!last_joint_positions_.empty() && !dds_timeout_triggered_)
+        {
+            bool frozen = true;
+            for (size_t i = 0; i < last_joint_positions_.size(); i++)
+            {
+                double current = ctrl_interfaces_.joint_position_state_interface_[i].get().get_value();
+                if (std::abs(current - last_joint_positions_[i]) > 1e-8)
+                {
+                    frozen = false;
+                }
+                last_joint_positions_[i] = current;
+            }
+            if (frozen)
+            {
+                dds_timeout_counter_++;
+                if (dds_timeout_counter_ >= dds_timeout_threshold_)
+                {
+                    RCLCPP_FATAL(get_node()->get_logger(),
+                        "[EMERGENCY] DDS timeout detected (%d steps frozen)! Forcing PASSIVE!",
+                        dds_timeout_counter_);
+                    dds_timeout_triggered_ = true;
+                    // Force switch to PASSIVE immediately
+                    if (current_state_->state_name != FSMStateName::PASSIVE)
+                    {
+                        current_state_->exit();
+                        current_state_ = state_list_.passive;
+                        current_state_->enter();
+                        mode_ = FSMMode::NORMAL;
+                    }
+                    return controller_interface::return_type::OK;
+                }
+            }
+            else if (dds_timeout_counter_ > 0)
+            {
+                // Data flowing again — reset (but keep triggered flag)
+                dds_timeout_counter_ = 0;
+            }
+        }
+
         if (ctrl_component_.enable_estimator_)
         {
             if (ctrl_component_.robot_model_ == nullptr)
@@ -224,6 +265,16 @@ namespace rl_quadruped_controller
         next_state_ = current_state_;
         next_state_name_ = current_state_->state_name;
         mode_ = FSMMode::NORMAL;
+
+        // Init DDS timeout detection
+        last_joint_positions_.resize(12, 0.0);
+        dds_timeout_counter_ = 0;
+        dds_timeout_triggered_ = false;
+        // Seed with current positions after first read
+        for (int i = 0; i < 12; i++)
+        {
+            last_joint_positions_[i] = ctrl_interfaces_.joint_position_state_interface_[i].get().get_value();
+        }
 
         return CallbackReturn::SUCCESS;
     }

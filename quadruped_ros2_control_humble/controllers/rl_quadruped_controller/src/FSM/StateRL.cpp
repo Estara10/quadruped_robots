@@ -329,153 +329,69 @@ void StateRL::exit()
 
 void StateRL::computeRecoveryTwist()
 {
-    // === ROS1 depth_obstacle_depth_goal_ros.py lines 498-525 ===
-    // Simplified: ray2d-based direction selection + single-path gradient descent.
-    // The bidirectional (LEFT/RIGHT/CURRENT) gradient descent relied on the RA
-    // model being sensitive to vy changes — but training data is mostly forward
-    // motion, and TorchScript autograd in C++ may not work. Instead, we detect
-    // obstacle direction from ray2d directly, bias the twist initial guess
-    // toward the clear side, then run single-path gradient descent to refine.
-    torch::autograd::GradMode::set_enabled(true);
+    // === Pure ray2d-driven recovery twist — no gradient descent ===
+    // The RA model is used only for the TRIGGER (should we activate recovery?).
+    // The recovery ACTION (what twist to use) is determined directly from ray2d data.
+    //
+    // Rationale: RA model gradient descent proved unreliable because:
+    // 1. Training data has little vy/wz variation → model is flat in those dims
+    // 2. pos_dev penalty (0.02*y_iter²) pulls vy→0, undoing direction bias
+    // 3. TorchScript C++ autograd status is unverified
+    //
+    // Ray-order: 0=-45°(right-fwd), 5=0°, 10=+45°(left-fwd)
+    // Body frame: +y=left, -y=right (confirmed from go2.xml hip positions)
     using torch::indexing::Slice;
-
-    // ROS1 line 297-302: twist params
-    const double twist_tau = params_.twist_tau;
-    const double twist_eps = params_.twist_eps;
-    const double twist_lam = params_.twist_lam;
-    const double twist_lr = params_.twist_lr;
-    const torch::Tensor twist_min = torch::tensor(
-        {{params_.twist_vx_min, params_.twist_vy_min, params_.twist_wz_min}}, torch::kFloat32);
-    const torch::Tensor twist_max = -twist_min;
-    const double vy_min = params_.twist_vy_min;  // -0.3
-    const double vy_max = params_.twist_vy_max;  // +0.3
-
-    // RA observation components (body-frame z, ang_vel_xy, command_xy)
-    auto lin_vel_z = obs_.lin_vel.index({Slice(), Slice(2, 3)});
-    auto ang_vel_xy = obs_.ang_vel.index({Slice(), Slice(0, 2)});
-    auto cmd_xy = obs_.commands.index({Slice(), Slice(0, 2)});
-    // ray2d order: index 0=-45°(right-forward), 5=0°(forward), 10=+45°(left-forward)
     auto ray2d = obs_.ray2d;
 
-    // === Step 1: Detect obstacle direction from ray2d ===
-    // Body frame: +y = left, -y = right.
-    // Left-side rays:  indices 6-10 (theta +9° to +45°)
-    // Right-side rays: indices 0-4  (theta -45° to -9°)
-    double left_avg = 0.0, right_avg = 0.0;
-    for (int i = 0; i < 5; i++) {
-        left_avg  += ray2d[0][6 + i].item<double>();   // indices 6..10
-        right_avg += ray2d[0][i].item<double>();        // indices 0..4
-    }
-    left_avg /= 5.0;
-    right_avg /= 5.0;
+    // Compute side averages
+    double left_avg  = (ray2d[0][6].item<double>() + ray2d[0][7].item<double>()
+                      + ray2d[0][8].item<double>() + ray2d[0][9].item<double>()
+                      + ray2d[0][10].item<double>()) / 5.0;
+    double right_avg = (ray2d[0][0].item<double>() + ray2d[0][1].item<double>()
+                      + ray2d[0][2].item<double>() + ray2d[0][3].item<double>()
+                      + ray2d[0][4].item<double>()) / 5.0;
+    double center_ray = ray2d[0][5].item<double>();
 
-    // Interpret: lower log2 distance = closer obstacle.
-    // Asymmetry threshold 0.3 (~23% distance ratio) avoids noise-triggered bias.
-    int vy_sign = 0;  // -1 = obstacle left → go right (negative vy)
-                       // +1 = obstacle right → go left (positive vy)
-                       //  0 = symmetric → gradient descent decides
-    const double asym_thr = 0.3;
-    if (left_avg < right_avg - asym_thr) {
-        vy_sign = -1;   // obstacle on left → prefer rightward vy
-    } else if (right_avg < left_avg - asym_thr) {
-        vy_sign = +1;   // obstacle on right → prefer leftward vy
-    }
+    // Direction: lower log2 = closer obstacle → go away from that side
+    const double asym_thr = 0.15;
+    int vy_sign = 0;   // -1=obstacle left→go right, +1=obstacle right→go left
+    if (left_avg < right_avg - asym_thr)       vy_sign = -1;
+    else if (right_avg < left_avg - asym_thr)  vy_sign = +1;
 
-    // === Step 2: Single-path gradient descent (10 iters, matching ROS1 testbed.py) ===
-    // Init from current velocity (ROS1 lines 498-501)
-    auto twist = torch::tensor(
-        {{obs_.lin_vel[0][0].item<double>(),
-          obs_.lin_vel[0][1].item<double>(),
-          obs_.ang_vel[0][2].item<double>()}}, torch::kFloat32);
+    // Forward speed: reduce when obstacles are close ahead
+    // center_ray ~2.58 = clear (log2(6m)), ~1.0 = obstacle at 2m, ~0 = obstacle at 1m
+    double vx = std::max(0.3, center_ray * 0.6);  // 0.3 ~ 1.5 m/s depending on clearance
+    vx = std::min(vx, params_.twist_vx_max);
 
-    // Bias initial vy toward the clear side
+    // Lateral: go away from obstacle side
+    double vy = 0.0;
     if (vy_sign != 0) {
-        double biased_vy = vy_sign * vy_max;  // ±0.3
-        if (vy_sign < 0 && twist[0][1].item<double>() > biased_vy) {
-            twist[0][1] = biased_vy;  // current vy too positive, bias right
-        } else if (vy_sign > 0 && twist[0][1].item<double>() < biased_vy) {
-            twist[0][1] = biased_vy;  // current vy too negative, bias left
-        }
+        vy = vy_sign * params_.twist_vy_max;  // ±0.3
     }
 
-    // Constrain vy to directed half-space during optimization.
-    // This prevents the gradient from undoing the ray2d-based direction,
-    // while still allowing refinement within the safe half-space.
-    double vy_lower, vy_upper;
-    if (vy_sign < 0)       { vy_lower = vy_min; vy_upper = 0.0;      }  // right half
-    else if (vy_sign > 0)  { vy_lower = 0.0;      vy_upper = vy_max; }  // left half
-    else                   { vy_lower = vy_min; vy_upper = vy_max;   }  // full range
-
-    twist.set_requires_grad(true);
-
-    const int GD_ITERS = 10;  // ROS1 testbed.py line 339: for _iter in range(10)
-    bool grad_defined = false;
-
-    for (int iter = 0; iter < GD_ITERS; iter++)
-    {
-        auto ra_obs = torch::cat({
-            twist.index({Slice(), Slice(0, 2)}), lin_vel_z, ang_vel_xy,
-            twist.index({Slice(), Slice(2, 3)}), cmd_xy, ray2d
-        }, 1);
-
-        auto ra_val = ra_model_.forward({ra_obs}).toTensor();
-
-        auto tau2 = twist_tau * twist_tau;
-        auto x_iter = twist[0][0] * twist_tau - 0.5 * twist[0][1] * twist[0][2] * tau2;
-        auto y_iter = twist[0][1] * twist_tau + 0.5 * twist[0][0] * twist[0][2] * tau2;
-
-        auto ra_penalty = twist_lam * ra_val.add(2.0 * twist_eps).clamp_min(0.0);
-        auto pos_dev = 0.02 * ((x_iter - cmd_xy[0][0]).pow(2) + (y_iter - cmd_xy[0][1]).pow(2));
-        auto loss = ra_penalty.sum() + pos_dev;
-        loss.backward();
-
-        if (twist.grad().defined())
-        {
-            if (!grad_defined) grad_defined = true;
-            auto grad = twist.grad();
-            auto grad_norm = grad.norm(2, -1, true);
-            auto scale = 1.0 / at::maximum(grad_norm, torch::tensor(1.0f));
-            grad = grad * scale;
-            twist.data() = twist.data() - twist_lr * grad;
-            twist.data().clamp_(twist_min, twist_max);
-            twist.data()[0][1].clamp_(vy_lower, vy_upper);
-            twist.grad().zero_();
-        }
+    // Yaw: turn away from obstacle, proportional to asymmetry
+    double wz = 0.0;
+    if (vy_sign != 0) {
+        // More asymmetry → stronger turn
+        double asym = std::abs(right_avg - left_avg);
+        wz = vy_sign * std::min(3.0, asym * 2.0);  // up to ±3.0 rad/s
     }
 
-    double vx = twist[0][0].item<double>();
-    double vy = twist[0][1].item<double>();
-    double wz = twist[0][2].item<double>();
-
-    // Determine direction label for logging
     const char* direction = "STRAIGHT";
-    if (vy < -0.1)      direction = "RIGHT";
-    else if (vy > 0.1)  direction = "LEFT";
-
-    // Fallback: if gradient descent produced near-zero twist, use a safe default
-    if (std::abs(vx) < 0.01 && std::abs(vy) < 0.01 && std::abs(wz) < 0.01) {
-        vx = -0.3; vy = 0.0; wz = 0.5;
-        RCLCPP_WARN(rclcpp::get_logger("StateRL"),
-            "[TWIST-OPT] zero twist, using fallback: vx=%.1f wz=%.1f", vx, wz);
-    }
+    if (vy_sign < 0)      direction = "RIGHT";
+    else if (vy_sign > 0) direction = "LEFT";
 
     ctrl_component_.recovery_twist_vx = vx;
     ctrl_component_.recovery_twist_vy = vy;
     ctrl_component_.recovery_twist_wz = wz;
 
-    // Diagnostic on first call
-    static bool diag_done = false;
-    if (!diag_done) {
+    static int call_count = 0;
+    if (call_count++ % 5 == 0) {  // log every 5th call to avoid spam
         RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-            "[GD-DIAG] grad_defined=%d iters=%d", grad_defined, GD_ITERS);
-        diag_done = true;
+            "[TWIST-OPT] dir=%s ray2d=[L%.2f C%.2f R%.2f] asym=%.2f twist=[%.2f,%.2f,%.2f]",
+            direction, left_avg, center_ray, right_avg,
+            std::abs(right_avg - left_avg), vx, vy, wz);
     }
-
-    RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-        "[TWIST-OPT] dir=%s ray2d_Lavg=%.2f Ravg=%.2f vy_sign=%d twist=[%.2f,%.2f,%.2f]",
-        direction, left_avg, right_avg, vy_sign, vx, vy, wz);
-
-    torch::autograd::GradMode::set_enabled(false);
 }
 
 torch::Tensor StateRL::computeRecoveryObservation(const torch::Tensor& twist)

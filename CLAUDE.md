@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Last updated**: 2026-06-05 — Phase D.3 auto-launch + Phase E safety (DDS timeout, soft start)
+**Last updated**: 2026-06-06 — Goal navigation (odometer), ray2d geom filter, paper-reproduction protocol
 
 ## Project Goal
 
@@ -226,16 +226,20 @@ Key mapping:
 | M2: 61-dim observation | ✅ | contact/timer/ray2d |
 | M3: MuJoCo sim pipeline | ✅ | unitree_mujoco + DDS |
 | M4: Agile Policy running | ✅ | policy_joint_order: ros1_fl_fr_rl_rr (essential!) |
-| M5: Recovery Policy | ✅ | StateRLRec (49-dim), manual switch |
-| M6: Ray2d (MuJoCo) | ✅ | mj_ray() → shm → StateRL, z=0.25 origin |
-| M7: RA Value + Auto-switch | ✅ | ra_value inference, auto-switch at threshold -0.05 |
+| M4: Agile Policy running | ✅ | 61-dim obs, goal navigation via odometer |
+| M5: Recovery Policy inference | ✅ | 49-dim obs, inline recovery (matches ROS1 lines 532-536) |
+| M6: Ray2d (MuJoCo) | ✅ | 2D ray-circle → shm, geom type filter |
+| M6b: Ray-Prediction | ❌ | Depth-camera-based ray prediction not integrated |
+| M7a: RA Value + Auto-switch | ✅ | ra_value inference, auto-switch at threshold -0.05 |
+| M7b: Recovery twist = paper GD | ❌ | **DEVIATION**: using ray2d-driven twist, NOT paper's gradient descent. Must revert to paper method. |
+| M7c: Goal navigation | ✅ | World-frame goal via odometer, arrival detection |
+| M8: Real Go2 deployment | ❌ | Not started |
 | D.3: Auto-launch | ✅ | launch_abs_sim.sh: auto FSM transitions to RL |
 | E.1: DDS timeout | ✅ | 200ms frozen joints → force PASSIVE + FATAL log |
-| E.3: Soft start | ✅ | Kp/Kd ramp 0→target over 0.5s |
-| M6b: Ray-Prediction | ❌ | Depth-camera-based ray prediction not integrated |
 | E.2: Remote emergency | ❌ | `/rt/wirelesscontroller` not subscribed |
+| E.3: Soft start | ✅ | Kp/Kd ramp 0→target over 0.5s |
 | E.4: Temperature monitor | ❌ | Motor temp not exposed to controller |
-| M8: Real Go2 deployment | ❌ | Not started |
+| — Goal resampling | ❌ | Paper resets goal every 1600 timesteps |
 
 ### Ray2d Architecture (Phase B, 2026-06-03)
 
@@ -365,7 +369,20 @@ colcon build --symlink-install \
 
 ## Key Constraints
 
-0. **先看 ROS1 源码再动手** — 遇到任何部署问题，第一步是查看 `ABS/deployment/src/abs_src/` 下 ROS1 的对应实现。ABS 是一个复现项目，ROS1 代码是唯一权威参考。只有在 ROS1 方案在 ROS2/LibTorch 中确实不可行时，才考虑替代方案。这条规则适用于所有模块：ray2d、recovery、RA 推理、observation 构造、命令处理等。
+0. **⚠️ 复现论文方法是最高优先级 — 不允许自行设计替代方案**
+   - 本项目目标是**复现 ABS 论文**，不是"让机器人能避障就行"。
+   - 凡是论文中有明确算法的，**必须先忠实地实现论文方法**。只有经过验证确实无法工作（且究明了原因），才可以讨论替代方案。
+   - 遇到困难时，先问"论文为什么能工作？我们的差异在哪？"——而不是直接换一个更简单的方案。走捷径 = 离目标越来越远。
+   - 以下模块论文有明确实现，必须用论文方法：
+     1. **Recovery Twist 优化** — 梯度下降通过 RA 模型 (C++ `torch::autograd`)，不是 ray2d 驱动
+     2. **RA 模型推理** — 19→64→64→1 Tanh，触发阈值 `ra > -twist_eps` (= -0.05)
+     3. **Recovery 策略推理** — 49-dim 观测，内联替代 agile action
+     4. **Goal 导航** — 世界坐标目标 + 机器人定位 → 机体坐标系位置指令
+     5. **Contact 检测** — 足力阈值（仿真=1N 匹配训练，实机=待确认 Go2 SDK 单位）
+     6. **Ray2d 感知** — 仿真=几何射线，实机=深度相机+ResNet18
+   - 只有 ROS1→ROS2 架构差异（见下方#1）和仿真/实机环境差异，才可以做适配性修改。
+
+1. **先看 ROS1 源码再动手** — 遇到任何部署问题，第一步是查看 `ABS/deployment/src/abs_src/` 下 ROS1 的对应实现。ABS 是一个复现项目，ROS1 代码是唯一权威参考。只有在 ROS1 方案在 ROS2/LibTorch 中确实不可行时，才考虑替代方案。这条规则适用于所有模块：ray2d、recovery、RA 推理、observation 构造、命令处理等。
 
 1. **Isaac Gym Preview 4 is required** — closed-source. Do not try to substitute without understanding the codebase.
 2. **Python 3.8 only** — Legged Gym fork in ABS depends on numpy <1.24 and Isaac Gym Preview 4 bindings.

@@ -263,7 +263,6 @@ void StateRL::enter()
     episode_timer_ = 0.0;
     rl_step_count_ = 0;
     sync_decimation_counter_ = 0;
-    accumulated_yaw_ = 0.0;
     soft_start_step_ = 0;
 
     // Init output
@@ -622,6 +621,8 @@ void StateRL::loadYaml(const std::string& config_path)
         if (abs_node["recovery_steps"]) params_.recovery_steps = abs_node["recovery_steps"].as<int>();
         if (abs_node["rl_cooldown_steps"]) params_.rl_cooldown_steps = abs_node["rl_cooldown_steps"].as<int>();
         if (abs_node["soft_start_steps"]) soft_start_steps_ = abs_node["soft_start_steps"].as<int>();
+        if (abs_node["goal_x"]) goal_x_ = abs_node["goal_x"].as<double>();
+        if (abs_node["goal_y"]) goal_y_ = abs_node["goal_y"].as<double>();
     }
 }
 
@@ -719,35 +720,74 @@ void StateRL::runModel()
     }
     obs_.ang_vel = torch::tensor(robot_state_.imu.gyroscope).unsqueeze(0);
 
-    // === Yaw drift correction ===
-    // Training commands are body-frame errors to a WORLD-FRAME target.
-    // When the robot yaws, the body-frame error rotates, providing corrective signal.
-    // We emulate this by treating joystick as world-frame target and rotating
-    // to body frame using accumulated yaw from gyro integration.
-    const double rl_dt = static_cast<double>(params_.decimation) / ctrl_interfaces_.frequency_;
-    accumulated_yaw_ += obs_.ang_vel[0][2].item<double>() * rl_dt;
+    // === Goal-directed navigation with world-frame position ===
+    // Matches paper: GOAL_XYZ in world frame, odometry from ZED/mocap → body-frame target.
+    // Uses MuJoCo ground-truth position (odometer sensor) instead of gyro drift integration.
 
-    // Convert joystick to world-frame position targets (relative to RL-start orientation)
-    const double forward_input = std::clamp(control_.x, 0.0, 1.0);
-    const double lateral_input = std::clamp(control_.y, -1.0, 1.0);
-    const double heading_input = std::clamp(control_.yaw, -1.0, 1.0);
-    double world_x = 1.5 + forward_input * 6.0;   // [1.5, 7.5]
-    double world_y = lateral_input * 2.0;          // [-2.0, 2.0]
+    // Get robot world-frame position from odometer sensor (MuJoCo ground truth)
+    double robot_wx = 0.0, robot_wy = 0.0;
+    if (ctrl_interfaces_.odom_state_interface_.size() >= 2)
+    {
+        robot_wx = ctrl_interfaces_.odom_state_interface_[0].get().get_value();
+        robot_wy = ctrl_interfaces_.odom_state_interface_[1].get().get_value();
+    }
 
-    // Command scaling factor (ROS1: min(1, 5/dist+0.01))
-    double dist = std::sqrt(world_x * world_x + world_y * world_y);
-    double scale = std::min(1.0, 5.0 / dist + 0.01);
-    world_x *= scale;
-    world_y *= scale;
+    // Extract yaw from IMU quaternion (absolute world-frame heading)
+    // Framework "isaacgym": quaternion order = [x, y, z, w]
+    double qx = robot_state_.imu.quaternion[0];
+    double qy = robot_state_.imu.quaternion[1];
+    double qz = robot_state_.imu.quaternion[2];
+    double qw = robot_state_.imu.quaternion[3];
+    double robot_yaw = std::atan2(2.0 * (qw * qz + qx * qy), 1.0 - 2.0 * (qy * qy + qz * qz));
 
-    // Rotate world-frame target to body frame using accumulated yaw
-    double cy = std::cos(accumulated_yaw_);
-    double sy = std::sin(accumulated_yaw_);
-    double body_x =  world_x * cy + world_y * sy;
-    double body_y = -world_x * sy + world_y * cy;
+    // Joystick offsets for manual goal adjustment (lx=lat, ly=long)
+    const double joystick_x = std::clamp(control_.x, -1.0, 1.0) * 2.0;  // ±2m fwd/bwd trim
+    const double joystick_y = std::clamp(control_.y, -1.0, 1.0) * 2.0;  // ±2m lateral trim
+    const double joystick_yaw = std::clamp(control_.yaw, -1.0, 1.0);
 
-    // Heading error: joystick yaw input minus accumulated drift
-    double heading_cmd = heading_input * 0.3 - accumulated_yaw_;
+    // World-frame goal = config goal + joystick trim
+    double goal_wx = goal_x_ + joystick_x;
+    double goal_wy = goal_y_ + joystick_y;
+
+    // Vector from robot to goal in world frame
+    double diff_x = goal_wx - robot_wx;
+    double diff_y = goal_wy - robot_wy;
+
+    // Rotate to body frame (ROS1 transform_global_xy_to_robot_xy)
+    double cos_yaw = std::cos(robot_yaw);
+    double sin_yaw = std::sin(robot_yaw);
+    double body_x =  diff_x * cos_yaw + diff_y * sin_yaw;
+    double body_y = -diff_x * sin_yaw + diff_y * cos_yaw;
+
+    // Distance scaling (ROS1 lines 171-174: min(1, 5/dist+0.01))
+    double dist_to_goal = std::sqrt(diff_x * diff_x + diff_y * diff_y);
+    double scale = std::min(1.0, 5.0 / (dist_to_goal + 0.01));
+    body_x *= scale;
+    body_y *= scale;
+
+    // Heading command = direction from robot to goal
+    double heading_cmd = std::atan2(body_y, body_x) + joystick_yaw * 0.3;
+
+    // When within tight threshold (training sigma_tight=0.5m), signal "stand still"
+    // by zeroing commands. This matches training: _reward_stand_still_pos activates
+    // within 0.5m, _reward_velo_dir switches to constant 1.0, removing forward incentive.
+    const double arrival_threshold = 0.5;  // matches training position_target_sigma_tight
+    if (dist_to_goal < arrival_threshold)
+    {
+        body_x = 0.0;
+        body_y = 0.0;
+        heading_cmd = 0.0;
+    }
+
+    // Diagnostic log every 100 RL steps
+    static int goal_log_counter = 0;
+    if (goal_log_counter++ % 100 == 0)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+            "[GOAL] robot=(%.2f,%.2f) yaw=%.2f goal=(%.2f,%.2f) dist=%.2f body=(%.2f,%.2f) heading=%.2f%s",
+            robot_wx, robot_wy, robot_yaw, goal_wx, goal_wy, dist_to_goal, body_x, body_y, heading_cmd,
+            (dist_to_goal < arrival_threshold) ? " [ARRIVED]" : "");
+    }
 
     obs_.commands = torch::tensor({{body_x, body_y, heading_cmd}});
     obs_.base_quat = torch::tensor(robot_state_.imu.quaternion).unsqueeze(0);
@@ -854,6 +894,22 @@ void StateRL::runModel()
     }
 
     obs_.actions = clamped_actions;
+
+    // Diagnostic: check left-right symmetry every 50 RL steps
+    static int sym_log_counter = 0;
+    if (sym_log_counter++ % 50 == 0)
+    {
+        auto& a = clamped_actions;  // ctrl order: FR(0-2), FL(3-5), RR(6-8), RL(9-11)
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+            "[SYM] cmd=(%.3f,%.3f,%.3f) | "
+            "FR_hip=%.4f FL_hip=%.4f | FR_thigh=%.4f FL_thigh=%.4f | "
+            "RR_hip=%.4f RL_hip=%.4f",
+            obs_.commands[0][0].item<double>(), obs_.commands[0][1].item<double>(),
+            obs_.commands[0][2].item<double>(),
+            a[0][0].item<double>(), a[0][3].item<double>(),
+            a[0][1].item<double>(), a[0][4].item<double>(),
+            a[0][6].item<double>(), a[0][9].item<double>());
+    }
 
     const torch::Tensor actions_scaled = clamped_actions * params_.action_scale;
     // torch::Tensor output_torques = params_.rl_kp * (actions_scaled + params_.default_dof_pos - obs_.dof_pos) - params_.rl_kd * obs_.dof_vel;

@@ -73,3 +73,5 @@ abs:
   recovery_steps: 250              # for manual RL_REC mode only (FSM switch, not inline RA)
   rl_cooldown_steps: 100           # not used by ROS1-style inline recovery
   soft_start_steps: 250            # Kp/Kd ramp steps (~0.5s at 500Hz controller rate)
+  goal_x: 7.0                      # world-frame goal X (forward, matches paper GOAL_XYZ)
+  goal_y: 0.0                      # world-frame goal Y (left = positive)

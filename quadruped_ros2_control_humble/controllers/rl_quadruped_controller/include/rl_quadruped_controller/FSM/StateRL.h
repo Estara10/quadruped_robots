@@ -235,9 +235,9 @@ private:
     int rl_step_count_ = 0;
     int sync_decimation_counter_ = 0;
 
-    // Yaw tracking: integrate gyro_z to detect heading drift
-    // Commands are treated as world-frame targets, rotated to body frame each step
-    double accumulated_yaw_ = 0.0;
+    // World-frame goal position (from YAML config, matches paper GOAL_XYZ)
+    double goal_x_ = 7.0;
+    double goal_y_ = 0.0;
 
     // Inline ABS recovery state. Keep recovery active briefly after entry so
     // single-frame RA dips do not interrupt the escape maneuver.

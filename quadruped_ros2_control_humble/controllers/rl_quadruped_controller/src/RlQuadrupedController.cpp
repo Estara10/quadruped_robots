@@ -54,6 +54,11 @@ namespace rl_quadruped_controller
             conf.names.push_back(foot_force_name_ + "/" += interface_type);
         }
 
+        for (const auto& interface_type : odom_interface_types_)
+        {
+            conf.names.push_back(odom_name_ + "/" += interface_type);
+        }
+
         return conf;
     }
 
@@ -160,6 +165,11 @@ namespace rl_quadruped_controller
                 auto_declare<std::vector<std::string>>("foot_force_interfaces", foot_force_interface_types_);
             feet_force_threshold_ = auto_declare<double>("feet_force_threshold", feet_force_threshold_);
 
+            // odometer sensor (world-frame position + velocity from MuJoCo)
+            odom_name_ = auto_declare<std::string>("odom_name", odom_name_);
+            odom_interface_types_ =
+                auto_declare<std::vector<std::string>>("odom_interfaces", odom_interface_types_);
+
             // pose parameters
             down_pos_ = auto_declare<std::vector<double>>("down_pos", down_pos_);
             stand_pos_ = auto_declare<std::vector<double>>("stand_pos", stand_pos_);
@@ -245,6 +255,10 @@ namespace rl_quadruped_controller
             else if (interface.get_prefix_name() == foot_force_name_)
             {
                 ctrl_interfaces_.foot_force_state_interface_.emplace_back(interface);
+            }
+            else if (interface.get_prefix_name() == odom_name_)
+            {
+                ctrl_interfaces_.odom_state_interface_.emplace_back(interface);
             }
             else
             {

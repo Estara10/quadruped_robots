@@ -636,7 +636,6 @@ void StateRL::loadYaml(const std::string& config_path)
         if (abs_node["twist_wz_min"]) params_.twist_wz_min = abs_node["twist_wz_min"].as<double>();
         if (abs_node["twist_wz_max"]) params_.twist_wz_max = abs_node["twist_wz_max"].as<double>();
         if (abs_node["recovery_steps"]) params_.recovery_steps = abs_node["recovery_steps"].as<int>();
-        if (abs_node["rl_cooldown_steps"]) params_.rl_cooldown_steps = abs_node["rl_cooldown_steps"].as<int>();
         if (abs_node["soft_start_steps"]) soft_start_steps_ = abs_node["soft_start_steps"].as<int>();
         if (abs_node["goal_x"]) goal_x_ = abs_node["goal_x"].as<double>();
         if (abs_node["goal_y"]) goal_y_ = abs_node["goal_y"].as<double>();
@@ -861,33 +860,6 @@ void StateRL::runModel()
         obs_.ray2d = torch::from_blob(ray2d_shm_ptr_, {1, 11}, torch::kFloat32).clone();
     }
 
-    // === One-time diagnostic: verify C++ TorchScript autograd for RA model ===
-    static bool gd_diag_done = false;
-    if (!gd_diag_done && ra_loaded_)
-    {
-        gd_diag_done = true;
-        torch::autograd::GradMode::set_enabled(true);
-        torch::Tensor test_twist = torch::tensor({{0.5, 0.0, 0.0}}, torch::requires_grad(true));
-        auto test_obs = torch::cat({
-            test_twist.index({torch::indexing::Slice(), torch::indexing::Slice(0, 2)}),  // vx, vy
-            obs_.lin_vel.index({torch::indexing::Slice(), torch::indexing::Slice(2, 3)}),  // lin_vel_z
-            obs_.ang_vel.index({torch::indexing::Slice(), torch::indexing::Slice(0, 2)}),  // ang_vel x,y
-            test_twist.index({torch::indexing::Slice(), torch::indexing::Slice(2, 3)}),    // wz
-            obs_.commands.index({torch::indexing::Slice(), torch::indexing::Slice(0, 2)}), // cmd x,y
-            obs_.ray2d                                                                      // 11 rays
-        }, 1);
-        auto test_ra = ra_model_.forward({test_obs}).toTensor();
-        test_ra.backward();
-        bool grad_ok = test_twist.grad().defined();
-        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-            "[RA-GD-DIAG] autograd_works=%d ra_val=%.4f grad=[%.4f,%.4f,%.4f]",
-            grad_ok ? 1 : 0, test_ra.item<double>(),
-            grad_ok ? test_twist.grad()[0][0].item<double>() : 0.0,
-            grad_ok ? test_twist.grad()[0][1].item<double>() : 0.0,
-            grad_ok ? test_twist.grad()[0][2].item<double>() : 0.0);
-        torch::autograd::GradMode::set_enabled(false);
-    }
-
     // RA inference FIRST (ROS1 lines 475-488: evaluate ra_value before action)
     runRAModel();
 
@@ -981,22 +953,6 @@ void StateRL::runModel()
     }
 
     obs_.actions = clamped_actions;
-
-    // Diagnostic: check left-right symmetry every 50 RL steps
-    static int sym_log_counter = 0;
-    if (sym_log_counter++ % 50 == 0)
-    {
-        auto& a = clamped_actions;  // ctrl order: FR(0-2), FL(3-5), RR(6-8), RL(9-11)
-        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-            "[SYM] cmd=(%.3f,%.3f,%.3f) | "
-            "FR_hip=%.4f FL_hip=%.4f | FR_thigh=%.4f FL_thigh=%.4f | "
-            "RR_hip=%.4f RL_hip=%.4f",
-            obs_.commands[0][0].item<double>(), obs_.commands[0][1].item<double>(),
-            obs_.commands[0][2].item<double>(),
-            a[0][0].item<double>(), a[0][3].item<double>(),
-            a[0][1].item<double>(), a[0][4].item<double>(),
-            a[0][6].item<double>(), a[0][9].item<double>());
-    }
 
     const torch::Tensor actions_scaled = clamped_actions * params_.action_scale;
     // torch::Tensor output_torques = params_.rl_kp * (actions_scaled + params_.default_dof_pos - obs_.dof_pos) - params_.rl_kd * obs_.dof_vel;

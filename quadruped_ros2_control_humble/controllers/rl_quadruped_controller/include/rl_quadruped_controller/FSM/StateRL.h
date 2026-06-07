@@ -131,7 +131,6 @@ struct ModelParams
     double twist_vy_min = -0.3, twist_vy_max = 0.3;
     double twist_wz_min = -3.0, twist_wz_max = 3.0;
     int recovery_steps = 250;
-    int rl_cooldown_steps = 100;
 };
 
 struct Observations
@@ -238,12 +237,6 @@ private:
     // World-frame goal position (from YAML config, matches paper GOAL_XYZ)
     double goal_x_ = 7.0;
     double goal_y_ = 0.0;
-
-    // Inline ABS recovery state. Keep recovery active briefly after entry so
-    // single-frame RA dips do not interrupt the escape maneuver.
-    bool in_recovery_ = false;
-    int recovery_hold_count_ = 0;
-    int recovery_hold_steps_ = 25;
 
     // Soft start: ramp Kp/Kd from 0 to target over first N steps
     // Counter increments at controller rate (500Hz), so 250 steps ≈ 0.5s

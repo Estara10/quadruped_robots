@@ -95,27 +95,6 @@ public:
 
       float best_dist = RAY2D_MAX_DIST;
 
-      // One-time geom inventory for debugging ray hits
-      static bool ray_geom_diag = false;
-      if (!ray_geom_diag) {
-        ray_geom_diag = true;
-        for (int gid = 0; gid < mj_model_->ngeom; gid++) {
-          const char* gn = mj_id2name(mj_model_, mjOBJ_GEOM, gid);
-          int grp = mj_model_->geom_group[gid];
-          int bid = mj_model_->geom_bodyid[gid];
-          double bmass = mj_model_->body_mass[bid];
-          const char* bname = mj_id2name(mj_model_, mjOBJ_BODY, bid);
-          bool skip_grp = (grp == 2 || grp == 3);
-          bool skip_floor = (gn && strcmp(gn, "floor") == 0);
-          bool skip_mass = (bid > 0 && bmass > 0);
-          std::cout << "[RAY-DIAG] geom[" << gid << "] name=" << (gn?gn:"NULL")
-                    << " grp=" << grp << " bodyid=" << bid << " body=" << (bname?bname:"world")
-                    << " mass=" << bmass
-                    << " skip(grp=" << skip_grp << " floor=" << skip_floor << " mass=" << skip_mass << ")"
-                    << std::endl;
-        }
-      }
-
       // Iterate all geoms, find closest 2D intersection with static obstacle geoms
       for (int gid = 0; gid < mj_model_->ngeom; gid++) {
         // Skip robot geoms (group 2=visual, group 3=collision)
@@ -157,14 +136,6 @@ public:
         if (raydist < RAY2D_MIN_DIST) raydist = RAY2D_MIN_DIST;
         if (raydist < best_dist) {
           best_dist = static_cast<float>(raydist);
-          // Debug: log what the center ray hits (first 5 frames only)
-          static int center_hit_count = 0;
-          if (i == 5 && center_hit_count < 5) {
-            const char* hn = mj_id2name(mj_model_, mjOBJ_GEOM, gid);
-            std::cout << "[RAY-HIT] center_ray hit geom=" << (hn?hn:"NULL")
-                      << " gid=" << gid << " dist=" << raydist << std::endl;
-            center_hit_count++;
-          }
         }
       }
 

@@ -239,9 +239,11 @@ private:
     double goal_y_ = 0.0;
 
     // Soft start: ramp Kp/Kd from 0 to target over first N steps
-    // Counter increments at controller rate (500Hz), so 250 steps ≈ 0.5s
     mutable int soft_start_step_ = 0;
     int soft_start_steps_ = 250;
+
+    // Recovery hold: minimum RL steps before allowing exit (frequency-adapted)
+    int recovery_hold_steps_ = 30;
 
     bool useRos1PolicyOrder() const;
     torch::Tensor ctrlToPolicyDofOrder(const torch::Tensor& ctrl_order) const;

@@ -21,6 +21,8 @@
 
 // ===== Ray2d shared memory constants =====
 #define RAY2D_SHM_NAME "/mujoco_ray2d"
+#define QPOS_SHM_NAME "/mujoco_qpos"
+#define QPOS_COUNT 19
 #define RAY2D_COUNT 11
 #define RAY2D_MAX_DIST 6.0f
 #define RAY2D_MIN_DIST 0.1f
@@ -55,6 +57,7 @@ public:
 
     // Setup ray2d shared memory
     _setupRay2dShm();
+    _setupQposShm();
   }
 
   ~UnitreeSDK2BridgeBase() {
@@ -64,9 +67,23 @@ public:
     if (ray2d_shm_fd_ >= 0) {
       close(ray2d_shm_fd_);
     }
+    if (qpos_shm_ptr_ != MAP_FAILED && qpos_shm_ptr_ != nullptr) {
+      munmap(qpos_shm_ptr_, QPOS_COUNT * sizeof(double));
+    }
+    if (qpos_shm_fd_ >= 0) {
+      close(qpos_shm_fd_);
+    }
   }
 
   void computeRay2d() {
+    // Write full qpos to shared memory (for Python depth renderer sync)
+    if (qpos_shm_ptr_ != nullptr && qpos_shm_ptr_ != MAP_FAILED) {
+      int nq = mj_model_->nq;
+      for (int i = 0; i < QPOS_COUNT && i < nq; i++) {
+        qpos_shm_ptr_[i] = mj_data_->qpos[i];
+      }
+    }
+
     if (ray2d_shm_ptr_ == nullptr || ray2d_shm_ptr_ == MAP_FAILED) return;
 
     int body_id = mj_name2id(mj_model_, mjOBJ_BODY, "base_link");
@@ -146,6 +163,31 @@ public:
 private:
   int ray2d_shm_fd_ = -1;
   float* ray2d_shm_ptr_ = nullptr;
+
+  int qpos_shm_fd_ = -1;
+  double* qpos_shm_ptr_ = nullptr;
+
+  void _setupQposShm() {
+    qpos_shm_fd_ = shm_open(QPOS_SHM_NAME, O_CREAT | O_RDWR, 0666);
+    if (qpos_shm_fd_ < 0) {
+      std::cerr << "[QposShm] shm_open failed: " << strerror(errno) << std::endl;
+      return;
+    }
+    if (ftruncate(qpos_shm_fd_, QPOS_COUNT * sizeof(double)) < 0) {
+      std::cerr << "[QposShm] ftruncate failed: " << strerror(errno) << std::endl;
+      return;
+    }
+    qpos_shm_ptr_ = static_cast<double*>(
+        mmap(NULL, QPOS_COUNT * sizeof(double), PROT_READ | PROT_WRITE,
+             MAP_SHARED, qpos_shm_fd_, 0));
+    if (qpos_shm_ptr_ == MAP_FAILED) {
+      std::cerr << "[QposShm] mmap failed: " << strerror(errno) << std::endl;
+      qpos_shm_ptr_ = nullptr;
+      return;
+    }
+    std::cout << "[QposShm] Shared memory initialized: " << QPOS_SHM_NAME
+              << " (" << QPOS_COUNT << " doubles)" << std::endl;
+  }
 
   void _setupRay2dShm() {
     ray2d_shm_fd_ = shm_open(RAY2D_SHM_NAME, O_CREAT | O_RDWR, 0666);

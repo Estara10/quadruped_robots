@@ -637,6 +637,7 @@ void StateRL::loadYaml(const std::string& config_path)
         if (abs_node["twist_wz_max"]) params_.twist_wz_max = abs_node["twist_wz_max"].as<double>();
         if (abs_node["recovery_steps"]) params_.recovery_steps = abs_node["recovery_steps"].as<int>();
         if (abs_node["soft_start_steps"]) soft_start_steps_ = abs_node["soft_start_steps"].as<int>();
+        if (abs_node["recovery_hold_steps"]) recovery_hold_steps_ = abs_node["recovery_hold_steps"].as<int>();
         if (abs_node["goal_x"]) goal_x_ = abs_node["goal_x"].as<double>();
         if (abs_node["goal_y"]) goal_y_ = abs_node["goal_y"].as<double>();
     }
@@ -870,7 +871,7 @@ void StateRL::runModel()
     //  - During hold: reuse cached twist, keep recovery policy active
     //  - After hold: allow exit if ra < exit_threshold
     // ROS1: 80ms * 3steps ≈ 240ms.  Ours: 8ms * 30steps ≈ 240ms.
-    const int REC_HOLD_STEPS = 30;  // matches ROS1 ~3-step recovery duration at 125Hz
+    const int REC_HOLD_STEPS = recovery_hold_steps_;
     torch::Tensor clamped_actions;
     double ra_entry_thr = params_.ra_threshold;         // -0.05 = ROS1 default
     double ra_exit_thr = params_.ra_threshold - 0.03;   // -0.08 = hysteresis margin

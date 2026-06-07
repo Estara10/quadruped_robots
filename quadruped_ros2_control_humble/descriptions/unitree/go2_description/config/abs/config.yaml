@@ -71,6 +71,7 @@ abs:
   twist_wz_min: -3.0               # twist_min[2] = -3.0
   twist_wz_max: 3.0                # twist_max[2] = 3.0
   recovery_steps: 250              # for manual RL_REC mode only (FSM switch, not inline RA)
+  recovery_hold_steps: 30           # min RL steps in recovery (30*8ms=240ms ≈ ROS1 3*80ms)
   soft_start_steps: 250            # Kp/Kd ramp steps (~0.5s at 500Hz controller rate)
   goal_x: 7.0                      # world-frame goal X (forward, matches paper GOAL_XYZ)
   goal_y: 0.0                      # world-frame goal Y (left = positive)

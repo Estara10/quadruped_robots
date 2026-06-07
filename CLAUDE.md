@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Last updated**: 2026-06-06 — Goal navigation (odometer), ray2d geom filter, paper-reproduction protocol
+**Last updated**: 2026-06-07 — Depth camera + ResNet18 ray predictor, goal resampling, recovery hold config, all docs updated
 
 ## Project Goal
 
@@ -207,7 +207,7 @@ Key mapping:
 
 **Server guide**: `/home/lidio/quadruped_robots/服务器训练指南.md` — SSH, tmux, TensorBoard 操作
 
-## Current Status (2026-06-03)
+## Current Status (2026-06-07)
 
 ### Training: All Complete ✅
 
@@ -225,7 +225,6 @@ Key mapping:
 | M1: Basic colcon build | ✅ | libtorch CPU, Humble branch |
 | M2: 61-dim observation | ✅ | contact/timer/ray2d |
 | M3: MuJoCo sim pipeline | ✅ | unitree_mujoco + DDS |
-| M4: Agile Policy running | ✅ | policy_joint_order: ros1_fl_fr_rl_rr (essential!) |
 | M4: Agile Policy running | ✅ | 61-dim obs, goal navigation via odometer |
 | M5: Recovery Policy inference | ✅ | 49-dim obs, inline recovery (matches ROS1 lines 532-536) |
 | M6: Ray2d (MuJoCo) | ✅ | 2D ray-circle → shm, geom type filter |
@@ -239,18 +238,33 @@ Key mapping:
 | E.2: Remote emergency | ❌ | `/rt/wirelesscontroller` not subscribed |
 | E.3: Soft start | ✅ | Kp/Kd ramp 0→target over 0.5s |
 | E.4: Temperature monitor | ❌ | Motor temp not exposed to controller |
+| — Goal resampling | ✅ | Arrival detection → random resample within training ranges |
+| — Recovery hold config | ✅ | `recovery_hold_steps` YAML-configurable (default 30) |
 
 ### Ray2d Architecture (Phase B, 2026-06-03)
 
 ```
 MuJoCo Bridge (unitree_sdk2_bridge.h)
-  mj_ray() × 11 → log2 transform → /mujoco_ray2d (POSIX shm)
+  2D ray-circle × 11 → log2 transform → /mujoco_ray2d (POSIX shm)
+  Also writes /mujoco_qpos (19 doubles) for Python depth renderer sync
        ↓ shared memory (zero-copy)
 StateRL::runModel()
   read shm → obs_.ray2d → policy + RA model
 ```
 
-**Key parameters**: theta [-45°, +45°], step 9° → 11 rays, origin (-0.05, 0, 0.25) body-frame, max 6.0m, log2 transform.
+**Geom filter**: skip plane(0), hfield(1), mesh(7), robot groups(2,3), dynamic bodies. Keep box(6), cylinder(5), sphere(2), capsule(3), ellipsoid(4).
+
+**Key parameters**: theta [-45°, +45°], step 9° → 11 rays, origin (-0.05, 0) body-frame XY, max 6.0m, log2 transform.
+
+### Depth Camera + ResNet18 Pipeline (M6b, 2026-06-07)
+
+```
+Python ray_predictor.py:
+  MuJoCo Python → render depth (160×90) → log2 → ResNet18 TorchScript → /mujoco_ray2d shm
+  State synced via /mujoco_qpos shm (from C++ bridge)
+```
+
+**Status**: Pipeline functional but ResNet18 trained on real ZED depth — MuJoCo rendered depth has distribution gap. Inference works (~14ms) but ray quality insufficient for reliable obstacle avoidance. Needs domain adaptation or simulation retraining.
 
 **Critical finding**: `mj_ray()` `bodyexclude` only excludes bodies connected by weld constraints. Go2 legs are hinge joints → rays hit own legs. Fix: raised ray origin z to 0.25 (above hips).
 
@@ -365,6 +379,25 @@ colcon build --symlink-install \
 | `controllers/rl_quadruped_controller/src/FSM/StateRL.cpp` | `setCommand()` scales Kp/Kd by ratio; `enter()` resets counter; YAML reads `soft_start_steps` |
 | `descriptions/unitree/go2_description/config/abs/config.yaml` | Added `soft_start_steps: 250` (~0.5s ramp) |
 | `controllers/rl_quadruped_controller/doc/real_go2_deployment.md` | Updated safety feature status (DDS timeout ✅, Soft start ✅) |
+
+## Key Modified Files (2026-06-06/07 — Goal nav + Recovery GD + Depth pipeline)
+
+| File | Change Summary |
+|------|---------------|
+| `controllers/rl_quadruped_controller/src/FSM/StateRL.cpp` | ① World-frame goal nav via odometer + IMU yaw ② Goal resampling on arrival ③ Paper GD recovery twist (3 iters) ④ 30-step recovery hold ⑤ `recovery_hold_steps` YAML-config ⑥ Goal diagnostic log |
+| `controllers/rl_quadruped_controller/include/.../FSM/StateRL.h` | Added `goal_x_`, `goal_y_`, `recovery_hold_steps_`: removed `accumulated_yaw_`, dead `in_recovery_` members |
+| `controllers/rl_quadruped_controller/src/RlQuadrupedController.cpp` | Odometer sensor claiming (on_init + state_interface + on_activate) |
+| `controllers/rl_quadruped_controller/src/RlQuadrupedController.h` | Added `odom_name_`, `odom_interface_types_` |
+| `descriptions/unitree/go2_description/config/abs/config.yaml` | Added `goal_x:7.0`, `goal_y:0.0`, `recovery_hold_steps:30` |
+| `descriptions/unitree/go2_description/config/robot_control.yaml` | Added odometer sensor config for rl_quadruped_controller |
+| `unitree_mujoco/simulate/src/unitree_sdk2_bridge.h` | Geom type filter (skip plane/hfield/mesh); qpos shm for Python sync; removed debug diag |
+| `scripts/ray_predictor.py` | **New** — MuJoCo depth render + ResNet18 ray prediction pipeline |
+| `scripts/launch_abs_terrain.sh` | **New** — One-click terrain scene launch with scene override |
+| `scripts/generate_test_scenes.py` | **New** — Random obstacle scene generator (5 scenes) |
+| `scripts/test_multiscene.sh` | **New** — Multi-scene automated testing |
+| `scripts/reproduce_report.py` | **New** — Docx report generation script |
+| `CLAUDE.md` | Updated constraints #0 (paper reproduction), status, architecture docs |
+| `unitree_mujoco/unitree_robots/go2/assets/` | **New** — hfield files for terrain scene |
 
 ## Key Constraints
 

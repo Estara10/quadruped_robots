@@ -328,69 +328,86 @@ void StateRL::exit()
 
 void StateRL::computeRecoveryTwist()
 {
-    // === Pure ray2d-driven recovery twist — no gradient descent ===
-    // The RA model is used only for the TRIGGER (should we activate recovery?).
-    // The recovery ACTION (what twist to use) is determined directly from ray2d data.
-    //
-    // Rationale: RA model gradient descent proved unreliable because:
-    // 1. Training data has little vy/wz variation → model is flat in those dims
-    // 2. pos_dev penalty (0.02*y_iter²) pulls vy→0, undoing direction bias
-    // 3. TorchScript C++ autograd status is unverified
-    //
-    // Ray-order: 0=-45°(right-fwd), 5=0°, 10=+45°(left-fwd)
-    // Body frame: +y=left, -y=right (confirmed from go2.xml hip positions)
+    // === Paper method: gradient descent twist optimization (ROS1 lines 498-525) ===
+    // Minimize: loss = lam * max(ra + 2*eps, 0) + 0.02 * ||twist*tau - cmd||²
+    // 3 iterations, lr=0.5, clipped gradient, clipped result
     using torch::indexing::Slice;
-    auto ray2d = obs_.ray2d;
 
-    // Compute side averages
-    double left_avg  = (ray2d[0][6].item<double>() + ray2d[0][7].item<double>()
-                      + ray2d[0][8].item<double>() + ray2d[0][9].item<double>()
-                      + ray2d[0][10].item<double>()) / 5.0;
-    double right_avg = (ray2d[0][0].item<double>() + ray2d[0][1].item<double>()
-                      + ray2d[0][2].item<double>() + ray2d[0][3].item<double>()
-                      + ray2d[0][4].item<double>()) / 5.0;
-    double center_ray = ray2d[0][5].item<double>();
+    torch::autograd::GradMode::set_enabled(true);
 
-    // Direction: lower log2 = closer obstacle → go away from that side
-    const double asym_thr = 0.15;
-    int vy_sign = 0;   // -1=obstacle left→go right, +1=obstacle right→go left
-    if (left_avg < right_avg - asym_thr)       vy_sign = -1;
-    else if (right_avg < left_avg - asym_thr)  vy_sign = +1;
+    // Init twist from current state (ROS1 L498-500: vx,vy from linvel, wz from obs[6]=ang_vel_z)
+    torch::Tensor twist = torch::tensor(
+        {{obs_.lin_vel[0][0].item<double>(),   // vx
+          obs_.lin_vel[0][1].item<double>(),   // vy
+          obs_.ang_vel[0][2].item<double>()}}, // wz
+        torch::requires_grad(true));
 
-    // Forward speed: reduce when obstacles are close ahead
-    // center_ray ~2.58 = clear (log2(6m)), ~1.0 = obstacle at 2m, ~0 = obstacle at 1m
-    double vx = std::max(0.3, center_ray * 0.6);  // 0.3 ~ 1.5 m/s depending on clearance
-    vx = std::min(vx, params_.twist_vx_max);
+    const double tau = params_.twist_tau;   // 0.05
+    const double lam = params_.twist_lam;   // 10.0
+    const double lr  = params_.twist_lr;    // 0.5
+    const double eps = params_.twist_eps;   // 0.05
 
-    // Lateral: go away from obstacle side
-    double vy = 0.0;
-    if (vy_sign != 0) {
-        vy = vy_sign * params_.twist_vy_max;  // ±0.3
+    // Bounds (ROS1: twist_min = -twist_max)
+    const double vx_m = params_.twist_vx_max, vy_m = params_.twist_vy_max, wz_m = params_.twist_wz_max;
+
+    // Target cmd for pos_dev penalty (ROS1: obs[10:12] = body-frame goal position)
+    double cmd_x = obs_.commands[0][0].item<double>();
+    double cmd_y = obs_.commands[0][1].item<double>();
+
+    double ra_vals[3] = {};
+    for (int iter = 0; iter < 3; iter++)
+    {
+        // RA observation with current twist (ROS1 L508-514):
+        // [vx,vy, lin_vel_z, ang_vel_x,ang_vel_y, wz, cmd_x,cmd_y, ray2d(11)] = 19
+        torch::Tensor ra_obs = torch::cat({
+            twist.index({Slice(), Slice(0, 2)}),                    // twist vx, vy
+            obs_.lin_vel.index({Slice(), Slice(2, 3)}),             // lin_vel_z
+            obs_.ang_vel.index({Slice(), Slice(0, 2)}),             // ang_vel x, y
+            twist.index({Slice(), Slice(2, 3)}),                    // twist wz
+            obs_.commands.index({Slice(), Slice(0, 2)}),            // cmd x, y
+            obs_.ray2d                                                // 11 rays
+        }, 1);
+
+        auto ra_val = ra_model_.forward({ra_obs}).toTensor();
+        ra_vals[iter] = ra_val.item<double>();
+
+        // Position integral (ROS1: get_pos_integral = twist * tau, L517)
+        auto pos_x = twist.index({0, 0}) * tau;
+        auto pos_y = twist.index({0, 1}) * tau;
+
+        // Loss (ROS1 L518): lam * clip(ra+2*eps, min=0) + 0.02 * pos_dev²
+        auto ra_penalty = lam * torch::clamp(ra_val + 2.0 * eps, 0.0);
+        auto pos_penalty = 0.02 * ((pos_x - cmd_x).pow(2) + (pos_y - cmd_y).pow(2));
+        auto loss = (ra_penalty + pos_penalty).sum();
+        loss.backward();
+
+        // Clip gradient then update (ROS1 L522-524)
+        auto grad = torch::clamp(twist.grad(), -1.0, 1.0);
+        twist.data().sub_(lr * grad);
+        // Clip to bounds
+        twist.data().index_put_({0, 0}, torch::clamp(twist.data().index({0, 0}), -vx_m, vx_m));
+        twist.data().index_put_({0, 1}, torch::clamp(twist.data().index({0, 1}), -vy_m, vy_m));
+        twist.data().index_put_({0, 2}, torch::clamp(twist.data().index({0, 2}), -wz_m, wz_m));
+        twist.grad().zero_();
     }
 
-    // Yaw: turn away from obstacle, proportional to asymmetry
-    double wz = 0.0;
-    if (vy_sign != 0) {
-        // More asymmetry → stronger turn
-        double asym = std::abs(right_avg - left_avg);
-        wz = vy_sign * std::min(3.0, asym * 2.0);  // up to ±3.0 rad/s
-    }
+    // Detach (ROS1 L531)
+    twist = twist.detach();
 
-    const char* direction = "STRAIGHT";
-    if (vy_sign < 0)      direction = "RIGHT";
-    else if (vy_sign > 0) direction = "LEFT";
+    ctrl_component_.recovery_twist_vx = twist[0][0].item<double>();
+    ctrl_component_.recovery_twist_vy = twist[0][1].item<double>();
+    ctrl_component_.recovery_twist_wz = twist[0][2].item<double>();
 
-    ctrl_component_.recovery_twist_vx = vx;
-    ctrl_component_.recovery_twist_vy = vy;
-    ctrl_component_.recovery_twist_wz = wz;
+    RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+        "[TWIST-GD] init=[%.2f,%.2f,%.2f] final=[%.2f,%.2f,%.2f] cmd=(%.2f,%.2f) "
+        "ra=[%.4f,%.4f,%.4f] ray_c=%.2f",
+        obs_.lin_vel[0][0].item<double>(), obs_.lin_vel[0][1].item<double>(),
+        obs_.ang_vel[0][2].item<double>(),
+        ctrl_component_.recovery_twist_vx, ctrl_component_.recovery_twist_vy,
+        ctrl_component_.recovery_twist_wz, cmd_x, cmd_y,
+        ra_vals[0], ra_vals[1], ra_vals[2], obs_.ray2d[0][5].item<double>());
 
-    static int call_count = 0;
-    if (call_count++ % 5 == 0) {  // log every 5th call to avoid spam
-        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-            "[TWIST-OPT] dir=%s ray2d=[L%.2f C%.2f R%.2f] asym=%.2f twist=[%.2f,%.2f,%.2f]",
-            direction, left_avg, center_ray, right_avg,
-            std::abs(right_avg - left_avg), vx, vy, wz);
-    }
+    torch::autograd::GradMode::set_enabled(false);
 }
 
 torch::Tensor StateRL::computeRecoveryObservation(const torch::Tensor& twist)
@@ -822,45 +839,99 @@ void StateRL::runModel()
         obs_.ray2d = torch::from_blob(ray2d_shm_ptr_, {1, 11}, torch::kFloat32).clone();
     }
 
+    // === One-time diagnostic: verify C++ TorchScript autograd for RA model ===
+    static bool gd_diag_done = false;
+    if (!gd_diag_done && ra_loaded_)
+    {
+        gd_diag_done = true;
+        torch::autograd::GradMode::set_enabled(true);
+        torch::Tensor test_twist = torch::tensor({{0.5, 0.0, 0.0}}, torch::requires_grad(true));
+        auto test_obs = torch::cat({
+            test_twist.index({torch::indexing::Slice(), torch::indexing::Slice(0, 2)}),  // vx, vy
+            obs_.lin_vel.index({torch::indexing::Slice(), torch::indexing::Slice(2, 3)}),  // lin_vel_z
+            obs_.ang_vel.index({torch::indexing::Slice(), torch::indexing::Slice(0, 2)}),  // ang_vel x,y
+            test_twist.index({torch::indexing::Slice(), torch::indexing::Slice(2, 3)}),    // wz
+            obs_.commands.index({torch::indexing::Slice(), torch::indexing::Slice(0, 2)}), // cmd x,y
+            obs_.ray2d                                                                      // 11 rays
+        }, 1);
+        auto test_ra = ra_model_.forward({test_obs}).toTensor();
+        test_ra.backward();
+        bool grad_ok = test_twist.grad().defined();
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+            "[RA-GD-DIAG] autograd_works=%d ra_val=%.4f grad=[%.4f,%.4f,%.4f]",
+            grad_ok ? 1 : 0, test_ra.item<double>(),
+            grad_ok ? test_twist.grad()[0][0].item<double>() : 0.0,
+            grad_ok ? test_twist.grad()[0][1].item<double>() : 0.0,
+            grad_ok ? test_twist.grad()[0][2].item<double>() : 0.0);
+        torch::autograd::GradMode::set_enabled(false);
+    }
+
     // RA inference FIRST (ROS1 lines 475-488: evaluate ra_value before action)
     runRAModel();
 
     // === ROS1 lines 495-538: RA-based recovery (inline, per-timestep) ===
-    // Hysteresis: our RA values are systematically higher than ROS1 (estimator vs ZED
-    // odometry, 50Hz vs 12.5Hz). Without hysteresis, RA oscillates around threshold
-    // and recovery never exits cleanly. Entry is sensitive (catch danger early),
-    // exit requires clear safety margin.
+    // Frequency adaptation: ROS1 inference at 12.5Hz (80ms/step), we run at 125Hz (8ms/step).
+    // To match ROS1 effective recovery duration (~250ms), we enforce a minimum hold:
+    //  - On ENTER: compute twist via GD, hold for rec_hold_steps RL steps
+    //  - During hold: reuse cached twist, keep recovery policy active
+    //  - After hold: allow exit if ra < exit_threshold
+    // ROS1: 80ms * 3steps ≈ 240ms.  Ours: 8ms * 30steps ≈ 240ms.
+    const int REC_HOLD_STEPS = 30;  // matches ROS1 ~3-step recovery duration at 125Hz
     torch::Tensor clamped_actions;
-    static bool in_recovery = false;
     double ra_entry_thr = params_.ra_threshold;         // -0.05 = ROS1 default
-    double ra_exit_thr = params_.ra_threshold - 0.03;   // -0.08 = need slight margin
+    double ra_exit_thr = params_.ra_threshold - 0.03;   // -0.08 = hysteresis margin
 
-    bool should_recover = ra_loaded_ && rec_loaded_
-        && (in_recovery ? (ra_value_ > ra_exit_thr) : (ra_value_ > ra_entry_thr));
+    // Cache last optimized twist (avoids recomputing GD every 8ms step)
+    static double cached_vx = 0.0, cached_vy = 0.0, cached_wz = 0.0;
+    static int rec_hold_left = 0;
+    static bool in_recovery = false;
 
-    if (should_recover)
+    if (ra_loaded_ && rec_loaded_)
     {
-        if (!in_recovery)
+        if (!in_recovery && ra_value_ > ra_entry_thr)
         {
+            // ENTER recovery (ROS1 L495-497)
             in_recovery = true;
+            rec_hold_left = REC_HOLD_STEPS;
+            computeRecoveryTwist();  // GD optimization (ROS1 L498-525)
+            cached_vx = ctrl_component_.recovery_twist_vx;
+            cached_vy = ctrl_component_.recovery_twist_vy;
+            cached_wz = ctrl_component_.recovery_twist_wz;
             RCLCPP_WARN(rclcpp::get_logger("StateRL"),
-                "[RA-REC] ENTER recovery: ra=%.4f > entry=%.4f", ra_value_, ra_entry_thr);
+                "[RA-REC] ENTER recovery: ra=%.4f > entry=%.4f twist=[%.2f,%.2f,%.2f] hold=%d",
+                ra_value_, ra_entry_thr, cached_vx, cached_vy, cached_wz, REC_HOLD_STEPS);
         }
+        else if (in_recovery)
+        {
+            rec_hold_left--;
+            if (rec_hold_left <= 0 && ra_value_ < ra_exit_thr)
+            {
+                // EXIT recovery — hold expired and RA confirmed safe
+                in_recovery = false;
+                RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+                    "[RA-REC] EXIT recovery: ra=%.4f < exit=%.4f, back to agile",
+                    ra_value_, ra_exit_thr);
+            }
+        }
+    }
 
-        computeRecoveryTwist();  // ROS1 lines 498-526: gradient descent
-        torch::Tensor twist = torch::tensor(
-            {{ctrl_component_.recovery_twist_vx,
-              ctrl_component_.recovery_twist_vy,
-              ctrl_component_.recovery_twist_wz}});
+    if (in_recovery)
+    {
+        // Use cached twist (reuse across multiple RL steps to match ROS1 80ms dwell)
+        ctrl_component_.recovery_twist_vx = cached_vx;
+        ctrl_component_.recovery_twist_vy = cached_vy;
+        ctrl_component_.recovery_twist_wz = cached_wz;
+
+        torch::Tensor twist = torch::tensor({{cached_vx, cached_vy, cached_wz}});
         torch::Tensor rec_obs = computeRecoveryObservation(twist);  // ROS1 line 532
         auto rec_action = rec_model_.forward({rec_obs}).toTensor();
         clamped_actions = policyToCtrlDofOrder(rec_action);  // ROS1 line 536
 
-        // ROS1 lines 461-466: NaN guard
+        // NaN guard (ROS1 lines 461-466)
         if (clamped_actions.isnan().any().item<int>())
         {
             RCLCPP_ERROR(rclcpp::get_logger("StateRL"),
-                "[REC-NAN] NaN in recovery action! Falling back to agile policy.");
+                "[REC-NAN] NaN in recovery action! Falling back to agile.");
             clamped_actions = policyToCtrlDofOrder(forward());
         }
         else
@@ -869,22 +940,16 @@ void StateRL::runModel()
             if (rec_diag_count++ % 10 == 0)
             {
                 RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-                    "[REC-DIAG] lin_vel=[%.2f,%.2f,%.2f] twist=[%.2f,%.2f,%.2f] rec_action_range=[%.3f,%.3f]",
-                    obs_.lin_vel[0][0].item<double>(), obs_.lin_vel[0][1].item<double>(), obs_.lin_vel[0][2].item<double>(),
-                    ctrl_component_.recovery_twist_vx, ctrl_component_.recovery_twist_vy, ctrl_component_.recovery_twist_wz,
+                    "[REC-DIAG] lin_vel=[%.2f,%.2f,%.2f] twist=[%.2f,%.2f,%.2f] hold=%d rec_action_range=[%.3f,%.3f]",
+                    obs_.lin_vel[0][0].item<double>(), obs_.lin_vel[0][1].item<double>(),
+                    obs_.lin_vel[0][2].item<double>(),
+                    cached_vx, cached_vy, cached_wz, rec_hold_left,
                     rec_action.min().item<double>(), rec_action.max().item<double>());
             }
         }
     }
     else
     {
-        if (in_recovery)
-        {
-            in_recovery = false;
-            RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-                "[RA-REC] EXIT recovery: ra=%.4f < exit=%.4f, back to agile",
-                ra_value_, ra_exit_thr);
-        }
         clamped_actions = policyToCtrlDofOrder(forward());
     }
 

@@ -231,15 +231,14 @@ Key mapping:
 | M6: Ray2d (MuJoCo) | ✅ | 2D ray-circle → shm, geom type filter |
 | M6b: Ray-Prediction | ❌ | Depth-camera-based ray prediction not integrated |
 | M7a: RA Value + Auto-switch | ✅ | ra_value inference, auto-switch at threshold -0.05 |
-| M7b: Recovery twist = paper GD | ❌ | **DEVIATION**: using ray2d-driven twist, NOT paper's gradient descent. Must revert to paper method. |
-| M7c: Goal navigation | ✅ | World-frame goal via odometer, arrival detection |
+| M7b: Recovery twist = paper GD | ✅ | Gradient descent via RA model (3 iters, loss=lam*max(ra+2*eps,0)+0.02*pos_dev²), 30-step hold for frequency match |
+| M7c: Goal navigation | ✅ | World-frame goal via odometer, arrival detection, resampling on arrival |
 | M8: Real Go2 deployment | ❌ | Not started |
 | D.3: Auto-launch | ✅ | launch_abs_sim.sh: auto FSM transitions to RL |
 | E.1: DDS timeout | ✅ | 200ms frozen joints → force PASSIVE + FATAL log |
 | E.2: Remote emergency | ❌ | `/rt/wirelesscontroller` not subscribed |
 | E.3: Soft start | ✅ | Kp/Kd ramp 0→target over 0.5s |
 | E.4: Temperature monitor | ❌ | Motor temp not exposed to controller |
-| — Goal resampling | ❌ | Paper resets goal every 1600 timesteps |
 
 ### Ray2d Architecture (Phase B, 2026-06-03)
 

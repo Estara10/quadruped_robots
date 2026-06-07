@@ -786,14 +786,36 @@ void StateRL::runModel()
     double heading_cmd = std::atan2(body_y, body_x) + joystick_yaw * 0.3;
 
     // When within tight threshold (training sigma_tight=0.5m), signal "stand still"
-    // by zeroing commands. This matches training: _reward_stand_still_pos activates
-    // within 0.5m, _reward_velo_dir switches to constant 1.0, removing forward incentive.
-    const double arrival_threshold = 0.5;  // matches training position_target_sigma_tight
+    const double arrival_threshold = 0.5;
+    static int arrived_counter = 0;
     if (dist_to_goal < arrival_threshold)
     {
         body_x = 0.0;
         body_y = 0.0;
         heading_cmd = 0.0;
+
+        // After standing at goal for ~1.6s (200 RL steps at 125Hz), resample goal
+        // Paper: ROS1 resets every 1600 timesteps; training resamples on episode reset
+        const int RESAMPLE_DELAY = 200;
+        arrived_counter++;
+        if (arrived_counter >= RESAMPLE_DELAY)
+        {
+            arrived_counter = 0;
+            // Sample new goal in robot's body frame, then convert to world
+            // Training ranges: forward [1.5, 7.5]m, lateral [-2.0, 2.0]m
+            double fwd = 1.5 + static_cast<double>(rand() % 6001) / 1000.0;   // [1.5, 7.5]
+            double lat = -2.0 + static_cast<double>(rand() % 4001) / 1000.0;  // [-2.0, 2.0]
+            // Convert body-frame target to world frame
+            goal_x_ = robot_wx + fwd * cos_yaw - lat * sin_yaw;
+            goal_y_ = robot_wy + fwd * sin_yaw + lat * cos_yaw;
+            RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+                "[GOAL-RESAMPLE] new world goal=(%.2f,%.2f) body_offset=(%.2f,%.2f)",
+                goal_x_, goal_y_, fwd, lat);
+        }
+    }
+    else
+    {
+        arrived_counter = 0;  // reset if not at goal
     }
 
     // Diagnostic log every 100 RL steps

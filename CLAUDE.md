@@ -1,477 +1,220 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with code in this repository.
 
-**Last updated**: 2026-06-07 — Depth camera + ResNet18 ray predictor, goal resampling, recovery hold config, all docs updated
+**Project**: Reproduce ABS (Agile But Safe) paper — dual-policy collision-free quadruped locomotion.  
+**Robot**: Go2 (paper uses Go1). **Simulator**: MuJoCo. **ROS**: Humble. **Inference**: LibTorch.  
+**Last updated**: 2026-06-07
 
-## Project Goal
+---
 
-Reproduce the **ABS (Agile But Safe)** paper (RSS 2024) — an RL-based dual-policy framework for collision-free high-speed quadruped locomotion (max 3.1 m/s). After simulation reproduction, adapt from Go1 (paper) to Go2 (lab robot) and deploy to real hardware.
+## Quick Orientation (read this first)
 
-Paper PDF: `agile but safe(1).pdf`
-Paper code: https://github.com/LeCAR-Lab/ABS
+```
+Goal: 机器人自主导航到目标点，遇到障碍自动切换 recovery 避障
+
+仿真管线:
+  MuJoCo (物理+射线) ──DDS──→ ros2_control ──→ StateRL.cpp (policy/RA/recovery)
+                                    ↑
+                          /control_input (键盘/脚本)
+
+关键目录:
+  quadruped_ros2_control_humble/  ← 主开发仓库 (RL controller)
+  ABS/                            ← 论文源码 (训练+ROS1部署参考)
+  unitree_mujoco/                 ← MuJoCo 仿真器
+  scripts/                        ← 启动/测试脚本
+
+核心文件:
+  controllers/rl_quadruped_controller/src/FSM/StateRL.cpp  ← 一切控制逻辑
+  unitree_mujoco/simulate/src/unitree_sdk2_bridge.h         ← DDS桥+射线
+
+最简启动:
+  ~/quadruped_robots/scripts/launch_abs_sim.sh     # 平地
+  MUJOCO_SCENE_OVERRIDE=scene_test1.xml ./scripts/launch_abs_terrain.sh  # 障碍物
+
+当前状态: 仿真已完整复现论文核心算法。实机待部署。
+```
+
+---
 
 ## Repo Layout
 
-This workspace contains five independent repositories, each cloned directly:
-
-| Repo | Purpose | Framework |
-|------|---------|-----------|
-| `ABS/` | **Target paper** — agile policy + recovery policy + RA value + ray-prediction | Isaac Gym, PyTorch, ROS1 |
-| `legged_gym/` | Base RL training framework (vanilla Legged Gym) | Isaac Gym, RSL-RL |
-| `quadruped_ros2_control_humble/` | Go2 ROS2 control stack with MuJoCo/Gazebo sim, OCS2 MPC + RL controllers | ROS2 Humble, MuJoCo, Gazebo |
-| `rl_sar/` | RL sim-and-real framework, multi-simulator (Isaac Gym/Sim, MuJoCo, Gazebo), multi-robot | Isaac Gym, MuJoCo, ROS1/ROS2 |
-| `legged_control/` | NMPC+WBC legged robot control (OCS2-based, ROS1). **No longer maintained** | ROS1 Noetic, OCS2 |
-| `unitree_mujoco/` | Standalone MuJoCo physics simulator for Go2 (uses unitree_sdk2 for DDS comm) | MuJoCo 3.3.3, DDS |
-
-## Key Architecture: ABS
-
-ABS has two parts — training (Isaac Gym simulation) and deployment (ROS1 + Unitree SDK on robot):
-
-### Training (`ABS/training/`)
-
-Built on top of Legged Gym + RSL-RL:
-
 ```
-ABS/training/
-  legged_gym/          # Isaac Gym envs (forked from leggedrobotics/legged_gym)
-    legged_gym/envs/
-      base/            # Base env classes
-        legged_robot.py            # Base legged robot env
-        legged_robot_pos.py        # Goal-reaching extension
-        legged_robot_rec.py        # Recovery policy env
-        legged_robot_config.py     # PPO config dataclasses
-        legged_robot_pos_config.py # Goal-reaching config
-      go1/             # Unitree Go1 configs
-      go2/             # Unitree Go2 configs (lab robot)
-    legged_gym/scripts/
-      train.py         # Policy training entry point
-      play.py          # Policy evaluation / export for RA training
-      testbed.py       # RA value training + evaluation + end-to-end test
-      camrec.py        # Ray-prediction dataset collection
-      train_depth_resnet.py  # Ray-prediction network training
-  rsl_rl/              # PPO implementation (forked from leggedrobotics/rsl_rl)
+quadruped_robots/                  (this workspace)
+├── CLAUDE.md                      ← 你在这里
+├── 仿真部署手册.md                 ← 详细部署指南
+├── 服务器训练指南.md                ← 服务器 SSH/tmux/TensorBoard
+├── agile but safe(1).pdf          ← 论文 PDF
+├── scripts/
+│   ├── launch_abs_sim.sh          ← 一键启动 (平地)
+│   ├── launch_abs_terrain.sh      ← 一键启动 (障碍物场景)
+│   ├── generate_test_scenes.py    ← 随机障碍物场景生成
+│   ├── ray_predictor.py           ← 深度相机+ResNet18 (实验)
+│   └── reproduce_report.py        ← docx 报告生成
+├── ABS/                           ← 论文源码 (Isaac Gym, PyTorch, ROS1)
+│   ├── training/legged_gym/       ← 训练代码 + 策略/RA/ResNet18 模型
+│   └── deployment/src/            ← ROS1 部署 (唯一权威算法参考)
+├── quadruped_ros2_control_humble/ ← 主开发仓库 (ROS2 Humble controller)
+│   └── controllers/rl_quadruped_controller/  ← RL 控制器 (核心)
+│   └── hardwares/hardware_unitree_mujoco/    ← MuJoCo 硬件接口
+│   └── descriptions/unitree/go2_description/ ← Go2 URDF + config
+└── unitree_mujoco/                ← MuJoCo 仿真器 (C++, DDS 桥)
+    ├── simulate/src/unitree_sdk2_bridge.h    ← DDS 桥 + 射线
+    └── unitree_robots/go2/        ← Go2 模型 + 场景 XML
 ```
 
-**Four trainable modules** (Figure 2a of the paper):
-1. **Agile Policy** — goal-reaching RL, outputs joint targets, trained via PPO
-2. **RA Value Network** — predicts reach-avoid values conditioned on agile policy, trained from rollout data using discounted RA Bellman equation
-3. **Recovery Policy** — tracks twist commands to lower RA values, also PPO-trained
-4. **Ray-Prediction Network** — depth image → sparse ray distances (serves as exteroception for policy + RA network)
-
-### Deployment (`ABS/deployment/`)
-
-ROS1 Noetic on Ubuntu 20.04, Unitree Go1 EDU + Orin NX + ZED mini:
-- `publisher_depthimg_linvel.py` — publishes ray predictions + odometry
-- `depth_obstacle_depth_goal_ros.py` — main control loop (agile/recovery policy switch based on RA values)
-- `led_control_ros.py` — LED feedback for RA values
-- `onnx_model_converter.py` — PyTorch .pt → ONNX for onboard inference
-
-### Key Reference: ROS1 Deployment Observation Construction
-
-In `ABS/deployment/src/abs_src/depth_obstacle_depth_goal_ros.py` `make_observation_from_lowhigh_state()`:
-- Commands are POSITION-based (goal position in robot frame), NOT velocity-based
-- Timer is always 0.5 in ROS1 deployment (constant, not time-varying)
-- Contact order in ROS1: FL, FR, RL, RR (reordered from Unitree SDK)
-
-## Key Architecture: quadruped_ros2_control_humble
-
-ROS2 Humble control framework for Go2 (and other quadrupeds), cloned from `github.com/legubiao/quadruped_ros2_control` (humble branch):
+## Paper Architecture (ABS)
 
 ```
-quadruped_ros2_control_humble/
-  controllers/
-    ocs2_quadruped_controller/  # MPC-based (OCS2) controller
-    rl_quadruped_controller/    # RL policy inference controller (target for ABS deployment)
-    unitree_guide_controller/   # FSM-based guide controller (separate from RL controller!)
-  hardwares/
-    hardware_unitree_sdk2/      # Real Go2 hardware interface via unitree_sdk2
-    hardware_unitree_mujoco/    # MuJoCo simulation hardware interface
-    gz_quadruped_hardware/      # Gazebo simulation hardware interface
-  descriptions/unitree/         # URDF models: go1, go2, a1, aliengo, b2
-  libraries/
-    controller_common/          # FSMState base class, CtrlInterfaces, enumClass
-    gz_quadruped_playground/    # Gazebo sim with LiDAR/depth camera
-  commands/
-    keyboard_input/             # Keyboard teleop node (not control_input!)
+Training (Isaac Gym)                     Deployment (ROS1/ROS2)
+┌──────────────────────┐                 ┌──────────────────────┐
+│ ① Agile Policy (PPO) │                 │ ① Agile Policy       │
+│   61-dim → 12 joint   │                 │   61-dim → joint cmd │
+│                       │                 │                      │
+│ ② RA Value Network   │                 │ ② RA Value Network   │
+│   19→64→64→1 (Tanh)  │                 │   评估安全性 → 阈值   │
+│                       │                 │                      │
+│ ③ Recovery Policy    │                 │ ③ Recovery Policy    │
+│   49-dim → 12 joint   │                 │   twist→joint cmd    │
+│                       │                 │                      │
+│ ④ Ray-Pred (ResNet18)│                 │ ④ Ray-Pred (ResNet18) │
+│   depth→11 rays       │                 │   仿真用几何射线替代  │
+└──────────────────────┘                 └──────────────────────┘
 ```
 
-### CRITICAL: Two Different Controllers
+## ⚠️ Key Constraint: Paper Reproduction First
 
-There are **two separate controllers** in this repo, and they have DIFFERENT FSM state mappings:
+本项目目标是**复现 ABS 论文**，不是"让机器人能避障就行"。
+凡是论文中有明确算法的，**必须先忠实地实现论文方法**。
+遇到困难时先问"论文为什么能工作？我们的差异在哪？"
+只有 ROS1→ROS2 架构差异和仿真/实机环境差异，才可以做适配性修改。
 
-| Controller | Package/Plugin | Key 3 Action | Key 4 Action | Launch File |
-|------------|---------------|-------------|-------------|-------------|
-| `unitree_guide_controller` | `UnitreeGuideController` | FREESTAND | TROTTING | `ros2 launch unitree_guide_controller mujoco.launch.py` |
-| `rl_quadruped_controller` | `LeggedGymController` | **RL** | **RL_REC** | `ros2 launch rl_quadruped_controller mujoco.launch.py` |
+**论文方法对照表**（不可自行替换）:
 
-**Always use `rl_quadruped_controller` for ABS policy testing!** The guide controller does NOT have RL states.
-
-### FSM State Flow (rl_quadruped_controller)
-
-```
-PASSIVE --(key 2)--> FIXEDDOWN --(key 2)--> FIXEDSTAND --(key 3)--> RL --(key 4)--> RL_REC
-                                                              ^                    |
-                                                              |----(done)----------|
-```
-
-All state transitions happen via keyboard `command` values. The keyboard publishes to `/control_input` topic.
-
-### Joint Order Convention — CRITICAL
-
-**The entire system MUST use the same joint order: FR, FL, RR, RL** (matches Isaac Gym training URDF and MuJoCo XML):
-
-| Index | Joint | Leg |
-|-------|-------|-----|
-| 0-2 | hip, thigh, calf | FR (Front Right) |
-| 3-5 | hip, thigh, calf | FL (Front Left) |
-| 6-8 | hip, thigh, calf | RR (Rear Right) |
-| 9-11 | hip, thigh, calf | RL (Rear Left) |
-
-#### Why FR-first matters (2026-06-01 root cause analysis)
-
-The full data flow: **MuJoCo → DDS → HardwareInterface → ros2_control.xacro → YAML → Controller → Policy**
-
-Every layer in this chain uses FR-first order, verified on 2026-06-01:
-
-| Layer | File | Order |
-|-------|------|-------|
-| MuJoCo actuators | `unitree_mujoco/unitree_robots/go2/go2.xml` L228-239 | FR, FL, RR, RL |
-| DDS motor_state | `unitree_mujoco/simulate/src/unitree_sdk2_bridge.h` L148 | FR, FL, RR, RL |
-| ros2_control.xacro | `descriptions/.../xacro/ros2_control.xacro` L13-155 | FR, FL, RR, RL |
-| Training URDF | `ABS/.../resources/robots/go2/urdf/go2.urdf` | FR, FL, RR, RL |
-| robot_control.yaml | `descriptions/.../config/robot_control.yaml` | **MUST be FR, FL, RR, RL** |
-
-**MuJoCo touch sensor order**: FR_touch, FL_touch, RR_touch, RL_touch → DDS foot_force: FR, FL, RR, RL → training contact: FR, FL, RR, RL
-
-**Earlier versions had FL-first ordering in `robot_control.yaml`** which caused FR↔FL joint data swap in observations AND actions. Due to left-right symmetry, the robot walked but veered left. This has been fixed on 2026-06-01.
-
-**Key lesson**: Do NOT add index remapping (like `contact_map`) to fix order mismatches — fix the root cause (YAML order). See full analysis at `docs/joint-order-root-cause.md`.
-
-**⚠️ config.yaml `policy_joint_order` must be `"ros1_fl_fr_rl_rr"`**: IsaacGym's `get_asset_dof_names()` returns dof names in **alphabetical order** (FL→FR→RL→RR), NOT URDF document order. The Go2 policy was trained FL-first. The remap converts our FR-first controller data to FL-first policy observations. Removing this remap causes the robot to flip (front hips swing backward instead of forward). Do NOT disable it. (Verified 2026-06-02 via empirical test)
-
-### 61-Dim Agile Policy Observation Layout
-
-Index in `computeObservation()` flat tensor `obs[0][i]`:
-
-| Indices | Field | Dims | Description |
-|---------|-------|------|-------------|
-| 0-3 | contact | 4 | Foot contact: +1=contact, -1=no contact. Order: FR, FL, RR, RL |
-| 4-6 | ang_vel | 3 | Angular velocity from IMU gyro [x, y, z] (body frame) |
-| 7-9 | gravity_vec | 3 | Gravity direction in body frame (computed from quaternion) |
-| 10-12 | commands | 3 | Position commands in body frame [x, y, yaw] |
-| 13 | timer | 1 | Constant 0.5 (matches ROS1 ABS deployment) |
-| 14-25 | dof_pos | 12 | Joint positions (FR_hip..RL_calf) |
-| 26-37 | dof_vel | 12 | Joint velocities |
-| 38-49 | actions | 12 | Previous action output (from policy) |
-| 50-60 | ray2d | 11 | Ray distances (log2 transformed, currently constant log2(6.0)=2.585) |
-
-### 49-Dim Recovery Policy Observation Layout
-
-Subset of Agile Policy: contact(4) + ang_vel(3) + gravity_vec(3) + commands(3) + dof_pos(12) + dof_vel(12) + actions(12). **No timer, no ray2d.**
-
-### Keyboard Input Details
-
-Package: `keyboard_input` (not `control_input`!)
-Executable: `keyboard_input`
-Source: `commands/keyboard_input/src/KeyboardInput.cpp`
-
-Key mapping:
-- `1`-`4`: command values → FSM state transitions
-- `W/S`: ly (forward/back) with sensitivity=0.05 per press
-- `A/D`: lx (left/right)
-- `I/K`: ry (pitch)
-- `J/L`: rx (yaw)
-- `Space`: reset all values + command=0
-
-**Important timing detail**: When a command key (1-4) is pressed, ALL movement values (lx, ly, rx, ry) are zeroed. Press W **after** entering RL mode. Need ~20 presses of W to reach ly=1.0.
-
-## Environment Setup
-
-| Component | Status | Details |
-|-----------|--------|---------|
-| CUDA 11.8 | Done | `/usr/local/cuda-11.8` (nvcc 11.8.89) |
-| Conda env `abs` | Done | Python 3.8.20, located at `/home/lidio/anaconda3/envs/abs/` |
-| PyTorch 2.0.1+cu118 | Done | GPU: RTX 4060 Laptop, CUDA available |
-| Isaac Gym Preview 4 | Done | Installed at `/home/lidio/isaacgym/isaacgym/` |
-| rsl_rl (ABS fork) | Done | Installed from `ABS/training/rsl_rl/` |
-| numpy==1.21, tensorboard, setuptools==59.5.0 | Done | |
-| ABS legged_gym | Done | Installed on server `/data/sxq/ABS/training/legged_gym/` |
-| libtorch 2.0.1 CPU | Done | `/home/lidio/Libraries/libtorch-cpu-2.0.1/` (for ros2 colcon build) |
-| MuJoCo 3.3.3 | Done | `/home/lidio/quadruped_robots/unitree_mujoco/simulate/build2/` |
-| unitree_sdk2 | Done | `/home/lidio/Libraries/unitree_sdk2/` (DDS comm between MuJoCo and ROS2) |
-
-**Activation**: Conda env auto-sets `PATH`, `CUDA_HOME`, `LD_LIBRARY_PATH` via `activate.d/env_vars.sh`.
-
-**Isaac Gym tarball**: `/home/lidio/下载/1/IsaacGym_Preview_4_Package.tar.gz` (192MB, keep as backup).
-
-**Server guide**: `/home/lidio/quadruped_robots/服务器训练指南.md` — SSH, tmux, TensorBoard 操作
+| 模块 | 论文方法 | 参考代码 |
+|------|---------|---------|
+| Recovery Twist 优化 | 梯度下降 ×3, loss=lam·max(ra+2eps,0)+0.02·pos_dev² | ROS1 L498-525 |
+| RA 模型推理 | 19→64→64→1 Tanh, 触发阈值 ra>-twist_eps | ROS1 L475-488 |
+| Recovery 策略推理 | 49-dim obs, 内联替代 agile action | ROS1 L532-536 |
+| Goal 导航 | 世界坐标目标 → 机体坐标系位置指令 | ROS1 L145-175 |
+| Contact 检测 | 足力阈值 >1N (仿真匹配训练) | training: contact_forces>1.0 |
+| Ray2d 感知 | 仿真=几何射线, 实机=深度相机+ResNet18 | 各自独立 |
 
 ## Current Status (2026-06-07)
 
-### Training: All Complete ✅
+### Done ✅
 
-| Module | Robot | Status | Details |
-|--------|-------|--------|---------|
-| Agile Policy | Go2 | Done | 4000 iters, exported |
-| Recovery Policy | Go2 | Done | 6000 iters, exported |
-| RA Value Network | Go2 | Done | 135k steps, TorchScript converted |
-| Ray-Prediction | Go2 | Done | ResNet18, 250 epochs (not deployed) |
+敏捷策略推理 | 恢复策略推理 | RA 值网络 | Recovery Twist (论文梯度下降) | 目标导航 | 到达检测+重采样 | 射线感知 | FSM 自动启动 | DDS 超时 | 软启动
 
-### ROS2 Deployment Status
+### Pending ❌
 
-| Milestone | Status | Details |
-|-----------|--------|---------|
-| M1: Basic colcon build | ✅ | libtorch CPU, Humble branch |
-| M2: 61-dim observation | ✅ | contact/timer/ray2d |
-| M3: MuJoCo sim pipeline | ✅ | unitree_mujoco + DDS |
-| M4: Agile Policy running | ✅ | 61-dim obs, goal navigation via odometer |
-| M5: Recovery Policy inference | ✅ | 49-dim obs, inline recovery (matches ROS1 lines 532-536) |
-| M6: Ray2d (MuJoCo) | ✅ | 2D ray-circle → shm, geom type filter |
-| M6b: Ray-Prediction | ❌ | Depth-camera-based ray prediction not integrated |
-| M7a: RA Value + Auto-switch | ✅ | ra_value inference, auto-switch at threshold -0.05 |
-| M7b: Recovery twist = paper GD | ✅ | Gradient descent via RA model (3 iters, loss=lam*max(ra+2*eps,0)+0.02*pos_dev²), 30-step hold for frequency match |
-| M7c: Goal navigation | ✅ | World-frame goal via odometer, arrival detection, resampling on arrival |
-| M8: Real Go2 deployment | ❌ | Not started |
-| D.3: Auto-launch | ✅ | launch_abs_sim.sh: auto FSM transitions to RL |
-| E.1: DDS timeout | ✅ | 200ms frozen joints → force PASSIVE + FATAL log |
-| E.2: Remote emergency | ❌ | `/rt/wirelesscontroller` not subscribed |
-| E.3: Soft start | ✅ | Kp/Kd ramp 0→target over 0.5s |
-| E.4: Temperature monitor | ❌ | Motor temp not exposed to controller |
-| — Goal resampling | ✅ | Arrival detection → random resample within training ranges |
-| — Recovery hold config | ✅ | `recovery_hold_steps` YAML-configurable (default 30) |
+Ray-Prediction (ResNet18, M6b) — 需域适应 | 实机 Go2 部署 (M8) | 遥控器急停 (E.2) | 温度监控 (E.4)
 
-### Ray2d Architecture (Phase B, 2026-06-03)
+## Key Implementation Details
+
+### Joint Order Convention — CRITICAL
+
+全链路使用 **FR, FL, RR, RL** 顺序（匹配 MuJoCo 模型和 DDS 桥）。
+策略训练时 Isaac Gym 按字母序导出 DOF 名（FL-first），因此观测/动作需通过 `policy_joint_order: "ros1_fl_fr_rl_rr"` 进行 remap。
+切勿在 YAML 中更改关节顺序或在代码中添加 contact_map 等临时映射。
+
+### FSM State Flow
 
 ```
-MuJoCo Bridge (unitree_sdk2_bridge.h)
-  2D ray-circle × 11 → log2 transform → /mujoco_ray2d (POSIX shm)
-  Also writes /mujoco_qpos (19 doubles) for Python depth renderer sync
-       ↓ shared memory (zero-copy)
-StateRL::runModel()
-  read shm → obs_.ray2d → policy + RA model
+PASSIVE --(key 2)--> FIXEDDOWN --(key 2)--> FIXEDSTAND --(key 3)--> RL
+                                             key 4 → RL_REC (手动测试)
+```
+RL 状态内已有论文的内联 recovery（RA 触发自动切换），RL_REC 仅用于手动测试。
+
+### Observation Layouts
+
+- **Agile (61-dim)**: contact(4) + ang_vel(3) + gravity_vec(3) + commands(3) + timer(1) + dof_pos(12) + dof_vel(12) + actions(12) + ray2d(11)
+- **Recovery (49-dim)**: 同上但无 timer 和 ray2d，commands 替换为 twist(3)
+- **RA (19-dim)**: lin_vel(3) + ang_vel(3) + commands[0:2](2) + ray2d(11)
+
+Timer 恒为 0.5（匹配 ROS1 部署）。Contact = +1(着地)/-1(离地)。
+
+### Ray2d Architecture
+
+```
+MuJoCo Bridge (unitree_sdk2_bridge.h):
+  2D 射线圆相交 → 11 条射线 (θ=-45°~+45°, step=9°)
+  → log2 变换 → /mujoco_ray2d (POSIX shm)
+  → /mujoco_qpos (19 doubles, 供 Python 深度渲染同步)
+
+Geom 过滤: 跳过 plane/hfield/mesh, robot groups 2/3, 动态体
+          保留 box/cylinder/sphere/capsule/ellipsoid
 ```
 
-**Geom filter**: skip plane(0), hfield(1), mesh(7), robot groups(2,3), dynamic bodies. Keep box(6), cylinder(5), sphere(2), capsule(3), ellipsoid(4).
-
-**Key parameters**: theta [-45°, +45°], step 9° → 11 rays, origin (-0.05, 0) body-frame XY, max 6.0m, log2 transform.
-
-### Depth Camera + ResNet18 Pipeline (M6b, 2026-06-07)
+### Recovery Twist Optimization (Paper Method)
 
 ```
-Python ray_predictor.py:
-  MuJoCo Python → render depth (160×90) → log2 → ResNet18 TorchScript → /mujoco_ray2d shm
-  State synced via /mujoco_qpos shm (from C++ bridge)
+1. twist = [当前vx, 当前vy, 当前wz], requires_grad=true
+2. 3 次迭代:
+   a. 构造 19-dim RA 观测 (含当前 twist 替代 lin_vel[0:2] 和 ang_vel[2])
+   b. ra_val = RA_model.forward(ra_obs)
+   c. loss = 10·max(ra+0.1, 0) + 0.02·((vx·0.05-cmd_x)²+(vy·0.05-cmd_y)²)
+   d. loss.backward() → clip_grad(±1.0) → lr=0.5 更新 → clip twist
+3. 保持 30 RL 步 (≈240ms, 匹配 ROS1 3 步×80ms) → 允许退出
 ```
 
-**Status**: Pipeline functional but ResNet18 trained on real ZED depth — MuJoCo rendered depth has distribution gap. Inference works (~14ms) but ray quality insufficient for reliable obstacle avoidance. Needs domain adaptation or simulation retraining.
+频率: ROS2 125Hz (8ms/步) vs ROS1 12.5Hz (80ms/步)。
+30 步保持通过 `recovery_hold_steps` YAML 配置。
 
-**Critical finding**: `mj_ray()` `bodyexclude` only excludes bodies connected by weld constraints. Go2 legs are hinge joints → rays hit own legs. Fix: raised ray origin z to 0.25 (above hips).
-
-**Fallback**: If shm not available (MuJoCo not started), auto-fallback to constant log2(6.0).
-
-**Verification** (scene.xml, flat):
-- ray2d: all 2.585 (max range, no obstacles)
-- ra_value: -0.7372 (negative = safe, no auto-switch)
-
-### Strategy/Model Files (Local Paths)
-
-| File | Path | Status |
-|------|------|--------|
-| Agile Policy | `quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/policy.pt` | Deployed |
-| Agile Config | `quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml` | Deployed |
-| Recovery Policy | `quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/rec/policy.pt` | Deployed (TorchScript) |
-| Recovery Config | `quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/rec/config.yaml` | Deployed |
-| RA Value Network | `ABS/training/legged_gym/logs/go2_pos_rough/exported/RA/` | Not deployed to ROS2 |
-| Ray-Prediction Model | `ABS/training/legged_gym/legged_gym/depth_logs/` (ResNet18, 43MB) | Not deployed to ROS2 |
-| Go1/Go2 Training Policies | `ABS/training/legged_gym/logs/` | Training artifacts |
-
-### How to Launch MuJoCo Simulation (3 Terminals)
-
-**Terminal 1** — MuJoCo physics engine (start first):
-```bash
-cd ~/quadruped_robots/unitree_mujoco
-export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:$LD_LIBRARY_PATH
-./simulate/build2/unitree_mujoco
-```
-
-**Terminal 2** — ROS2 RL controller (CRITICAL: use rl_quadruped_controller, NOT unitree_guide_controller):
-```bash
-source /opt/ros/humble/setup.bash
-source ~/quadruped_robots/quadruped_ros2_control_humble/install/setup.bash
-export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:$LD_LIBRARY_PATH
-ros2 launch rl_quadruped_controller mujoco.launch.py
-```
-
-**Terminal 3** — Keyboard teleop:
-```bash
-source /opt/ros/humble/setup.bash
-source ~/quadruped_robots/quadruped_ros2_control_humble/install/setup.bash
-ros2 run keyboard_input keyboard_input
-```
-
-**Terminal 4** (optional) — Debug keyboard input:
-```bash
-source /opt/ros/humble/setup.bash
-source ~/quadruped_robots/quadruped_ros2_control_humble/install/setup.bash
-ros2 topic echo /control_input
-```
-
-**Operation sequence**:
-1. In terminal 3: Press W ~20 times to build up ly=1.0
-2. Press `2` → wait for "fixed down" → press `2` → wait for "fixed stand" → press `3` → RL mode
-3. Immediately after pressing `3`, keep pressing `W` repeatedly
-4. Watch terminal 2 for `[DEBUG-0]` through `[DEBUG-9]` output
-5. Check `cmd=X.XX` field — if non-zero, keyboard is working
-
-## ROS2 Build Commands
+## Building
 
 ```bash
-# Full RL controller build (with libtorch CPU)
+# RL Controller (most common)
 cd ~/quadruped_robots/quadruped_ros2_control_humble
 source /opt/ros/humble/setup.bash
 colcon build --packages-select rl_quadruped_controller --symlink-install \
   --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-  -DCMAKE_PREFIX_PATH="/home/lidio/Libraries/libtorch-cpu-2.0.1:/opt/ros/humble" \
-  -DTorch_DIR=/home/lidio/Libraries/libtorch-cpu-2.0.1/share/cmake/Torch \
-  -DCaffe2_DIR=/home/lidio/Libraries/libtorch-cpu-2.0.1/share/cmake/Caffe2
+  -DTorch_DIR=/home/lidio/Libraries/libtorch-cpu-2.0.1/share/cmake/Torch
 
-# Build only description/config changes (no C++ compilation needed)
+# Config-only changes
 colcon build --packages-select go2_description --symlink-install
 
-# Build keyboard_input
-colcon build --packages-select keyboard_input --symlink-install
-
-# Build all packages
-colcon build --symlink-install \
-  --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-  -DCMAKE_PREFIX_PATH="/home/lidio/Libraries/libtorch-cpu-2.0.1:/opt/ros/humble" \
-  -DTorch_DIR=/home/lidio/Libraries/libtorch-cpu-2.0.1/share/cmake/Torch \
-  -DCaffe2_DIR=/home/lidio/Libraries/libtorch-cpu-2.0.1/share/cmake/Caffe2
+# MuJoCo simulator
+cd ~/quadruped_robots/unitree_mujoco/simulate/build2 && make -j$(nproc)
 ```
 
-## Key Modified Files (2026-05-30/31)
+## Environment
 
-| File | Change Summary |
-|------|---------------|
-| `controllers/rl_quadruped_controller/src/RlQuadrupedController.h` | Added `#include StateRLRec.h`, `rlRec` to FSMStateList, fixed `stand_pos_` to match training (0, 0.8, -1.5) |
-| `controllers/rl_quadruped_controller/src/RlQuadrupedController.cpp` | Added StateRLRec instantiation in `on_activate()`, RL_REC case in `getNextState()` |
-| `controllers/rl_quadruped_controller/src/FSM/StateRL.cpp` | ① Timer inverted (1.0→0.0) ② Commands scaled to training range ③ Debug logging (10 steps) ④ checkChange: key 4→RL_REC ⑤ `use_rl_thread` respected |
-| `controllers/rl_quadruped_controller/src/FSM/StateFixedStand.cpp` | key 3→RL, key 4→RL_REC |
-| `descriptions/unitree/go2_description/config/robot_control.yaml` | **Joint order FR,FL,RR,RL**; `use_rl_thread: false`; foot force order fixed; stand_pos/down_pos aligned |
-| `libraries/controller_common/include/controller_common/common/enumClass.h` | Added `RL` and `RL_REC` to FSMStateName enum |
-| `controllers/rl_quadruped_controller/include/.../FSM/StateRLRec.h` | **New file** — Recovery policy FSM state header |
-| `controllers/rl_quadruped_controller/src/FSM/StateRLRec.cpp` | **New file** — Recovery policy implementation (49-dim obs) |
-| `descriptions/unitree/go2_description/config/abs/config.yaml` | **New file** — Agile policy 61-dim config |
-| `descriptions/unitree/go2_description/config/rec/config.yaml` | **New file** — Recovery policy 49-dim config |
-| `descriptions/unitree/go2_description/config/abs/policy.pt` | **New file** — TorchScript agile policy (783K) |
-| `descriptions/unitree/go2_description/config/rec/policy.pt` | **New file** — TorchScript recovery policy (759K) |
-| `controllers/rl_quadruped_controller/CMakeLists.txt` | Added StateRLRec.cpp |
+- Conda env `abs`: Python 3.8, PyTorch 2.0.1+cu118, `/home/lidio/anaconda3/envs/abs/`
+- CUDA 11.8: `/usr/local/cuda-11.8`
+- Isaac Gym Preview 4: `/home/lidio/isaacgym/isaacgym/`
+- LibTorch CPU 2.0.1: `/home/lidio/Libraries/libtorch-cpu-2.0.1/`
+- MuJoCo 3.3.3: `/home/lidio/quadruped_robots/unitree_mujoco/simulate/build2/`
+- Unitree SDK2: `/home/lidio/Libraries/unitree_sdk2/`
 
-## Key Modified Files (2026-06-05 — Phase D.3 + E safety)
+## Related Documentation
 
-| File | Change Summary |
-|------|---------------|
-| `scripts/launch_abs_sim.sh` | Auto-enter RL: `ros2 topic pub` sends FSM commands (2→2→3), auto ly=1.0 |
-| `controllers/rl_quadruped_controller/src/RlQuadrupedController.h` | DDS timeout: `last_joint_positions_`, `dds_timeout_counter_`, threshold=100 steps |
-| `controllers/rl_quadruped_controller/src/RlQuadrupedController.cpp` | DDS timeout check in `update()`: frozen joints >200ms → force PASSIVE + FATAL log |
-| `controllers/rl_quadruped_controller/include/.../FSM/StateRL.h` | Soft start: `mutable soft_start_step_`, `soft_start_steps_=250` |
-| `controllers/rl_quadruped_controller/src/FSM/StateRL.cpp` | `setCommand()` scales Kp/Kd by ratio; `enter()` resets counter; YAML reads `soft_start_steps` |
-| `descriptions/unitree/go2_description/config/abs/config.yaml` | Added `soft_start_steps: 250` (~0.5s ramp) |
-| `controllers/rl_quadruped_controller/doc/real_go2_deployment.md` | Updated safety feature status (DDS timeout ✅, Soft start ✅) |
+- `仿真部署手册.md` — 完整部署指南 (启动/功能/配置/日志)
+- `服务器训练指南.md` — 服务器 SSH/tmux/TensorBoard
+- `ABS/CLAUDE.md` — 训练+ROS1 参考
+- `quadruped_ros2_control_humble/CLAUDE.md` — Controller 详细
+- `unitree_mujoco/CLAUDE.md` — 仿真器详细
+- `reports/ABS复现进展报告.docx` — 论文对比报告
 
-## Key Modified Files (2026-06-06/07 — Goal nav + Recovery GD + Depth pipeline)
+## Key Modified Files History
 
-| File | Change Summary |
-|------|---------------|
-| `controllers/rl_quadruped_controller/src/FSM/StateRL.cpp` | ① World-frame goal nav via odometer + IMU yaw ② Goal resampling on arrival ③ Paper GD recovery twist (3 iters) ④ 30-step recovery hold ⑤ `recovery_hold_steps` YAML-config ⑥ Goal diagnostic log |
-| `controllers/rl_quadruped_controller/include/.../FSM/StateRL.h` | Added `goal_x_`, `goal_y_`, `recovery_hold_steps_`: removed `accumulated_yaw_`, dead `in_recovery_` members |
-| `controllers/rl_quadruped_controller/src/RlQuadrupedController.cpp` | Odometer sensor claiming (on_init + state_interface + on_activate) |
-| `controllers/rl_quadruped_controller/src/RlQuadrupedController.h` | Added `odom_name_`, `odom_interface_types_` |
-| `descriptions/unitree/go2_description/config/abs/config.yaml` | Added `goal_x:7.0`, `goal_y:0.0`, `recovery_hold_steps:30` |
-| `descriptions/unitree/go2_description/config/robot_control.yaml` | Added odometer sensor config for rl_quadruped_controller |
-| `unitree_mujoco/simulate/src/unitree_sdk2_bridge.h` | Geom type filter (skip plane/hfield/mesh); qpos shm for Python sync; removed debug diag |
-| `scripts/ray_predictor.py` | **New** — MuJoCo depth render + ResNet18 ray prediction pipeline |
-| `scripts/launch_abs_terrain.sh` | **New** — One-click terrain scene launch with scene override |
-| `scripts/generate_test_scenes.py` | **New** — Random obstacle scene generator (5 scenes) |
-| `scripts/test_multiscene.sh` | **New** — Multi-scene automated testing |
-| `scripts/reproduce_report.py` | **New** — Docx report generation script |
-| `CLAUDE.md` | Updated constraints #0 (paper reproduction), status, architecture docs |
-| `unitree_mujoco/unitree_robots/go2/assets/` | **New** — hfield files for terrain scene |
+### 2026-06-06/07 — Goal nav + Recovery GD + Cleanup
 
-## Key Constraints
+| File | Change |
+|------|--------|
+| `StateRL.cpp` | World-frame goal nav, goal resampling, paper GD recovery twist, 30-step hold, rm debug |
+| `StateRL.h` | goal_x_, goal_y_, recovery_hold_steps_; rm accumulated_yaw_, dead members |
+| `RlQuadrupedController.cpp/.h` | Odometer sensor claiming |
+| `abs/config.yaml` | goal_x, goal_y, recovery_hold_steps; rm rl_cooldown_steps |
+| `robot_control.yaml` | Odometer sensor config |
+| `unitree_sdk2_bridge.h` | Geom type filter, qpos shm, rm debug diag |
+| `scripts/` | launch_abs_terrain.sh, generate_test_scenes.py, ray_predictor.py, test_multiscene.sh |
+| `CLAUDE.md` | Paper-reproduction protocol, updated status |
 
-0. **⚠️ 复现论文方法是最高优先级 — 不允许自行设计替代方案**
-   - 本项目目标是**复现 ABS 论文**，不是"让机器人能避障就行"。
-   - 凡是论文中有明确算法的，**必须先忠实地实现论文方法**。只有经过验证确实无法工作（且究明了原因），才可以讨论替代方案。
-   - 遇到困难时，先问"论文为什么能工作？我们的差异在哪？"——而不是直接换一个更简单的方案。走捷径 = 离目标越来越远。
-   - 以下模块论文有明确实现，必须用论文方法：
-     1. **Recovery Twist 优化** — 梯度下降通过 RA 模型 (C++ `torch::autograd`)，不是 ray2d 驱动
-     2. **RA 模型推理** — 19→64→64→1 Tanh，触发阈值 `ra > -twist_eps` (= -0.05)
-     3. **Recovery 策略推理** — 49-dim 观测，内联替代 agile action
-     4. **Goal 导航** — 世界坐标目标 + 机器人定位 → 机体坐标系位置指令
-     5. **Contact 检测** — 足力阈值（仿真=1N 匹配训练，实机=待确认 Go2 SDK 单位）
-     6. **Ray2d 感知** — 仿真=几何射线，实机=深度相机+ResNet18
-   - 只有 ROS1→ROS2 架构差异（见下方#1）和仿真/实机环境差异，才可以做适配性修改。
+### 2026-06-05 — Safety
 
-1. **先看 ROS1 源码再动手** — 遇到任何部署问题，第一步是查看 `ABS/deployment/src/abs_src/` 下 ROS1 的对应实现。ABS 是一个复现项目，ROS1 代码是唯一权威参考。只有在 ROS1 方案在 ROS2/LibTorch 中确实不可行时，才考虑替代方案。这条规则适用于所有模块：ray2d、recovery、RA 推理、observation 构造、命令处理等。
+`launch_abs_sim.sh`, DDS timeout, soft start
 
-1. **Isaac Gym Preview 4 is required** — closed-source. Do not try to substitute without understanding the codebase.
-2. **Python 3.8 only** — Legged Gym fork in ABS depends on numpy <1.24 and Isaac Gym Preview 4 bindings.
-3. **Paper is Go1, lab is Go2** — URDF, PD gains, and mass distribution differ.
-4. **RTX 4060 (8GB VRAM) is tight** for 1280 parallel envs. Reduce `num_envs` in config if OOM.
-5. **legged_control is deprecated** per its own README. Use `quadruped_ros2_control` for ROS2-based control.
-6. **服务器操作严禁影响他人** — 多人共用服务器（4×A800），所有操作必须限定在 `/data/sxq/` 和 `/home/zhaofangxu/` 下。用 `CUDA_VISIBLE_DEVICES` 限定只使用空闲 GPU。禁止修改 `/data/isaacgym/`。禁止 kill 他人进程。禁止修改系统级配置。
-7. **禁止随意删除文件或目录** — 任何 `rm`、`rm -rf` 必须：①给出明确理由；②经用户批准后才能执行。删除提示必须用中文。
+### 2026-05-30/31 — Initial Setup
 
-## Verification Commands
-
-```bash
-# Activate environment
-conda activate abs
-
-# CUDA + PyTorch
-python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0))"
-
-# Isaac Gym imports
-python -c "from isaacgym import gymapi, gymutil, gymtorch; print('OK')"
-
-# Go2 training (server)
-CUDA_VISIBLE_DEVICES=1 python scripts/train.py --task=go2_pos_rough --num_envs=1280 --max_iterations=4000 --headless
-CUDA_VISIBLE_DEVICES=1 python scripts/train.py --task=go2_rec_rough --num_envs=1280 --max_iterations=6000 --headless
-
-# Go2 export
-CUDA_VISIBLE_DEVICES=1 python scripts/play.py --task=go2_pos_rough --num_envs=1
-CUDA_VISIBLE_DEVICES=1 python scripts/play.py --task=go2_rec_rough --num_envs=1
-
-# Go2 RA + end-to-end
-CUDA_VISIBLE_DEVICES=1 python scripts/testbed.py --task=go2_pos_rough --headless --trainRA --num_envs=1280
-CUDA_VISIBLE_DEVICES=1 python scripts/testbed.py --task=go2_pos_rough --headless --num_envs=1000 --testRA
-```
-
-## Custom Commands
-
-### 日报生成 (/daily 或 "写今日总结")
-
-```bash
-conda activate abs
-python /home/lidio/quadruped_robots/scripts/daily_summary.py "2026-xx-xx" "## 今日完成
-- item 1
-- item 2
-
-## 问题与解决
-- problem and fix
-
-## 明日计划
-- plan 1"
-```
-
-Output: `~/quadruped_robots/日报/日报_YYYYMMDD.docx`
-
-## License Notes
-
-- ABS training code: CC BY-NC 4.0 (no commercial use)
-- Legged Gym: BSD-3-Clause (NVIDIA + ETH Zurich)
-- RSL-RL: BSD-3-Clause (ETH Zurich)
-- quadruped_ros2_control: Apache 2.0
-- rl_sar: Apache 2.0
+Joint order fix, StateRL, StateRLRec, FSM states, config files

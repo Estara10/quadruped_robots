@@ -75,3 +75,14 @@ abs:
   soft_start_steps: 250            # Kp/Kd ramp steps (~0.5s at 500Hz controller rate)
   goal_x: 7.0                      # world-frame goal X (forward, matches paper GOAL_XYZ)
   goal_y: 0.0                      # world-frame goal Y (left = positive)
+  resample_goal_on_arrival: false   # false: stop at first goal; true: keep sampling new goals
+
+  # Evaluation telemetry logs [EVAL] lines for multi-scene simulation metrics.
+  # This does not affect policy/RA/recovery behavior.
+  eval_telemetry_enabled: true
+  eval_telemetry_interval_steps: 25 # 25 RL steps ~= 0.2s at 125Hz
+  symmetry_debug_enabled: true      # logs [SYMM] lines at eval interval; no control effect
+
+  # Safety thresholds
+  body_tilt_limit_deg: 75.0         # roll/pitch > this → force PASSIVE (IMU quaternion based)
+  action_output_clip: 4.0           # clamp RL action output to ±this before position calc

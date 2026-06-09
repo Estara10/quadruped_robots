@@ -2,6 +2,7 @@
 # ============================================================
 # ABS Simulation Launch Script
 # Starts MuJoCo + ROS2 Controller → Auto-enter RL mode
+# The controller stops at the first configured goal unless abs.resample_goal_on_arrival=true.
 # Press Ctrl+C to stop all processes
 # ============================================================
 set -e

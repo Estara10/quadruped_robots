@@ -19,11 +19,12 @@ Parent project: `/home/lidio/quadruped_robots/CLAUDE.md`
 
 `controllers/rl_quadruped_controller/src/FSM/StateRL.cpp` contains ALL control logic:
 
-- `runModel()` — RL step: observation → policy → RA → recovery trigger
+- `runModel()` — RL step: state → goal command → observation → RA → policy/recovery action
 - `computeObservation()` — 61-dim agile policy observation
 - `computeRAObservation()` — 19-dim RA model observation
 - `computeRecoveryObservation()` — 49-dim recovery policy observation
 - `computeRecoveryTwist()` — **paper's gradient descent** (3 iters, torch::autograd)
+- `logEvalTelemetry()` / `logSymmetryDebug()` — simulation evaluation diagnostics only
 - `forward()` — agile policy inference
 - `loadYaml()` — read abs/config.yaml
 
@@ -31,10 +32,15 @@ Parent project: `/home/lidio/quadruped_robots/CLAUDE.md`
 
 | File | Purpose |
 |------|---------|
-| `descriptions/unitree/go2_description/config/abs/config.yaml` | Policy params, RA, twist, goal |
+| `descriptions/unitree/go2_description/config/abs/config.yaml` | Policy params, RA, twist, goal, telemetry |
 | `descriptions/unitree/go2_description/config/abs/policy.pt` | TorchScript agile policy |
 | `descriptions/unitree/go2_description/config/rec/policy.pt` | TorchScript recovery policy |
 | `descriptions/unitree/go2_description/config/robot_control.yaml` | ros2_control setup |
+
+Important ABS config flags:
+- `goal_x`, `goal_y`: first world-frame target.
+- `resample_goal_on_arrival: false`: stop at first target by default; set `true` for continuous random-goal evaluation.
+- `eval_telemetry_enabled`, `symmetry_debug_enabled`: diagnostics only, no control effect.
 
 ## FSM States
 
@@ -43,9 +49,18 @@ Key 2: FIXEDDOWN, Key 3: RL, Key 4: manual RL_REC
 
 ## Joint Order
 
-ALL joints in FR, FL, RR, RL order (matches MuJoCo and DDS).  
-Policy expects FL-first (Isaac Gym alphabetical order) — `policy_joint_order: ros1_fl_fr_rl_rr` handles remap.  
+ALL joints in FR, FL, RR, RL order (matches MuJoCo actuators/sensors and DDS motor_state).  
+Policy expects FL-first ROS1 deployment order — `policy_joint_order: ros1_fl_fr_rl_rr` handles dof/contact/action remap.  
+Estimator fallback also uses FR, FL, RR, RL leg chain order; do not pass FL-first `feet_names` unless the controller joint order is changed too.  
 Joint limits: hip ±1.0472, thigh [-1.5708, 3.4907], calf [-2.7227, -0.83776].
+
+## Runtime Conventions
+
+- Agile policy observation does not include linear velocity, but RA and recovery do.
+- RA/recovery `lin_vel` must be body-frame velocity, matching training `quat_rotate_inverse(base_quat, root_states[:, 7:10])` and ROS1 `zed_linvelo`.
+- MuJoCo runtime should use odometer `velocity.x/y/z` rotated into body frame; estimator velocity is only fallback.
+- Contact is read in controller order FR,FL,RR,RL, then remapped to policy order FL,FR,RL,RR in observation construction.
+- `launch_abs_sim.sh` auto-enters RL; by default the controller stops at the first configured goal.
 
 ## Building
 

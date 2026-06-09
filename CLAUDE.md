@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 **Project**: Reproduce ABS (Agile But Safe) paper — dual-policy collision-free quadruped locomotion.  
 **Robot**: Go2 (paper uses Go1). **Simulator**: MuJoCo. **ROS**: Humble. **Inference**: LibTorch.  
-**Last updated**: 2026-06-09
+**Last updated**: 2026-06-09 (final)
 
 ---
 
@@ -30,9 +30,9 @@ Goal: 机器人自主导航到目标点，遇到障碍自动切换 recovery 避�
 
 最简启动:
   ~/quadruped_robots/scripts/launch_abs_sim.sh     # 默认到达首目标后停止
-  MUJOCO_SCENE_OVERRIDE=scene_test1.xml ./scripts/launch_abs_terrain.sh  # 障碍物
+  MUJOCO_SCENE=scene_obstacle.xml ./scripts/launch_abs_obstacle.sh  # 障碍物
 
-当前状态: 仿真核心链路已端到端跑通，正在进行行为校准与结构化评估。实机待部署。
+当前状态: 仿真核心链路已端到端验证通过，4场景12次100%成功率。实机待部署。
 ```
 
 ---
@@ -104,15 +104,15 @@ Training (Isaac Gym)                     Deployment (ROS1/ROS2)
 
 ### Done ✅
 
-敏捷策略推理 | 恢复策略推理 | RA 值网络 | Recovery Twist (论文梯度下降) | 目标导航 | 到达检测 | 射线感知 | FSM 自动启动 | DDS 超时 | 软启动 | RA/recovery 机体系速度修复 | Estimator 腿链顺序修复 | 首目标到达后停止配置
+敏捷策略推理 | 恢复策略推理 | RA 值网络 | Recovery Twist (论文梯度下降) | 目标导航 | 到达检测 | 射线感知 | FSM 自动启动 | DDS 超时 | 软启动 | RA/recovery 机体系速度修复 | Estimator 腿链顺序修复 | 首目标到达后停止配置 | 安全机制 (姿态/action/卸力) | 多场景评估基线 (12/12=100%)
 
 ### In Progress 🔄
 
-仿真行为校准 | 多场景结构化评估 | 调试日志收敛（`[EVAL]`, `[SYMM]`, `[STAND-SYMM]`）
+避障行为精细化（recovery 参数调优）| heading 偏航改善（策略层偏置）
 
 ### Pending ❌
 
-Ray-Prediction (ResNet18, M6b) — 需域适应 | 实机 Go2 部署 (M8) | 遥控器急停 (E.2) | 温度监控 (E.4)
+Ray-Prediction (ResNet18, M6b) — 需域适应 | 实机 Go2 部署 (M8) | 遥控器急停 (E.2) | 温度监控 (E.4) | 坡地场景
 
 ## Key Implementation Details
 
@@ -215,7 +215,12 @@ cd ~/quadruped_robots/unitree_mujoco/simulate/build2 && make -j$(nproc)
 | `QuadrupedRobot.cpp` | Estimator fallback leg chain order aligned with controller FR,FL,RR,RL |
 | `abs/config.yaml` | `resample_goal_on_arrival: false`, evaluation telemetry toggles |
 | `launch_abs_sim.sh` | Auto-RL still starts, but controller stops at first configured goal by default |
-| Runtime validation | Flat/scene_test1 ran through RL, recovery enter/exit observed, repeated target arrival observed before disabling resample |
+| `BaseFixedStand.cpp` | `[STAND-SYMM]` diagnostics for symmetry debugging |
+| `StateRL.h` | Safety params (`body_tilt_limit_deg`, `action_output_clip`), `checkBodySafety()`, telemetry toggles |
+| Runtime validation | Flat/scene_test1 ran through RL, recovery enter/exit observed |
+| **Evaluation baseline** | 4 scenes × 3 runs, 12/12 = 100% success, 0 falls, 0 timeouts |
+| Scene system | `scene_flat/obstacle/terrain/slope` with unified `MUJOCO_SCENE` env var |
+| Log cleanup | Chinese annotations on [GOAL]/[RA-REC]/[TWIST-GD]; debug toggles default off |
 
 ### 2026-06-06/07 — Goal nav + Recovery GD + Cleanup
 

@@ -144,6 +144,14 @@ void StateRLRec::exit()
     running_ = false;
     RCLCPP_INFO(rclcpp::get_logger("StateRLRec"), "[REC-EXIT] RL steps executed: %d", rl_step_count_);
     rl_step_count_ = 0;
+
+    // Zero PD gains so the robot goes limp when exiting to PASSIVE/RL
+    for (int i = 0; i < params_.num_of_dofs; ++i)
+    {
+        robot_command_.motor_command.kp[i] = 0;
+        robot_command_.motor_command.kd[i] = 0;
+        robot_command_.motor_command.tau[i] = 0;
+    }
 }
 
 bool StateRLRec::useRos1PolicyOrder() const
@@ -183,6 +191,24 @@ torch::Tensor StateRLRec::ctrlToPolicyContactOrder(const torch::Tensor& ctrl_ord
 
 FSMStateName StateRLRec::checkChange()
 {
+    // Independent body attitude safety (IMU quaternion → roll/pitch)
+    {
+        double qw = robot_state_.imu.quaternion[3];
+        double qx = robot_state_.imu.quaternion[0];
+        double qy = robot_state_.imu.quaternion[1];
+        double qz = robot_state_.imu.quaternion[2];
+        double roll  = std::atan2(2.0 * (qw * qx + qy * qz), 1.0 - 2.0 * (qx * qx + qy * qy));
+        double pitch = std::asin(std::clamp(2.0 * (qw * qy - qz * qx), -1.0, 1.0));
+        const double limit_rad = 75.0 * M_PI / 180.0;
+        if (std::abs(roll) > limit_rad || std::abs(pitch) > limit_rad)
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("StateRLRec"),
+                "[SAFETY] Body tilt exceeded: roll=%.1f° pitch=%.1f° → PASSIVE",
+                roll * 180.0 / M_PI, pitch * 180.0 / M_PI);
+            return FSMStateName::PASSIVE;
+        }
+    }
+
     if (enable_estimator_ and !estimator_->safety())
         return FSMStateName::PASSIVE;
     // Auto-return to RL after configured steps
@@ -389,12 +415,25 @@ void StateRLRec::getState()
 
 void StateRLRec::runModel()
 {
-    if (enable_estimator_)
+    obs_.ang_vel = torch::tensor(robot_state_.imu.gyroscope).unsqueeze(0);
+    obs_.base_quat = torch::tensor(robot_state_.imu.quaternion).unsqueeze(0);
+
+    torch::Tensor lin_vel_world = torch::zeros({1, 3});
+    if (ctrl_interfaces_.odom_state_interface_.size() >= 6)
     {
-        obs_.lin_vel = torch::from_blob(estimator_->getVelocity().data(), {3}, torch::kDouble).clone().
+        lin_vel_world = torch::tensor({{
+            ctrl_interfaces_.odom_state_interface_[3].get().get_value(),
+            ctrl_interfaces_.odom_state_interface_[4].get().get_value(),
+            ctrl_interfaces_.odom_state_interface_[5].get().get_value()
+        }});
+    }
+    else if (enable_estimator_)
+    {
+        lin_vel_world = torch::from_blob(estimator_->getVelocity().data(), {3}, torch::kDouble).clone().
             to(torch::kFloat).unsqueeze(0);
     }
-    obs_.ang_vel = torch::tensor(robot_state_.imu.gyroscope).unsqueeze(0);
+    obs_.lin_vel = quatRotateInverse(obs_.base_quat, lin_vel_world, params_.framework);
+
     // Recovery policy uses twist commands from ROS1 gradient descent optimization
     // First step: use optimized twist. Subsequent steps: keep twist constant.
     if (rl_step_count_ == 0) {
@@ -415,10 +454,7 @@ void StateRLRec::runModel()
     obs_.dof_pos = torch::tensor(robot_state_.motor_state.q).narrow(0, 0, params_.num_of_dofs).unsqueeze(0);
     obs_.dof_vel = torch::tensor(robot_state_.motor_state.dq).narrow(0, 0, params_.num_of_dofs).unsqueeze(0);
 
-    // Contact detection from foot forces
-    // Training order: FR, FL, RR, RL (matches IsaacGym URDF body order)
-    // All interfaces aligned: DDS → ros2_control.xacro → YAML all FR-first
-    // No remapping needed
+    // Contact is read in controller order (FR, FL, RR, RL); computeObservation() remaps it to policy order.
     {
         torch::Tensor contact = torch::zeros({1, 4});
         int foot_count = static_cast<int>(ctrl_interfaces_.foot_force_state_interface_.size());

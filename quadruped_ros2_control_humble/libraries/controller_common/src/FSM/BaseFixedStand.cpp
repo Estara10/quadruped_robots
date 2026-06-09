@@ -5,6 +5,7 @@
 #include "controller_common/FSM/BaseFixedStand.h"
 
 #include <cmath>
+#include <rclcpp/logging.hpp>
 
 BaseFixedStand::BaseFixedStand(CtrlInterfaces& ctrl_interfaces, const std::vector<double>& target_pos,
                                const double kp,
@@ -44,6 +45,26 @@ void BaseFixedStand::run(const rclcpp::Time&/*time*/, const rclcpp::Duration&/*p
     {
         ctrl_interfaces_.joint_position_command_interface_[i].get().set_value(
             phase * target_pos_[i] + (1 - phase) * start_pos_[i]);
+    }
+
+    static int stand_symm_count = 0;
+    if (stand_symm_count++ % 100 == 0)
+    {
+        const double fr_thigh_q = ctrl_interfaces_.joint_position_state_interface_[1].get().get_value();
+        const double fl_thigh_q = ctrl_interfaces_.joint_position_state_interface_[4].get().get_value();
+        const double rr_thigh_q = ctrl_interfaces_.joint_position_state_interface_[7].get().get_value();
+        const double rl_thigh_q = ctrl_interfaces_.joint_position_state_interface_[10].get().get_value();
+        const double fr_calf_q = ctrl_interfaces_.joint_position_state_interface_[2].get().get_value();
+        const double fl_calf_q = ctrl_interfaces_.joint_position_state_interface_[5].get().get_value();
+        const double rr_calf_q = ctrl_interfaces_.joint_position_state_interface_[8].get().get_value();
+        const double rl_calf_q = ctrl_interfaces_.joint_position_state_interface_[11].get().get_value();
+
+        RCLCPP_INFO(rclcpp::get_logger("BaseFixedStand"),
+            "[STAND-SYMM] phase=%.3f q_thigh FR=%.3f FL=%.3f RR=%.3f RL=%.3f diff_FLFR=%.3f diff_RLRR=%.3f "
+            "q_calf FR=%.3f FL=%.3f RR=%.3f RL=%.3f diff_FLFR=%.3f diff_RLRR=%.3f",
+            phase,
+            fr_thigh_q, fl_thigh_q, rr_thigh_q, rl_thigh_q, fl_thigh_q - fr_thigh_q, rl_thigh_q - rr_thigh_q,
+            fr_calf_q, fl_calf_q, rr_calf_q, rl_calf_q, fl_calf_q - fr_calf_q, rl_calf_q - rr_calf_q);
     }
 }
 

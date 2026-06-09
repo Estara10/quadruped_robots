@@ -12,6 +12,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cstring>
+#include <cmath>
+#include <limits>
 
 template <typename T>
 std::vector<T> ReadVectorFromYaml(const YAML::Node& node)
@@ -319,11 +321,125 @@ void StateRL::run(const rclcpp::Time&/*time*/, const rclcpp::Duration&/*period*/
     setCommand();
 }
 
+void StateRL::logEvalTelemetry(double robot_wx, double robot_wy, double robot_yaw,
+                               double goal_wx, double goal_wy, double dist_to_goal,
+                               double body_x, double body_y, double heading_cmd,
+                               bool arrived, bool in_recovery, int recovery_hold_left,
+                               double recovery_vx, double recovery_vy, double recovery_wz) const
+{
+    if (!params_.eval_telemetry_enabled)
+    {
+        return;
+    }
+
+    const int interval = std::max(1, params_.eval_telemetry_interval_steps);
+    if (rl_step_count_ % interval != 0)
+    {
+        return;
+    }
+
+    double min_ray_log = std::numeric_limits<double>::infinity();
+    double max_ray_log = -std::numeric_limits<double>::infinity();
+    const int ray_count = std::min(params_.abs_ray2d_count, static_cast<int>(obs_.ray2d.size(1)));
+    for (int i = 0; i < ray_count; ++i)
+    {
+        const double ray = obs_.ray2d[0][i].item<double>();
+        min_ray_log = std::min(min_ray_log, ray);
+        max_ray_log = std::max(max_ray_log, ray);
+    }
+    const double min_ray_m = std::pow(2.0, min_ray_log);
+
+    const double action_min = obs_.actions.min().item<double>();
+    const double action_max = obs_.actions.max().item<double>();
+    const double elapsed_s = rl_step_count_ * static_cast<double>(params_.decimation) / ctrl_interfaces_.frequency_;
+    const double ra_value = ra_loaded_ ? ra_value_ : std::numeric_limits<double>::quiet_NaN();
+
+    RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+        "[EVAL] step=%d t=%.3f robot=(%.3f,%.3f) yaw=%.3f goal=(%.3f,%.3f) dist=%.3f "
+        "body=(%.3f,%.3f) heading=%.3f arrived=%d ra=%.5f entry=%.5f recovery=%d hold=%d "
+        "twist=(%.3f,%.3f,%.3f) min_ray_log=%.3f max_ray_log=%.3f min_ray_m=%.3f "
+        "lin_vel=(%.3f,%.3f,%.3f) ang_vel=(%.3f,%.3f,%.3f) action_range=(%.3f,%.3f) "
+        "contact=(%.0f,%.0f,%.0f,%.0f)",
+        rl_step_count_, elapsed_s, robot_wx, robot_wy, robot_yaw, goal_wx, goal_wy, dist_to_goal,
+        body_x, body_y, heading_cmd, arrived ? 1 : 0, ra_value, params_.ra_threshold,
+        in_recovery ? 1 : 0, recovery_hold_left, recovery_vx, recovery_vy, recovery_wz,
+        min_ray_log, max_ray_log, min_ray_m,
+        obs_.lin_vel[0][0].item<double>(), obs_.lin_vel[0][1].item<double>(), obs_.lin_vel[0][2].item<double>(),
+        obs_.ang_vel[0][0].item<double>(), obs_.ang_vel[0][1].item<double>(), obs_.ang_vel[0][2].item<double>(),
+        action_min, action_max,
+        obs_.contact[0][0].item<double>(), obs_.contact[0][1].item<double>(),
+        obs_.contact[0][2].item<double>(), obs_.contact[0][3].item<double>());
+}
+
+void StateRL::logSymmetryDebug(double robot_wx, double robot_wy, double robot_yaw,
+                               double body_y, double heading_cmd, bool in_recovery,
+                               const torch::Tensor& policy_actions,
+                               const torch::Tensor& ctrl_actions) const
+{
+    if (!params_.symmetry_debug_enabled)
+    {
+        return;
+    }
+
+    const int interval = std::max(1, params_.eval_telemetry_interval_steps);
+    if (rl_step_count_ % interval != 0)
+    {
+        return;
+    }
+
+    auto value = [](const torch::Tensor& tensor, int index) {
+        return tensor[0][index].item<double>();
+    };
+
+    const double fl_fr_thigh_action = value(ctrl_actions, 4) - value(ctrl_actions, 1);
+    const double rl_rr_thigh_action = value(ctrl_actions, 10) - value(ctrl_actions, 7);
+    const double fl_fr_calf_action = value(ctrl_actions, 5) - value(ctrl_actions, 2);
+    const double rl_rr_calf_action = value(ctrl_actions, 11) - value(ctrl_actions, 8);
+
+    const double fl_fr_thigh_q = output_dof_pos_[0][4].item<double>() - output_dof_pos_[0][1].item<double>();
+    const double rl_rr_thigh_q = output_dof_pos_[0][10].item<double>() - output_dof_pos_[0][7].item<double>();
+    const double fl_fr_calf_q = output_dof_pos_[0][5].item<double>() - output_dof_pos_[0][2].item<double>();
+    const double rl_rr_calf_q = output_dof_pos_[0][11].item<double>() - output_dof_pos_[0][8].item<double>();
+
+    const double fl_fr_thigh_state = obs_.dof_pos[0][4].item<double>() - obs_.dof_pos[0][1].item<double>();
+    const double rl_rr_thigh_state = obs_.dof_pos[0][10].item<double>() - obs_.dof_pos[0][7].item<double>();
+    const double fl_fr_calf_state = obs_.dof_pos[0][5].item<double>() - obs_.dof_pos[0][2].item<double>();
+    const double rl_rr_calf_state = obs_.dof_pos[0][11].item<double>() - obs_.dof_pos[0][8].item<double>();
+
+    RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+        "[SYMM] step=%d robot=(%.3f,%.3f) yaw=%.3f body_y=%.3f heading=%.3f recovery=%d "
+        "policy_FL=(%.3f,%.3f,%.3f) policy_FR=(%.3f,%.3f,%.3f) policy_RL=(%.3f,%.3f,%.3f) policy_RR=(%.3f,%.3f,%.3f) "
+        "ctrl_FR=(%.3f,%.3f,%.3f) ctrl_FL=(%.3f,%.3f,%.3f) ctrl_RR=(%.3f,%.3f,%.3f) ctrl_RL=(%.3f,%.3f,%.3f) "
+        "diff_action_thigh=(%.3f,%.3f) diff_action_calf=(%.3f,%.3f) "
+        "diff_qcmd_thigh=(%.3f,%.3f) diff_qcmd_calf=(%.3f,%.3f) "
+        "diff_qstate_thigh=(%.3f,%.3f) diff_qstate_calf=(%.3f,%.3f)",
+        rl_step_count_, robot_wx, robot_wy, robot_yaw, body_y, heading_cmd, in_recovery ? 1 : 0,
+        value(policy_actions, 0), value(policy_actions, 1), value(policy_actions, 2),
+        value(policy_actions, 3), value(policy_actions, 4), value(policy_actions, 5),
+        value(policy_actions, 6), value(policy_actions, 7), value(policy_actions, 8),
+        value(policy_actions, 9), value(policy_actions, 10), value(policy_actions, 11),
+        value(ctrl_actions, 0), value(ctrl_actions, 1), value(ctrl_actions, 2),
+        value(ctrl_actions, 3), value(ctrl_actions, 4), value(ctrl_actions, 5),
+        value(ctrl_actions, 6), value(ctrl_actions, 7), value(ctrl_actions, 8),
+        value(ctrl_actions, 9), value(ctrl_actions, 10), value(ctrl_actions, 11),
+        fl_fr_thigh_action, rl_rr_thigh_action, fl_fr_calf_action, rl_rr_calf_action,
+        fl_fr_thigh_q, rl_rr_thigh_q, fl_fr_calf_q, rl_rr_calf_q,
+        fl_fr_thigh_state, rl_rr_thigh_state, fl_fr_calf_state, rl_rr_calf_state);
+}
+
 void StateRL::exit()
 {
     running_ = false;
     RCLCPP_INFO(rclcpp::get_logger("StateRL"), "[VERIFY-EXIT] RL steps executed: %d", rl_step_count_);
     rl_step_count_ = 0;
+
+    // Zero PD gains so the robot goes limp when exiting to PASSIVE
+    for (int i = 0; i < params_.num_of_dofs; ++i)
+    {
+        robot_command_.motor_command.kp[i] = 0;
+        robot_command_.motor_command.kd[i] = 0;
+        robot_command_.motor_command.tau[i] = 0;
+    }
 }
 
 void StateRL::computeRecoveryTwist()
@@ -432,8 +548,37 @@ torch::Tensor StateRL::computeRecoveryObservation(const torch::Tensor& twist)
     return clamp(result, -params_.clip_obs, params_.clip_obs);
 }
 
+bool StateRL::checkBodySafety() const
+{
+    // Compute roll/pitch from IMU quaternion (isaacgym order: x,y,z,w)
+    double qw = robot_state_.imu.quaternion[3];
+    double qx = robot_state_.imu.quaternion[0];
+    double qy = robot_state_.imu.quaternion[1];
+    double qz = robot_state_.imu.quaternion[2];
+
+    double roll  = std::atan2(2.0 * (qw * qx + qy * qz), 1.0 - 2.0 * (qx * qx + qy * qy));
+    double pitch = std::asin(std::clamp(2.0 * (qw * qy - qz * qx), -1.0, 1.0));
+
+    double limit_rad = body_tilt_limit_deg_ * M_PI / 180.0;
+    if (std::abs(roll) > limit_rad || std::abs(pitch) > limit_rad)
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("StateRL"),
+            "[SAFETY] Body tilt exceeded limit: roll=%.1f° pitch=%.1f° (limit=%.1f°) → PASSIVE",
+            roll * 180.0 / M_PI, pitch * 180.0 / M_PI, body_tilt_limit_deg_);
+        return false;
+    }
+    return true;
+}
+
 FSMStateName StateRL::checkChange()
 {
+    // Independent body attitude safety (works without estimator)
+    if (!checkBodySafety())
+    {
+        return FSMStateName::PASSIVE;
+    }
+
+    // Estimator safety (roll/pitch guard, requires estimator enabled)
     if (enable_estimator_ and !estimator_->safety())
     {
         return FSMStateName::PASSIVE;
@@ -640,6 +785,17 @@ void StateRL::loadYaml(const std::string& config_path)
         if (abs_node["recovery_hold_steps"]) recovery_hold_steps_ = abs_node["recovery_hold_steps"].as<int>();
         if (abs_node["goal_x"]) goal_x_ = abs_node["goal_x"].as<double>();
         if (abs_node["goal_y"]) goal_y_ = abs_node["goal_y"].as<double>();
+        if (abs_node["resample_goal_on_arrival"])
+            resample_goal_on_arrival_ = abs_node["resample_goal_on_arrival"].as<bool>();
+        if (abs_node["eval_telemetry_enabled"])
+            params_.eval_telemetry_enabled = abs_node["eval_telemetry_enabled"].as<bool>();
+        if (abs_node["eval_telemetry_interval_steps"])
+            params_.eval_telemetry_interval_steps = abs_node["eval_telemetry_interval_steps"].as<int>();
+        if (abs_node["symmetry_debug_enabled"])
+            params_.symmetry_debug_enabled = abs_node["symmetry_debug_enabled"].as<bool>();
+        // Safety thresholds
+        if (abs_node["body_tilt_limit_deg"]) body_tilt_limit_deg_ = abs_node["body_tilt_limit_deg"].as<double>();
+        if (abs_node["action_output_clip"])  action_output_clip_  = abs_node["action_output_clip"].as<double>();
     }
 }
 
@@ -730,12 +886,24 @@ void StateRL::getState()
 
 void StateRL::runModel()
 {
-    if (enable_estimator_)
+    obs_.ang_vel = torch::tensor(robot_state_.imu.gyroscope).unsqueeze(0);
+    obs_.base_quat = torch::tensor(robot_state_.imu.quaternion).unsqueeze(0);
+
+    torch::Tensor lin_vel_world = torch::zeros({1, 3});
+    if (ctrl_interfaces_.odom_state_interface_.size() >= 6)
     {
-        obs_.lin_vel = torch::from_blob(estimator_->getVelocity().data(), {3}, torch::kDouble).clone().
+        lin_vel_world = torch::tensor({{
+            ctrl_interfaces_.odom_state_interface_[3].get().get_value(),
+            ctrl_interfaces_.odom_state_interface_[4].get().get_value(),
+            ctrl_interfaces_.odom_state_interface_[5].get().get_value()
+        }});
+    }
+    else if (enable_estimator_)
+    {
+        lin_vel_world = torch::from_blob(estimator_->getVelocity().data(), {3}, torch::kDouble).clone().
             to(torch::kFloat).unsqueeze(0);
     }
-    obs_.ang_vel = torch::tensor(robot_state_.imu.gyroscope).unsqueeze(0);
+    obs_.lin_vel = quatRotateInverse(obs_.base_quat, lin_vel_world, params_.framework);
 
     // === Goal-directed navigation with world-frame position ===
     // Matches paper: GOAL_XYZ in world frame, odometry from ZED/mocap → body-frame target.
@@ -794,23 +962,26 @@ void StateRL::runModel()
         body_y = 0.0;
         heading_cmd = 0.0;
 
-        // After standing at goal for ~1.6s (200 RL steps at 125Hz), resample goal
-        // Paper: ROS1 resets every 1600 timesteps; training resamples on episode reset
-        const int RESAMPLE_DELAY = 200;
-        arrived_counter++;
-        if (arrived_counter >= RESAMPLE_DELAY)
+        // After standing at goal for ~1.6s, optionally resample goal.
+        // Default is false for reproducible one-goal simulation runs.
+        if (resample_goal_on_arrival_)
         {
-            arrived_counter = 0;
-            // Sample new goal in robot's body frame, then convert to world
-            // Training ranges: forward [1.5, 7.5]m, lateral [-2.0, 2.0]m
-            double fwd = 1.5 + static_cast<double>(rand() % 6001) / 1000.0;   // [1.5, 7.5]
-            double lat = -2.0 + static_cast<double>(rand() % 4001) / 1000.0;  // [-2.0, 2.0]
-            // Convert body-frame target to world frame
-            goal_x_ = robot_wx + fwd * cos_yaw - lat * sin_yaw;
-            goal_y_ = robot_wy + fwd * sin_yaw + lat * cos_yaw;
-            RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-                "[GOAL-RESAMPLE] new world goal=(%.2f,%.2f) body_offset=(%.2f,%.2f)",
-                goal_x_, goal_y_, fwd, lat);
+            const int RESAMPLE_DELAY = 200;
+            arrived_counter++;
+            if (arrived_counter >= RESAMPLE_DELAY)
+            {
+                arrived_counter = 0;
+                // Sample new goal in robot's body frame, then convert to world
+                // Training ranges: forward [1.5, 7.5]m, lateral [-2.0, 2.0]m
+                double fwd = 1.5 + static_cast<double>(rand() % 6001) / 1000.0;   // [1.5, 7.5]
+                double lat = -2.0 + static_cast<double>(rand() % 4001) / 1000.0;  // [-2.0, 2.0]
+                // Convert body-frame target to world frame
+                goal_x_ = robot_wx + fwd * cos_yaw - lat * sin_yaw;
+                goal_y_ = robot_wy + fwd * sin_yaw + lat * cos_yaw;
+                RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+                    "[GOAL-RESAMPLE] new world goal=(%.2f,%.2f) body_offset=(%.2f,%.2f)",
+                    goal_x_, goal_y_, fwd, lat);
+            }
         }
     }
     else
@@ -828,6 +999,8 @@ void StateRL::runModel()
             (dist_to_goal < arrival_threshold) ? " [ARRIVED]" : "");
     }
 
+    const bool arrived = dist_to_goal < arrival_threshold;
+
     obs_.commands = torch::tensor({{body_x, body_y, heading_cmd}});
     obs_.base_quat = torch::tensor(robot_state_.imu.quaternion).unsqueeze(0);
     obs_.dof_pos = torch::tensor(robot_state_.motor_state.q).narrow(0, 0, params_.num_of_dofs).unsqueeze(0);
@@ -838,12 +1011,8 @@ void StateRL::runModel()
     if (episode_timer_ > params_.abs_max_episode_length_s)
         episode_timer_ = 0.0;
 
-    // Update contact from foot forces
-    // Training order: FR, FL, RR, RL (matches IsaacGym URDF body order)
-    // DDS footForce: FR, FL, RR, RL (matches MuJoCo touch sensor order)
-    // ros2_control.xacro: FR, FL, RR, RL
-    // YAML foot_force_interfaces: FR, FL, RR, RL
-    // All aligned — no remapping needed
+    // Update contact from foot forces in controller order (FR, FL, RR, RL).
+    // computeObservation() remaps it to ROS1 policy order (FL, FR, RL, RR).
     {
         torch::Tensor contact = torch::zeros({1, 4});
         int foot_count = static_cast<int>(ctrl_interfaces_.foot_force_state_interface_.size());
@@ -872,6 +1041,7 @@ void StateRL::runModel()
     //  - After hold: allow exit if ra < exit_threshold
     // ROS1: 80ms * 3steps ≈ 240ms.  Ours: 8ms * 30steps ≈ 240ms.
     const int REC_HOLD_STEPS = recovery_hold_steps_;
+    torch::Tensor policy_actions;
     torch::Tensor clamped_actions;
     double ra_entry_thr = params_.ra_threshold;         // -0.05 = ROS1 default
     double ra_exit_thr = params_.ra_threshold - 0.03;   // -0.08 = hysteresis margin
@@ -919,15 +1089,16 @@ void StateRL::runModel()
 
         torch::Tensor twist = torch::tensor({{cached_vx, cached_vy, cached_wz}});
         torch::Tensor rec_obs = computeRecoveryObservation(twist);  // ROS1 line 532
-        auto rec_action = rec_model_.forward({rec_obs}).toTensor();
-        clamped_actions = policyToCtrlDofOrder(rec_action);  // ROS1 line 536
+        policy_actions = rec_model_.forward({rec_obs}).toTensor();
+        clamped_actions = policyToCtrlDofOrder(policy_actions);  // ROS1 line 536
 
         // NaN guard (ROS1 lines 461-466)
         if (clamped_actions.isnan().any().item<int>())
         {
             RCLCPP_ERROR(rclcpp::get_logger("StateRL"),
                 "[REC-NAN] NaN in recovery action! Falling back to agile.");
-            clamped_actions = policyToCtrlDofOrder(forward());
+            policy_actions = forward();
+            clamped_actions = policyToCtrlDofOrder(policy_actions);
         }
         else
         {
@@ -939,18 +1110,26 @@ void StateRL::runModel()
                     obs_.lin_vel[0][0].item<double>(), obs_.lin_vel[0][1].item<double>(),
                     obs_.lin_vel[0][2].item<double>(),
                     cached_vx, cached_vy, cached_wz, rec_hold_left,
-                    rec_action.min().item<double>(), rec_action.max().item<double>());
+                    policy_actions.min().item<double>(), policy_actions.max().item<double>());
             }
         }
     }
     else
     {
-        clamped_actions = policyToCtrlDofOrder(forward());
+        policy_actions = forward();
+        clamped_actions = policyToCtrlDofOrder(policy_actions);
     }
 
     for (const int i : params_.hip_scale_reduction_indices)
     {
         clamped_actions[0][i] *= params_.hip_scale_reduction;
+    }
+
+    // Safety: clamp action output to reasonable range before position calculation
+    // ±4.0 with action_scale 0.25 → ±1 rad joint offset, covering all normal gait
+    if (action_output_clip_ > 0.0)
+    {
+        clamped_actions = torch::clamp(clamped_actions, -action_output_clip_, action_output_clip_);
     }
 
     obs_.actions = clamped_actions;
@@ -983,6 +1162,12 @@ void StateRL::runModel()
         robot_command_.motor_command.kd[i] = params_.rl_kd[0][i].item<double>();
         robot_command_.motor_command.tau[i] = 0;
     }
+
+    logEvalTelemetry(robot_wx, robot_wy, robot_yaw, goal_wx, goal_wy, dist_to_goal,
+                     body_x, body_y, heading_cmd, arrived, in_recovery, rec_hold_left,
+                     cached_vx, cached_vy, cached_wz);
+    logSymmetryDebug(robot_wx, robot_wy, robot_yaw, body_y, heading_cmd, in_recovery,
+                     policy_actions, clamped_actions);
 
     rl_step_count_++;
 }

@@ -131,6 +131,12 @@ struct ModelParams
     double twist_vy_min = -0.3, twist_vy_max = 0.3;
     double twist_wz_min = -3.0, twist_wz_max = 3.0;
     int recovery_steps = 250;
+    bool eval_telemetry_enabled = true;
+    int eval_telemetry_interval_steps = 25;
+    bool symmetry_debug_enabled = true;
+    // Safety thresholds
+    double body_tilt_limit_deg = 75.0;   // roll/pitch > this → force PASSIVE
+    double action_output_clip = 4.0;     // clamp RL action output to ±this
 };
 
 struct Observations
@@ -171,6 +177,18 @@ private:
     // ROS1: gradient descent twist optimization + recovery action (lines 498-538)
     void computeRecoveryTwist();
     torch::Tensor computeRecoveryObservation(const torch::Tensor& twist);  // 49-dim for recovery policy
+    void logEvalTelemetry(double robot_wx, double robot_wy, double robot_yaw,
+                          double goal_wx, double goal_wy, double dist_to_goal,
+                          double body_x, double body_y, double heading_cmd,
+                          bool arrived, bool in_recovery, int recovery_hold_left,
+                          double recovery_vx, double recovery_vy, double recovery_wz) const;
+    void logSymmetryDebug(double robot_wx, double robot_wy, double robot_yaw,
+                          double body_y, double heading_cmd, bool in_recovery,
+                          const torch::Tensor& policy_actions,
+                          const torch::Tensor& ctrl_actions) const;
+
+    /** Check body attitude safety from IMU quaternion. Returns false if tilt exceeds limit. */
+    bool checkBodySafety() const;
 
     void loadYaml(const std::string& config_path);
 
@@ -237,6 +255,7 @@ private:
     // World-frame goal position (from YAML config, matches paper GOAL_XYZ)
     double goal_x_ = 7.0;
     double goal_y_ = 0.0;
+    bool resample_goal_on_arrival_ = false;
 
     // Soft start: ramp Kp/Kd from 0 to target over first N steps
     mutable int soft_start_step_ = 0;
@@ -244,6 +263,10 @@ private:
 
     // Recovery hold: minimum RL steps before allowing exit (frequency-adapted)
     int recovery_hold_steps_ = 30;
+
+    // Safety: body tilt limit and action output clip (from YAML)
+    double body_tilt_limit_deg_ = 75.0;
+    double action_output_clip_ = 4.0;
 
     bool useRos1PolicyOrder() const;
     torch::Tensor ctrlToPolicyDofOrder(const torch::Tensor& ctrl_order) const;

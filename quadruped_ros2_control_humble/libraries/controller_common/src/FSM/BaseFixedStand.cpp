@@ -48,7 +48,7 @@ void BaseFixedStand::run(const rclcpp::Time&/*time*/, const rclcpp::Duration&/*p
     }
 
     static int stand_symm_count = 0;
-    if (stand_symm_count++ % 100 == 0)
+    if (phase < 1.0 && stand_symm_count++ % 100 == 0)
     {
         const double fr_thigh_q = ctrl_interfaces_.joint_position_state_interface_[1].get().get_value();
         const double fl_thigh_q = ctrl_interfaces_.joint_position_state_interface_[4].get().get_value();

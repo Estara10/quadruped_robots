@@ -515,8 +515,8 @@ void StateRL::computeRecoveryTwist()
     ctrl_component_.recovery_twist_wz = twist[0][2].item<double>();
 
     RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-        "[TWIST-GD] init=[%.2f,%.2f,%.2f] final=[%.2f,%.2f,%.2f] cmd=(%.2f,%.2f) "
-        "ra=[%.4f,%.4f,%.4f] ray_c=%.2f",
+        "[TWIST-GD] 梯度下降恢复速度优化 | 初始=[%.2f,%.2f,%.2f] 最终=[%.2f,%.2f,%.2f] 目标=(%.2f,%.2f) "
+        "RA迭代=[%.4f,%.4f,%.4f] 中心射线=%.2f",
         obs_.lin_vel[0][0].item<double>(), obs_.lin_vel[0][1].item<double>(),
         obs_.ang_vel[0][2].item<double>(),
         ctrl_component_.recovery_twist_vx, ctrl_component_.recovery_twist_vy,
@@ -994,9 +994,9 @@ void StateRL::runModel()
     if (goal_log_counter++ % 100 == 0)
     {
         RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-            "[GOAL] robot=(%.2f,%.2f) yaw=%.2f goal=(%.2f,%.2f) dist=%.2f body=(%.2f,%.2f) heading=%.2f%s",
+            "[GOAL] 位置=(%.2f,%.2f) 偏航=%.2f 目标=(%.2f,%.2f) 距离=%.2f 机体系=(%.2f,%.2f) 航向=%.2f%s",
             robot_wx, robot_wy, robot_yaw, goal_wx, goal_wy, dist_to_goal, body_x, body_y, heading_cmd,
-            (dist_to_goal < arrival_threshold) ? " [ARRIVED]" : "");
+            (dist_to_goal < arrival_threshold) ? " [已到达]" : "");
     }
 
     const bool arrived = dist_to_goal < arrival_threshold;
@@ -1063,7 +1063,7 @@ void StateRL::runModel()
             cached_vy = ctrl_component_.recovery_twist_vy;
             cached_wz = ctrl_component_.recovery_twist_wz;
             RCLCPP_WARN(rclcpp::get_logger("StateRL"),
-                "[RA-REC] ENTER recovery: ra=%.4f > entry=%.4f twist=[%.2f,%.2f,%.2f] hold=%d",
+                "[RA-REC] 进入恢复 | 风险值 ra=%.4f > 进入阈值=%.4f 恢复速度=[%.2f,%.2f,%.2f] 保持步数=%d",
                 ra_value_, ra_entry_thr, cached_vx, cached_vy, cached_wz, REC_HOLD_STEPS);
         }
         else if (in_recovery)
@@ -1074,7 +1074,7 @@ void StateRL::runModel()
                 // EXIT recovery — hold expired and RA confirmed safe
                 in_recovery = false;
                 RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-                    "[RA-REC] EXIT recovery: ra=%.4f < exit=%.4f, back to agile",
+                    "[RA-REC] 退出恢复 | 风险值 ra=%.4f < 退出阈值=%.4f, 回到敏捷策略",
                     ra_value_, ra_exit_thr);
             }
         }

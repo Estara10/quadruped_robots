@@ -11,8 +11,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <limits>
 
 #include "param.h"
 #include "physics_joystick.h"
@@ -77,6 +79,7 @@ public:
 
   void computeRay2d() {
     // Write full qpos to shared memory (for Python depth renderer sync)
+    // Write full qpos to shared memory (for Python depth renderer sync)
     if (qpos_shm_ptr_ != nullptr && qpos_shm_ptr_ != MAP_FAILED) {
       int nq = mj_model_->nq;
       for (int i = 0; i < QPOS_COUNT && i < nq; i++) {
@@ -131,23 +134,71 @@ public:
         double* gpos = &mj_data_->geom_xpos[gid * 3];
         double gx = gpos[0];
         double gy = gpos[1];
-
-        // Approximate radius from geom size (max of half-widths)
         double* gsize = &mj_model_->geom_size[gid * 3];
-        double gradius = std::max(std::max(gsize[0], gsize[1]), gsize[2]);
 
-        // 2D ray-circle intersection (matches training circle_ray_query)
-        double d_c2line = std::abs(stheta * gx - ctheta * gy - stheta * ray_x0 + ctheta * ray_y0);
-        if (d_c2line >= gradius) continue;  // ray misses circle
+        double raydist = std::numeric_limits<double>::infinity();
 
-        double d_c0_sq = (gx - ray_x0)*(gx - ray_x0) + (gy - ray_y0)*(gy - ray_y0);
-        double d_0p = std::sqrt(std::max(0.0, d_c0_sq - d_c2line * d_c2line));
-        double semi_arc = std::sqrt(std::max(0.0, gradius * gradius - d_c2line * d_c2line));
-        double raydist = d_0p - semi_arc;
+        if (gtype == mjGEOM_BOX) {
+          // Exact 2D ray-box intersection in the geom local frame.
+          // This keeps visually passable gaps open instead of replacing boxes with large circles.
+          double* gmat = &mj_data_->geom_xmat[gid * 9];
+          double dx = ray_x0 - gx;
+          double dy = ray_y0 - gy;
 
-        // Check direction: geom must be in front of ray
-        double check_dir = ctheta * (gx - ray_x0) + stheta * (gy - ray_y0);
-        if (check_dir <= 0) continue;
+          // world -> local: R^T * vector (z ignored for 2D ray footprint)
+          double local_x = gmat[0] * dx + gmat[3] * dy;
+          double local_y = gmat[1] * dx + gmat[4] * dy;
+          double dir_x = gmat[0] * ctheta + gmat[3] * stheta;
+          double dir_y = gmat[1] * ctheta + gmat[4] * stheta;
+
+          double tmin = -std::numeric_limits<double>::infinity();
+          double tmax = std::numeric_limits<double>::infinity();
+          bool hit = true;
+
+          auto updateSlab = [&](double origin, double dir, double half_size) {
+            const double eps = 1e-9;
+            if (std::abs(dir) < eps) {
+              if (origin < -half_size || origin > half_size) hit = false;
+              return;
+            }
+            double t1 = (-half_size - origin) / dir;
+            double t2 = ( half_size - origin) / dir;
+            if (t1 > t2) std::swap(t1, t2);
+            tmin = std::max(tmin, t1);
+            tmax = std::min(tmax, t2);
+          };
+
+          updateSlab(local_x, dir_x, gsize[0]);
+          updateSlab(local_y, dir_y, gsize[1]);
+
+          if (hit && tmax >= std::max(0.0, tmin)) {
+            raydist = (tmin >= 0.0) ? tmin : tmax;
+          }
+        } else {
+          // ABS training ray query is circle-based. For round geoms, use the 2D footprint
+          // radius only. Do not include height (geom_size[1]/[2]) in the horizontal radius.
+          double gradius = gsize[0];
+          if (gtype == mjGEOM_ELLIPSOID) {
+            gradius = std::max(gsize[0], gsize[1]);
+          } else if (gtype != mjGEOM_CYLINDER && gtype != mjGEOM_SPHERE && gtype != mjGEOM_CAPSULE) {
+            gradius = std::max(gsize[0], gsize[1]);
+          }
+
+          // 2D ray-circle intersection (matches training circle_ray_query)
+          double d_c2line = std::abs(stheta * gx - ctheta * gy - stheta * ray_x0 + ctheta * ray_y0);
+          if (d_c2line >= gradius) continue;  // ray misses circle
+
+          double d_c0_sq = (gx - ray_x0)*(gx - ray_x0) + (gy - ray_y0)*(gy - ray_y0);
+          double d_0p = std::sqrt(std::max(0.0, d_c0_sq - d_c2line * d_c2line));
+          double semi_arc = std::sqrt(std::max(0.0, gradius * gradius - d_c2line * d_c2line));
+          raydist = d_0p - semi_arc;
+
+          // Check direction: geom must be in front of ray
+          double check_dir = ctheta * (gx - ray_x0) + stheta * (gy - ray_y0);
+          if (check_dir <= 0) continue;
+        }
+
+        if (!std::isfinite(raydist)) continue;
 
         // Clip and take minimum
         if (raydist < RAY2D_MIN_DIST) raydist = RAY2D_MIN_DIST;

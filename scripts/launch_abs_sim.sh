@@ -39,11 +39,12 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 # -------------------------------------------------------
-# Step 1: MuJoCo Simulator
+# Step 1: MuJoCo Simulator (flat ground)
 # -------------------------------------------------------
-echo -e "${GREEN}[1/3] Starting MuJoCo simulator...${NC}"
+MUJOCO_SCENE="${MUJOCO_SCENE:-scene_flat.xml}"
+echo -e "${GREEN}[1/3] Starting MuJoCo simulator (scene: ${MUJOCO_SCENE})...${NC}"
 cd "${MUJOCO_DIR}"
-${MUJOCO_BIN} &
+${MUJOCO_BIN} -s "${MUJOCO_SCENE}" &
 MUJOCO_PID=$!
 sleep 3
 

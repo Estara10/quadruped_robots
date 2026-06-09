@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<mujoco model="go2 test1">
+  <include file="go2.xml"/>
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="-130" elevation="-20"/>
+  </visual>
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+  </asset>
+  <worldbody>
+    <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
+    <geom name="floor" size="0 0 0.05" type="plane" material="groundplane"/>
+    <geom type="box" pos="4.77821 1.39196 0.319396" size="0.178009 0.177997 0.0656475"/>
+    <geom type="box" pos="4.39779 0.60669 0.368633" size="0.110292 0.584955 0.315243"/>
+    <geom type="box" pos="1.45553 -1.90905 0.132532" size="0.252121 0.362378 0.0856493"/>
+    <geom type="box" pos="1.81053 0.671117 0.112772" size="0.246072 0.283181 0.0786285"/>
+    <geom type="box" pos="4.03329 -1.80196 0.281405" size="0.396207 0.123225 0.190589"/>
+    <geom type="box" pos="1.26736 -2.60969 0.476998" size="0.582816 0.504199 0.18007"/>
+    <geom type="cylinder" pos="1.69268 -1.29487 0.609958" size="0.252499 0.609958 0.609958"/>
+  </worldbody>
+</mujoco>

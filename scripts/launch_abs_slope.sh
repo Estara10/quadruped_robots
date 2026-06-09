@@ -1,7 +1,8 @@
 #!/bin/bash
 # ============================================================
-# ABS Terrain Simulation Launch Script
-# Starts MuJoCo (terrain obstacles) + ROS2 Controller → Auto-enter RL
+# ABS Slope Simulation Launch Script (PLACEHOLDER)
+# Starts MuJoCo (slope terrain) + ROS2 Controller → Auto-enter RL
+# NOTE: scene_slope.xml needs to be created with hfield/slope geometry.
 # Press Ctrl+C to stop all processes
 # ============================================================
 set -e
@@ -9,9 +10,9 @@ set -e
 # Config
 MUJOCO_DIR="${HOME}/quadruped_robots/unitree_mujoco"
 MUJOCO_BIN="${MUJOCO_DIR}/simulate/build2/unitree_mujoco"
-# Default scene: scene_terrain.xml (terrain + obstacles)
-# Override with: MUJOCO_SCENE=scene_flat.xml ./scripts/launch_abs_terrain.sh
-MUJOCO_SCENE="${MUJOCO_SCENE:-scene_terrain.xml}"
+# Default scene: scene_slope.xml (slope/hfield — not yet created)
+# Override with: MUJOCO_SCENE=scene_terrain.xml ./scripts/launch_abs_slope.sh
+MUJOCO_SCENE="${MUJOCO_SCENE:-scene_slope.xml}"
 ROS2_WS="${HOME}/quadruped_robots/quadruped_ros2_control_humble"
 UNITREE_SDK2_LIB="${HOME}/Libraries/unitree_sdk2/lib"
 LIBTORCH_LIB="${HOME}/Libraries/libtorch-cpu-2.0.1/lib"
@@ -41,8 +42,12 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 # -------------------------------------------------------
-# Step 1: MuJoCo Simulator (terrain scene)
+# Step 1: MuJoCo Simulator (slope scene)
 # -------------------------------------------------------
+if [ ! -f "${MUJOCO_DIR}/unitree_robots/go2/${MUJOCO_SCENE}" ]; then
+    echo -e "${YELLOW}[WARNING] ${MUJOCO_SCENE} not found, falling back to scene_flat.xml${NC}"
+    MUJOCO_SCENE="scene_flat.xml"
+fi
 echo -e "${GREEN}[1/3] Starting MuJoCo simulator (scene: ${MUJOCO_SCENE})...${NC}"
 cd "${MUJOCO_DIR}"
 ${MUJOCO_BIN} -s "${MUJOCO_SCENE}" &
@@ -87,23 +92,19 @@ fi
 if [ "$AUTO_RL" = "true" ]; then
     echo -e "${BLUE}[3/3] Auto-entering RL mode...${NC}"
 
-    # Helper: publish control_input command
     pub_cmd() {
         local cmd=$1 lx=${2:-0.0} ly=${3:-0.0} rx=${4:-0.0} ry=${5:-0.0}
         ros2 topic pub --once /control_input control_input_msgs/msg/Inputs \
             "{command: $cmd, lx: $lx, ly: $ly, rx: $rx, ry: $ry}" 2>/dev/null
     }
 
-    # --- Phase A: PASSIVE → FIXEDDOWN → FIXEDSTAND ---
     pub_cmd 2
     sleep 0.5
     pub_cmd 2
     echo -e "  -> FIXEDDOWN → FIXEDSTAND (waiting for crouch+stand...)"
 
-    # Wait for full FIXEDDOWN→FIXEDSTAND transition (~3.6s for both)
     sleep 4
 
-    # --- Phase B: FIXEDSTAND → RL ---
     pub_cmd 3 0.0 1.0
     sleep 0.5
     pub_cmd 3 0.0 1.0
@@ -112,18 +113,14 @@ if [ "$AUTO_RL" = "true" ]; then
     sleep 3
 
     echo -e "${GREEN}  -> RL mode activated! (ly=1.0 forward)${NC}"
-
-    echo -e "${YELLOW}  Controls: W/S=forward/back, A/D=strafe, J/L=turn, 4=Recovery, Space=stop${NC}"
     echo -e "${YELLOW}  Start keyboard in another terminal to manually control:${NC}"
     echo -e "${YELLOW}    ros2 run keyboard_input keyboard_input${NC}"
 else
     echo -e "${YELLOW}[3/3] Auto-RL disabled (AUTO_RL=false). Start keyboard manually:${NC}"
     echo -e "${YELLOW}    ros2 run keyboard_input keyboard_input${NC}"
-    echo -e "${YELLOW}  Controls: 2=FIXEDSTAND, 3=RL, 4=RL_REC, W/S=forward/back${NC}"
 fi
 
 echo -e "${YELLOW}  Press Ctrl+C to stop all simulation processes${NC}"
 
-# Keep running until user Ctrl+C
 wait ${MUJOCO_PID} 2>/dev/null
 cleanup

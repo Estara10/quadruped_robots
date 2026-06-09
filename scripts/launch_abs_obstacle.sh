@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================================
-# ABS Terrain Simulation Launch Script
-# Starts MuJoCo (terrain obstacles) + ROS2 Controller → Auto-enter RL
+# ABS Obstacle Simulation Launch Script
+# Starts MuJoCo (random box+cylinder obstacles) + ROS2 Controller → Auto-enter RL
 # Press Ctrl+C to stop all processes
 # ============================================================
 set -e
@@ -9,9 +9,9 @@ set -e
 # Config
 MUJOCO_DIR="${HOME}/quadruped_robots/unitree_mujoco"
 MUJOCO_BIN="${MUJOCO_DIR}/simulate/build2/unitree_mujoco"
-# Default scene: scene_terrain.xml (terrain + obstacles)
-# Override with: MUJOCO_SCENE=scene_flat.xml ./scripts/launch_abs_terrain.sh
-MUJOCO_SCENE="${MUJOCO_SCENE:-scene_terrain.xml}"
+# Default scene: scene_obstacle.xml (random box + cylinder obstacles)
+# Override with: MUJOCO_SCENE=scene_test3.xml ./scripts/launch_abs_obstacle.sh
+MUJOCO_SCENE="${MUJOCO_SCENE:-scene_obstacle.xml}"
 ROS2_WS="${HOME}/quadruped_robots/quadruped_ros2_control_humble"
 UNITREE_SDK2_LIB="${HOME}/Libraries/unitree_sdk2/lib"
 LIBTORCH_LIB="${HOME}/Libraries/libtorch-cpu-2.0.1/lib"
@@ -41,7 +41,7 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 # -------------------------------------------------------
-# Step 1: MuJoCo Simulator (terrain scene)
+# Step 1: MuJoCo Simulator (obstacle scene)
 # -------------------------------------------------------
 echo -e "${GREEN}[1/3] Starting MuJoCo simulator (scene: ${MUJOCO_SCENE})...${NC}"
 cd "${MUJOCO_DIR}"

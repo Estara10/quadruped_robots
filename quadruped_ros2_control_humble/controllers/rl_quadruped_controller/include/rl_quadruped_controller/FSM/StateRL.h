@@ -190,6 +190,9 @@ private:
     /** Check body attitude safety from IMU quaternion. Returns false if tilt exceeds limit. */
     bool checkBodySafety() const;
 
+    /** Check joint torque against configured limits. Returns false if any joint exceeds limit. */
+    bool checkTorqueSafety() const;
+
     void loadYaml(const std::string& config_path);
 
     static torch::Tensor quatRotateInverse(const torch::Tensor& q, const torch::Tensor& v,
@@ -267,6 +270,14 @@ private:
     // Safety: body tilt limit and action output clip (from YAML)
     double body_tilt_limit_deg_ = 75.0;
     double action_output_clip_ = 4.0;
+
+    // Torque safety: matches original ABS safe.PowerProtect(cmd, low_state, 8)
+    bool torque_monitor_enabled_ = true;
+    double torque_limit_ratio_ = 2.5;  // multiplier over nominal torque_limit
+
+    // Emergency stop: matches original ABS wireless remote B-button
+    bool emergency_stop_enabled_ = true;
+    bool emergency_stop_triggered_ = false;
 
     bool useRos1PolicyOrder() const;
     torch::Tensor ctrlToPolicyDofOrder(const torch::Tensor& ctrl_order) const;

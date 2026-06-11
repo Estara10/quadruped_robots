@@ -570,10 +570,49 @@ bool StateRL::checkBodySafety() const
     return true;
 }
 
+bool StateRL::checkTorqueSafety() const
+{
+    // Matches original ABS safe.PowerProtect(cmd, low_state, 8).
+    // Monitors PD-computed joint torque against YAML-configured torque_limits.
+    if (!torque_monitor_enabled_) return true;
+
+    for (int i = 0; i < params_.num_of_dofs; ++i)
+    {
+        double torque = output_torques[0][i].item<double>();
+        double limit  = params_.torque_limits[0][i].item<double>() * torque_limit_ratio_;
+        if (std::abs(torque) > limit)
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("StateRL"),
+                "[SAFETY] Joint torque exceeded limit: joint=%d torque=%.1f Nm limit=%.1f Nm → PASSIVE",
+                i, torque, limit);
+            return false;
+        }
+    }
+    return true;
+}
+
 FSMStateName StateRL::checkChange()
 {
+    // Emergency stop — matches original ABS wireless remote B-button (L441-444).
+    // In simulation triggered by control_input command=1; on real robot by Go2 remote state.
+    if (emergency_stop_enabled_)
+    {
+        if (ctrl_interfaces_.control_inputs_.command == 1 || emergency_stop_triggered_)
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("StateRL"),
+                "[EMERGENCY] Remote stop triggered → PASSIVE");
+            return FSMStateName::PASSIVE;
+        }
+    }
+
     // Independent body attitude safety (works without estimator)
     if (!checkBodySafety())
+    {
+        return FSMStateName::PASSIVE;
+    }
+
+    // Joint torque safety (matches original safe.PowerProtect)
+    if (!checkTorqueSafety())
     {
         return FSMStateName::PASSIVE;
     }
@@ -794,8 +833,13 @@ void StateRL::loadYaml(const std::string& config_path)
         if (abs_node["symmetry_debug_enabled"])
             params_.symmetry_debug_enabled = abs_node["symmetry_debug_enabled"].as<bool>();
         // Safety thresholds
-        if (abs_node["body_tilt_limit_deg"]) body_tilt_limit_deg_ = abs_node["body_tilt_limit_deg"].as<double>();
-        if (abs_node["action_output_clip"])  action_output_clip_  = abs_node["action_output_clip"].as<double>();
+        if (abs_node["body_tilt_limit_deg"])  body_tilt_limit_deg_  = abs_node["body_tilt_limit_deg"].as<double>();
+        if (abs_node["action_output_clip"])   action_output_clip_   = abs_node["action_output_clip"].as<double>();
+        // Torque monitoring (matches original safe.PowerProtect)
+        if (abs_node["torque_monitor_enabled"]) torque_monitor_enabled_ = abs_node["torque_monitor_enabled"].as<bool>();
+        if (abs_node["torque_limit_ratio"])     torque_limit_ratio_     = abs_node["torque_limit_ratio"].as<double>();
+        // Emergency stop (matches original B-button)
+        if (abs_node["emergency_stop_enabled"]) emergency_stop_enabled_ = abs_node["emergency_stop_enabled"].as<bool>();
     }
 }
 
@@ -1135,8 +1179,7 @@ void StateRL::runModel()
     obs_.actions = clamped_actions;
 
     const torch::Tensor actions_scaled = clamped_actions * params_.action_scale;
-    // torch::Tensor output_torques = params_.rl_kp * (actions_scaled + params_.default_dof_pos - obs_.dof_pos) - params_.rl_kd * obs_.dof_vel;
-    // output_torques = clamp(output_torques, -(params_.torque_limits), params_.torque_limits);
+    output_torques = params_.rl_kp * (actions_scaled + params_.default_dof_pos - obs_.dof_pos) - params_.rl_kd * obs_.dof_vel;
 
     output_dof_pos_ = actions_scaled + params_.default_dof_pos;
 

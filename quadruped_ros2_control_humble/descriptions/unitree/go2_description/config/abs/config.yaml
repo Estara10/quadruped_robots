@@ -79,10 +79,17 @@ abs:
 
   # Evaluation telemetry logs [EVAL] lines for multi-scene simulation metrics.
   # This does not affect policy/RA/recovery behavior.
-  eval_telemetry_enabled: false      # [EVAL] telemetry — enable for structured evaluation
+  eval_telemetry_enabled: true      # [EVAL] telemetry — enable for structured evaluation
   eval_telemetry_interval_steps: 25  # 25 RL steps ~= 0.2s at 125Hz
   symmetry_debug_enabled: false      # [SYMM] symmetry diagnostics — enable for behavior debugging
 
   # Safety thresholds
   body_tilt_limit_deg: 75.0         # roll/pitch > this → force PASSIVE (IMU quaternion based)
   action_output_clip: 4.0           # clamp RL action output to ±this before position calc
+
+  # Torque monitoring (matches original ABS safe.PowerProtect(cmd, low_state, 8))
+  torque_monitor_enabled: true       # monitor PD-computed joint torque
+  torque_limit_ratio: 2.5            # multiplier over YAML torque_limits; torque > limit*ratio → PASSIVE
+
+  # Emergency stop (matches original ABS wireless remote B-button exit(0))
+  emergency_stop_enabled: true       # command=1 on /control_input or remote B → PASSIVE

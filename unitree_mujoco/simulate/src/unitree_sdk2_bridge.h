@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <limits>
 
@@ -57,9 +58,19 @@ public:
       }
     }
 
+    const char* ray_source_env = std::getenv("MUJOCO_RAY_SOURCE");
+    if (ray_source_env != nullptr &&
+        (std::strcmp(ray_source_env, "ray_pred") == 0 ||
+         std::strcmp(ray_source_env, "external") == 0)) {
+      geometric_ray_write_enabled_ = false;
+    }
+
     // Setup ray2d shared memory
     _setupRay2dShm();
     _setupQposShm();
+    std::cout << "[Ray2D] Source: "
+              << (geometric_ray_write_enabled_ ? "geometric" : "external/ray_pred")
+              << std::endl;
   }
 
   ~UnitreeSDK2BridgeBase() {
@@ -87,6 +98,7 @@ public:
       }
     }
 
+    if (!geometric_ray_write_enabled_) return;
     if (ray2d_shm_ptr_ == nullptr || ray2d_shm_ptr_ == MAP_FAILED) return;
 
     int body_id = mj_name2id(mj_model_, mjOBJ_BODY, "base_link");
@@ -212,6 +224,8 @@ public:
   }
 
 private:
+  bool geometric_ray_write_enabled_ = true;
+
   int ray2d_shm_fd_ = -1;
   float* ray2d_shm_ptr_ = nullptr;
 

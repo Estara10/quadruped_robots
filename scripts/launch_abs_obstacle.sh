@@ -64,12 +64,12 @@ ros2 launch rl_quadruped_controller mujoco.launch.py &
 ROS2_PID=$!
 sleep 8
 
-# Wait for controller activation
+# Wait for controller activation (Humble spawner may report FATAL due to race condition)
 echo -n "  -> Waiting for controller..."
 CONTROLLER_READY=false
-for i in $(seq 1 20); do
-    if ros2 control list_controllers 2>/dev/null | grep -q "rl_quadruped_controller.*active"; then
-        echo -e "\n${GREEN}  -> Controller ready${NC}"
+for i in $(seq 1 30); do
+    if ros2 control list_controllers 2>/dev/null | grep -q "rl_quadruped_controller"; then
+        echo -e "\n${GREEN}  -> Controller loaded${NC}"
         CONTROLLER_READY=true
         break
     fi

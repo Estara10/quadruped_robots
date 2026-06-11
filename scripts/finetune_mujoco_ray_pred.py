@@ -58,13 +58,21 @@ class RayDataset(Dataset):
         return torch.from_numpy(depth_log), torch.from_numpy(ray_log)
 
 
-def weighted_ray_loss(pred_log: torch.Tensor, target_log: torch.Tensor, near_weight: float, false_safe_weight: float) -> torch.Tensor:
+def weighted_ray_loss(
+    pred_log: torch.Tensor,
+    target_log: torch.Tensor,
+    near_weight: float,
+    false_safe_weight: float,
+    false_danger_weight: float,
+) -> torch.Tensor:
     target_m = torch.clamp(torch.exp2(target_log), RAY_MIN, RAY_MAX)
     pred_m = torch.clamp(torch.exp2(pred_log), RAY_MIN, RAY_MAX)
     weights = torch.ones_like(target_log)
     weights = weights + near_weight * torch.clamp((1.5 - target_m) / 1.4, min=0.0, max=1.0)
     false_safe = (target_m <= 1.5) & (pred_m > target_m + 0.5)
+    false_danger = (target_m >= 3.0) & (pred_m < target_m - 0.5)
     weights = weights + false_safe_weight * false_safe.float()
+    weights = weights + false_danger_weight * false_danger.float()
     return torch.mean(weights * (pred_log - target_log) ** 2)
 
 
@@ -95,8 +103,12 @@ def eval_model(model, loader: DataLoader, device: torch.device) -> dict:
     }
 
 
-def model_score(metrics: dict, false_safe_penalty: float, mae_weight: float) -> float:
-    return false_safe_penalty * float(metrics["false_safe"]) + mae_weight * float(metrics["mae_m"])
+def model_score(metrics: dict, false_safe_penalty: float, false_danger_penalty: float, mae_weight: float) -> float:
+    return (
+        false_safe_penalty * float(metrics["false_safe"])
+        + false_danger_penalty * float(metrics["false_danger"])
+        + mae_weight * float(metrics["mae_m"])
+    )
 
 
 def train(args: argparse.Namespace) -> Path:
@@ -130,7 +142,13 @@ def train(args: argparse.Namespace) -> Path:
             target_log = target_log.to(device)
             inputs = depth_log.unsqueeze(1).repeat(1, 3, 1, 1)
             pred_log = model(inputs)
-            loss = weighted_ray_loss(pred_log, target_log, args.near_weight, args.false_safe_weight)
+            loss = weighted_ray_loss(
+                pred_log,
+                target_log,
+                args.near_weight,
+                args.false_safe_weight,
+                args.false_danger_weight,
+            )
             optimizer.zero_grad()
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
@@ -140,7 +158,12 @@ def train(args: argparse.Namespace) -> Path:
         metrics = eval_model(model, val_loader, device)
         metrics["epoch"] = epoch
         metrics["train_loss"] = float(np.mean(losses)) if losses else float("nan")
-        metrics["score"] = model_score(metrics, args.false_safe_score_penalty, args.mae_score_weight)
+        metrics["score"] = model_score(
+            metrics,
+            args.false_safe_score_penalty,
+            args.false_danger_score_penalty,
+            args.mae_score_weight,
+        )
         history.append(metrics)
         print(
             f"[Finetune] epoch={epoch:03d} loss={metrics['train_loss']:.5f} "
@@ -166,7 +189,9 @@ def train(args: argparse.Namespace) -> Path:
         "lr": args.lr,
         "near_weight": args.near_weight,
         "false_safe_weight": args.false_safe_weight,
+        "false_danger_weight": args.false_danger_weight,
         "false_safe_score_penalty": args.false_safe_score_penalty,
+        "false_danger_score_penalty": args.false_danger_score_penalty,
         "mae_score_weight": args.mae_score_weight,
         "best_model": str(best_path),
         "last_model": str(last_path),
@@ -190,7 +215,9 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--weight-decay", type=float, default=1e-4)
     parser.add_argument("--near-weight", type=float, default=4.0)
     parser.add_argument("--false-safe-weight", type=float, default=8.0)
+    parser.add_argument("--false-danger-weight", type=float, default=0.0)
     parser.add_argument("--false-safe-score-penalty", type=float, default=1.0)
+    parser.add_argument("--false-danger-score-penalty", type=float, default=0.0)
     parser.add_argument("--mae-score-weight", type=float, default=10.0)
     parser.add_argument("--grad-clip", type=float, default=1.0)
     parser.add_argument("--val-fraction", type=float, default=0.1)

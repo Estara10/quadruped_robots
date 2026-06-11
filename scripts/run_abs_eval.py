@@ -11,11 +11,13 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import math
 import os
 import re
 import shlex
+import shutil
 import signal
 import struct
 import subprocess
@@ -34,13 +36,53 @@ ROS2_WS = ROOT / "quadruped_ros2_control_humble"
 DEFAULT_OUTPUT_ROOT = ROOT / "logs" / "abs_eval"
 UNITREE_SDK2_LIB = Path.home() / "Libraries" / "unitree_sdk2" / "lib"
 LIBTORCH_LIB = Path.home() / "Libraries" / "libtorch-cpu-2.0.1" / "lib"
+CONFIG_PATH = ROS2_WS / "descriptions" / "unitree" / "go2_description" / "config" / "abs" / "config.yaml"
+ROBOT_CONTROL_PATH = ROS2_WS / "descriptions" / "unitree" / "go2_description" / "config" / "robot_control.yaml"
+GO2_DESCRIPTION_SHARE = ROS2_WS / "install" / "go2_description" / "share" / "go2_description"
+RUNTIME_CONFIG_PATH = GO2_DESCRIPTION_SHARE / "config" / "abs" / "config.yaml"
+ANALYZE_SCRIPT = ROOT / "scripts" / "analyze_abs_eval.py"
+ABLATION_MODES = {
+    "full": {},
+    "agile_only": {"ra_threshold": 1.0e6},
+    "no_recovery_hold": {"recovery_hold_steps": 0},
+    "early_recovery": {"ra_threshold": -0.12},
+    "late_recovery": {"ra_threshold": 0.02},
+}
+SCENE_PRESETS = {
+    "smoke": ["scene_flat.xml"],
+    "baseline": ["scene_flat.xml", "scene_obstacle.xml", "scene_terrain.xml", "scene_test2.xml"],
+    "extended": [
+        "scene_flat.xml",
+        "scene_obstacle.xml",
+        "scene_terrain.xml",
+        "scene_test1.xml",
+        "scene_test2.xml",
+        "scene_test4.xml",
+        "scene_test5.xml",
+    ],
+    "stress": ["scene_test3.xml"],
+    "slope": ["scene_slope.xml", "scene_side_slope.xml", "scene_slope_obstacle.xml"],
+    "all": [
+        "scene_flat.xml",
+        "scene_obstacle.xml",
+        "scene_terrain.xml",
+        "scene_test1.xml",
+        "scene_test2.xml",
+        "scene_test3.xml",
+        "scene_test4.xml",
+        "scene_test5.xml",
+    ],
+}
 
 QPOS_PATH = Path("/dev/shm/mujoco_qpos")
 RAY2D_PATH = Path("/dev/shm/mujoco_ray2d")
+COLLISION_PATH = Path("/dev/shm/mujoco_collision")
 QPOS_FORMAT = "19d"
 RAY2D_FORMAT = "11f"
+COLLISION_FORMAT = "5i"
 QPOS_SIZE = struct.calcsize(QPOS_FORMAT)
 RAY2D_SIZE = struct.calcsize(RAY2D_FORMAT)
+COLLISION_SIZE = struct.calcsize(COLLISION_FORMAT)
 
 FLOAT = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?|nan|inf|-inf"
 EVAL_RE = re.compile(
@@ -90,12 +132,19 @@ class MonitorResult:
     fall_reason: str = ""
     collision_proxy: bool = False
     collision_proxy_reason: str = ""
+    collision: bool = False
+    collision_reason: str = ""
+    collision_count_max: int = 0
+    collision_event_total: int = 0
+    collision_robot_geom: int = -1
+    collision_obstacle_geom: int = -1
     min_goal_error_m: Optional[float] = None
     final_goal_error_m: Optional[float] = None
     min_ray_distance_m: Optional[float] = None
     samples: int = 0
     qpos_available: bool = False
     ray2d_available: bool = False
+    collision_available: bool = False
 
 
 def parse_float(value: str) -> float:
@@ -146,7 +195,7 @@ def ros2_command(command: str) -> List[str]:
     return ["bash", "-lc", shell_source_prefix() + command]
 
 
-def make_env() -> Dict[str, str]:
+def make_env(args: Optional[argparse.Namespace] = None) -> Dict[str, str]:
     env = os.environ.copy()
     existing = env.get("LD_LIBRARY_PATH", "")
     env["LD_LIBRARY_PATH"] = f"{UNITREE_SDK2_LIB}:{LIBTORCH_LIB}:{existing}"
@@ -232,12 +281,34 @@ def monitor_episode(args: argparse.Namespace, eval_goal: Tuple[float, float]) ->
     start = time.monotonic()
     deadline = start + args.duration
     near_obstacle_since: Optional[float] = None
+    collision_baseline_total: Optional[int] = None
 
     while time.monotonic() < deadline:
         now = time.monotonic()
         qpos = read_struct(QPOS_PATH, QPOS_FORMAT, QPOS_SIZE)
         ray2d = read_struct(RAY2D_PATH, RAY2D_FORMAT, RAY2D_SIZE)
+        collision = read_struct(COLLISION_PATH, COLLISION_FORMAT, COLLISION_SIZE)
         result.samples += 1
+
+        if collision is not None:
+            result.collision_available = True
+            collision_flag, collision_count, collision_total, robot_geom, obstacle_geom = [int(v) for v in collision]
+            if collision_baseline_total is None:
+                collision_baseline_total = collision_total
+            result.collision_event_total = max(0, collision_total - collision_baseline_total)
+            if collision_count > result.collision_count_max:
+                result.collision_count_max = collision_count
+                result.collision_robot_geom = robot_geom
+                result.collision_obstacle_geom = obstacle_geom
+            if collision_flag or collision_count > 0 or result.collision_event_total > 0:
+                result.collision = True
+                result.collision_reason = (
+                    f"robot-obstacle contact count={collision_count} "
+                    f"events={result.collision_event_total} "
+                    f"robot_geom={robot_geom} obstacle_geom={obstacle_geom}"
+                )
+                if args.stop_on_failure:
+                    break
 
         if qpos is not None:
             result.qpos_available = True
@@ -417,9 +488,9 @@ def parse_eval_log(log_path: Path, telemetry_csv: Path) -> Dict[str, object]:
 
     with log_path.open("r", errors="replace") as f:
         for line in f:
-            if "ENTER recovery" in line:
+            if "ENTER recovery" in line or "进入恢复" in line:
                 counters["recovery_entries"] += 1
-            if "EXIT recovery" in line:
+            if "EXIT recovery" in line or "退出恢复" in line:
                 counters["recovery_exits"] += 1
             if "[ARRIVED]" in line:
                 counters["goal_arrived_logs"] += 1
@@ -473,6 +544,18 @@ def summarize_from_rows(rows: List[Dict[str, object]]) -> Dict[str, Optional[flo
     dists = [float(r["dist"]) for r in rows]
     rays = [float(r["min_ray_m"]) for r in rows if math.isfinite(float(r["min_ray_m"]))]
 
+    heading_abs = [abs(float(r["heading"])) for r in rows if math.isfinite(float(r["heading"]))]
+    body_speeds = [
+        math.hypot(float(r["lin_vel_x"]), float(r["lin_vel_y"]))
+        for r in rows
+        if math.isfinite(float(r["lin_vel_x"])) and math.isfinite(float(r["lin_vel_y"]))
+    ]
+    lateral_speeds = [
+        abs(float(r["lin_vel_y"]))
+        for r in rows
+        if math.isfinite(float(r["lin_vel_y"]))
+    ]
+
     return {
         "eval_samples": len(rows),
         "ra_min": min(ra_values) if ra_values else None,
@@ -483,13 +566,17 @@ def summarize_from_rows(rows: List[Dict[str, object]]) -> Dict[str, Optional[flo
         "min_dist_log_m": min(dists) if dists else None,
         "final_dist_log_m": dists[-1] if dists else None,
         "min_ray_log_m": min(rays) if rays else None,
+        "heading_abs_mean_rad": sum(heading_abs) / len(heading_abs) if heading_abs else None,
+        "heading_abs_max_rad": max(heading_abs) if heading_abs else None,
+        "mean_body_speed_mps": sum(body_speeds) / len(body_speeds) if body_speeds else None,
+        "mean_abs_lateral_velocity_mps": sum(lateral_speeds) / len(lateral_speeds) if lateral_speeds else None,
     }
 
 
 def is_stuck_recovery_loop(summary: Dict[str, object]) -> bool:
     if summary.get("success") is True:
         return False
-    if summary.get("fall") is True or summary.get("collision_proxy") is True:
+    if summary.get("fall") is True or summary.get("collision") is True or summary.get("collision_proxy") is True:
         return False
     if int(summary.get("dds_timeout_count") or 0) > 0:
         return False
@@ -512,6 +599,8 @@ def is_stuck_recovery_loop(summary: Dict[str, object]) -> bool:
 def determine_result(monitor: MonitorResult, parsed: Dict[str, object], process_failed: bool) -> str:
     if process_failed:
         return "STARTUP_FAILED"
+    if monitor.collision:
+        return "COLLISION"
     if monitor.success:
         return "SUCCESS"
     if int(parsed.get("dds_timeout_count", 0)) > 0:
@@ -563,6 +652,8 @@ def run_episode(scene: str, run_index: int, args: argparse.Namespace, session_di
         summary: Dict[str, object] = {
             "scene": scene,
             "run_index": run_index,
+            "ablation_mode": args.ablation,
+            "config_overrides": args.config_overrides,
             "result": "INVALID_SCENE_SPAWN",
             "success": False,
             "skipped": True,
@@ -632,7 +723,7 @@ def run_episode(scene: str, run_index: int, args: argparse.Namespace, session_di
             monitor = monitor_episode(args, eval_goal)
             print(
                 f"[monitor] success={monitor.success} fall={monitor.fall} "
-                f"collision_proxy={monitor.collision_proxy} "
+                f"collision={monitor.collision} collision_proxy={monitor.collision_proxy} "
                 f"final_goal_error={monitor.final_goal_error_m}"
             )
 
@@ -661,11 +752,14 @@ def run_episode(scene: str, run_index: int, args: argparse.Namespace, session_di
         monitor.final_goal_error_m = row_summary["final_dist_log_m"]
 
     result = determine_result(monitor, parsed, process_failed)
+    episode_success = result == "SUCCESS"
     summary: Dict[str, object] = {
         "scene": scene,
         "run_index": run_index,
+        "ablation_mode": args.ablation,
+        "config_overrides": args.config_overrides,
         "result": result,
-        "success": monitor.success,
+        "success": episode_success,
         "time_to_goal_s": monitor.time_to_goal_s,
         "duration_limit_s": args.duration,
         "goal": {"x": eval_goal[0], "y": eval_goal[1]},
@@ -686,6 +780,12 @@ def run_episode(scene: str, run_index: int, args: argparse.Namespace, session_di
         "collision_proxy": monitor.collision_proxy,
         "collision_proxy_reason": monitor.collision_proxy_reason,
         "collision_proxy_distance_m": args.collision_proxy_distance,
+        "collision": monitor.collision,
+        "collision_reason": monitor.collision_reason,
+        "collision_count_max": monitor.collision_count_max,
+        "collision_event_total": monitor.collision_event_total,
+        "collision_robot_geom": monitor.collision_robot_geom,
+        "collision_obstacle_geom": monitor.collision_obstacle_geom,
         "scene_clearance_status": scene_clearance.status,
         "scene_min_spawn_clearance_m": scene_clearance.min_spawn_clearance_m,
         "scene_spawn_violation": scene_clearance.spawn_violation,
@@ -699,6 +799,7 @@ def run_episode(scene: str, run_index: int, args: argparse.Namespace, session_di
         "min_ray_distance_m": monitor.min_ray_distance_m,
         "qpos_available": monitor.qpos_available,
         "ray2d_available": monitor.ray2d_available,
+        "collision_available": monitor.collision_available,
         "monitor_samples": monitor.samples,
         "runtime_log": str(log_path),
         "telemetry_csv": str(telemetry_csv),
@@ -738,8 +839,11 @@ def write_session_index(session_dir: Path, summaries: Iterable[Dict[str, object]
         "scene", "run_index", "result", "success", "time_to_goal_s",
         "min_goal_error_m", "final_goal_error_m", "min_ray_distance_m",
         "recovery_entries", "recovery_exits", "recovery_ratio", "ra_max",
-        "ra_mean", "dds_timeout_count", "fall", "collision_proxy",
-        "stuck_recovery_loop", "scene_clearance_status", "scene_min_spawn_clearance_m", "invalid_spawn_failure", "runtime_log",
+        "ra_mean", "heading_abs_mean_rad", "heading_abs_max_rad",
+        "mean_body_speed_mps", "mean_abs_lateral_velocity_mps",
+        "dds_timeout_count", "fall", "collision", "collision_count_max",
+        "collision_event_total", "collision_proxy", "stuck_recovery_loop", "collision_available",
+        "scene_clearance_status", "scene_min_spawn_clearance_m", "invalid_spawn_failure", "runtime_log",
     ]
     with csv_path.open("w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
@@ -747,19 +851,216 @@ def write_session_index(session_dir: Path, summaries: Iterable[Dict[str, object]
         writer.writerows(summaries)
 
 
+def _relative_or_str(path: Path) -> str:
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
+def sha256_file(path: Path) -> Optional[str]:
+    if not path.exists():
+        return None
+    digest = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def model_provenance() -> Dict[str, Dict[str, Optional[str]]]:
+    models = {
+        "agile_policy": GO2_DESCRIPTION_SHARE / "config" / "abs" / "policy.pt",
+        "ra_value": GO2_DESCRIPTION_SHARE / "config" / "abs" / "ra_value.pt",
+        "recovery_policy": GO2_DESCRIPTION_SHARE / "config" / "rec" / "policy.pt",
+    }
+    return {
+        name: {
+            "path": str(path),
+            "resolved_path": str(path.resolve()) if path.exists() else None,
+            "sha256": sha256_file(path.resolve()) if path.exists() else None,
+        }
+        for name, path in models.items()
+    }
+
+
+def patch_abs_config_text(text: str, overrides: Dict[str, object]) -> str:
+    lines = text.splitlines()
+    for key, value in overrides.items():
+        pattern = re.compile(rf"^(\s*){re.escape(key)}\s*:\s*([^#]*)(.*)$")
+        replacement_value = str(value).lower() if isinstance(value, bool) else str(value)
+        replaced = False
+        for idx, line in enumerate(lines):
+            match = pattern.match(line)
+            if not match:
+                continue
+            indent, _old_value, suffix = match.groups()
+            spacing_suffix = suffix if suffix.startswith(" ") or suffix == "" else f" {suffix}"
+            lines[idx] = f"{indent}{key}: {replacement_value}{spacing_suffix}"
+            replaced = True
+            break
+        if not replaced:
+            raise KeyError(f"ABS config key not found: {key}")
+    return "\n".join(lines) + "\n"
+
+
+def write_effective_abs_config(session_dir: Path, args: argparse.Namespace) -> Path:
+    source_text = CONFIG_PATH.read_text(encoding="utf-8")
+    patched_text = patch_abs_config_text(source_text, args.config_overrides)
+    effective_path = session_dir / "effective_abs_config.yaml"
+    effective_path.write_text(patched_text, encoding="utf-8")
+    return effective_path
+
+
+def install_effective_abs_config(args: argparse.Namespace) -> Optional[Dict[str, str]]:
+    if not args.config_overrides or args.dry_run:
+        return None
+    backup_path = args.session_dir / "runtime_abs_config_backup.yaml"
+    backup: Dict[str, str] = {"backup_path": str(backup_path)}
+    if RUNTIME_CONFIG_PATH.is_symlink():
+        backup["symlink_target"] = os.readlink(RUNTIME_CONFIG_PATH)
+    shutil.copy2(RUNTIME_CONFIG_PATH, backup_path)
+    if RUNTIME_CONFIG_PATH.exists() or RUNTIME_CONFIG_PATH.is_symlink():
+        RUNTIME_CONFIG_PATH.unlink()
+    effective_path = args.session_dir / "effective_abs_config.yaml"
+    shutil.copy2(effective_path, RUNTIME_CONFIG_PATH)
+    return backup
+
+
+def restore_abs_config(backup: Optional[Dict[str, str]]) -> None:
+    if backup is None:
+        return
+    backup_path = Path(backup["backup_path"])
+    if not backup_path.exists():
+        return
+    if RUNTIME_CONFIG_PATH.exists() or RUNTIME_CONFIG_PATH.is_symlink():
+        RUNTIME_CONFIG_PATH.unlink()
+    symlink_target = backup.get("symlink_target")
+    if symlink_target:
+        RUNTIME_CONFIG_PATH.symlink_to(symlink_target)
+    else:
+        shutil.copy2(backup_path, RUNTIME_CONFIG_PATH)
+
+
+def _git_text(command: str) -> Optional[str]:
+    try:
+        result = subprocess.run(
+            ["bash", "-lc", command],
+            cwd=str(ROOT),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=5.0,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    return result.stdout.strip() if result.returncode == 0 else None
+
+
+def write_session_manifest(session_dir: Path, args: argparse.Namespace) -> None:
+    session_dir.mkdir(parents=True, exist_ok=True)
+    effective_config_path = write_effective_abs_config(session_dir, args)
+    manifest = {
+        "created_at": datetime.now().isoformat(timespec="seconds"),
+        "preset": args.preset,
+        "ablation_mode": args.ablation,
+        "config_overrides": args.config_overrides,
+        "scenes": args.scenes,
+        "runs_per_scene": args.runs_per_scene,
+        "duration_s": args.duration,
+        "goal": {"x": args.goal_x, "y": args.goal_y, "trim_scale": args.goal_trim_scale},
+        "command": {
+            "lx": args.command_lx,
+            "ly": args.command_ly,
+            "rx": args.command_rx,
+            "ry": args.command_ry,
+        },
+        "thresholds": {
+            "arrival_m": args.arrival_threshold,
+            "fall_height_m": args.fall_height,
+            "fall_angle_rad": args.fall_angle,
+            "collision_metric": "MuJoCo robot collision geom group 3 vs static obstacle geoms",
+            "collision_proxy_distance_m": args.collision_proxy_distance,
+            "collision_proxy_hold_s": args.collision_proxy_hold_s,
+            "spawn_clearance_radius_m": args.spawn_clearance_radius,
+            "corridor_clear_x_m": args.corridor_clear_x,
+            "corridor_half_width_m": args.corridor_half_width,
+        },
+        "paths": {
+            "mujoco_binary": str(MUJOCO_BIN),
+            "source_config": str(CONFIG_PATH),
+            "runtime_config": str(RUNTIME_CONFIG_PATH),
+            "effective_config": str(effective_config_path),
+        },
+        "model_provenance": model_provenance(),
+        "git": {
+            "commit": _git_text("git rev-parse HEAD"),
+            "branch": _git_text("git branch --show-current"),
+            "status_short": _git_text("git status --short"),
+        },
+    }
+    with (session_dir / "session_manifest.json").open("w") as f:
+        json.dump(manifest, f, indent=2, ensure_ascii=False)
+
+    snapshots_dir = session_dir / "input_snapshots"
+    snapshots_dir.mkdir(exist_ok=True)
+    if CONFIG_PATH.exists():
+        shutil.copy2(CONFIG_PATH, snapshots_dir / "abs_config.yaml")
+    scene_dir = MUJOCO_DIR / "unitree_robots" / "go2"
+    for scene in args.scenes:
+        scene_path = scene_dir / scene
+        if scene_path.exists():
+            shutil.copy2(scene_path, snapshots_dir / scene)
+
+
+def run_aggregate_analysis(session_dir: Path) -> None:
+    if not ANALYZE_SCRIPT.exists():
+        print(f"[warn] analysis script not found: {ANALYZE_SCRIPT}")
+        return
+    result = subprocess.run(
+        [sys.executable, str(ANALYZE_SCRIPT), "--input", str(session_dir)],
+        cwd=str(ROOT),
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        print(f"[warn] aggregate analysis failed with exit code {result.returncode}")
+
+
 def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--preset",
+        choices=sorted(SCENE_PRESETS.keys()),
+        default="baseline",
+        help="Named scene preset used when --scenes is omitted",
+    )
+    parser.add_argument(
         "--scenes",
         nargs="+",
-        default=["scene.xml", "scene_terrain.xml", "scene_test1.xml", "scene_test2.xml", "scene_test3.xml", "scene_test4.xml", "scene_test5.xml"],
-        help="MuJoCo scene XML names under unitree_robots/go2/",
+        default=None,
+        help="MuJoCo scene XML names under unitree_robots/go2/; overrides --preset",
     )
     parser.add_argument("--runs-per-scene", type=int, default=1)
     parser.add_argument("--duration", type=float, default=30.0, help="Max seconds after RL entry per episode")
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--session-name", default=datetime.now().strftime("%Y%m%d_%H%M%S"))
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--analyze", action=argparse.BooleanOptionalAction, default=True, help="Run analyze_abs_eval.py after episodes finish")
+    parser.add_argument(
+        "--ablation",
+        choices=sorted(ABLATION_MODES.keys()),
+        default="full",
+        help="Paper-level ablation preset; implemented as temporary abs/config.yaml overrides",
+    )
+    parser.add_argument(
+        "--set-abs",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help="Additional temporary abs/config.yaml override for evaluation only, e.g. ra_threshold=-0.02",
+    )
 
     parser.add_argument("--goal-x", type=float, default=7.0)
     parser.add_argument("--goal-y", type=float, default=0.0)
@@ -793,9 +1094,44 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def parse_abs_override_value(raw: str) -> object:
+    lowered = raw.lower()
+    if lowered in {"true", "false"}:
+        return lowered == "true"
+    try:
+        if any(ch in raw for ch in (".", "e", "E")):
+            return float(raw)
+        return int(raw)
+    except ValueError:
+        return raw
+
+
+def parse_abs_overrides(items: List[str]) -> Dict[str, object]:
+    overrides: Dict[str, object] = {}
+    for item in items:
+        if "=" not in item:
+            raise ValueError(f"Invalid --set-abs value '{item}', expected KEY=VALUE")
+        key, raw_value = item.split("=", 1)
+        key = key.strip()
+        if not key:
+            raise ValueError(f"Invalid --set-abs value '{item}', empty key")
+        overrides[key] = parse_abs_override_value(raw_value.strip())
+    return overrides
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     args = parse_args(argv)
+    if args.scenes is None:
+        args.scenes = list(SCENE_PRESETS[args.preset])
+    try:
+        custom_overrides = parse_abs_overrides(args.set_abs)
+    except ValueError as exc:
+        print(f"[error] {exc}", file=sys.stderr)
+        return 2
+    args.config_overrides = dict(ABLATION_MODES[args.ablation])
+    args.config_overrides.update(custom_overrides)
     session_dir = args.output_root / args.session_name
+    args.session_dir = session_dir
 
     scene_dir = MUJOCO_DIR / "unitree_robots" / "go2"
     missing = [scene for scene in args.scenes if not (scene_dir / scene).exists()]
@@ -808,13 +1144,19 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     print("ABS automated simulation evaluation")
     print(f"session_dir: {session_dir}")
+    print(f"preset: {args.preset}")
+    print(f"ablation: {args.ablation}")
+    print(f"config_overrides: {args.config_overrides}")
     print(f"scenes: {args.scenes}")
     print(f"runs_per_scene: {args.runs_per_scene}")
+    print(f"auto_analyze: {args.analyze}")
     if args.dry_run:
         print("dry run: no processes launched")
         return 0
 
     session_dir.mkdir(parents=True, exist_ok=True)
+    write_session_manifest(session_dir, args)
+    config_backup = install_effective_abs_config(args)
     summaries: List[Dict[str, object]] = []
     try:
         for scene in args.scenes:
@@ -826,11 +1168,20 @@ def main(argv: Optional[List[str]] = None) -> int:
     except KeyboardInterrupt:
         print("\nInterrupted by user. Writing partial session summary.")
         write_session_index(session_dir, summaries)
-        return 130
+        if summaries and args.analyze:
+            run_aggregate_analysis(session_dir)
+        return_code = 130
+    finally:
+        restore_abs_config(config_backup)
+
+    if 'return_code' in locals():
+        return return_code
 
     write_session_index(session_dir, summaries)
+    if args.analyze:
+        run_aggregate_analysis(session_dir)
     print(f"\nAll episodes complete. Session summary: {session_dir / 'session_summary.csv'}")
-    print("Next: python3 scripts/analyze_abs_eval.py --input", session_dir)
+    print(f"Aggregate report: {session_dir / 'aggregate_report.md'}")
     return 0
 
 

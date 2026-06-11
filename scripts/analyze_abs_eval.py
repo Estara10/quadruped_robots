@@ -27,16 +27,23 @@ DEFAULT_CORRIDOR_HALF_WIDTH = 0.45
 STRESS_TEST_SCENES = {"scene_test3.xml"}
 
 CSV_FIELDS = [
-    "scene", "run_index", "result", "success", "time_to_goal_s",
+    "scene", "run_index", "ablation_mode", "result", "success", "time_to_goal_s",
     "duration_limit_s", "min_goal_error_m", "final_goal_error_m",
     "min_ray_distance_m", "recovery_entries", "recovery_exits",
     "recovery_ratio", "ra_min", "ra_max", "ra_mean", "dds_timeout_count",
-    "rec_nan_count", "fall", "fall_reason", "collision_proxy",
-    "collision_proxy_reason", "eval_samples", "qpos_available",
-    "ray2d_available", "scene_clearance_status", "scene_min_spawn_clearance_m",
-    "scene_spawn_violation", "scene_corridor_warning", "invalid_spawn_failure",
+    "rec_nan_count", "fall", "fall_reason", "collision", "collision_reason",
+    "collision_count_max", "collision_event_total", "collision_robot_geom", "collision_obstacle_geom",
+    "collision_available", "collision_proxy", "collision_proxy_reason", "eval_samples",
+    "heading_abs_mean_rad",
+    "heading_abs_max_rad", "mean_body_speed_mps", "mean_abs_lateral_velocity_mps",
+    "qpos_available", "ray2d_available", "scene_clearance_status",
+    "scene_min_spawn_clearance_m", "scene_spawn_violation", "scene_corridor_warning",
     "stuck_recovery_loop", "scene_group", "runtime_log", "summary_json",
 ]
+
+
+def is_success(summary: Dict[str, Any]) -> bool:
+    return summary.get("result") == "SUCCESS"
 
 
 def fmt(value: Any, digits: int = 3) -> str:
@@ -134,9 +141,9 @@ def analyze_scene_file(scene: str) -> Dict[str, Any]:
 
 
 def is_stuck_recovery_loop(summary: Dict[str, Any]) -> bool:
-    if summary.get("success") is True:
+    if is_success(summary):
         return False
-    if summary.get("fall") is True or summary.get("collision_proxy") is True:
+    if summary.get("fall") is True or summary.get("collision") is True or summary.get("collision_proxy") is True:
         return False
     if int(summary.get("dds_timeout_count") or 0) > 0:
         return False
@@ -225,7 +232,7 @@ def scene_stats(summaries: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
     stats: Dict[str, Dict[str, Any]] = {}
     for scene, rows in grouped.items():
         n = len(rows)
-        successes = sum(1 for r in rows if r.get("result") == "SUCCESS" or r.get("success") is True)
+        successes = sum(1 for r in rows if is_success(r))
         stats[scene] = {
             "runs": n,
             "successes": successes,
@@ -241,8 +248,16 @@ def scene_stats(summaries: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
             "mean_recovery_entries": mean(r.get("recovery_entries") for r in rows),
             "mean_recovery_ratio": mean(r.get("recovery_ratio") for r in rows),
             "mean_ra_max": mean(r.get("ra_max") for r in rows),
+            "mean_heading_abs_rad": mean(r.get("heading_abs_mean_rad") for r in rows),
+            "max_heading_abs_rad": max(
+                [float(r["heading_abs_max_rad"]) for r in rows if r.get("heading_abs_max_rad") is not None],
+                default=None,
+            ),
+            "mean_body_speed_mps": mean(r.get("mean_body_speed_mps") for r in rows),
+            "mean_abs_lateral_velocity_mps": mean(r.get("mean_abs_lateral_velocity_mps") for r in rows),
             "dds_timeouts": sum(int(r.get("dds_timeout_count") or 0) for r in rows),
             "falls": sum(1 for r in rows if r.get("fall") is True),
+            "collisions": sum(1 for r in rows if r.get("collision") is True or r.get("result") == "COLLISION"),
             "collision_proxies": sum(1 for r in rows if r.get("collision_proxy") is True),
             "stuck_recovery_loops": sum(1 for r in rows if r.get("stuck_recovery_loop") is True),
             "invalid_spawn_failures": sum(1 for r in rows if r.get("invalid_spawn_failure") is True),
@@ -251,9 +266,38 @@ def scene_stats(summaries: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
     return stats
 
 
+def ablation_stats(summaries: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+    grouped: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for item in summaries:
+        grouped[str(item.get("ablation_mode", "unknown"))].append(item)
+
+    stats: Dict[str, Dict[str, Any]] = {}
+    for mode, rows in grouped.items():
+        n = len(rows)
+        successes = sum(1 for r in rows if is_success(r))
+        stats[mode] = {
+            "runs": n,
+            "successes": successes,
+            "success_rate": successes / n if n else 0.0,
+            "results": Counter(str(r.get("result", "UNKNOWN")) for r in rows),
+            "mean_time_to_goal_s": mean(r.get("time_to_goal_s") for r in rows),
+            "mean_recovery_ratio": mean(r.get("recovery_ratio") for r in rows),
+            "mean_recovery_entries": mean(r.get("recovery_entries") for r in rows),
+            "min_ray_distance_m": min(
+                [float(r["min_ray_distance_m"]) for r in rows if r.get("min_ray_distance_m") is not None],
+                default=None,
+            ),
+            "falls": sum(1 for r in rows if r.get("fall") is True),
+            "collisions": sum(1 for r in rows if r.get("collision") is True or r.get("result") == "COLLISION"),
+            "collision_proxies": sum(1 for r in rows if r.get("collision_proxy") is True),
+            "stuck_recovery_loops": sum(1 for r in rows if r.get("stuck_recovery_loop") is True),
+        }
+    return stats
+
+
 def write_group_overview(lines: List[str], title: str, summaries: List[Dict[str, Any]]) -> None:
     total = len(summaries)
-    success_count = sum(1 for r in summaries if r.get("result") == "SUCCESS" or r.get("success") is True)
+    success_count = sum(1 for r in summaries if is_success(r))
     results = Counter(str(r.get("result", "UNKNOWN")) for r in summaries)
     recovery_ratios = [r.get("recovery_ratio") for r in summaries]
 
@@ -265,6 +309,7 @@ def write_group_overview(lines: List[str], title: str, summaries: List[Dict[str,
     lines.append(f"- Mean recovery ratio: **{fmt(mean(recovery_ratios))}**")
     lines.append(f"- Total DDS timeout logs: **{sum(int(r.get('dds_timeout_count') or 0) for r in summaries)}**")
     lines.append(f"- Fall episodes: **{sum(1 for r in summaries if r.get('fall') is True)}**")
+    lines.append(f"- True collision episodes: **{sum(1 for r in summaries if r.get('collision') is True or r.get('result') == 'COLLISION')}**")
     lines.append(f"- Stuck recovery-loop episodes: **{sum(1 for r in summaries if r.get('stuck_recovery_loop') is True)}**")
     lines.append(f"- Invalid spawn/early-fall episodes: **{sum(1 for r in summaries if r.get('invalid_spawn_failure') is True)}**")
     lines.append(f"- Collision-proxy episodes: **{sum(1 for r in summaries if r.get('collision_proxy') is True)}**")
@@ -273,6 +318,7 @@ def write_group_overview(lines: List[str], title: str, summaries: List[Dict[str,
 
 def write_markdown(summaries: List[Dict[str, Any]], md_path: Path) -> None:
     stats = scene_stats(summaries)
+    abl_stats = ablation_stats(summaries)
     baseline = [r for r in summaries if r.get("scene_group") == "baseline"]
     stress = [r for r in summaries if r.get("scene_group") == "stress"]
 
@@ -286,10 +332,24 @@ def write_markdown(summaries: List[Dict[str, Any]], md_path: Path) -> None:
     write_group_overview(lines, "Standard Baseline", baseline)
     write_group_overview(lines, "Pressure Tests", stress)
 
+    lines.append("## Ablation summary")
+    lines.append("")
+    lines.append("| Mode | Runs | Success | Results | Mean T_goal(s) | Min ray(m) | Mean rec entries | Mean rec ratio | Fall | Collision | Stuck loop | Collision proxy |")
+    lines.append("|---|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|")
+    for mode in sorted(abl_stats):
+        s = abl_stats[mode]
+        lines.append(
+            f"| {mode} | {s['runs']} | {s['successes']}/{s['runs']} ({s['success_rate'] * 100.0:.1f}%) | "
+            f"`{dict(s['results'])}` | {fmt(s['mean_time_to_goal_s'])} | {fmt(s['min_ray_distance_m'])} | "
+            f"{fmt(s['mean_recovery_entries'])} | {fmt(s['mean_recovery_ratio'])} | {s['falls']} | "
+            f"{s['collisions']} | {s['stuck_recovery_loops']} | {s['collision_proxies']} |"
+        )
+    lines.append("")
+
     lines.append("## Per-scene summary")
     lines.append("")
-    lines.append("| Scene | Group | Runs | Success | Results | Clearance | Mean T_goal(s) | Mean final err(m) | Min ray(m) | Mean rec entries | Mean rec ratio | DDS | Fall | Stuck loop | Invalid spawn | Collision proxy |")
-    lines.append("|---|---|---:|---:|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
+    lines.append("| Scene | Group | Runs | Success | Results | Clearance | Mean T_goal(s) | Mean final err(m) | Min ray(m) | Mean rec entries | Mean rec ratio | Mean heading abs(rad) | Max heading abs(rad) | Mean speed(m/s) | Mean abs vy(m/s) | DDS | Fall | Collision | Stuck loop | Invalid spawn | Collision proxy |")
+    lines.append("|---|---|---:|---:|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
     for scene in sorted(stats):
         s = stats[scene]
         lines.append(
@@ -299,12 +359,14 @@ def write_markdown(summaries: List[Dict[str, Any]], md_path: Path) -> None:
             f"`{dict(s['results'])}` | `{dict(s['scene_clearance_statuses'])}` | "
             f"{fmt(s['mean_time_to_goal_s'])} | {fmt(s['mean_final_goal_error_m'])} | "
             f"{fmt(s['min_ray_distance_m'])} | {fmt(s['mean_recovery_entries'])} | "
-            f"{fmt(s['mean_recovery_ratio'])} | {s['dds_timeouts']} | {s['falls']} | "
-            f"{s['stuck_recovery_loops']} | {s['invalid_spawn_failures']} | {s['collision_proxies']} |"
+            f"{fmt(s['mean_recovery_ratio'])} | {fmt(s['mean_heading_abs_rad'])} | "
+            f"{fmt(s['max_heading_abs_rad'])} | {fmt(s['mean_body_speed_mps'])} | "
+            f"{fmt(s['mean_abs_lateral_velocity_mps'])} | {s['dds_timeouts']} | {s['falls']} | "
+            f"{s['collisions']} | {s['stuck_recovery_loops']} | {s['invalid_spawn_failures']} | {s['collision_proxies']} |"
         )
     lines.append("")
 
-    failures = [r for r in summaries if not (r.get("result") == "SUCCESS" or r.get("success") is True)]
+    failures = [r for r in summaries if not is_success(r)]
     lines.append("## Failure / non-success episodes")
     lines.append("")
     if not failures:
@@ -313,7 +375,7 @@ def write_markdown(summaries: List[Dict[str, Any]], md_path: Path) -> None:
         lines.append("| Scene | Run | Result | Final err(m) | Min ray(m) | Recovery entries | Reason | Log |")
         lines.append("|---|---:|---|---:|---:|---:|---|---|")
         for r in failures:
-            reason = r.get("fall_reason") or r.get("collision_proxy_reason") or r.get("skip_reason") or "-"
+            reason = r.get("collision_reason") or r.get("fall_reason") or r.get("collision_proxy_reason") or r.get("skip_reason") or "-"
             if r.get("stuck_recovery_loop") is True:
                 reason = "high recovery ratio with poor goal progress"
             if r.get("invalid_spawn_failure") is True:
@@ -327,9 +389,10 @@ def write_markdown(summaries: List[Dict[str, Any]], md_path: Path) -> None:
 
     lines.append("## Interpretation notes")
     lines.append("")
-    lines.append("- `COLLISION_PROXY` is not a true MuJoCo contact metric. It means the front ray fan stayed below the configured distance threshold long enough to be treated as a near-collision risk.")
-    lines.append("- True body-vs-obstacle collision counting still requires adding MuJoCo contact-pair telemetry.")
+    lines.append("- `COLLISION` is true MuJoCo robot-vs-obstacle contact: robot collision geom group 3 touching static box/cylinder/sphere/capsule/ellipsoid obstacle geoms.")
+    lines.append("- `COLLISION_PROXY` is only a ray-distance near-collision risk; it is kept as a diagnostic, not a replacement for true contact counting.")
     lines.append("- `recovery_ratio` comes from throttled `[EVAL]` log samples, so it is approximate but useful for detecting over-frequent recovery switching.")
+    lines.append("- `heading_abs_mean_rad` and `mean_abs_lateral_velocity_mps` are drift/heading-quality indicators for the next behavior-calibration pass.")
     lines.append("- `STUCK_RECOVERY_LOOP` means timeout with high recovery ratio, many recovery entries, and poor goal progress; treat it as a pressure-test/local-navigation failure mode.")
     lines.append("- `INVALID_SCENE_SPAWN` / `invalid_spawn_failure` means a scene obstacle violates the configured spawn-clearance precheck; do not count it as ABS policy failure.")
     lines.append("- Flat-ground runs should have low recovery ratio; obstacle scenes should show RA/recovery activity before close obstacle proximity.")
@@ -363,7 +426,7 @@ def main() -> int:
     write_markdown(summaries, md_path)
 
     total = len(summaries)
-    successes = sum(1 for r in summaries if r.get("result") == "SUCCESS" or r.get("success") is True)
+    successes = sum(1 for r in summaries if is_success(r))
     print(f"Episodes: {total}")
     print(f"Success rate: {successes}/{total} ({successes / total * 100.0:.1f}%)")
     print(f"CSV: {csv_path}")

@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <limits>
@@ -25,8 +26,10 @@
 // ===== Ray2d shared memory constants =====
 #define RAY2D_SHM_NAME "/mujoco_ray2d"
 #define QPOS_SHM_NAME "/mujoco_qpos"
+#define COLLISION_SHM_NAME "/mujoco_collision"
 #define QPOS_COUNT 19
 #define RAY2D_COUNT 11
+#define COLLISION_COUNT 5
 #define RAY2D_MAX_DIST 6.0f
 #define RAY2D_MIN_DIST 0.1f
 #define RAY2D_THETA_START (-M_PI / 4.0)   // -45 degrees
@@ -68,6 +71,7 @@ public:
     // Setup ray2d shared memory
     _setupRay2dShm();
     _setupQposShm();
+    _setupCollisionShm();
     std::cout << "[Ray2D] Source: "
               << (geometric_ray_write_enabled_ ? "geometric" : "external/ray_pred")
               << std::endl;
@@ -86,10 +90,17 @@ public:
     if (qpos_shm_fd_ >= 0) {
       close(qpos_shm_fd_);
     }
+    if (collision_shm_ptr_ != MAP_FAILED && collision_shm_ptr_ != nullptr) {
+      munmap(collision_shm_ptr_, COLLISION_COUNT * sizeof(int32_t));
+    }
+    if (collision_shm_fd_ >= 0) {
+      close(collision_shm_fd_);
+    }
   }
 
   void computeRay2d() {
-    // Write full qpos to shared memory (for Python depth renderer sync)
+    updateCollisionTelemetry();
+
     // Write full qpos to shared memory (for Python depth renderer sync)
     if (qpos_shm_ptr_ != nullptr && qpos_shm_ptr_ != MAP_FAILED) {
       int nq = mj_model_->nq;
@@ -231,6 +242,94 @@ private:
 
   int qpos_shm_fd_ = -1;
   double* qpos_shm_ptr_ = nullptr;
+
+  int collision_shm_fd_ = -1;
+  int32_t* collision_shm_ptr_ = nullptr;
+  int32_t collision_event_total_ = 0;
+  int32_t collision_last_robot_geom_ = -1;
+  int32_t collision_last_obstacle_geom_ = -1;
+
+  void _setupCollisionShm() {
+    collision_shm_fd_ = shm_open(COLLISION_SHM_NAME, O_CREAT | O_RDWR, 0666);
+    if (collision_shm_fd_ < 0) {
+      std::cerr << "[CollisionShm] shm_open failed: " << strerror(errno) << std::endl;
+      return;
+    }
+    if (ftruncate(collision_shm_fd_, COLLISION_COUNT * sizeof(int32_t)) < 0) {
+      std::cerr << "[CollisionShm] ftruncate failed: " << strerror(errno) << std::endl;
+      return;
+    }
+    collision_shm_ptr_ = static_cast<int32_t*>(
+        mmap(NULL, COLLISION_COUNT * sizeof(int32_t), PROT_READ | PROT_WRITE,
+             MAP_SHARED, collision_shm_fd_, 0));
+    if (collision_shm_ptr_ == MAP_FAILED) {
+      std::cerr << "[CollisionShm] mmap failed: " << strerror(errno) << std::endl;
+      collision_shm_ptr_ = nullptr;
+      return;
+    }
+    for (int i = 0; i < COLLISION_COUNT; i++) {
+      collision_shm_ptr_[i] = 0;
+    }
+    std::cout << "[CollisionShm] Shared memory initialized: " << COLLISION_SHM_NAME
+              << " (" << COLLISION_COUNT << " int32)" << std::endl;
+  }
+
+  bool isRobotCollisionGeom(int geom_id) const {
+    if (geom_id < 0 || geom_id >= mj_model_->ngeom) return false;
+    return mj_model_->geom_group[geom_id] == 3;
+  }
+
+  bool isObstacleCollisionGeom(int geom_id) const {
+    if (geom_id < 0 || geom_id >= mj_model_->ngeom) return false;
+    if (mj_model_->geom_group[geom_id] == 2 || mj_model_->geom_group[geom_id] == 3) return false;
+
+    const char* name = mj_id2name(mj_model_, mjOBJ_GEOM, geom_id);
+    if (name && strcmp(name, "floor") == 0) return false;
+
+    int type = mj_model_->geom_type[geom_id];
+    if (type == mjGEOM_PLANE || type == mjGEOM_HFIELD || type == mjGEOM_MESH) return false;
+    if (type != mjGEOM_BOX && type != mjGEOM_CYLINDER && type != mjGEOM_SPHERE &&
+        type != mjGEOM_CAPSULE && type != mjGEOM_ELLIPSOID) {
+      return false;
+    }
+
+    int body_id = mj_model_->geom_bodyid[geom_id];
+    if (body_id > 0 && mj_model_->body_mass[body_id] > 0) return false;
+    return true;
+  }
+
+  void updateCollisionTelemetry() {
+    if (collision_shm_ptr_ == nullptr || collision_shm_ptr_ == MAP_FAILED) return;
+
+    int collision_count = 0;
+    int last_robot_geom = -1;
+    int last_obstacle_geom = -1;
+    for (int i = 0; i < mj_data_->ncon; i++) {
+      const mjContact& contact = mj_data_->contact[i];
+      int geom1 = contact.geom1;
+      int geom2 = contact.geom2;
+      bool robot1 = isRobotCollisionGeom(geom1);
+      bool robot2 = isRobotCollisionGeom(geom2);
+      bool obstacle1 = isObstacleCollisionGeom(geom1);
+      bool obstacle2 = isObstacleCollisionGeom(geom2);
+      if ((robot1 && obstacle2) || (robot2 && obstacle1)) {
+        collision_count++;
+        last_robot_geom = robot1 ? geom1 : geom2;
+        last_obstacle_geom = obstacle1 ? geom1 : geom2;
+      }
+    }
+
+    if (collision_count > 0) {
+      collision_event_total_++;
+      collision_last_robot_geom_ = last_robot_geom;
+      collision_last_obstacle_geom_ = last_obstacle_geom;
+    }
+    collision_shm_ptr_[0] = collision_count > 0 ? 1 : 0;
+    collision_shm_ptr_[1] = collision_count;
+    collision_shm_ptr_[2] = collision_event_total_;
+    collision_shm_ptr_[3] = collision_last_robot_geom_;
+    collision_shm_ptr_[4] = collision_last_obstacle_geom_;
+  }
 
   void _setupQposShm() {
     qpos_shm_fd_ = shm_open(QPOS_SHM_NAME, O_CREAT | O_RDWR, 0666);

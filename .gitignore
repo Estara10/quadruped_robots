@@ -46,3 +46,31 @@ anaconda3/
 rl_sar/src/rl_sar/library/thirdparty/robot_sdk/unitree/unitree_sdk2/.git_backup/
 build/qpoases_colcon/
 .mcp.json
+
+# MuJoCo generated/legacy
+unitree_mujoco/simulate/build2/
+unitree_mujoco/.git_backup/
+unitree_mujoco/*.md
+unitree_mujoco/*.txt
+unitree_mujoco/doc/
+unitree_mujoco/example/
+unitree_mujoco/terrain_tool/
+unitree_mujoco/simulate_python/
+unitree_mujoco/simulate/src/joystick/
+unitree_mujoco/simulate/src/main.cc
+unitree_mujoco/simulate/src/mujoco/
+unitree_mujoco/simulate/src/param.h
+unitree_mujoco/simulate/src/physics_joystick.h
+unitree_mujoco/simulate/.clang-format
+
+# Evaluation logs (large, regeneratable)
+logs/
+
+# Daily reports (kept locally, not in repo)
+日报/
+
+# Generated office docs
+*.docx
+
+# Other generated
+skill/

@@ -5,6 +5,8 @@
 
 		<hardware>
 			<plugin>hardware_unitree_mujoco/HardwareUnitree</plugin>
+			<!-- Simulation: uses lo (loopback) by default — no params needed -->
+			<!-- Real robot: uncomment below and set correct network interface -->
 <!--			<param name="domain">0</param>-->
 <!--			<param name="network_interface">enp46s0</param>-->
 <!--			<param name="show_foot_force">true</param>-->

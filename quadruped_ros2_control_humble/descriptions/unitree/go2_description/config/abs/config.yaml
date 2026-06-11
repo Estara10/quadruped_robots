@@ -93,3 +93,10 @@ abs:
 
   # Emergency stop (matches original ABS wireless remote B-button exit(0))
   emergency_stop_enabled: true       # command=1 on /control_input or remote B → PASSIVE
+
+  # ---- Real-robot initial testing protocol ----
+  # First test — set goal to a SHORT distance (1-2m) at low speed.
+  # Use keyboard W to inch forward, keep B ready for emergency stop.
+  # Only after confirming basic control works, increase goal to 7m.
+  # goal_x: 1.5  # uncomment for first real-robot test
+  # goal_y: 0.0

@@ -286,6 +286,14 @@ void StateRL::enter()
     control_.y = 0.0;
     control_.yaw = 0.0;
 
+    // Reset path/recovery state on every RL entry
+    path_start_initialized_ = false;
+    in_recovery_ = false;
+    rec_hold_left_ = 0;
+    cached_rec_vx_ = 0.0;
+    cached_rec_vy_ = 0.0;
+    cached_rec_wz_ = 0.0;
+
     // history
     if (!params_.observations_history.empty()) {
         history_obs_buf_->clear();
@@ -328,6 +336,11 @@ void StateRL::logEvalTelemetry(double robot_wx, double robot_wy, double robot_ya
                                double recovery_vx, double recovery_vy, double recovery_wz) const
 {
     if (!params_.eval_telemetry_enabled)
+    {
+        return;
+    }
+
+    if (arrived)
     {
         return;
     }
@@ -840,6 +853,11 @@ void StateRL::loadYaml(const std::string& config_path)
         if (abs_node["torque_limit_ratio"])     torque_limit_ratio_     = abs_node["torque_limit_ratio"].as<double>();
         // Emergency stop (matches original B-button)
         if (abs_node["emergency_stop_enabled"]) emergency_stop_enabled_ = abs_node["emergency_stop_enabled"].as<bool>();
+        // Recovery-aware straight-line tracking: normal agile follows start→goal line;
+        // recovery can leave the line to avoid obstacles.
+        if (abs_node["path_tracking_enabled"]) params_.path_tracking_enabled = abs_node["path_tracking_enabled"].as<bool>();
+        if (abs_node["path_lateral_gain"]) params_.path_lateral_gain = abs_node["path_lateral_gain"].as<double>();
+        if (abs_node["path_heading_gain"]) params_.path_heading_gain = abs_node["path_heading_gain"].as<double>();
     }
 }
 
@@ -978,6 +996,43 @@ void StateRL::runModel()
     double goal_wx = goal_x_ + joystick_x;
     double goal_wy = goal_y_ + joystick_y;
 
+    if (!path_start_initialized_)
+    {
+        path_start_x_ = robot_wx;
+        path_start_y_ = robot_wy;
+        path_start_initialized_ = true;
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+            "[PATH] start=(%.2f,%.2f) goal=(%.2f,%.2f) tracking=%d lateral_gain=%.2f heading_gain=%.2f",
+            path_start_x_, path_start_y_, goal_wx, goal_wy,
+            params_.path_tracking_enabled ? 1 : 0,
+            params_.path_lateral_gain, params_.path_heading_gain);
+    }
+
+    double path_error = 0.0;
+    double path_corr_body_y = 0.0;
+    const bool path_tracking_active = params_.path_tracking_enabled && !in_recovery_;
+    if (path_tracking_active)
+    {
+        const double path_dx = goal_wx - path_start_x_;
+        const double path_dy = goal_wy - path_start_y_;
+        const double path_len = std::sqrt(path_dx * path_dx + path_dy * path_dy);
+        if (path_len > 1e-3)
+        {
+            // Signed cross-track error from start→goal line. Positive means robot is left of the path.
+            const double normal_x = -path_dy / path_len;
+            const double normal_y =  path_dx / path_len;
+            path_error = (robot_wx - path_start_x_) * normal_x + (robot_wy - path_start_y_) * normal_y;
+
+            // Correction points back to the path, then is expressed in the robot body frame.
+            const double corr_wx = -params_.path_lateral_gain * path_error * normal_x;
+            const double corr_wy = -params_.path_lateral_gain * path_error * normal_y;
+            double cos_yaw_pre = std::cos(robot_yaw);
+            double sin_yaw_pre = std::sin(robot_yaw);
+            path_corr_body_y = -corr_wx * sin_yaw_pre + corr_wy * cos_yaw_pre;
+            path_corr_body_y = std::clamp(path_corr_body_y, -2.0, 2.0);
+        }
+    }
+
     // Vector from robot to goal in world frame
     double diff_x = goal_wx - robot_wx;
     double diff_y = goal_wy - robot_wy;
@@ -994,8 +1049,14 @@ void StateRL::runModel()
     body_x *= scale;
     body_y *= scale;
 
-    // Heading command = direction from robot to goal
-    double heading_cmd = std::atan2(body_y, body_x) + joystick_yaw * 0.3;
+    if (path_tracking_active)
+    {
+        body_y = std::clamp(body_y + path_corr_body_y, -2.0, 2.0);
+    }
+
+    // Heading command = direction from robot to goal/path-corrected target.
+    const double heading_body_y = path_tracking_active ? body_y * params_.path_heading_gain : body_y;
+    double heading_cmd = std::atan2(heading_body_y, body_x) + joystick_yaw * 0.3;
 
     // When within tight threshold (training sigma_tight=0.5m), signal "stand still"
     const double arrival_threshold = 0.5;
@@ -1033,13 +1094,14 @@ void StateRL::runModel()
         arrived_counter = 0;  // reset if not at goal
     }
 
-    // Diagnostic log every 100 RL steps
+    // Diagnostic log every 100 RL steps (suppress after arrival)
     static int goal_log_counter = 0;
-    if (goal_log_counter++ % 100 == 0)
+    if (dist_to_goal >= arrival_threshold && goal_log_counter++ % 100 == 0)
     {
         RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-            "[GOAL] 位置=(%.2f,%.2f) 偏航=%.2f 目标=(%.2f,%.2f) 距离=%.2f 机体系=(%.2f,%.2f) 航向=%.2f%s",
+            "[GOAL] 位置=(%.2f,%.2f) 偏航=%.2f 目标=(%.2f,%.2f) 距离=%.2f 机体系=(%.2f,%.2f) 航向=%.2f path_err=%.2f path_on=%d%s",
             robot_wx, robot_wy, robot_yaw, goal_wx, goal_wy, dist_to_goal, body_x, body_y, heading_cmd,
+            path_error, path_tracking_active ? 1 : 0,
             (dist_to_goal < arrival_threshold) ? " [已到达]" : "");
     }
 
@@ -1091,32 +1153,29 @@ void StateRL::runModel()
     double ra_exit_thr = params_.ra_threshold - 0.03;   // -0.08 = hysteresis margin
 
     // Cache last optimized twist (avoids recomputing GD every 8ms step)
-    static double cached_vx = 0.0, cached_vy = 0.0, cached_wz = 0.0;
-    static int rec_hold_left = 0;
-    static bool in_recovery = false;
 
     if (ra_loaded_ && rec_loaded_)
     {
-        if (!in_recovery && ra_value_ > ra_entry_thr)
+        if (!in_recovery_ && ra_value_ > ra_entry_thr)
         {
             // ENTER recovery (ROS1 L495-497)
-            in_recovery = true;
-            rec_hold_left = REC_HOLD_STEPS;
+            in_recovery_ = true;
+            rec_hold_left_ = REC_HOLD_STEPS;
             computeRecoveryTwist();  // GD optimization (ROS1 L498-525)
-            cached_vx = ctrl_component_.recovery_twist_vx;
-            cached_vy = ctrl_component_.recovery_twist_vy;
-            cached_wz = ctrl_component_.recovery_twist_wz;
+            cached_rec_vx_ = ctrl_component_.recovery_twist_vx;
+            cached_rec_vy_ = ctrl_component_.recovery_twist_vy;
+            cached_rec_wz_ = ctrl_component_.recovery_twist_wz;
             RCLCPP_WARN(rclcpp::get_logger("StateRL"),
                 "[RA-REC] 进入恢复 | 风险值 ra=%.4f > 进入阈值=%.4f 恢复速度=[%.2f,%.2f,%.2f] 保持步数=%d",
-                ra_value_, ra_entry_thr, cached_vx, cached_vy, cached_wz, REC_HOLD_STEPS);
+                ra_value_, ra_entry_thr, cached_rec_vx_, cached_rec_vy_, cached_rec_wz_, REC_HOLD_STEPS);
         }
-        else if (in_recovery)
+        else if (in_recovery_)
         {
-            rec_hold_left--;
-            if (rec_hold_left <= 0 && ra_value_ < ra_exit_thr)
+            rec_hold_left_--;
+            if (rec_hold_left_ <= 0 && ra_value_ < ra_exit_thr)
             {
                 // EXIT recovery — hold expired and RA confirmed safe
-                in_recovery = false;
+                in_recovery_ = false;
                 RCLCPP_INFO(rclcpp::get_logger("StateRL"),
                     "[RA-REC] 退出恢复 | 风险值 ra=%.4f < 退出阈值=%.4f, 回到敏捷策略",
                     ra_value_, ra_exit_thr);
@@ -1124,14 +1183,14 @@ void StateRL::runModel()
         }
     }
 
-    if (in_recovery)
+    if (in_recovery_)
     {
         // Use cached twist (reuse across multiple RL steps to match ROS1 80ms dwell)
-        ctrl_component_.recovery_twist_vx = cached_vx;
-        ctrl_component_.recovery_twist_vy = cached_vy;
-        ctrl_component_.recovery_twist_wz = cached_wz;
+        ctrl_component_.recovery_twist_vx = cached_rec_vx_;
+        ctrl_component_.recovery_twist_vy = cached_rec_vy_;
+        ctrl_component_.recovery_twist_wz = cached_rec_wz_;
 
-        torch::Tensor twist = torch::tensor({{cached_vx, cached_vy, cached_wz}});
+        torch::Tensor twist = torch::tensor({{cached_rec_vx_, cached_rec_vy_, cached_rec_wz_}});
         torch::Tensor rec_obs = computeRecoveryObservation(twist);  // ROS1 line 532
         policy_actions = rec_model_.forward({rec_obs}).toTensor();
         clamped_actions = policyToCtrlDofOrder(policy_actions);  // ROS1 line 536
@@ -1153,7 +1212,7 @@ void StateRL::runModel()
                     "[REC-DIAG] lin_vel=[%.2f,%.2f,%.2f] twist=[%.2f,%.2f,%.2f] hold=%d rec_action_range=[%.3f,%.3f]",
                     obs_.lin_vel[0][0].item<double>(), obs_.lin_vel[0][1].item<double>(),
                     obs_.lin_vel[0][2].item<double>(),
-                    cached_vx, cached_vy, cached_wz, rec_hold_left,
+                    cached_rec_vx_, cached_rec_vy_, cached_rec_wz_, rec_hold_left_,
                     policy_actions.min().item<double>(), policy_actions.max().item<double>());
             }
         }
@@ -1207,9 +1266,9 @@ void StateRL::runModel()
     }
 
     logEvalTelemetry(robot_wx, robot_wy, robot_yaw, goal_wx, goal_wy, dist_to_goal,
-                     body_x, body_y, heading_cmd, arrived, in_recovery, rec_hold_left,
-                     cached_vx, cached_vy, cached_wz);
-    logSymmetryDebug(robot_wx, robot_wy, robot_yaw, body_y, heading_cmd, in_recovery,
+                     body_x, body_y, heading_cmd, arrived, in_recovery_, rec_hold_left_,
+                     cached_rec_vx_, cached_rec_vy_, cached_rec_wz_);
+    logSymmetryDebug(robot_wx, robot_wy, robot_yaw, body_y, heading_cmd, in_recovery_,
                      policy_actions, clamped_actions);
 
     rl_step_count_++;

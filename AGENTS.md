@@ -38,7 +38,7 @@ Avoid treating `FileZilla3/` and generated build/install/log directories as sour
 
 C++ ROS code uses package-local `include/<package>/` headers and `src/` implementations. Keep classes in PascalCase, ROS parameters and YAML keys in `snake_case`, and package names lowercase with underscores. Python training code follows Legged Gym/RSL-RL style: 4-space indentation, `snake_case` functions, and task-grouped config classes.
 
-Preserve the critical ordering convention: joints and contacts are `FR, FL, RR, RL`. Do not mix `rl_quadruped_controller` with `unitree_guide_controller`; ABS deployment uses `rl_quadruped_controller`.
+Preserve the critical ordering convention: joints and contacts are `FR, FL, RR, RL`. `rl_quadruped_controller` now explicitly sorts ros2_control interfaces by YAML joint order, and `HardwareUnitree` uses an explicit `motor_index_map_` (`FR,FL,RR,RL -> motor[0..11]`). Do not mix `rl_quadruped_controller` with `unitree_guide_controller`; ABS deployment uses `rl_quadruped_controller`. Real Go2 must not enter RL/ABS until a real ray2d perception source is connected; current real tests are PASSIVE/FIXEDDOWN/FIXEDSTAND/hard stop only.
 
 ## Testing Guidelines
 

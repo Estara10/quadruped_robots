@@ -197,6 +197,9 @@ rl_quadruped_controller:
       - 1.31     # RL thigh
       - -2.8     # RL calf
 
+    stand_kp: 80.0    # Go2 fixed stand gain (matches rl_sar reference)
+    stand_kd: 3.0
+
     command_interfaces:
       - effort
       - position

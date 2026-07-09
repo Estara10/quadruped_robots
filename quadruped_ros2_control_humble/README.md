@@ -20,6 +20,25 @@ Todo List:
 Video on Real Unitree Go2 Robot:
 [![](http://i0.hdslb.com/bfs/archive/7d3856b3c5e5040f24990d3eab760cf8ba4cf80d.jpg)](https://www.bilibili.com/video/BV1QpZaY8EYV/)
 
+## ABS Go2 Notes (2026-07-09)
+
+For this workspace, use `rl_quadruped_controller` for ABS reproduction, not `unitree_guide_controller`.
+
+Current key behavior:
+
+- joint order: `FR, FL, RR, RL`, each leg `hip, thigh, calf`
+- controller sorts command/state interfaces by YAML `joints` order at activation
+- hardware layer prints `[MOTOR-MAP]` for Go2 LowCmd/LowState motor index mapping
+- keys `1` and `9` globally force PASSIVE / stop sentinel
+- simulation ABS uses MuJoCo geometric ray2d
+- real Go2 must not enter RL/ABS until real ray2d perception is connected
+
+See:
+
+- `controllers/rl_quadruped_controller/README.md`
+- `controllers/rl_quadruped_controller/doc/real_go2_deployment.md`
+- `../仿真部署手册.md`
+
 ## 1. Quick Start
 
 * rosdep

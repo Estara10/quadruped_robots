@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 **Project**: Reproduce ABS (Agile But Safe) paper — dual-policy collision-free quadruped locomotion.  
 **Robot**: Go2 (paper uses Go1). **Simulator**: MuJoCo. **ROS**: Humble. **Inference**: LibTorch.  
-**Last updated**: 2026-06-09 (final)
+**Last updated**: 2026-07-09
 
 ---
 
@@ -32,7 +32,7 @@ Goal: 机器人自主导航到目标点，遇到障碍自动切换 recovery 避�
   ~/quadruped_robots/scripts/launch_abs_sim.sh     # 默认到达首目标后停止
   MUJOCO_SCENE=scene_obstacle.xml ./scripts/launch_abs_obstacle.sh  # 障碍物
 
-当前状态: 仿真核心链路已端到端验证通过，4场景12次100%成功率。实机待部署。
+当前状态: 仿真核心链路已端到端验证；新增 recovery-aware 直线路径约束、全局硬急停、显式 motor 映射。实机已完成 DDS + sport_mode release 启动验证，当前只允许测试 PASSIVE/FIXEDDOWN/FIXEDSTAND，未接入真实 ray2d 前禁止真机 RL/ABS。
 ```
 
 ---
@@ -100,19 +100,19 @@ Training (Isaac Gym)                     Deployment (ROS1/ROS2)
 | Contact 检测 | 足力阈值 >1N (仿真匹配训练) | training: contact_forces>1.0 |
 | Ray2d 感知 | 仿真=几何射线, 实机=深度相机+ResNet18 | 各自独立 |
 
-## Current Status (2026-06-09)
+## Current Status (2026-07-09)
 
 ### Done ✅
 
-敏捷策略推理 | 恢复策略推理 | RA 值网络 | Recovery Twist (论文梯度下降) | 目标导航 | 到达检测 | 射线感知 | FSM 自动启动 | DDS 超时 | 软启动 | RA/recovery 机体系速度修复 | Estimator 腿链顺序修复 | 首目标到达后停止配置 | 安全机制 (姿态/action/卸力) | 多场景评估基线 (12/12=100%)
+敏捷策略推理 | 恢复策略推理 | RA 值网络 | Recovery Twist (论文梯度下降) | 目标导航 | 到达检测 | 射线感知 | FSM 自动启动 | DDS 超时 | 软启动 | RA/recovery 机体系速度修复 | Estimator 腿链顺序修复 | 首目标到达后停止配置 | 安全机制 (姿态/action/卸力) | 多场景评估基线 | recovery-aware 直线路径约束 | 全局硬急停(1/9→PASSIVE) | Go2 sport_mode release | Unitree stop sentinel | 显式 motor index mapping | ros2_control interface 排序
 
 ### In Progress 🔄
 
-避障行为精细化（recovery 参数调优）| heading 偏航改善（策略层偏置）
+实机 FIXEDDOWN/FIXEDSTAND 安全验证 | 避障行为精细化（recovery 参数调优）| heading 偏航改善（策略层偏置）
 
 ### Pending ❌
 
-Ray-Prediction (ResNet18, M6b) — 需域适应 | 实机 Go2 部署 (M8) | 遥控器急停 (E.2) | 温度监控 (E.4) | 坡地场景
+真机 ray2d 感知接入（D435i/LiDAR/深度相机）| 真机 ABS/RL 行走测试 | 遥控器硬急停映射 | 温度监控 (E.4) | 坡地场景系统评估
 
 ## Key Implementation Details
 
@@ -120,7 +120,9 @@ Ray-Prediction (ResNet18, M6b) — 需域适应 | 实机 Go2 部署 (M8) | 遥�
 
 全链路使用 **FR, FL, RR, RL** 顺序（匹配 MuJoCo 模型和 DDS 桥）。
 策略训练时 Isaac Gym 按字母序导出 DOF 名（FL-first），因此观测/动作需通过 `policy_joint_order: "ros1_fl_fr_rl_rr"` 进行 remap。
-切勿在 YAML 中更改关节顺序或在代码中添加 contact_map 等临时映射。
+控制器激活时会按 YAML `joints` 显式排序 command/state interfaces，启动日志应出现 `[VERIFY] joint interface order: FR_hip_joint FR_thigh_joint FR_calf_joint ... RL_calf_joint`。
+硬件层使用显式 `motor_index_map_`，默认 `FR,FL,RR,RL -> Unitree motor[0..11]`，启动日志 `[MOTOR-MAP]` 会打印映射。
+切勿在 YAML 中更改关节顺序或添加临时 contact_map；如真机 motor 顺序不符，只改 `motor_index_map_`。
 
 ### FSM State Flow
 
@@ -141,6 +143,22 @@ Timer 恒为 0.5（匹配 ROS1 部署）。Contact = +1(着地)/-1(离地)。RA/
 ### Goal Arrival Behavior
 
 `abs/config.yaml` 中 `resample_goal_on_arrival: false` 为默认值：到达首个目标后 commands 置零并站住，便于复现实验和调试。若要连续随机目标评估，显式改为 `true`。
+
+### Recovery-aware Straight-line Tracking
+
+为避免“最终到达目标但中途横向跑偏碰到旁边障碍”，导航层新增路径约束：
+
+```yaml
+path_tracking_enabled: true
+path_lateral_gain: 1.5
+path_heading_gain: 1.5
+```
+
+逻辑：非 recovery 时跟踪起点→目标点直线；RA 触发 recovery 后 `path_on=0`，允许离开直线避障；recovery 退出后 `path_on=1`，重新拉回直线路径。日志见 `[PATH]` 和 `[GOAL] ... path_err=... path_on=...`。
+
+### Real Go2 Safety Gate
+
+真机当前只允许 PASSIVE/FIXEDDOWN/FIXEDSTAND/急停验证，**未接入真实 ray2d 感知前禁止按 `3` 进入 RL/ABS**。真机启动前先趴下；控制器会释放 Go2 `sport_mode` 并发送 Unitree stop sentinel。急停键：`1` 或 `9` → PASSIVE/卸力。
 
 ### Ray2d Architecture
 

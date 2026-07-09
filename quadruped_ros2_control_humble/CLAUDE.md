@@ -40,17 +40,20 @@ Parent project: `/home/lidio/quadruped_robots/CLAUDE.md`
 Important ABS config flags:
 - `goal_x`, `goal_y`: first world-frame target.
 - `resample_goal_on_arrival: false`: stop at first target by default; set `true` for continuous random-goal evaluation.
+- `path_tracking_enabled`, `path_lateral_gain`, `path_heading_gain`: non-recovery straight-line path tracking; disabled while RA recovery is active.
 - `eval_telemetry_enabled`, `symmetry_debug_enabled`: diagnostics only, no control effect.
 
 ## FSM States
 
 PASSIVE → FIXEDDOWN → FIXEDSTAND → RL (agile + inline recovery) → RL_REC (manual)
-Key 2: FIXEDDOWN, Key 3: RL, Key 4: manual RL_REC
+Key 2: FIXEDDOWN/FIXEDSTAND toggle, Key 3: RL (simulation only until real ray2d exists), Key 4: manual RL_REC, Key 1/9: PASSIVE hard stop
 
 ## Joint Order
 
 ALL joints in FR, FL, RR, RL order (matches MuJoCo actuators/sensors and DDS motor_state).  
 Policy expects FL-first ROS1 deployment order — `policy_joint_order: ros1_fl_fr_rl_rr` handles dof/contact/action remap.  
+`LeggedGymController::on_activate()` explicitly sorts loaned command/state interfaces by YAML `joints`; verify `[VERIFY] joint interface order: FR_hip_joint FR_thigh_joint FR_calf_joint ... RL_calf_joint`.  
+`HardwareUnitree` uses explicit `motor_index_map_` with default `FR,FL,RR,RL -> motor[0..11]`; verify `[MOTOR-MAP]` logs.  
 Estimator fallback also uses FR, FL, RR, RL leg chain order; do not pass FL-first `feet_names` unless the controller joint order is changed too.  
 Joint limits: hip ±1.0472, thigh [-1.5708, 3.4907], calf [-2.7227, -0.83776].
 
@@ -71,9 +74,16 @@ colcon build --packages-select rl_quadruped_controller --symlink-install \
   -DTorch_DIR=/home/lidio/Libraries/libtorch-cpu-2.0.1/share/cmake/Torch
 ```
 
-## Hardware Interface (MuJoCo)
+## Hardware Interface (MuJoCo + Real Go2)
 
 `hardwares/hardware_unitree_mujoco/` bridges DDS ↔ ros2_control:
 - Receives LowState (joints, IMU, foot_force) and SportModeState (odometer) via DDS
 - Sends LowCmd (position, velocity, kp, kd, tau) via DDS
 - Odometer sensor: position(x,y,z) + velocity(x,y,z) from MuJoCo framepos/framelinvel
+- Real Go2 mode (`network_interface != lo`) releases native `sport_mode` before LowCmd control
+- PASSIVE uses Unitree `PosStopF/VelStopF` stop sentinel, not q=0/dq=0
+- `1` and `9` are global hard stops to PASSIVE/stop sentinel
+
+## Real Go2 Gate
+
+Until a real ray2d source is connected and verified, **do not enter RL/ABS on the real robot**. Real robot validation is limited to PASSIVE/FIXEDDOWN/FIXEDSTAND/hard stop. Use simulation for ABS obstacle tests.

@@ -137,6 +137,9 @@ struct ModelParams
     // Safety thresholds
     double body_tilt_limit_deg = 75.0;   // roll/pitch > this → force PASSIVE
     double action_output_clip = 4.0;     // clamp RL action output to ±this
+    bool path_tracking_enabled = true;   // normal agile follows start→goal line
+    double path_lateral_gain = 1.5;      // extra lateral command when not in recovery
+    double path_heading_gain = 1.5;      // extra heading correction when not in recovery
 };
 
 struct Observations
@@ -259,6 +262,17 @@ private:
     double goal_x_ = 7.0;
     double goal_y_ = 0.0;
     bool resample_goal_on_arrival_ = false;
+
+    // Recovery-aware straight-line tracking: constrain normal agile to the
+    // start→goal line, but relax this while recovery is active.
+    bool path_start_initialized_ = false;
+    double path_start_x_ = 0.0;
+    double path_start_y_ = 0.0;
+    bool in_recovery_ = false;
+    int rec_hold_left_ = 0;
+    double cached_rec_vx_ = 0.0;
+    double cached_rec_vy_ = 0.0;
+    double cached_rec_wz_ = 0.0;
 
     // Soft start: ramp Kp/Kd from 0 to target over first N steps
     mutable int soft_start_step_ = 0;

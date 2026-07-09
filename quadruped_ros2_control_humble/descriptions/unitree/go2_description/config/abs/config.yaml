@@ -77,6 +77,12 @@ abs:
   goal_y: 0.0                      # world-frame goal Y (left = positive)
   resample_goal_on_arrival: false   # false: stop at first goal; true: keep sampling new goals
 
+  # Recovery-aware straight-line tracking:
+  # normal agile follows the start→goal line; recovery can deviate to avoid obstacles.
+  path_tracking_enabled: true
+  path_lateral_gain: 3.0
+  path_heading_gain: 3.0
+
   # Evaluation telemetry logs [EVAL] lines for multi-scene simulation metrics.
   # This does not affect policy/RA/recovery behavior.
   eval_telemetry_enabled: true      # [EVAL] telemetry — enable for structured evaluation

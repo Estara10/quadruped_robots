@@ -55,6 +55,13 @@ External dependencies still required:
 
 Exact installed MuJoCo and Unitree SDK2 versions are `UNKNOWN` and remain a reproducibility issue. A real clean-checkout build is scheduled under the roadmap; Day 0 does not claim that build has been executed.
 
+## Remaining Known Repository Issues
+
+- `ABS/training/legged_gym/resources/policy/recover_v4_twist.pt` is a tracked absolute symlink to a workstation-local checkpoint. It is not portable. The separately tracked deployment Recovery TorchScript remains available; P1-01 must establish the source/export relationship before this reference is changed.
+- `unitree_mujoco/simulate/config.yaml` contains duplicate `domain_id` and `interface` keys. Their effective values depend on parser behavior. The file is preserved unchanged on Day 0 and the ambiguity is recorded in the Gap Matrix.
+- Exact MuJoCo and Unitree SDK2 versions remain `UNKNOWN`.
+- Retrieval URIs for the large external Ray-Pred artifacts remain `UNKNOWN`; their local names, purposes, sizes and hashes are recorded in `artifacts/manifest.yaml`.
+
 ## Ignored Local Data at Day 0
 
 - root `build/` 46 MB, `install/` 11 MB, `log/` 34 MB;

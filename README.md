@@ -11,39 +11,13 @@ Reference code: https://github.com/LeCAR-Lab/ABS
 
 ---
 
-## 当前状态（2026-07-09）
+## 当前状态
 
-### 仿真
+项目状态、Acceptance和当前任务只以 [`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md) 为准。
 
-已完成并可运行：
+当前处于 **Phase 1 — MuJoCo Simulation Validation**，正式任务为 **P1-01（尚未开始）**。历史仿真结果均按新实验协议标记为 `LEGACY / NON-ACCEPTANCE`。
 
-- Agile policy 推理
-- RA value network
-- Recovery policy
-- 论文式 recovery twist 梯度下降
-- MuJoCo 几何 ray2d
-- 多场景避障启动脚本
-- 到达目标后停止
-- `[EVAL]` 速度/位置遥测
-- recovery-aware 直线路径约束：
-  - 无避障时贴近起点→目标直线
-  - 进入 recovery 后放开直线约束，允许绕障
-  - recovery 退出后重新拉回路径
-
-### 真机
-
-已完成但仍在安全验证阶段：
-
-- Go2 网线 DDS 连接（`enp7s0`, `192.168.123.100/24`）
-- `sport_mode` 释放后 LowCmd 接管
-- Unitree `PosStopF/VelStopF` stop sentinel
-- PASSIVE 真卸力（`kp=0,kd=0,tau=0`）
-- 显式 motor index mapping：`FR,FL,RR,RL -> motor[0..11]`
-- ros2_control command/state interface 显式排序
-- 全局急停：`1` 或 `9` → PASSIVE/stop sentinel
-
-**真机当前只允许测试：PASSIVE、FIXEDDOWN、FIXEDSTAND、急停。**  
-**真机暂不运行 ABS/RL**，因为尚未接入真实 ray2d 感知（D435i/LiDAR/深度相机）。
+真机当前只允许 `PASSIVE`、`FIXEDDOWN`、`FIXEDSTAND` 和 software dry-run；ABS/RL real test 为 **NO-GO**。
 
 ---
 

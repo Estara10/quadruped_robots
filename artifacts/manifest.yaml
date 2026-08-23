@@ -1,0 +1,51 @@
+schema_version: 1
+baseline_date: "2026-08-23"
+
+artifacts:
+  agile_policy:
+    path: quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/policy.pt
+    management: normal_git
+    size_bytes: 801726
+    sha256: 5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf
+    source: "UNKNOWN — resolve in P1-01"
+    purpose: "Deployed 61-observation Agile Policy"
+
+  ra_value:
+    path: quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/ra_value.pt
+    management: normal_git
+    size_bytes: 32011
+    sha256: 05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7
+    source: "UNKNOWN — dataset/checkpoint/Agile binding to resolve in P1-01"
+    purpose: "Deployed 19-observation RA Value model"
+
+  recovery_policy:
+    path: quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/rec/policy.pt
+    management: normal_git
+    size_bytes: 775715
+    sha256: e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171
+    source: "UNKNOWN — resolve in P1-01"
+    purpose: "Deployed 49-observation Recovery Policy"
+
+  depth_ray_base_model:
+    local_path: ABS/training/legged_gym/legged_gym/depth_logs/20260528-143154-resnet18-go2_depth/depth_lidar_model_20260528-143154_250.pt
+    management: external
+    size_bytes: 44865188
+    sha256: 0e9326c852ae97b56740d8d19823760aa2c39aadfed6c9ad8af521881e18c4b4
+    source: "Local training run 20260528-143154-resnet18-go2_depth; external retrieval URI UNKNOWN"
+    purpose: "Base depth-to-11-ray predictor"
+
+  mujoco_ray_pred_finetune:
+    local_path: logs/ray_pred_finetune/mujoco_finetune_soft_safety_20260611/ray_pred_mujoco_finetuned_best.pt
+    management: external
+    size_bytes: 44862301
+    sha256: 1a0e92d05d47851f46742c308c20f17941077e8de02ba209768f09ef7f765e99
+    source: "Local run mujoco_finetune_soft_safety_20260611; external retrieval URI UNKNOWN"
+    purpose: "MuJoCo-finetuned depth-to-11-ray predictor"
+
+  abs_paper_pdf:
+    local_path: "agile but safe(1).pdf"
+    management: external
+    size_bytes: 10147484
+    sha256: c7991f37edb30cde6433eef0a767755f1cf577e282471c2d1010955c0253b840
+    source: "ABS paper local copy; canonical project URL is recorded in README.md"
+    purpose: "Paper specification reference"

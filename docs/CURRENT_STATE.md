@@ -8,7 +8,7 @@ Phase 1 — MuJoCo Simulation Validation
 
 P1-01 — Policy Artifact Provenance and Joint/Contact/Action Order Contract
 
-Status: **NOT STARTED**
+Status: **BLOCKED — current evidence captured; independent Reviewer REJECTED Acceptance**
 
 ## Phase Acceptance
 
@@ -18,11 +18,20 @@ Status: **NOT STARTED**
 
 ## Critical Blockers
 
-- Agile/Recovery joint, contact and action order is `UNKNOWN` for the deployed artifacts.
-- RA model provenance and binding to the deployed Agile Policy is `UNKNOWN`.
+- Agile and Recovery source checkpoints/exports are unavailable, so their deployed joint/contact/action order remains `UNKNOWN`.
+- RA source model, dataset and exact binding to the deployed Agile Policy remain `UNKNOWN`.
+- Real Go2 `foot_force[0..3]` semantics are not independently captured.
+- Isaac Gym Go2 `terminate_after_contacts_on=["base"]` currently matches no runtime body.
 - Recovery solver and switching contain known paper mismatches.
 - Formal experiment validity, seed control and event recording are not yet closed.
-- Exact MuJoCo dependency versions and clean-checkout build have not yet been verified.
+
+## P1-01 Evidence
+
+- Three deployed hashes, installed bindings, executable shapes and deterministic outputs: **PASS**.
+- Isaac Gym DOF/body/feet order and ROS2→motor→MuJoCo mapping: **PASS**.
+- Current remap is bijective and correct for the captured training order, but correctness for the actual deployed artifacts: **UNKNOWN**.
+- Contract: [`POLICY_IO_CONTRACT.md`](POLICY_IO_CONTRACT.md).
+- Reviewer: **REJECT**; implementation-level golden parity and artifact provenance are not closed.
 
 ## Current Metrics
 
@@ -47,4 +56,4 @@ ABS/RL real test: **NO-GO**
 
 ## Next
 
-P1-01. Do not start P1-02 or change core algorithms before P1-01 evidence and Reviewer completion.
+Resolve P1-01 provenance blockers and obtain Reviewer acceptance. Do not start P1-02 or change core algorithms.

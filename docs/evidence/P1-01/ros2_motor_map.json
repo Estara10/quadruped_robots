@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "task": "P1-01",
+  "captured_on": "2026-08-24",
+  "evidence_kind": "runtime_log_plus_current_source",
+  "original_runtime_log": {
+    "local_path": "logs/abs_eval/20260709_140058/scene_obstacle/run_001/runtime.log",
+    "sha256": "12f9dbbf2b7411c269b31b8079ecb3b58cfed9ba005238015091ea613783f694",
+    "tracked": false,
+    "classification": "LEGACY / NON-ACCEPTANCE experiment; mapping lines retained as runtime interface evidence"
+  },
+  "current_source_evidence": [
+    "quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/robot_control.yaml",
+    "quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/RlQuadrupedController.cpp",
+    "quadruped_ros2_control_humble/hardwares/hardware_unitree_mujoco/include/hardware_unitree_mujoco/HardwareUnitree.h",
+    "quadruped_ros2_control_humble/hardwares/hardware_unitree_mujoco/src/HardwareUnitree.cpp",
+    "unitree_mujoco/simulate/src/unitree_sdk2_bridge.h",
+    "unitree_mujoco/unitree_robots/go2/go2.xml"
+  ],
+  "controller_order": [
+    "FR_hip_joint",
+    "FR_thigh_joint",
+    "FR_calf_joint",
+    "FL_hip_joint",
+    "FL_thigh_joint",
+    "FL_calf_joint",
+    "RR_hip_joint",
+    "RR_thigh_joint",
+    "RR_calf_joint",
+    "RL_hip_joint",
+    "RL_thigh_joint",
+    "RL_calf_joint"
+  ],
+  "controller_to_unitree_motor": [
+    {"controller_index": 0, "joint": "FR_hip_joint", "motor_index": 0},
+    {"controller_index": 1, "joint": "FR_thigh_joint", "motor_index": 1},
+    {"controller_index": 2, "joint": "FR_calf_joint", "motor_index": 2},
+    {"controller_index": 3, "joint": "FL_hip_joint", "motor_index": 3},
+    {"controller_index": 4, "joint": "FL_thigh_joint", "motor_index": 4},
+    {"controller_index": 5, "joint": "FL_calf_joint", "motor_index": 5},
+    {"controller_index": 6, "joint": "RR_hip_joint", "motor_index": 6},
+    {"controller_index": 7, "joint": "RR_thigh_joint", "motor_index": 7},
+    {"controller_index": 8, "joint": "RR_calf_joint", "motor_index": 8},
+    {"controller_index": 9, "joint": "RL_hip_joint", "motor_index": 9},
+    {"controller_index": 10, "joint": "RL_thigh_joint", "motor_index": 10},
+    {"controller_index": 11, "joint": "RL_calf_joint", "motor_index": 11}
+  ],
+  "runtime_joint_interface_summary": "FR_hip_joint FR_thigh_joint FR_calf_joint ... RL_calf_joint",
+  "notes": [
+    "The ignored raw log is not formal experiment evidence; this tracked record preserves only the mapping observation and its immutable source hash.",
+    "Current source independently retains the same configured sort and identity hardware map.",
+    "This proves the controller-to-motor chain, not the policy-side order."
+  ]
+}

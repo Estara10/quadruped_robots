@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "task": "P1-01",
+  "captured_on": "2026-08-24",
+  "repository_head_at_capture": "0d67054225f8a6deca8e1b335861321b9cd9b52a",
+  "evidence_kind": "isaac_gym_runtime_asset_api",
+  "probe": "scripts/capture_isaac_gym_order.py",
+  "environment": {
+    "conda_env": "abs",
+    "python": "3.8.20",
+    "torch": "2.0.1+cu118",
+    "numpy": "1.21.0",
+    "isaac_gym_api_path": "/home/lidio/isaacgym/isaacgym/python/isaacgym/gymapi.py",
+    "isaac_gym_release": "UNKNOWN",
+    "physics": "PhysX CPU",
+    "gpu_pipeline": false,
+    "viewer": false
+  },
+  "asset": {
+    "path": "ABS/training/legged_gym/resources/robots/go2/urdf/go2.urdf",
+    "sha256": "96169c7e42ad1a4ca343b63771ce64a2190c64699dafb9734b5e236622e95c13",
+    "options": {
+      "default_dof_drive_mode": 3,
+      "collapse_fixed_joints": true,
+      "replace_cylinder_with_capsule": true,
+      "flip_visual_attachments": true,
+      "fix_base_link": false,
+      "density": 0.001,
+      "angular_damping": 0.0,
+      "linear_damping": 0.0,
+      "max_angular_velocity": 1000.0,
+      "max_linear_velocity": 1000.0,
+      "armature": 0.0,
+      "thickness": 0.01,
+      "disable_gravity": false
+    }
+  },
+  "dof_names": [
+    "FL_hip_joint",
+    "FL_thigh_joint",
+    "FL_calf_joint",
+    "FR_hip_joint",
+    "FR_thigh_joint",
+    "FR_calf_joint",
+    "RL_hip_joint",
+    "RL_thigh_joint",
+    "RL_calf_joint",
+    "RR_hip_joint",
+    "RR_thigh_joint",
+    "RR_calf_joint"
+  ],
+  "rigid_body_names": [
+    "trunk",
+    "FL_hip",
+    "FL_thigh",
+    "FL_calf",
+    "FL_foot",
+    "FR_hip",
+    "FR_thigh",
+    "FR_calf",
+    "FR_foot",
+    "RL_hip",
+    "RL_thigh",
+    "RL_calf",
+    "RL_foot",
+    "RR_hip",
+    "RR_thigh",
+    "RR_calf",
+    "RR_foot"
+  ],
+  "feet_names": ["FL_foot", "FR_foot", "RL_foot", "RR_foot"],
+  "feet_asset_indices": [4, 8, 12, 16],
+  "termination_name_filter": "base",
+  "termination_contact_names": [],
+  "notes": [
+    "Names were returned by Isaac Gym after loading the asset with training-equivalent options; they were not inferred from URDF declaration order.",
+    "The full LeggedRobot environment and a training checkpoint were not loaded.",
+    "The empty termination contact list is an observed name-filter result and is not accepted as intended behavior."
+  ]
+}

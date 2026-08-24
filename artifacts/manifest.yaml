@@ -1,5 +1,6 @@
-schema_version: 1
+schema_version: 2
 baseline_date: "2026-08-23"
+last_verified: "2026-08-24"
 
 artifacts:
   agile_policy:
@@ -7,24 +8,81 @@ artifacts:
     management: normal_git
     size_bytes: 801726
     sha256: 5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf
-    source: "UNKNOWN — resolve in P1-01"
+    source: "UNKNOWN — source checkpoint is absent; TorchScript archive suggests 05_27_15-53-31_model_4000.pt"
     purpose: "Deployed 61-observation Agile Policy"
+    format: torchscript
+    archive_root: 05_27_15-53-31_model_4000
+    architecture: [61, 512, 256, 128, 12]
+    input_dim: 61
+    output_dim: 12
+    provenance:
+      status: partial_unknown_source_checkpoint
+      candidate_checkpoint: 05_27_15-53-31_model_4000.pt
+      candidate_checkpoint_sha256: UNKNOWN
+      export_code: ABS/training/legged_gym/legged_gym/utils/helpers.py:184
+      exact_export_invocation: UNKNOWN
+      training_task: go2_pos_rough
+      training_seed: UNKNOWN
+      training_git_commit: UNKNOWN
+      repository_introduced_commit: c949892e871886a9377ee6d5f352927eef8d048a
+    expected_joint_order: UNKNOWN
 
   ra_value:
     path: quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/ra_value.pt
     management: normal_git
     size_bytes: 32011
     sha256: 05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7
-    source: "UNKNOWN — dataset/checkpoint/Agile binding to resolve in P1-01"
+    source: "UNKNOWN — missing source model, dataset and exact Agile binding; filename evidence points to 05_27_15-53-31_model_4000_ra.pt"
     purpose: "Deployed 19-observation RA Value model"
+    format: torchscript
+    archive_root: ra_value_jit
+    architecture: [19, 64, 64, 1]
+    input_dim: 19
+    output_dim: 1
+    provenance:
+      status: partial_unknown_source_model_and_dataset
+      candidate_source_model: 05_27_15-53-31_model_4000_ra.pt
+      candidate_source_sha256: UNKNOWN
+      conversion_script: scripts/convert_ra_to_jit.py
+      exact_conversion_invocation: UNKNOWN
+      dataset: UNKNOWN
+      training_seed: UNKNOWN
+      training_git_commit: UNKNOWN
+      repository_introduced_commit: 72dc79b1a2389e50efbf08b0295deede38b0bc00
+    agile_binding:
+      status: indirect_only
+      candidate_agile_run: 05_27_15-53-31_model_4000
+      evidence: "testbed.py names RA from the loaded Agile policy and convert_ra_to_jit.py defaults to the same run name"
+      exact_artifact_binding: UNKNOWN
 
   recovery_policy:
     path: quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/rec/policy.pt
     management: normal_git
     size_bytes: 775715
     sha256: e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171
-    source: "UNKNOWN — resolve in P1-01"
+    source: "UNKNOWN — export script documents server checkpoint 06_04_22-43-20_/model_15000.pt, but the checkpoint and matching hash are unavailable"
     purpose: "Deployed 49-observation Recovery Policy"
+    format: torchscript
+    archive_root: policy
+    architecture: [49, 512, 256, 128, 12]
+    input_dim: 49
+    output_dim: 12
+    provenance:
+      status: partial_unknown_source_checkpoint
+      candidate_checkpoint: /data/sxq/ABS/training/legged_gym/logs/go2_rec_rough/06_04_22-43-20_/model_15000.pt
+      candidate_checkpoint_sha256: UNKNOWN
+      export_script: scripts/export_rec_policy.py
+      exact_export_invocation: UNKNOWN
+      training_task: go2_rec_rough
+      training_seed: UNKNOWN
+      training_git_commit: UNKNOWN
+      repository_replaced_commit: 84beae23255a147b9caded2237db6a5ff94f160e
+    expected_joint_order: UNKNOWN
+    tracked_candidate_comparison:
+      recover_v4_twist_original_sha256: ce9aab3205045948d22880f5f7039d8919ba0a3d99ba9eb8c6cfa2877fd7e0a4
+      recover_v3_twist_sha256: c0e7414940760e90bc0dfea6add2165ede3b1b37426d3ab0192541b85fc215ce
+      model_05_27_19_34_13_6000_sha256: 798afbf7a3273e06878dd0074908e0a07a0cbd40165f6a3219fa73b8f5cfb01f
+      any_matches_deployed: false
 
   depth_ray_base_model:
     local_path: ABS/training/legged_gym/legged_gym/depth_logs/20260528-143154-resnet18-go2_depth/depth_lidar_model_20260528-143154_250.pt

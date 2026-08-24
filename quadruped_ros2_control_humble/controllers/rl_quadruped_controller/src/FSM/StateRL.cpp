@@ -15,6 +15,9 @@
 #include <cstring>
 #include <cmath>
 #include <limits>
+#include <chrono>
+
+namespace { constexpr uint64_t kRayStampMagic = 0x415253594143544FULL; constexpr const char* kRayStampShm = "/mujoco_ray2d_stamp"; }
 
 template <typename T>
 std::vector<T> ReadVectorFromYaml(const YAML::Node& node)
@@ -221,6 +224,8 @@ StateRL::~StateRL()
     {
         close(ray2d_shm_fd_);
     }
+    if (ray2d_stamp_shm_ptr_ != nullptr && ray2d_stamp_shm_ptr_ != MAP_FAILED) munmap(ray2d_stamp_shm_ptr_, 2 * sizeof(uint64_t));
+    if (ray2d_stamp_shm_fd_ >= 0) close(ray2d_stamp_shm_fd_);
 }
 
 void StateRL::enter()
@@ -235,7 +240,7 @@ void StateRL::enter()
     obs_.dof_vel = torch::zeros({1, params_.num_of_dofs});
     obs_.actions = torch::zeros({1, params_.num_of_dofs});
     obs_.contact = torch::zeros({1, 4});
-    // Init ray2d from shared memory (or fallback to constant)
+    // Ray input is fail-closed: absence/staleness is never substituted with a safe distance.
     ray2d_shm_fd_ = shm_open("/mujoco_ray2d", O_RDONLY, 0666);
     if (ray2d_shm_fd_ >= 0)
     {
@@ -260,9 +265,17 @@ void StateRL::enter()
         RCLCPP_WARN(rclcpp::get_logger("StateRL"),
             "[Ray2D] shm_open failed: %s, using constant ray2d", strerror(errno));
     }
+    ray2d_stamp_shm_fd_ = shm_open(kRayStampShm, O_RDONLY, 0666);
+    if (ray2d_stamp_shm_fd_ >= 0) {
+        ray2d_stamp_shm_ptr_ = static_cast<uint64_t*>(mmap(NULL, 2 * sizeof(uint64_t), PROT_READ, MAP_SHARED, ray2d_stamp_shm_fd_, 0));
+        if (ray2d_stamp_shm_ptr_ == MAP_FAILED) { ray2d_stamp_shm_ptr_ = nullptr; close(ray2d_stamp_shm_fd_); ray2d_stamp_shm_fd_ = -1; }
+    }
 
     // Always initialize obs_.ray2d (will be updated from shm in runModel if available)
     obs_.ray2d = torch::ones({1, params_.abs_ray2d_count}) * std::log2(params_.abs_ray2d_max_range);
+    last_contacts_ = torch::zeros({1, 4}, torch::kBool);
+    ray2d_valid_ = false;
+    safety_faulted_ = false;
     episode_timer_ = 0.0;
     rl_step_count_ = 0;
     sync_decimation_counter_ = 0;
@@ -549,17 +562,50 @@ torch::Tensor StateRL::computeRecoveryObservation(const torch::Tensor& twist)
     auto gravity_body = quatRotateInverse(obs_.base_quat,
         torch::tensor({{0.0, 0.0, -1.0}}), params_.framework);
 
-    auto result = torch::cat({
-        ctrlToPolicyContactOrder(obs_.contact),                                              // 0:4  contact FL-first
-        obs_.ang_vel * params_.ang_vel_scale,                                                // 4:7  ang_vel
-        gravity_body,                                                                        // 7:10 gravity_vec body frame
-        twist,                                                                               // 10:13 commands = twist [vx,vy,wz]
-        (ctrlToPolicyDofOrder(obs_.dof_pos) - ctrlToPolicyDofOrder(params_.default_dof_pos)) * params_.dof_pos_scale,  // 13:25
-        ctrlToPolicyDofOrder(obs_.dof_vel) * params_.dof_vel_scale,                          // 25:37
-        ctrlToPolicyDofOrder(obs_.actions)                                                   // 37:49
-    }, 1);
+    const abs_observation::Input input{obs_.lin_vel, obs_.contact, obs_.ang_vel, gravity_body, twist,
+                                       torch::tensor({{static_cast<float>(normalizedTimer())}}), obs_.dof_pos,
+                                       params_.default_dof_pos, ctrlToPolicyDofOrder(params_.dof_bias),
+                                       obs_.dof_vel, obs_.actions, torch::Tensor()};
+    return abs_observation::recovery(input, {params_.ang_vel_scale, params_.dof_pos_scale,
+                                              params_.dof_vel_scale, params_.clip_obs}, useRos1PolicyOrder());
+}
 
-    return clamp(result, -params_.clip_obs, params_.clip_obs);
+double StateRL::normalizedTimer() const
+{
+    if (params_.abs_timer_mode == "legacy_fixed") return 0.5;
+    return abs_observation::rollingTimeLeftNormalized(episode_timer_, params_.abs_max_episode_length_s);
+}
+
+bool StateRL::updateRay2d()
+{
+    const uint64_t now_ns = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    const bool valid = ray2d_stamp_shm_ptr_ != nullptr && ray2d_shm_ptr_ != nullptr &&
+        abs_observation::rayFrameValid(ray2d_shm_ptr_, params_.abs_ray2d_count, ray2d_stamp_shm_ptr_[0],
+            ray2d_stamp_shm_ptr_[1], now_ns, static_cast<uint64_t>(params_.abs_ray2d_timeout_ms) * 1000000ULL);
+    ray2d_valid_ = valid;
+    if (valid) obs_.ray2d = torch::from_blob(ray2d_shm_ptr_, {1, params_.abs_ray2d_count}, torch::kFloat32).clone();
+    return valid;
+}
+
+void StateRL::safetyVeto(const char* stage)
+{
+    if (!safety_faulted_) RCLCPP_ERROR(rclcpp::get_logger("StateRL"), "[ABS-CONTRACT] non-finite or invalid %s -> PASSIVE", stage);
+    safety_faulted_ = true;
+    running_ = false;
+    for (int i = 0; i < params_.num_of_dofs; ++i) {
+        robot_command_.motor_command.q[i] = params_.default_dof_pos[0][i].item<double>();
+        robot_command_.motor_command.kp[i] = 0.0;
+        robot_command_.motor_command.kd[i] = 0.0;
+        robot_command_.motor_command.tau[i] = 0.0;
+    }
+}
+
+bool StateRL::finiteMotorCommand() const
+{
+    for (int i = 0; i < params_.num_of_dofs; ++i) if (!std::isfinite(robot_command_.motor_command.q[i]) ||
+        !std::isfinite(robot_command_.motor_command.kp[i]) || !std::isfinite(robot_command_.motor_command.kd[i]) || !std::isfinite(robot_command_.motor_command.tau[i])) return false;
+    return true;
 }
 
 bool StateRL::checkBodySafety() const
@@ -607,6 +653,7 @@ bool StateRL::checkTorqueSafety() const
 
 FSMStateName StateRL::checkChange()
 {
+    if (safety_faulted_) return FSMStateName::PASSIVE;
     // Emergency stop — matches original ABS wireless remote B-button (L441-444).
     // In simulation triggered by control_input command=1; on real robot by Go2 remote state.
     if (emergency_stop_enabled_)
@@ -661,8 +708,8 @@ torch::Tensor StateRL::computeObservation()
     const abs_observation::Input input{
         obs_.lin_vel, obs_.contact, obs_.ang_vel,
         quatRotateInverse(obs_.base_quat, obs_.gravity_vec, params_.framework), obs_.commands,
-        torch::tensor({{0.5f}}), obs_.dof_pos, params_.default_dof_pos,
-        torch::zeros_like(params_.default_dof_pos), obs_.dof_vel, obs_.actions, obs_.ray2d};
+        torch::tensor({{static_cast<float>(normalizedTimer())}}), obs_.dof_pos, params_.default_dof_pos,
+        ctrlToPolicyDofOrder(params_.dof_bias), obs_.dof_vel, obs_.actions, obs_.ray2d};
     return abs_observation::agile(input, {params_.ang_vel_scale, params_.dof_pos_scale,
                                           params_.dof_vel_scale, params_.clip_obs}, useRos1PolicyOrder());
 }
@@ -670,8 +717,8 @@ torch::Tensor StateRL::computeObservation()
 torch::Tensor StateRL::computeRAObservation()
 {
     const abs_observation::Input input{obs_.lin_vel, obs_.contact, obs_.ang_vel, obs_.gravity_vec,
-                                       obs_.commands, torch::tensor({{0.5f}}), obs_.dof_pos,
-                                       params_.default_dof_pos, torch::zeros_like(params_.default_dof_pos),
+                                       obs_.commands, torch::tensor({{static_cast<float>(normalizedTimer())}}), obs_.dof_pos,
+                                       params_.default_dof_pos, ctrlToPolicyDofOrder(params_.dof_bias),
                                        obs_.dof_vel, obs_.actions, obs_.ray2d};
     return abs_observation::ra(input);
 }
@@ -683,7 +730,9 @@ void StateRL::runRAModel()
 
     torch::autograd::GradMode::set_enabled(false);
     torch::Tensor ra_obs = computeRAObservation();
+    if (!abs_observation::finite(ra_obs)) { safetyVeto("RA observation"); return; }
     auto output = ra_model_.forward({ra_obs}).toTensor();
+    if (!abs_observation::finite(output)) { safetyVeto("RA output"); return; }
     ra_value_ = output.item<double>();
 
     static bool diag = false;
@@ -759,6 +808,7 @@ void StateRL::loadYaml(const std::string& config_path)
     params_.torque_limits = torch::tensor(ReadVectorFromYaml<double>(config["torque_limits"])).view({1, -1});
 
     params_.default_dof_pos = torch::from_blob(init_pos_, {12}, torch::kDouble).clone().to(torch::kFloat).unsqueeze(0);
+    params_.dof_bias = config["dof_bias"] ? torch::tensor(ReadVectorFromYaml<double>(config["dof_bias"])).view({1, -1}) : torch::zeros_like(params_.default_dof_pos);
 
     if (config["policy_joint_order"])
     {
@@ -773,6 +823,8 @@ void StateRL::loadYaml(const std::string& config_path)
         params_.abs_contact_threshold = abs_node["contact_threshold"].as<double>();
         params_.abs_ray2d_count = abs_node["ray2d_count"].as<int>();
         params_.abs_ray2d_max_range = abs_node["ray2d_max_range"].as<double>();
+        if (abs_node["ray2d_timeout_ms"]) params_.abs_ray2d_timeout_ms = abs_node["ray2d_timeout_ms"].as<int>();
+        if (abs_node["timer_mode"]) params_.abs_timer_mode = abs_node["timer_mode"].as<std::string>();
         if (abs_node["ra_model_name"])
             params_.ra_model_name = abs_node["ra_model_name"].as<std::string>();
         if (abs_node["ra_threshold"])
@@ -843,6 +895,7 @@ torch::Tensor StateRL::forward()
 {
     torch::autograd::GradMode::set_enabled(false);
     torch::Tensor clamped_obs = computeObservation();
+    if (!abs_observation::finite(clamped_obs)) return torch::Tensor();
     torch::Tensor actions;
 
     if (!params_.observations_history.empty())
@@ -857,10 +910,8 @@ torch::Tensor StateRL::forward()
     }
 
     if (params_.clip_actions_upper.numel() != 0 && params_.clip_actions_lower.numel() != 0)
-    {
-        return clamp(actions, params_.clip_actions_lower, params_.clip_actions_upper);
-    }
-    return actions;
+        actions = clamp(actions, params_.clip_actions_lower, params_.clip_actions_upper);
+    return abs_observation::finite(actions) ? actions : torch::Tensor();
 }
 
 void StateRL::getState()
@@ -1068,32 +1119,28 @@ void StateRL::runModel()
     obs_.dof_pos = torch::tensor(robot_state_.motor_state.q).narrow(0, 0, params_.num_of_dofs).unsqueeze(0);
     obs_.dof_vel = torch::tensor(robot_state_.motor_state.dq).narrow(0, 0, params_.num_of_dofs).unsqueeze(0);
 
-    // Update episode timer (RL step = decimation / frequency seconds)
+    // Deployment has no physical reset: paper_faithful_rolling supplies a documented
+    // 9-second time-left phase and restarts only the timer phase at the horizon.
     episode_timer_ += static_cast<double>(params_.decimation) / ctrl_interfaces_.frequency_;
-    if (episode_timer_ > params_.abs_max_episode_length_s)
-        episode_timer_ = 0.0;
 
     // Update contact from foot forces in controller order (FR, FL, RR, RL).
     // computeObservation() remaps it to ROS1 policy order (FL, FR, RL, RR).
     {
-        torch::Tensor contact = torch::zeros({1, 4});
+        torch::Tensor current = torch::zeros({1, 4}, torch::kBool);
         int foot_count = static_cast<int>(ctrl_interfaces_.foot_force_state_interface_.size());
         for (int i = 0; i < std::min(4, foot_count); i++)
         {
             double force = ctrl_interfaces_.foot_force_state_interface_[i].get().get_value();
-            contact[0][i] = 2.0 * (force > params_.abs_contact_threshold ? 1.0 : 0.0) - 1.0;
+            current[0][i] = force > params_.abs_contact_threshold;
         }
-        obs_.contact = contact;
+        obs_.contact = abs_observation::temporalContact(current, last_contacts_);
     }
 
-    // Update ray2d from shared memory (if available), otherwise keep constant
-    if (ray2d_shm_ptr_ != nullptr)
-    {
-        obs_.ray2d = torch::from_blob(ray2d_shm_ptr_, {1, 11}, torch::kFloat32).clone();
-    }
+    if (!updateRay2d()) { safetyVeto("ray frame (missing/stale/non-finite)"); return; }
 
     // RA inference FIRST (ROS1 lines 475-488: evaluate ra_value before action)
     runRAModel();
+    if (safety_faulted_) return;
 
     // === ROS1 lines 495-538: RA-based recovery (inline, per-timestep) ===
     // Frequency adaptation: ROS1 inference at 12.5Hz (80ms/step), we run at 125Hz (8ms/step).
@@ -1148,16 +1195,15 @@ void StateRL::runModel()
 
         torch::Tensor twist = torch::tensor({{cached_rec_vx_, cached_rec_vy_, cached_rec_wz_}});
         torch::Tensor rec_obs = computeRecoveryObservation(twist);  // ROS1 line 532
+        if (!abs_observation::finite(rec_obs)) { safetyVeto("recovery observation"); return; }
         policy_actions = rec_model_.forward({rec_obs}).toTensor();
+        if (!abs_observation::finite(policy_actions)) { safetyVeto("recovery policy action"); return; }
         clamped_actions = policyToCtrlDofOrder(policy_actions);  // ROS1 line 536
 
         // NaN guard (ROS1 lines 461-466)
-        if (clamped_actions.isnan().any().item<int>())
+        if (!abs_observation::finite(clamped_actions))
         {
-            RCLCPP_ERROR(rclcpp::get_logger("StateRL"),
-                "[REC-NAN] NaN in recovery action! Falling back to agile.");
-            policy_actions = forward();
-            clamped_actions = policyToCtrlDofOrder(policy_actions);
+            safetyVeto("recovery controller action"); return;
         }
         else
         {
@@ -1176,6 +1222,7 @@ void StateRL::runModel()
     else
     {
         policy_actions = forward();
+        if (!policy_actions.defined() || !abs_observation::finite(policy_actions)) { safetyVeto("agile policy action"); return; }
         clamped_actions = policyToCtrlDofOrder(policy_actions);
     }
 
@@ -1197,6 +1244,7 @@ void StateRL::runModel()
     output_torques = params_.rl_kp * (actions_scaled + params_.default_dof_pos - obs_.dof_pos) - params_.rl_kd * obs_.dof_vel;
 
     output_dof_pos_ = actions_scaled + params_.default_dof_pos;
+    if (!abs_observation::finite(output_dof_pos_)) { safetyVeto("joint target"); return; }
 
     // Clip target positions to Go2 joint limits (ROS1 deployment does this for Go1)
     // Go2 limits from URDF: hip [-1.0472, 1.0472], thigh [-1.5708, 3.4907], calf [-2.7227, -0.83776]
@@ -1211,6 +1259,7 @@ void StateRL::runModel()
             q = std::clamp(q, -2.7227, -0.83776);     // calf
         output_dof_pos_[0][i] = q;
     }
+    if (!finiteMotorCommand()) { safetyVeto("final motor command"); return; }
 
     for (int i = 0; i < params_.num_of_dofs; ++i)
     {

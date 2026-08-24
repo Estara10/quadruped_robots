@@ -8,7 +8,7 @@ Phase 1 — MuJoCo Simulation Validation
 
 P1-01 — Policy Artifact Provenance and Joint/Contact/Action Order Contract
 
-Status: **BLOCKED / PARTIALLY COMPLETE — local 61/19/49 golden parity PASS; server-side provenance and semantic gaps remain**
+Status: **BLOCKED / PARTIALLY COMPLETE — local 61/19/49 parity and P1-01F deployment corrections PASS; provenance and live fault evidence remain**
 
 ## Phase Acceptance
 
@@ -30,7 +30,8 @@ Status: **BLOCKED / PARTIALLY COMPLETE — local 61/19/49 golden parity PASS; se
 - Isaac Gym DOF/body/feet order and ROS2→motor→MuJoCo mapping: **PASS**.
 - Current remap is bijective and correct for the captured training order, but correctness for the actual deployed artifacts: **UNKNOWN**.
 - Production-linked asymmetric golden parity: Agile 61 / RA 19 / Recovery 49: **PASS**.
-- Contract: [`POLICY_IO_CONTRACT.md`](POLICY_IO_CONTRACT.md). Timer/contact-filter/dof-bias/ray-validity/NaN-boundary gaps remain **FAIL**.
+- P1-01F corrected rolling timer, contact temporal filter, nominal bias, fail-closed ray freshness and finite-value vetoes; helper-level fault tests **PASS**.
+- Contract: [`POLICY_IO_CONTRACT.md`](POLICY_IO_CONTRACT.md). Goal shaping remains **INTENTIONAL ENGINEERING VARIANT**; live fault injection is not yet evidence.
 - Reviewer: prior **REJECT**; provenance and the remaining semantic gaps require re-review after closure.
 
 ## Current Metrics
@@ -56,4 +57,4 @@ ABS/RL real test: **NO-GO**
 
 ## Next
 
-Close P1-01 server-dependent provenance when access returns; separately scope the documented runtime semantic gaps. Do not start P1-02 or change core algorithms.
+Run P1-01F live ROS2/MuJoCo fault injection, then close server-dependent provenance when access returns. Do not start P1-02 or change core algorithms.

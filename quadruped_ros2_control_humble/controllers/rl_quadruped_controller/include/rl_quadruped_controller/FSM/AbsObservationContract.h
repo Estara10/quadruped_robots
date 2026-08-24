@@ -2,6 +2,7 @@
 
 #include <torch/script.h>
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -34,5 +35,9 @@ torch::Tensor agile(const Input& in, const Scale& scale, bool ros1_policy_order)
 torch::Tensor recovery(const Input& in, const Scale& scale, bool ros1_policy_order);
 torch::Tensor ra(const Input& in);
 bool finite(const torch::Tensor& value);
+double rollingTimeLeftNormalized(double elapsed_s, double horizon_s);
+torch::Tensor temporalContact(const torch::Tensor& current, torch::Tensor& previous);
+bool rayFrameValid(const float* rays, int count, uint64_t stamp_magic, uint64_t stamp_ns,
+                   uint64_t now_ns, uint64_t timeout_ns);
 
 }  // namespace abs_observation

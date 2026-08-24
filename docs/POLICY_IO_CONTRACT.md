@@ -1,6 +1,6 @@
 # ABS Go2 Policy I/O Contract
 
-Task baseline: P1-01, 2026-08-24. Status: **PARTIAL — local tensor assembly parity is proven; deployed artifact lineage remains UNKNOWN (training server unavailable)**.
+Task baseline: P1-01F, 2026-08-24. Status: **PARTIAL — local tensor assembly and corrected deployment contract are proven; deployed artifact lineage remains UNKNOWN (training server unavailable)**.
 
 This document separates four evidence levels:
 
@@ -158,12 +158,12 @@ All three deployed TorchScripts reject a wrong last dimension through their firs
 
 | Slice | Field | Training contract | Current ROS 2 contract | Status |
 |---|---|---|---|---|
-| 0:4 | contact | FL,FR,RL,RR; ±1; vertical force `>1`, current OR previous | Current force `>1`, then conditional contact remap | Order conditional; temporal semantics mismatch |
+| 0:4 | contact | FL,FR,RL,RR; ±1; vertical force `>1`, current OR previous | Same threshold and current OR prior policy-cycle contact, then conditional remap | PASS in MuJoCo/controller order; real Go2 slot order UNKNOWN |
 | 4:7 | angular velocity | body frame, rad/s, scale 1 | IMU gyro assumed body frame, scale 1 | Frame validity not asserted at runtime |
 | 7:10 | gravity | world `[0,0,-1]` projected into body frame | same quaternion inverse operation | Static parity |
 | 10:13 | goal command | body-frame relative x/y/heading, scale 1 | body-frame goal with additional path/radial shaping | Semantic mismatch already tracked |
-| 13:14 | timer | remaining time divided by 9 s | constant `0.5` | Mismatch already tracked |
-| 14:26 | joint position | `q - q_default - dof_bias`, candidate FL-first, scale 1 | `q - q_default`, conditional remap, scale 1 | Order conditional; no deployment bias term |
+| 13:14 | timer | remaining time divided by 9 s | default `paper_faithful_rolling`: `1-fmod(elapsed,9)/9`; explicit `legacy_fixed` mode remains available | rolling phase is defined; no physical reset is performed |
+| 14:26 | joint position | `q - q_default - dof_bias`, candidate FL-first, scale 1 | explicit configured nominal controller-order bias, remapped before subtraction | nominal contract PASS; random training sample remains unobservable distribution gap |
 | 26:38 | joint velocity | candidate FL-first, scale 0.2 | conditional remap, scale 0.2 | Order conditional |
 | 38:50 | previous action | candidate FL-first raw previous action | controller-stored action remapped back conditionally | Round-trip passes conditionally |
 | 50:61 | rays | 11 × `log2(m)`, 0.1–6 m, −45°…+45° | MuJoCo shared memory already contains `log2(m)` | Missing/stale source is not validly distinguished |
@@ -185,11 +185,11 @@ The model shape is proven. Exact RA dataset normalization and binding to the dep
 
 | Slice | Field | Training/current runtime contract | Status |
 |---|---|---|---|
-| 0:4 | contact | same candidate contact contract as Agile | Conditional/order and temporal gap |
+| 0:4 | contact | same candidate contact contract as Agile | Same temporal filter; real Go2 slot order remains UNKNOWN |
 | 4:7 | angular velocity | body gyro, scale 1 | Layout known; frame/freshness/finite validity not asserted |
 | 7:10 | gravity | projected gravity | Layout known; quaternion/finite validity not asserted |
 | 10:13 | safe twist | `[vx, vy, wz]`, m/s,m/s,rad/s, scale 1 | Static layout; solver correctness is out of P1-01 |
-| 13:25 | joint position | training uses `q - q_default - dof_bias`; deployment uses `q - q_default`; scale 1 | Conditional order and bias mismatch |
+| 13:25 | joint position | training uses `q - q_default - dof_bias`; deployment uses explicit nominal bias, scale 1 | nominal contract PASS; randomized training sample remains unobservable |
 | 25:37 | joint velocity | candidate policy order, scale 0.2 | Conditional order |
 | 37:49 | previous action | candidate policy order | Conditional round-trip |
 
@@ -205,13 +205,25 @@ The pass is conditional on semantically equivalent upstream values and does not 
 
 | Topic | Paper/training | Current ROS2 runtime | Result |
 |---|---|---|---|
-| Timer | `timer_left / 9`, decremented each simulation step | fixed `0.5`, matching ROS1 deployment | **FAIL — deployment compatibility behavior / paper-training mismatch** |
+| Timer | `timer_left / 9`, decremented each simulation step | default rolling time-left phase; named `legacy_fixed` compatibility mode | **PASS (deployment contract)**; no physical reset remains explicit |
 | Goal | raw body-frame position target/heading command | radial distance compression plus optional lateral/heading path shaping before both Agile and RA | **INTENTIONAL ENGINEERING VARIANT**; paper-faithful status is not established |
-| Contact | vertical force `>1`, `current OR previous-frame` | current foot-force threshold only; no prior-frame OR | **FAIL** |
-| Recovery/Agile `dof_bias` | `q-q_default-dof_bias`; Go2 configs randomize ±0.08 | zero implicit bias (no runtime source) | **FAIL** |
-| Ray validity | generated fresh distance in [0.1,6], then `log2` | MuJoCo writes `log2`; missing shared-memory leaves initial `log2(6)`, with no writer/freshness/NaN validity | **FAIL — missing perception can appear safe** |
-| NaN/Inf at policy boundary | no deployment contract in paper | helper has a testable `finite()` predicate, but `forward()`/RA/motor-target paths do not yet fail fast | **FAIL** |
+| Contact | vertical force `>1`, `current OR previous-frame` | same temporal filter in controller order before policy remap | **PASS** in simulation/controller mapping; real Go2 slots UNKNOWN |
+| Recovery/Agile `dof_bias` | `q-q_default-dof_bias`; Go2 configs randomize ±0.08 | explicit nominal zero calibration | **PASS (nominal contract)**; randomized distribution remains unobservable |
+| Ray validity | generated fresh distance in [0.1,6], then `log2` | stamped frame freshness plus finite-beam check; invalid fails closed | **PASS (local contract)**; live replay pending |
+| NaN/Inf at policy boundary | no deployment contract in paper | finite checks through final motor command and PASSIVE veto | **PASS (code/helper test)**; live replay pending |
 
 RA is assembled in the training testbed as `[body_lin_vel(3), body_ang_vel(3), Agile_command[:2], Agile_ray2d(11)]`; the local test uses this training-side assembly, not the ROS2 formula as its oracle. RA goal therefore receives the shaped Agile x/y at ROS2 runtime.
 
 The controller, simulator, motor chain, current Isaac Gym runtime order, dimensions, field slices and current permutations have reproducible evidence. All three policies are confirmed to use the original ABS training implementation; server-side run/checkpoint/export proof is nevertheless **UNKNOWN, blocked by training server availability**. The contract cannot assert the true deployed policy/contact order until that lineage closes. P1-01 therefore remains blocked; this document must not promote the conditional candidate order to a confirmed artifact fact.
+
+### P1-01F — Deployment Contract Corrections
+
+- **Timer:** default is now `paper_faithful_rolling`; it exposes the training time-left phase over each 9-second deployment horizon. It intentionally does not claim a physical robot reset. `legacy_fixed` is explicit and non-default.
+- **Contact:** Agile, inline Recovery and manual Recovery retain the current raw controller-order contact for one prior policy cycle, exactly as training's `logical_or(current,last_contacts)` does. Entry initializes prior contacts false.
+- **Bias:** both configurations declare a controller-order nominal `dof_bias` and both policy observations remap/subtract it. The zero default is a deliberate nominal calibration, not an invented replay of training's random per-episode ±0.08 value.
+- **Rays:** geometric MuJoCo now writes a side-channel `/mujoco_ray2d_stamp` containing a contract magic and monotonic timestamp after completing the original 11-value `log2` frame. ROS2 accepts a ray frame only when the stamp is present, fresh (default 200 ms), and every beam finite. Invalid, missing, stale or partial-invalid data invokes `safetyVeto` and transitions to PASSIVE; a genuine fresh all-6m frame remains valid.
+- **Non-finite values:** observation, RA observation/output, Agile/Recovery output, joint target and final motor command are finite-checked. A failure zeros gains/torque, writes a finite nominal target and latches PASSIVE. This is a local contract veto, not a Phase-2 Safety Supervisor.
+
+`test_p1_01_local_contract.py` now injects single-foot touch/liftoff, timer boundary, missing writer, stale writer and Inf-ray helper faults in addition to 61/19/49 parity. The compiled controller package passes. Full live ROS2/MuJoCo fault injection remains required before Phase 1 acceptance.
+
+Recorded local evidence: [`p1_01f_local_contract.json`](evidence/P1-01/p1_01f_local_contract.json).

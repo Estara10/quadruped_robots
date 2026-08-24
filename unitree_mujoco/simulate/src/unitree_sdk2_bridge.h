@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
@@ -25,6 +26,7 @@
 
 // ===== Ray2d shared memory constants =====
 #define RAY2D_SHM_NAME "/mujoco_ray2d"
+#define RAY2D_STAMP_SHM_NAME "/mujoco_ray2d_stamp"
 #define QPOS_SHM_NAME "/mujoco_qpos"
 #define COLLISION_SHM_NAME "/mujoco_collision"
 #define QPOS_COUNT 19
@@ -38,6 +40,7 @@
 #define RAY2D_X0 (-0.05f)                   // body-frame x offset
 #define RAY2D_Y0 0.0f                       // body-frame y offset
 #define RAY2D_MIN_DIST_SQ (0.01f)            // min distance squared (0.1^2), avoid self-hit
+#define RAY2D_STAMP_MAGIC 0x415253594143544FULL
 
 class UnitreeSDK2BridgeBase {
 public:
@@ -84,6 +87,8 @@ public:
     if (ray2d_shm_fd_ >= 0) {
       close(ray2d_shm_fd_);
     }
+    if (ray2d_stamp_shm_ptr_ != MAP_FAILED && ray2d_stamp_shm_ptr_ != nullptr) munmap(ray2d_stamp_shm_ptr_, 2 * sizeof(uint64_t));
+    if (ray2d_stamp_shm_fd_ >= 0) close(ray2d_stamp_shm_fd_);
     if (qpos_shm_ptr_ != MAP_FAILED && qpos_shm_ptr_ != nullptr) {
       munmap(qpos_shm_ptr_, QPOS_COUNT * sizeof(double));
     }
@@ -110,7 +115,7 @@ public:
     }
 
     if (!geometric_ray_write_enabled_) return;
-    if (ray2d_shm_ptr_ == nullptr || ray2d_shm_ptr_ == MAP_FAILED) return;
+    if (ray2d_shm_ptr_ == nullptr || ray2d_shm_ptr_ == MAP_FAILED || ray2d_stamp_shm_ptr_ == nullptr || ray2d_stamp_shm_ptr_ == MAP_FAILED) return;
 
     int body_id = mj_name2id(mj_model_, mjOBJ_BODY, "base_link");
     if (body_id < 0) {
@@ -232,6 +237,8 @@ public:
 
       ray2d_shm_ptr_[i] = std::log2(best_dist);
     }
+    ray2d_stamp_shm_ptr_[0] = RAY2D_STAMP_MAGIC;
+    ray2d_stamp_shm_ptr_[1] = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
   }
 
 private:
@@ -239,6 +246,8 @@ private:
 
   int ray2d_shm_fd_ = -1;
   float* ray2d_shm_ptr_ = nullptr;
+  int ray2d_stamp_shm_fd_ = -1;
+  uint64_t* ray2d_stamp_shm_ptr_ = nullptr;
 
   int qpos_shm_fd_ = -1;
   double* qpos_shm_ptr_ = nullptr;
@@ -377,6 +386,15 @@ private:
     }
     std::cout << "[Ray2D] Shared memory initialized: " << RAY2D_SHM_NAME
               << " (" << RAY2D_COUNT << " floats)" << std::endl;
+    ray2d_stamp_shm_fd_ = shm_open(RAY2D_STAMP_SHM_NAME, O_CREAT | O_RDWR, 0666);
+    if (ray2d_stamp_shm_fd_ < 0 || ftruncate(ray2d_stamp_shm_fd_, 2 * sizeof(uint64_t)) < 0) {
+      std::cerr << "[Ray2D] stamp shm setup failed: " << strerror(errno) << std::endl;
+      return;
+    }
+    ray2d_stamp_shm_ptr_ = static_cast<uint64_t*>(mmap(NULL, 2 * sizeof(uint64_t), PROT_READ | PROT_WRITE, MAP_SHARED, ray2d_stamp_shm_fd_, 0));
+    if (ray2d_stamp_shm_ptr_ == MAP_FAILED) { ray2d_stamp_shm_ptr_ = nullptr; return; }
+    ray2d_stamp_shm_ptr_[0] = 0;  // invalid until the first complete frame is written
+    ray2d_stamp_shm_ptr_[1] = 0;
   }
 
   void printSceneInformation() {

@@ -36,6 +36,11 @@ hip_scale_reduction_indices: [0, 3, 6, 9]
 num_of_dofs: 12
 action_scale: 0.25
 
+# Deployment calibration in controller order FR,FL,RR,RL.  The training code
+# randomizes an unobservable per-episode bias; nominal zero is the only
+# non-fabricated deployment value.  Do not replace with a random sample.
+dof_bias: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
 # ABS observation scales (raw values, no scaling)
 lin_vel_scale: 1.0
 ang_vel_scale: 1.0
@@ -52,10 +57,12 @@ torque_limits: [33.5, 33.5, 33.5,
 
 # ABS-specific parameters (not in standard config, used by StateRL.cpp when model_folder="abs")
 abs:
-  max_episode_length_s: 9.0        # timer = elapsed / this
+  max_episode_length_s: 9.0
+  timer_mode: "paper_faithful_rolling"  # time-left/9; timer phase rolls without a physical reset
   contact_threshold: 1.0           # force > this → contact detected
   ray2d_count: 11                  # number of ray2d beams
   ray2d_max_range: 6.0             # max range (log2 transformed, ~2.58)
+  ray2d_timeout_ms: 200             # no fresh stamped frame -> fail closed to PASSIVE
   ra_model_name: "ra_value.pt"     # RA value network (TorchScript)
   ra_threshold: -0.05              # RA > this → trigger recovery (ROS1 convention)
 

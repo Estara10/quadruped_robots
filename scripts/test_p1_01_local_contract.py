@@ -63,5 +63,12 @@ def main():
     ok &= compare('Recovery49', training(LeggedRobotRec, recovery=True), out['recovery'])
     print('finite helper:', out['finite'], 'nan helper:', out['finite_nan'])
     if out['finite'] != '1' or out['finite_nan'] != '0': ok=False
+    ok &= out['fault_observation'] == [0.0,0.0,0.0]
+    ok &= out['contact_touch'] == [1.0,-1.0,-1.0,-1.0]
+    ok &= out['contact_liftoff'] == [1.0,-1.0,-1.0,-1.0]
+    ok &= out['contact_next'] == [-1.0,-1.0,1.0,-1.0]
+    ok &= [round(float(x),5) for x in out['timer']] == [1.0,.5,1.0]
+    ok &= out['ray_valid'] == [1.0,0.0,0.0,0.0]
+    print('semantic helpers:', 'PASS' if ok else 'FAIL')
     raise SystemExit(0 if ok else 1)
 if __name__ == '__main__': main()

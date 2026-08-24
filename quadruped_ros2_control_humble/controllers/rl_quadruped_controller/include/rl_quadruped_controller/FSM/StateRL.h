@@ -114,12 +114,15 @@ struct ModelParams
     torch::Tensor rl_kp;
     torch::Tensor commands_scale;
     torch::Tensor default_dof_pos;
+    torch::Tensor dof_bias;  // controller order; nominal deployment calibration only
     std::string policy_joint_order = "fr_first";
     // ABS-specific params
     double abs_max_episode_length_s = 9.0;
     double abs_contact_threshold = 1.0;
     int abs_ray2d_count = 11;
     double abs_ray2d_max_range = 6.0;
+    int abs_ray2d_timeout_ms = 200;
+    std::string abs_timer_mode = "paper_faithful_rolling";
     std::string ra_model_name = "ra_value.pt";
     double ra_threshold = -0.05;
     // Recovery twist optimization params
@@ -252,6 +255,11 @@ private:
     // Ray2d shared memory
     float* ray2d_shm_ptr_ = nullptr;
     int ray2d_shm_fd_ = -1;
+    uint64_t* ray2d_stamp_shm_ptr_ = nullptr;  // [magic, monotonic_ns]
+    int ray2d_stamp_shm_fd_ = -1;
+    bool ray2d_valid_ = false;
+    torch::Tensor last_contacts_;
+    bool safety_faulted_ = false;
 
     // ABS episode timer
     double episode_timer_ = 0.0;
@@ -297,6 +305,10 @@ private:
     torch::Tensor ctrlToPolicyDofOrder(const torch::Tensor& ctrl_order) const;
     torch::Tensor policyToCtrlDofOrder(const torch::Tensor& policy_order) const;
     torch::Tensor ctrlToPolicyContactOrder(const torch::Tensor& ctrl_order) const;
+    double normalizedTimer() const;
+    bool updateRay2d();
+    void safetyVeto(const char* stage);
+    bool finiteMotorCommand() const;
 };
 
 

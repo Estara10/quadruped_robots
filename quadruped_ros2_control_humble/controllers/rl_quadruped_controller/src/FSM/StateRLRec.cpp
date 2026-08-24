@@ -91,6 +91,8 @@ void StateRLRec::enter()
     obs_.dof_vel = torch::zeros({1, params_.num_of_dofs});
     obs_.actions = torch::zeros({1, params_.num_of_dofs});
     obs_.contact = torch::zeros({1, 4});
+    last_contacts_ = torch::zeros({1, 4}, torch::kBool);
+    safety_faulted_ = false;
 
     rl_step_count_ = 0;
     sync_decimation_counter_ = 0;
@@ -192,6 +194,7 @@ torch::Tensor StateRLRec::ctrlToPolicyContactOrder(const torch::Tensor& ctrl_ord
 
 FSMStateName StateRLRec::checkChange()
 {
+    if (safety_faulted_) return FSMStateName::PASSIVE;
     // Independent body attitude safety (IMU quaternion → roll/pitch)
     {
         double qw = robot_state_.imu.quaternion[3];
@@ -233,7 +236,7 @@ torch::Tensor StateRLRec::computeObservation()
         obs_.lin_vel, obs_.contact, obs_.ang_vel,
         quatRotateInverse(obs_.base_quat, obs_.gravity_vec, params_.framework), obs_.commands,
         torch::tensor({{0.5f}}), obs_.dof_pos, params_.default_dof_pos,
-        torch::zeros_like(params_.default_dof_pos), obs_.dof_vel, obs_.actions, torch::Tensor()};
+        ctrlToPolicyDofOrder(params_.dof_bias), obs_.dof_vel, obs_.actions, torch::Tensor()};
     const torch::Tensor obs = abs_observation::recovery(input, {params_.ang_vel_scale, params_.dof_pos_scale,
                                                                   params_.dof_vel_scale, params_.clip_obs}, useRos1PolicyOrder());
 
@@ -299,6 +302,7 @@ void StateRLRec::loadYaml(const std::string& config_path)
     params_.torque_limits = torch::tensor(ReadVectorFromYamlRec<double>(config["torque_limits"])).view({1, -1});
 
     params_.default_dof_pos = torch::from_blob(init_pos_, {12}, torch::kDouble).clone().to(torch::kFloat).unsqueeze(0);
+    params_.dof_bias = config["dof_bias"] ? torch::tensor(ReadVectorFromYamlRec<double>(config["dof_bias"])).view({1, -1}) : torch::zeros_like(params_.default_dof_pos);
 
     if (config["policy_joint_order"])
         params_.policy_joint_order = config["policy_joint_order"].as<std::string>();
@@ -332,6 +336,7 @@ torch::Tensor StateRLRec::forward()
 {
     torch::autograd::GradMode::set_enabled(false);
     torch::Tensor clamped_obs = computeObservation();
+    if (!abs_observation::finite(clamped_obs)) return torch::Tensor();
     torch::Tensor actions;
 
     if (!params_.observations_history.empty())
@@ -353,8 +358,8 @@ torch::Tensor StateRLRec::forward()
     }
 
     if (params_.clip_actions_upper.numel() != 0 && params_.clip_actions_lower.numel() != 0)
-        return clamp(actions, params_.clip_actions_lower, params_.clip_actions_upper);
-    return actions;
+        actions = clamp(actions, params_.clip_actions_lower, params_.clip_actions_upper);
+    return abs_observation::finite(actions) ? actions : torch::Tensor();
 }
 
 void StateRLRec::getState()
@@ -439,18 +444,20 @@ void StateRLRec::runModel()
 
     // Contact is read in controller order (FR, FL, RR, RL); computeObservation() remaps it to policy order.
     {
-        torch::Tensor contact = torch::zeros({1, 4});
+        torch::Tensor current = torch::zeros({1, 4}, torch::kBool);
         int foot_count = static_cast<int>(ctrl_interfaces_.foot_force_state_interface_.size());
         for (int i = 0; i < std::min(4, foot_count); i++)
         {
             double force = ctrl_interfaces_.foot_force_state_interface_[i].get().get_value();
-            contact[0][i] = 2.0 * (force > params_.contact_threshold ? 1.0 : 0.0) - 1.0;
+            current[0][i] = force > params_.contact_threshold;
         }
-        obs_.contact = contact;
+        obs_.contact = abs_observation::temporalContact(current, last_contacts_);
     }
 
     // Actions come from policy in training order (FL-first). Remap to controller order (FR-first).
-    torch::Tensor clamped_actions = policyToCtrlDofOrder(forward());
+    torch::Tensor policy_actions = forward();
+    if (!policy_actions.defined() || !abs_observation::finite(policy_actions)) { safetyVeto("recovery observation/policy action"); return; }
+    torch::Tensor clamped_actions = policyToCtrlDofOrder(policy_actions);
 
     for (const int i : params_.hip_scale_reduction_indices)
         clamped_actions[0][i] *= params_.hip_scale_reduction;
@@ -459,6 +466,7 @@ void StateRLRec::runModel()
 
     const torch::Tensor actions_scaled = clamped_actions * params_.action_scale;
     output_dof_pos_ = actions_scaled + params_.default_dof_pos;
+    if (!abs_observation::finite(output_dof_pos_)) { safetyVeto("recovery joint target"); return; }
 
     for (int i = 0; i < params_.num_of_dofs; ++i)
     {
@@ -468,8 +476,27 @@ void StateRLRec::runModel()
         robot_command_.motor_command.kd[i] = params_.rl_kd[0][i].item<double>();
         robot_command_.motor_command.tau[i] = 0;
     }
+    if (!finiteMotorCommand()) { safetyVeto("recovery final motor command"); return; }
 
     rl_step_count_++;
+}
+
+void StateRLRec::safetyVeto(const char* stage)
+{
+    if (!safety_faulted_) RCLCPP_ERROR(rclcpp::get_logger("StateRLRec"), "[ABS-CONTRACT] invalid %s -> PASSIVE", stage);
+    safety_faulted_ = true;
+    running_ = false;
+    for (int i = 0; i < params_.num_of_dofs; ++i) {
+        robot_command_.motor_command.q[i] = params_.default_dof_pos[0][i].item<double>();
+        robot_command_.motor_command.kp[i] = 0.0; robot_command_.motor_command.kd[i] = 0.0; robot_command_.motor_command.tau[i] = 0.0;
+    }
+}
+
+bool StateRLRec::finiteMotorCommand() const
+{
+    for (int i = 0; i < params_.num_of_dofs; ++i) if (!std::isfinite(robot_command_.motor_command.q[i]) ||
+        !std::isfinite(robot_command_.motor_command.kp[i]) || !std::isfinite(robot_command_.motor_command.kd[i]) || !std::isfinite(robot_command_.motor_command.tau[i])) return false;
+    return true;
 }
 
 void StateRLRec::setCommand() const

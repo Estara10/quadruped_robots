@@ -1,5 +1,7 @@
 #include "rl_quadruped_controller/FSM/AbsObservationContract.h"
 
+#include <cmath>
+
 namespace abs_observation {
 namespace {
 torch::Tensor select(const torch::Tensor& value, const std::vector<int64_t>& indices, bool enabled) {
@@ -29,4 +31,21 @@ torch::Tensor ra(const Input& in) {
                      in.commands.index({torch::indexing::Slice(), torch::indexing::Slice(0,2)}), in.ray2d}, 1);
 }
 bool finite(const torch::Tensor& v) { return torch::isfinite(v).all().item<bool>(); }
+double rollingTimeLeftNormalized(double elapsed_s, double horizon_s) {
+  if (!(std::isfinite(elapsed_s) && std::isfinite(horizon_s)) || horizon_s <= 0.0) return NAN;
+  const double phase = std::fmod(std::max(0.0, elapsed_s), horizon_s);
+  return 1.0 - phase / horizon_s;
+}
+torch::Tensor temporalContact(const torch::Tensor& current, torch::Tensor& previous) {
+  const auto filtered = torch::logical_or(current, previous);
+  previous = current.clone();
+  return filtered.to(torch::kFloat) * 2.0 - 1.0;
+}
+bool rayFrameValid(const float* rays, int count, uint64_t stamp_magic, uint64_t stamp_ns,
+                   uint64_t now_ns, uint64_t timeout_ns) {
+  constexpr uint64_t kRayStampMagic = 0x415253594143544FULL;  // "ARSYACTO", contract v1
+  if (rays == nullptr || count != 11 || stamp_magic != kRayStampMagic || stamp_ns == 0 || now_ns < stamp_ns || now_ns - stamp_ns > timeout_ns) return false;
+  for (int i = 0; i < count; ++i) if (!std::isfinite(rays[i])) return false;
+  return true;
+}
 }  // namespace abs_observation

@@ -1,0 +1,21 @@
+{
+  "task": "P1-01F",
+  "date": "2026-08-24",
+  "scope": "local deployment contract",
+  "golden_parity": {"agile_61": "PASS", "ra_19": "PASS", "recovery_49": "PASS"},
+  "helper_fault_cases": {
+    "single_foot_touch_liftoff": "PASS",
+    "timer_start_half_horizon_roll": "PASS",
+    "ray_missing_writer": "PASS",
+    "ray_stale": "PASS",
+    "ray_partial_inf": "PASS",
+    "observation_ra_action_target_nonfinite": "PASS"
+  },
+  "builds": {"rl_quadruped_controller": "PASS", "unitree_mujoco": "PASS"},
+  "limitations": [
+    "No live ROS2/MuJoCo fault-injection session was run.",
+    "Real Go2 foot_force slot order remains UNKNOWN.",
+    "Training random per-episode dof_bias is not observable at deployment; nominal configured bias is used.",
+    "Artifact provenance is blocked by training server availability."
+  ]
+}

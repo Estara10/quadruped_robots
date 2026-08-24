@@ -43,6 +43,7 @@ add_library(${PROJECT_NAME} SHARED
         src/FSM/StateFixedStand.cpp
         src/FSM/StateRL.cpp
         src/FSM/StateRLRec.cpp
+        src/FSM/AbsObservationContract.cpp
 
         src/control/LowPassFilter.cpp
         src/control/Estimator.cpp
@@ -92,6 +93,8 @@ ament_export_dependencies(${dependencies})
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 if (BUILD_TESTING)
+    add_executable(p1_01_abs_observation_adapter test/p1_01_abs_observation_adapter.cpp)
+    target_link_libraries(p1_01_abs_observation_adapter PRIVATE ${PROJECT_NAME})
     find_package(ament_lint_auto REQUIRED)
     # the following line skips the linter which checks for copyrights
     # comment the line when a copyright and license is added to all source files

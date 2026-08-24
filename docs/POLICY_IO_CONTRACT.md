@@ -1,6 +1,6 @@
 # ABS Go2 Policy I/O Contract
 
-Task baseline: P1-01, 2026-08-24. Status: **PARTIAL — deployed artifact lineage remains UNKNOWN**.
+Task baseline: P1-01, 2026-08-24. Status: **PARTIAL — local tensor assembly parity is proven; deployed artifact lineage remains UNKNOWN (training server unavailable)**.
 
 This document separates four evidence levels:
 
@@ -197,4 +197,21 @@ Recovery intentionally has no ray input.
 
 ## P1-01 Contract Result
 
-The controller, simulator, motor chain, current Isaac Gym runtime order, dimensions, field slices and current permutations have reproducible evidence. The contract cannot assert the true deployed policy/contact order because the source checkpoints and exact exports are absent. The first independent Reviewer returned **REJECT**, also finding that implementation-level observation goldens are absent. P1-01 therefore remains blocked; this document must not be used to silently promote the conditional candidate order to a confirmed artifact fact.
+### Local golden parity — 2026-08-24
+
+`scripts/test_p1_01_local_contract.py` calls the real training methods `LeggedRobotPos.compute_observations()` and `LeggedRobotRec.compute_observations()` and compares their output element-by-element with `p1_01_abs_observation_adapter`. The adapter calls `AbsObservationContract`, which is also used by production `StateRL`/`StateRLRec`. The fixture is deliberately asymmetric in every leg, joint, velocity, action, ray and command. Result: **Agile 61 PASS; RA 19 PASS; Recovery 49 PASS; 0 mismatching indices**.
+
+The pass is conditional on semantically equivalent upstream values and does not erase these observed differences:
+
+| Topic | Paper/training | Current ROS2 runtime | Result |
+|---|---|---|---|
+| Timer | `timer_left / 9`, decremented each simulation step | fixed `0.5`, matching ROS1 deployment | **FAIL — deployment compatibility behavior / paper-training mismatch** |
+| Goal | raw body-frame position target/heading command | radial distance compression plus optional lateral/heading path shaping before both Agile and RA | **INTENTIONAL ENGINEERING VARIANT**; paper-faithful status is not established |
+| Contact | vertical force `>1`, `current OR previous-frame` | current foot-force threshold only; no prior-frame OR | **FAIL** |
+| Recovery/Agile `dof_bias` | `q-q_default-dof_bias`; Go2 configs randomize ±0.08 | zero implicit bias (no runtime source) | **FAIL** |
+| Ray validity | generated fresh distance in [0.1,6], then `log2` | MuJoCo writes `log2`; missing shared-memory leaves initial `log2(6)`, with no writer/freshness/NaN validity | **FAIL — missing perception can appear safe** |
+| NaN/Inf at policy boundary | no deployment contract in paper | helper has a testable `finite()` predicate, but `forward()`/RA/motor-target paths do not yet fail fast | **FAIL** |
+
+RA is assembled in the training testbed as `[body_lin_vel(3), body_ang_vel(3), Agile_command[:2], Agile_ray2d(11)]`; the local test uses this training-side assembly, not the ROS2 formula as its oracle. RA goal therefore receives the shaped Agile x/y at ROS2 runtime.
+
+The controller, simulator, motor chain, current Isaac Gym runtime order, dimensions, field slices and current permutations have reproducible evidence. All three policies are confirmed to use the original ABS training implementation; server-side run/checkpoint/export proof is nevertheless **UNKNOWN, blocked by training server availability**. The contract cannot assert the true deployed policy/contact order until that lineage closes. P1-01 therefore remains blocked; this document must not promote the conditional candidate order to a confirmed artifact fact.

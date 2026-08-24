@@ -3,6 +3,7 @@
 //
 
 #include "rl_quadruped_controller/FSM/StateRLRec.h"
+#include "rl_quadruped_controller/FSM/AbsObservationContract.h"
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <rclcpp/logging.hpp>
 #include <yaml-cpp/yaml.h>
@@ -228,31 +229,13 @@ FSMStateName StateRLRec::checkChange()
 
 torch::Tensor StateRLRec::computeObservation()
 {
-    std::vector<torch::Tensor> obs_list;
-
-    for (const std::string& observation : params_.observations)
-    {
-        if (observation == "lin_vel")
-            obs_list.push_back(obs_.lin_vel * params_.lin_vel_scale);
-        else if (observation == "ang_vel")
-            obs_list.push_back(obs_.ang_vel * params_.ang_vel_scale);
-        else if (observation == "gravity_vec")
-            obs_list.push_back(quatRotateInverse(obs_.base_quat, obs_.gravity_vec, params_.framework));
-        else if (observation == "commands")
-            obs_list.push_back(obs_.commands * params_.commands_scale);
-        else if (observation == "dof_pos")
-            obs_list.push_back(
-                (ctrlToPolicyDofOrder(obs_.dof_pos) - ctrlToPolicyDofOrder(params_.default_dof_pos)) *
-                params_.dof_pos_scale);
-        else if (observation == "dof_vel")
-            obs_list.push_back(ctrlToPolicyDofOrder(obs_.dof_vel) * params_.dof_vel_scale);
-        else if (observation == "actions")
-            obs_list.push_back(ctrlToPolicyDofOrder(obs_.actions));
-        else if (observation == "contact")
-            obs_list.push_back(ctrlToPolicyContactOrder(obs_.contact));
-    }
-
-    const torch::Tensor obs = cat(obs_list, 1);
+    const abs_observation::Input input{
+        obs_.lin_vel, obs_.contact, obs_.ang_vel,
+        quatRotateInverse(obs_.base_quat, obs_.gravity_vec, params_.framework), obs_.commands,
+        torch::tensor({{0.5f}}), obs_.dof_pos, params_.default_dof_pos,
+        torch::zeros_like(params_.default_dof_pos), obs_.dof_vel, obs_.actions, torch::Tensor()};
+    const torch::Tensor obs = abs_observation::recovery(input, {params_.ang_vel_scale, params_.dof_pos_scale,
+                                                                  params_.dof_vel_scale, params_.clip_obs}, useRos1PolicyOrder());
 
     static bool obs_dim_printed = false;
     if (!obs_dim_printed) {
@@ -261,7 +244,7 @@ torch::Tensor StateRLRec::computeObservation()
         obs_dim_printed = true;
     }
 
-    return clamp(obs, -params_.clip_obs, params_.clip_obs);
+    return obs;
 }
 
 void StateRLRec::loadYaml(const std::string& config_path)

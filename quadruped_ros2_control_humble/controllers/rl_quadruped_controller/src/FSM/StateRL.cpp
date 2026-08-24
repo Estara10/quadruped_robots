@@ -3,6 +3,7 @@
 //
 
 #include "rl_quadruped_controller/FSM/StateRL.h"
+#include "rl_quadruped_controller/FSM/AbsObservationContract.h"
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <algorithm>
 #include <rclcpp/logging.hpp>
@@ -657,67 +658,22 @@ FSMStateName StateRL::checkChange()
 
 torch::Tensor StateRL::computeObservation()
 {
-    std::vector<torch::Tensor> obs_list;
-
-    for (const std::string& observation : params_.observations)
-    {
-        if (observation == "lin_vel")
-        {
-            obs_list.push_back(obs_.lin_vel * params_.lin_vel_scale);
-        }
-        else if (observation == "ang_vel")
-        {
-            obs_list.push_back(obs_.ang_vel * params_.ang_vel_scale);
-        }
-        else if (observation == "gravity_vec")
-        {
-            obs_list.push_back(quatRotateInverse(obs_.base_quat, obs_.gravity_vec, params_.framework));
-        }
-        else if (observation == "commands")
-        {
-            obs_list.push_back(obs_.commands * params_.commands_scale);
-        }
-        else if (observation == "dof_pos")
-        {
-            obs_list.push_back(
-                (ctrlToPolicyDofOrder(obs_.dof_pos) - ctrlToPolicyDofOrder(params_.default_dof_pos)) *
-                params_.dof_pos_scale);
-        }
-        else if (observation == "dof_vel")
-        {
-            obs_list.push_back(ctrlToPolicyDofOrder(obs_.dof_vel) * params_.dof_vel_scale);
-        }
-        else if (observation == "actions")
-        {
-            obs_list.push_back(ctrlToPolicyDofOrder(obs_.actions));
-        }
-        else if (observation == "contact")
-        {
-            obs_list.push_back(ctrlToPolicyContactOrder(obs_.contact));
-        }
-        else if (observation == "timer")
-        {
-            // Match the ROS1 ABS deployment, which keeps timer fixed at 0.5.
-            obs_list.push_back(torch::tensor({{0.5}}));
-        }
-        else if (observation == "ray2d")
-        {
-            obs_list.push_back(obs_.ray2d);
-        }
-    }
-
-    const torch::Tensor obs = cat(obs_list, 1);
-    torch::Tensor clamped_obs = clamp(obs, -params_.clip_obs, params_.clip_obs);
-    return clamped_obs;
+    const abs_observation::Input input{
+        obs_.lin_vel, obs_.contact, obs_.ang_vel,
+        quatRotateInverse(obs_.base_quat, obs_.gravity_vec, params_.framework), obs_.commands,
+        torch::tensor({{0.5f}}), obs_.dof_pos, params_.default_dof_pos,
+        torch::zeros_like(params_.default_dof_pos), obs_.dof_vel, obs_.actions, obs_.ray2d};
+    return abs_observation::agile(input, {params_.ang_vel_scale, params_.dof_pos_scale,
+                                          params_.dof_vel_scale, params_.clip_obs}, useRos1PolicyOrder());
 }
 
 torch::Tensor StateRL::computeRAObservation()
 {
-    // RA 19-dim observation (matches training and ROS1):
-    //   lin_vel(3) + ang_vel(3) + commands[0:2](2) + ray2d(11) = 19
-    using torch::indexing::Slice;
-    auto cmds = obs_.commands.index({Slice(), Slice(0, 2)});
-    return torch::cat({obs_.lin_vel, obs_.ang_vel, cmds, obs_.ray2d}, 1);
+    const abs_observation::Input input{obs_.lin_vel, obs_.contact, obs_.ang_vel, obs_.gravity_vec,
+                                       obs_.commands, torch::tensor({{0.5f}}), obs_.dof_pos,
+                                       params_.default_dof_pos, torch::zeros_like(params_.default_dof_pos),
+                                       obs_.dof_vel, obs_.actions, obs_.ray2d};
+    return abs_observation::ra(input);
 }
 
 void StateRL::runRAModel()

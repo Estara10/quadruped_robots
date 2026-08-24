@@ -8,7 +8,7 @@ Phase 1 — MuJoCo Simulation Validation
 
 P1-01 — Policy Artifact Provenance and Joint/Contact/Action Order Contract
 
-Status: **BLOCKED — current evidence captured; independent Reviewer REJECTED Acceptance**
+Status: **BLOCKED / PARTIALLY COMPLETE — local 61/19/49 golden parity PASS; server-side provenance and semantic gaps remain**
 
 ## Phase Acceptance
 
@@ -18,8 +18,7 @@ Status: **BLOCKED — current evidence captured; independent Reviewer REJECTED A
 
 ## Critical Blockers
 
-- Agile and Recovery source checkpoints/exports are unavailable, so their deployed joint/contact/action order remains `UNKNOWN`.
-- RA source model, dataset and exact binding to the deployed Agile Policy remain `UNKNOWN`.
+- Server-side Agile/Recovery checkpoint/export and RA dataset/binding evidence is unavailable; all use original ABS training code, but deployed lineage/order remains `UNKNOWN` (**blocked by training-server availability**).
 - Real Go2 `foot_force[0..3]` semantics are not independently captured.
 - Isaac Gym Go2 `terminate_after_contacts_on=["base"]` currently matches no runtime body.
 - Recovery solver and switching contain known paper mismatches.
@@ -30,8 +29,9 @@ Status: **BLOCKED — current evidence captured; independent Reviewer REJECTED A
 - Three deployed hashes, installed bindings, executable shapes and deterministic outputs: **PASS**.
 - Isaac Gym DOF/body/feet order and ROS2→motor→MuJoCo mapping: **PASS**.
 - Current remap is bijective and correct for the captured training order, but correctness for the actual deployed artifacts: **UNKNOWN**.
-- Contract: [`POLICY_IO_CONTRACT.md`](POLICY_IO_CONTRACT.md).
-- Reviewer: **REJECT**; implementation-level golden parity and artifact provenance are not closed.
+- Production-linked asymmetric golden parity: Agile 61 / RA 19 / Recovery 49: **PASS**.
+- Contract: [`POLICY_IO_CONTRACT.md`](POLICY_IO_CONTRACT.md). Timer/contact-filter/dof-bias/ray-validity/NaN-boundary gaps remain **FAIL**.
+- Reviewer: prior **REJECT**; provenance and the remaining semantic gaps require re-review after closure.
 
 ## Current Metrics
 
@@ -56,4 +56,4 @@ ABS/RL real test: **NO-GO**
 
 ## Next
 
-Resolve P1-01 provenance blockers and obtain Reviewer acceptance. Do not start P1-02 or change core algorithms.
+Close P1-01 server-dependent provenance when access returns; separately scope the documented runtime semantic gaps. Do not start P1-02 or change core algorithms.

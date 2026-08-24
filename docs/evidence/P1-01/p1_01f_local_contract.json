@@ -12,8 +12,122 @@
     "observation_ra_action_target_nonfinite": "PASS"
   },
   "builds": {"rl_quadruped_controller": "PASS", "unitree_mujoco": "PASS"},
+  "live_ros2_mujoco_fault_injection": {
+    "environment": "MuJoCo scene_flat.xml + ROS2 rl_quadruped_controller; safe simulation only; no real robot",
+    "clock_model": "Writer, controller freshness check, injection, detection and command telemetry use std::chrono::steady_clock::time_since_epoch() nanoseconds. ROS log wall time is not used for latency arithmetic.",
+    "freshness_contract": {
+      "threshold_ms": 200,
+      "writer_period_ms": {"min": 1.0, "mean": 1.0022, "max": 1.0470, "source": "/tmp/p1_01f_normal_v2d.log"},
+      "controller_ray_check_period_ms": {"min": 19.9823, "mean": 20.0001, "max": 20.0221, "source": "/tmp/p1_01f_normal_v2e.log"},
+      "acceptance_tolerance_ms": 20,
+      "rationale": "One measured 50 Hz ray-check period; no timeout relaxation."
+    },
+    "log_roots": [
+      "/tmp/p1_01f_normal_v2e.log",
+      "/tmp/p1_01f_writer_freeze_v2.log",
+      "/tmp/p1_01f_writer_exit_v2.log",
+      "/tmp/p1_01f_ray_nan_v2b.log",
+      "/tmp/p1_01f_ray_inf_v2.log",
+      "/tmp/p1_01f_observation_nan_v2.log",
+      "/tmp/p1_01f_ra_nan_v2.log",
+      "/tmp/p1_01f_action_nan_v2.log",
+      "/tmp/p1_01f_target_nan_v2.log",
+      "/tmp/p1_01f_final_command_nan_v2.log",
+      "/tmp/p1_01f_final_command_inf_v2.log"
+    ],
+    "cases": [
+      {
+        "id": "normal_writer",
+        "status": "PASS",
+        "fault_type": "none",
+        "controller_state": "RL remains active for 11 measured ray-check windows",
+        "passive": false,
+        "final_motor_command_finite": true,
+        "continued_rl": true,
+        "notes": "No [ABS-CONTRACT] veto in /tmp/p1_01f_normal_v2e.log. Previous false positives were caused by publishing a write-in-progress sequence across the whole geometry query; writer now computes privately then publishes a sequence-consistent snapshot."
+      },
+      {
+        "id": "writer_stopped_200ms",
+        "status": "PASS",
+        "injection_ns": 12429928894603,
+        "detection_ns": 12430140600137,
+        "fault_type": "simulation-only writer freeze / no timestamp update",
+        "controller_state": "RL -> PASSIVE",
+        "passive": true,
+        "final_motor_command_finite": true,
+        "kp_kd_torque_zero": true,
+        "continued_rl": false,
+        "recovery_reset": "latched PASSIVE; restart required",
+        "injection_to_detection_ms": 211.705534,
+        "freshness_age_ms": 212.682943,
+        "detection_to_passive_command_ms": 0.095591
+      },
+      {
+        "id": "writer_process_exit",
+        "status": "PASS",
+        "injection_ns": 12473052223326,
+        "detection_ns": 12473257575899,
+        "fault_type": "simulation-only abrupt writer process exit; shared-memory header remains with old stamp",
+        "controller_state": "RL -> PASSIVE",
+        "passive": true,
+        "final_motor_command_finite": true,
+        "kp_kd_torque_zero": true,
+        "continued_rl": false,
+        "recovery_reset": "latched PASSIVE; restart required",
+        "injection_to_detection_ms": 205.352573,
+        "freshness_age_ms": 206.333748,
+        "detection_to_passive_command_ms": 0.347478
+      },
+      {
+        "id": "ray_nan",
+        "status": "PASS",
+        "injection_ns": 12565996122209,
+        "detection_ns": 12566016881680,
+        "fault_type": "11 ray values NaN with fresh contract stamp",
+        "controller_state": "RL -> PASSIVE",
+        "passive": true,
+        "final_motor_command_finite": true,
+        "kp_kd_torque_zero": true,
+        "continued_rl": false,
+        "recovery_reset": "latched PASSIVE; restart required",
+        "injection_to_detection_ms": 20.759471,
+        "detection_to_passive_command_ms": 0.411666
+      },
+      {
+        "id": "ray_inf",
+        "status": "PASS",
+        "injection_ns": 12607945654152,
+        "detection_ns": 12607964515747,
+        "fault_type": "11 ray values Inf with fresh contract stamp",
+        "controller_state": "RL -> PASSIVE",
+        "passive": true,
+        "final_motor_command_finite": true,
+        "kp_kd_torque_zero": true,
+        "continued_rl": false,
+        "recovery_reset": "latched PASSIVE; restart required",
+        "injection_to_detection_ms": 18.861595,
+        "detection_to_passive_command_ms": 0.195640
+      },
+      {
+        "id": "policy_observation_nonfinite",
+        "status": "PASS",
+        "fault_type": "simulation-only observation_nan",
+        "injection_to_detection_ms": 0.047944,
+        "detection_to_passive_command_ms": 0.051545,
+        "final_motor_command_finite": true,
+        "kp_kd_torque_zero": true,
+        "continued_rl": false
+      },
+      {"id": "ra_output_nonfinite", "status": "PASS", "fault_type": "simulation-only ra_nan", "injection_to_detection_ms": 0.117143, "detection_to_passive_command_ms": 0.048022, "final_motor_command_finite": true, "kp_kd_torque_zero": true, "continued_rl": false},
+      {"id": "policy_action_nonfinite", "status": "PASS", "fault_type": "simulation-only action_nan", "injection_to_detection_ms": 0.130634, "detection_to_passive_command_ms": 0.104475, "final_motor_command_finite": true, "kp_kd_torque_zero": true, "continued_rl": false},
+      {"id": "joint_target_nonfinite", "status": "PASS", "fault_type": "simulation-only target_nan", "injection_to_detection_ms": 0.105438, "detection_to_passive_command_ms": 0.104665, "final_motor_command_finite": true, "kp_kd_torque_zero": true, "continued_rl": false},
+      {"id": "final_motor_command_nan", "status": "PASS", "fault_type": "simulation-only final_command_nan", "injection_to_detection_ms": 0.062582, "detection_to_passive_command_ms": 0.040507, "final_motor_command_finite": true, "kp_kd_torque_zero": true, "continued_rl": false},
+      {"id": "final_motor_command_inf", "status": "PASS", "fault_type": "simulation-only final_command_inf", "injection_to_detection_ms": 0.051789, "detection_to_passive_command_ms": 0.037012, "final_motor_command_finite": true, "kp_kd_torque_zero": true, "continued_rl": false}
+    ],
+    "structured_log_evidence": "PASS: every injected invalid/stale/non-finite case records injection, detection, safety-veto command and FSM RL->PASSIVE in one steady-clock domain. Safety telemetry proves finite final command and zero Kp/Kd/torque after the veto."
+  },
   "limitations": [
-    "No live ROS2/MuJoCo fault-injection session was run.",
+    "The simulation-only injection mechanism is intentionally unavailable unless ABS_SIMULATION_TEST=1 or MUJOCO_SIMULATION_TEST=1; real_go2.launch.py forces ABS_SIMULATION_TEST=0.",
     "Real Go2 foot_force slot order remains UNKNOWN.",
     "Training random per-episode dof_bias is not observable at deployment; nominal configured bias is used.",
     "Artifact provenance is blocked by training server availability."

@@ -12,13 +12,16 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <limits>
+#include <string>
 
+#include <abs_ray2d_shm_contract.h>
 #include "param.h"
 #include "physics_joystick.h"
 
@@ -40,7 +43,6 @@
 #define RAY2D_X0 (-0.05f)                   // body-frame x offset
 #define RAY2D_Y0 0.0f                       // body-frame y offset
 #define RAY2D_MIN_DIST_SQ (0.01f)            // min distance squared (0.1^2), avoid self-hit
-#define RAY2D_STAMP_MAGIC 0x415253594143544FULL
 
 class UnitreeSDK2BridgeBase {
 public:
@@ -70,9 +72,25 @@ public:
          std::strcmp(ray_source_env, "external") == 0)) {
       geometric_ray_write_enabled_ = false;
     }
+    ray_telemetry_enabled_ = std::getenv("MUJOCO_RAY_TELEMETRY") != nullptr &&
+                             std::strcmp(std::getenv("MUJOCO_RAY_TELEMETRY"), "1") == 0;
 
     // Setup ray2d shared memory
     _setupRay2dShm();
+    if (const char* requested_fault = std::getenv("MUJOCO_RAY_TEST_FAULT"); requested_fault != nullptr && requested_fault[0] != '\0') {
+      if (std::getenv("MUJOCO_SIMULATION_TEST") == nullptr || std::strcmp(std::getenv("MUJOCO_SIMULATION_TEST"), "1") != 0) {
+        std::cerr << "[ABS-LIVE-FAULT] event=blocked id=" << requested_fault
+                  << " reason=MUJOCO_SIMULATION_TEST_not_enabled" << std::endl;
+        std::exit(EXIT_FAILURE);
+      }
+      ray_test_fault_ = requested_fault;
+      if (const char* delay = std::getenv("MUJOCO_RAY_TEST_DELAY_MS"); delay != nullptr) {
+        ray_test_delay_ms_ = std::max(0, std::atoi(delay));
+      }
+      ray_test_start_ns_ = monotonicNowNs();
+      std::cout << "[ABS-LIVE-FAULT] event=armed id=" << ray_test_fault_
+                << " clock=steady_clock_ns delay_ms=" << ray_test_delay_ms_ << std::endl;
+    }
     _setupQposShm();
     _setupCollisionShm();
     std::cout << "[Ray2D] Source: "
@@ -87,7 +105,7 @@ public:
     if (ray2d_shm_fd_ >= 0) {
       close(ray2d_shm_fd_);
     }
-    if (ray2d_stamp_shm_ptr_ != MAP_FAILED && ray2d_stamp_shm_ptr_ != nullptr) munmap(ray2d_stamp_shm_ptr_, 2 * sizeof(uint64_t));
+    if (ray2d_stamp_shm_ptr_ != MAP_FAILED && ray2d_stamp_shm_ptr_ != nullptr) munmap(ray2d_stamp_shm_ptr_, sizeof(abs_ray2d_shm::FrameHeader));
     if (ray2d_stamp_shm_fd_ >= 0) close(ray2d_stamp_shm_fd_);
     if (qpos_shm_ptr_ != MAP_FAILED && qpos_shm_ptr_ != nullptr) {
       munmap(qpos_shm_ptr_, QPOS_COUNT * sizeof(double));
@@ -117,6 +135,18 @@ public:
     if (!geometric_ray_write_enabled_) return;
     if (ray2d_shm_ptr_ == nullptr || ray2d_shm_ptr_ == MAP_FAILED || ray2d_stamp_shm_ptr_ == nullptr || ray2d_stamp_shm_ptr_ == MAP_FAILED) return;
 
+    if (!ray_test_fault_.empty() && !ray_test_active_ &&
+        monotonicNowNs() - ray_test_start_ns_ >= static_cast<uint64_t>(ray_test_delay_ms_) * 1000000ULL) {
+      ray_test_active_ = true;
+      std::cout << "[ABS-LIVE-FAULT] event=injected clock=steady_clock_ns injection_ns="
+                << monotonicNowNs() << " id=" << ray_test_fault_ << std::endl;
+      if (ray_test_fault_ == "exit") {
+        std::cout.flush();
+        std::_Exit(EXIT_SUCCESS);  // emulate abrupt writer-process exit; header intentionally persists
+      }
+    }
+    if (ray_test_active_ && ray_test_fault_ == "freeze") return;
+
     int body_id = mj_name2id(mj_model_, mjOBJ_BODY, "base_link");
     if (body_id < 0) {
       body_id = mj_name2id(mj_model_, mjOBJ_BODY, "torso_link");
@@ -132,6 +162,10 @@ public:
     // 2D ray origin in world frame (matches training: body pos + local offset rotated)
     double ray_x0 = xpos[0] + RAY2D_X0 * cos(body_yaw) - RAY2D_Y0 * sin(body_yaw);
     double ray_y0 = xpos[1] + RAY2D_X0 * sin(body_yaw) + RAY2D_Y0 * cos(body_yaw);
+
+    // Compute into private memory first.  The cross-process writer critical section
+    // below is then only a bounded 11-float copy, not the whole geometry query.
+    std::array<float, RAY2D_COUNT> ray_frame{};
 
     // 2D circle_ray_query for each ray and each static obstacle geom
     for (int i = 0; i < RAY2D_COUNT; i++) {
@@ -235,19 +269,51 @@ public:
         }
       }
 
-      ray2d_shm_ptr_[i] = std::log2(best_dist);
+      ray_frame[i] = std::log2(best_dist);
     }
-    ray2d_stamp_shm_ptr_[0] = RAY2D_STAMP_MAGIC;
-    ray2d_stamp_shm_ptr_[1] = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
+    if (ray_test_active_ && (ray_test_fault_ == "nan" || ray_test_fault_ == "inf")) {
+      ray_frame[0] = ray_test_fault_ == "nan" ? std::numeric_limits<float>::quiet_NaN()
+                                                : std::numeric_limits<float>::infinity();
+    }
+
+    // Publish protocol: sequence odd while the shared payload is changed; even only
+    // after the timestamp corresponding to the completed payload is visible.
+    uint64_t sequence = abs_ray2d_shm::loadAcquire(&ray2d_stamp_shm_ptr_->sequence);
+    if (sequence & 1U) ++sequence;
+    abs_ray2d_shm::storeRelease(&ray2d_stamp_shm_ptr_->sequence, sequence + 1U);
+    std::memcpy(ray2d_shm_ptr_, ray_frame.data(), RAY2D_COUNT * sizeof(float));
+    abs_ray2d_shm::storeRelease(&ray2d_stamp_shm_ptr_->magic, abs_ray2d_shm::kMagic);
+    abs_ray2d_shm::storeRelease(&ray2d_stamp_shm_ptr_->version, abs_ray2d_shm::kVersion);
+    const uint64_t stamp_ns = monotonicNowNs();
+    abs_ray2d_shm::storeRelease(&ray2d_stamp_shm_ptr_->monotonic_ns, stamp_ns);
+    abs_ray2d_shm::storeRelease(&ray2d_stamp_shm_ptr_->sequence, sequence + 2U);
+    if (ray_telemetry_enabled_ && ++ray_write_count_ % 1000U == 0U) {
+      const double average_period_ms = ray_last_telemetry_ns_ == 0 ? 0.0
+          : static_cast<double>(stamp_ns - ray_last_telemetry_ns_) / 1000.0 / 1e6;
+      std::cout << "[ABS-LIVE-RAY] clock=steady_clock_ns stamp_ns=" << stamp_ns
+                << " frames=1000 average_period_ms=" << average_period_ms << std::endl;
+      ray_last_telemetry_ns_ = stamp_ns;
+    }
   }
 
 private:
+  static uint64_t monotonicNowNs() {
+    return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+  }
   bool geometric_ray_write_enabled_ = true;
+  bool ray_telemetry_enabled_ = false;
+  uint64_t ray_write_count_ = 0;
+  uint64_t ray_last_telemetry_ns_ = 0;
+  std::string ray_test_fault_;
+  int ray_test_delay_ms_ = 1000;
+  uint64_t ray_test_start_ns_ = 0;
+  bool ray_test_active_ = false;
 
   int ray2d_shm_fd_ = -1;
   float* ray2d_shm_ptr_ = nullptr;
   int ray2d_stamp_shm_fd_ = -1;
-  uint64_t* ray2d_stamp_shm_ptr_ = nullptr;
+  abs_ray2d_shm::FrameHeader* ray2d_stamp_shm_ptr_ = nullptr;
 
   int qpos_shm_fd_ = -1;
   double* qpos_shm_ptr_ = nullptr;
@@ -387,14 +453,16 @@ private:
     std::cout << "[Ray2D] Shared memory initialized: " << RAY2D_SHM_NAME
               << " (" << RAY2D_COUNT << " floats)" << std::endl;
     ray2d_stamp_shm_fd_ = shm_open(RAY2D_STAMP_SHM_NAME, O_CREAT | O_RDWR, 0666);
-    if (ray2d_stamp_shm_fd_ < 0 || ftruncate(ray2d_stamp_shm_fd_, 2 * sizeof(uint64_t)) < 0) {
+    if (ray2d_stamp_shm_fd_ < 0 || ftruncate(ray2d_stamp_shm_fd_, sizeof(abs_ray2d_shm::FrameHeader)) < 0) {
       std::cerr << "[Ray2D] stamp shm setup failed: " << strerror(errno) << std::endl;
       return;
     }
-    ray2d_stamp_shm_ptr_ = static_cast<uint64_t*>(mmap(NULL, 2 * sizeof(uint64_t), PROT_READ | PROT_WRITE, MAP_SHARED, ray2d_stamp_shm_fd_, 0));
+    ray2d_stamp_shm_ptr_ = static_cast<abs_ray2d_shm::FrameHeader*>(mmap(NULL, sizeof(abs_ray2d_shm::FrameHeader), PROT_READ | PROT_WRITE, MAP_SHARED, ray2d_stamp_shm_fd_, 0));
     if (ray2d_stamp_shm_ptr_ == MAP_FAILED) { ray2d_stamp_shm_ptr_ = nullptr; return; }
-    ray2d_stamp_shm_ptr_[0] = 0;  // invalid until the first complete frame is written
-    ray2d_stamp_shm_ptr_[1] = 0;
+    abs_ray2d_shm::storeRelease(&ray2d_stamp_shm_ptr_->magic, 0);  // invalid until first complete frame
+    abs_ray2d_shm::storeRelease(&ray2d_stamp_shm_ptr_->version, abs_ray2d_shm::kVersion);
+    abs_ray2d_shm::storeRelease(&ray2d_stamp_shm_ptr_->sequence, 0);
+    abs_ray2d_shm::storeRelease(&ray2d_stamp_shm_ptr_->monotonic_ns, 0);
   }
 
   void printSceneInformation() {

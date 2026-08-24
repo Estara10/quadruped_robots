@@ -4,6 +4,7 @@
 
 #include "rl_quadruped_controller/FSM/StateRL.h"
 #include "rl_quadruped_controller/FSM/AbsObservationContract.h"
+#include <abs_ray2d_shm_contract.h>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <algorithm>
 #include <rclcpp/logging.hpp>
@@ -14,10 +15,26 @@
 #include <unistd.h>
 #include <cstring>
 #include <cmath>
+#include <array>
+#include <cstdlib>
+#include <iomanip>
 #include <limits>
 #include <chrono>
+#include <sstream>
 
-namespace { constexpr uint64_t kRayStampMagic = 0x415253594143544FULL; constexpr const char* kRayStampShm = "/mujoco_ray2d_stamp"; }
+namespace {
+uint64_t monotonicNowNs()
+{
+    return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+}
+
+bool envEnabled(const char* name)
+{
+    const char* value = std::getenv(name);
+    return value != nullptr && std::strcmp(value, "1") == 0;
+}
+}  // namespace
 
 template <typename T>
 std::vector<T> ReadVectorFromYaml(const YAML::Node& node)
@@ -64,6 +81,23 @@ StateRL::StateRL(CtrlInterfaces& ctrl_interfaces,
 
     // read params from yaml
     loadYaml(model_path);
+
+    live_telemetry_enabled_ = envEnabled("ABS_LIVE_TELEMETRY");
+    if (const char* requested_fault = std::getenv("ABS_TEST_FAULT"); requested_fault != nullptr && requested_fault[0] != '\0')
+    {
+        if (!envEnabled("ABS_SIMULATION_TEST"))
+        {
+            test_fault_blocked_ = true;
+            RCLCPP_ERROR(node_->get_logger(),
+                "[ABS-LIVE-FAULT] event=blocked id=%s reason=ABS_SIMULATION_TEST_not_enabled", requested_fault);
+        }
+        else
+        {
+            test_fault_id_ = requested_fault;
+            RCLCPP_WARN(node_->get_logger(),
+                "[ABS-LIVE-FAULT] event=armed id=%s clock=steady_clock_ns", test_fault_id_.c_str());
+        }
+    }
 
     if (!params_.observations_history.empty())
     {
@@ -224,7 +258,7 @@ StateRL::~StateRL()
     {
         close(ray2d_shm_fd_);
     }
-    if (ray2d_stamp_shm_ptr_ != nullptr && ray2d_stamp_shm_ptr_ != MAP_FAILED) munmap(ray2d_stamp_shm_ptr_, 2 * sizeof(uint64_t));
+    if (ray2d_stamp_shm_ptr_ != nullptr && ray2d_stamp_shm_ptr_ != MAP_FAILED) munmap(ray2d_stamp_shm_ptr_, sizeof(abs_ray2d_shm::FrameHeader));
     if (ray2d_stamp_shm_fd_ >= 0) close(ray2d_stamp_shm_fd_);
 }
 
@@ -265,9 +299,9 @@ void StateRL::enter()
         RCLCPP_WARN(rclcpp::get_logger("StateRL"),
             "[Ray2D] shm_open failed: %s, using constant ray2d", strerror(errno));
     }
-    ray2d_stamp_shm_fd_ = shm_open(kRayStampShm, O_RDONLY, 0666);
+    ray2d_stamp_shm_fd_ = shm_open(abs_ray2d_shm::kHeaderShmName, O_RDONLY, 0666);
     if (ray2d_stamp_shm_fd_ >= 0) {
-        ray2d_stamp_shm_ptr_ = static_cast<uint64_t*>(mmap(NULL, 2 * sizeof(uint64_t), PROT_READ, MAP_SHARED, ray2d_stamp_shm_fd_, 0));
+        ray2d_stamp_shm_ptr_ = static_cast<abs_ray2d_shm::FrameHeader*>(mmap(NULL, sizeof(abs_ray2d_shm::FrameHeader), PROT_READ, MAP_SHARED, ray2d_stamp_shm_fd_, 0));
         if (ray2d_stamp_shm_ptr_ == MAP_FAILED) { ray2d_stamp_shm_ptr_ = nullptr; close(ray2d_stamp_shm_fd_); ray2d_stamp_shm_fd_ = -1; }
     }
 
@@ -280,6 +314,11 @@ void StateRL::enter()
     rl_step_count_ = 0;
     sync_decimation_counter_ = 0;
     soft_start_step_ = 0;
+    last_ray_stamp_ns_ = 0;
+    last_ray_age_ns_ = 0;
+    last_ray_reason_ = "not_checked";
+    ray_check_count_ = 0;
+    ray_last_check_telemetry_ns_ = 0;
 
     // Init output
     output_torques = torch::zeros({1, params_.num_of_dofs});
@@ -314,6 +353,10 @@ void StateRL::enter()
     }
 
     running_ = true;
+    if (test_fault_blocked_)
+    {
+        safetyVeto("simulation test fault requested outside simulation mode");
+    }
 
     // Diagnostic: confirm estimator + recovery status
     RCLCPP_INFO(rclcpp::get_logger("StateRL"),
@@ -578,19 +621,82 @@ double StateRL::normalizedTimer() const
 
 bool StateRL::updateRay2d()
 {
-    const uint64_t now_ns = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count());
-    const bool valid = ray2d_stamp_shm_ptr_ != nullptr && ray2d_shm_ptr_ != nullptr &&
-        abs_observation::rayFrameValid(ray2d_shm_ptr_, params_.abs_ray2d_count, ray2d_stamp_shm_ptr_[0],
-            ray2d_stamp_shm_ptr_[1], now_ns, static_cast<uint64_t>(params_.abs_ray2d_timeout_ms) * 1000000ULL);
-    ray2d_valid_ = valid;
-    if (valid) obs_.ray2d = torch::from_blob(ray2d_shm_ptr_, {1, params_.abs_ray2d_count}, torch::kFloat32).clone();
-    return valid;
+    const uint64_t now_ns = monotonicNowNs();
+    const uint64_t timeout_ns = static_cast<uint64_t>(params_.abs_ray2d_timeout_ms) * 1000000ULL;
+    if (ray2d_stamp_shm_ptr_ == nullptr || ray2d_shm_ptr_ == nullptr)
+    {
+        ray2d_valid_ = false;
+        last_ray_reason_ = "shared_memory_missing";
+        return false;
+    }
+
+    // The writer brackets its payload with an odd/even sequence.  A reader only
+    // accepts a snapshot whose header did not change while the 11 values were copied.
+    std::array<float, abs_ray2d_shm::kRayCount> snapshot{};
+    for (int attempt = 0; attempt < 3; ++attempt)
+    {
+        const uint64_t sequence_before = abs_ray2d_shm::loadAcquire(&ray2d_stamp_shm_ptr_->sequence);
+        if (sequence_before == 0 || (sequence_before & 1U) != 0U)
+        {
+            last_ray_reason_ = "writer_in_progress_or_unarmed";
+            continue;
+        }
+        const uint64_t magic = abs_ray2d_shm::loadAcquire(&ray2d_stamp_shm_ptr_->magic);
+        const uint64_t version = abs_ray2d_shm::loadAcquire(&ray2d_stamp_shm_ptr_->version);
+        const uint64_t stamp_ns = abs_ray2d_shm::loadAcquire(&ray2d_stamp_shm_ptr_->monotonic_ns);
+        std::memcpy(snapshot.data(), ray2d_shm_ptr_, snapshot.size() * sizeof(float));
+        const uint64_t sequence_after = abs_ray2d_shm::loadAcquire(&ray2d_stamp_shm_ptr_->sequence);
+        if (sequence_before != sequence_after || (sequence_after & 1U) != 0U)
+        {
+            last_ray_reason_ = "incoherent_snapshot";
+            continue;
+        }
+
+        last_ray_stamp_ns_ = stamp_ns;
+        last_ray_age_ns_ = now_ns >= stamp_ns ? now_ns - stamp_ns : 0;
+        if (magic != abs_ray2d_shm::kMagic || version != abs_ray2d_shm::kVersion)
+            last_ray_reason_ = "header_magic_or_version";
+        else if (stamp_ns == 0)
+            last_ray_reason_ = "unarmed_timestamp";
+        else if (now_ns < stamp_ns)
+            last_ray_reason_ = "monotonic_clock_order";
+        else if (last_ray_age_ns_ > timeout_ns)
+            last_ray_reason_ = "stale";
+        else if (!abs_observation::rayFrameValid(snapshot.data(), params_.abs_ray2d_count,
+                                                    magic, stamp_ns, now_ns, timeout_ns))
+            last_ray_reason_ = "non_finite_ray";
+        else
+        {
+            obs_.ray2d = torch::from_blob(snapshot.data(), {1, params_.abs_ray2d_count}, torch::kFloat32).clone();
+            ray2d_valid_ = true;
+            last_ray_reason_ = "valid";
+            if (live_telemetry_enabled_ && ++ray_check_count_ % 50U == 0U)
+            {
+                const double average_period_ms = ray_last_check_telemetry_ns_ == 0 ? 0.0
+                    : static_cast<double>(now_ns - ray_last_check_telemetry_ns_) / 50.0 / 1e6;
+                RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+                    "[ABS-LIVE-RAY-CHECK] clock=steady_clock_ns now_ns=%lu checks=50 average_period_ms=%.6f",
+                    now_ns, average_period_ms);
+                ray_last_check_telemetry_ns_ = now_ns;
+            }
+            return true;
+        }
+        ray2d_valid_ = false;
+        return false;
+    }
+    ray2d_valid_ = false;
+    return false;
 }
 
 void StateRL::safetyVeto(const char* stage)
 {
-    if (!safety_faulted_) RCLCPP_ERROR(rclcpp::get_logger("StateRL"), "[ABS-CONTRACT] non-finite or invalid %s -> PASSIVE", stage);
+    if (!safety_faulted_)
+    {
+        const uint64_t now_ns = monotonicNowNs();
+        RCLCPP_ERROR(rclcpp::get_logger("StateRL"),
+            "[ABS-CONTRACT] event=detected clock=steady_clock_ns detection_ns=%lu last_ray_ns=%lu ray_age_ns=%lu ray_reason=%s stage=%s transition_request=PASSIVE",
+            now_ns, last_ray_stamp_ns_, last_ray_age_ns_, last_ray_reason_.c_str(), stage);
+    }
     safety_faulted_ = true;
     running_ = false;
     for (int i = 0; i < params_.num_of_dofs; ++i) {
@@ -599,6 +705,7 @@ void StateRL::safetyVeto(const char* stage)
         robot_command_.motor_command.kd[i] = 0.0;
         robot_command_.motor_command.tau[i] = 0.0;
     }
+    emitCommandTelemetry("safety_veto", stage);
 }
 
 bool StateRL::finiteMotorCommand() const
@@ -606,6 +713,69 @@ bool StateRL::finiteMotorCommand() const
     for (int i = 0; i < params_.num_of_dofs; ++i) if (!std::isfinite(robot_command_.motor_command.q[i]) ||
         !std::isfinite(robot_command_.motor_command.kp[i]) || !std::isfinite(robot_command_.motor_command.kd[i]) || !std::isfinite(robot_command_.motor_command.tau[i])) return false;
     return true;
+}
+
+bool StateRL::injectTestFault(const char* id, torch::Tensor* value)
+{
+    if (test_fault_consumed_ || test_fault_id_ != id)
+    {
+        return false;
+    }
+    test_fault_consumed_ = true;
+    const bool inject_inf = test_fault_id_.find("inf") != std::string::npos;
+    const float injected_value = inject_inf ? std::numeric_limits<float>::infinity()
+                                            : std::numeric_limits<float>::quiet_NaN();
+    if (value != nullptr && value->defined() && value->numel() > 0)
+    {
+        value->flatten()[0] = injected_value;
+    }
+    else if (test_fault_id_ == "final_command_nan" || test_fault_id_ == "final_command_inf")
+    {
+        robot_command_.motor_command.q[0] = injected_value;
+    }
+    RCLCPP_ERROR(rclcpp::get_logger("StateRL"),
+        "[ABS-LIVE-FAULT] event=injected clock=steady_clock_ns injection_ns=%lu id=%s",
+        monotonicNowNs(), id);
+    return true;
+}
+
+void StateRL::emitCommandTelemetry(const char* event, const char* reason) const
+{
+    if (!live_telemetry_enabled_ && std::strcmp(event, "safety_veto") != 0)
+    {
+        return;
+    }
+    ++telemetry_sequence_;
+    // `setCommand()` runs at the 200 Hz controller cadence.  Keep regular live
+    // evidence bounded; safety-veto records are never sampled away.
+    if (std::strcmp(event, "rl_command_write") == 0 && telemetry_sequence_ % 25U != 0U)
+    {
+        return;
+    }
+    bool finite = finiteMotorCommand();
+    bool kp_zero = true;
+    bool kd_zero = true;
+    bool tau_zero = true;
+    std::ostringstream q, kp, kd, tau;
+    q << std::fixed << std::setprecision(4);
+    kp << std::fixed << std::setprecision(4);
+    kd << std::fixed << std::setprecision(4);
+    tau << std::fixed << std::setprecision(4);
+    for (int i = 0; i < params_.num_of_dofs; ++i)
+    {
+        if (i != 0) { q << ','; kp << ','; kd << ','; tau << ','; }
+        q << robot_command_.motor_command.q[i];
+        kp << robot_command_.motor_command.kp[i] * applied_gain_ratio_;
+        kd << robot_command_.motor_command.kd[i] * applied_gain_ratio_;
+        tau << robot_command_.motor_command.tau[i];
+        kp_zero = kp_zero && robot_command_.motor_command.kp[i] * applied_gain_ratio_ == 0.0;
+        kd_zero = kd_zero && robot_command_.motor_command.kd[i] * applied_gain_ratio_ == 0.0;
+        tau_zero = tau_zero && robot_command_.motor_command.tau[i] == 0.0;
+    }
+    RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+        "[ABS-LIVE-CMD] event=%s clock=steady_clock_ns timestamp_ns=%lu sequence=%lu controller_state=RL rl_active=%d finite=%d kp_zero=%d kd_zero=%d tau_zero=%d veto_reason=%s q=[%s] kp=[%s] kd=[%s] tau=[%s]",
+        event, monotonicNowNs(), telemetry_sequence_, running_ && !safety_faulted_, finite,
+        kp_zero, kd_zero, tau_zero, reason, q.str().c_str(), kp.str().c_str(), kd.str().c_str(), tau.str().c_str());
 }
 
 bool StateRL::checkBodySafety() const
@@ -732,6 +902,7 @@ void StateRL::runRAModel()
     torch::Tensor ra_obs = computeRAObservation();
     if (!abs_observation::finite(ra_obs)) { safetyVeto("RA observation"); return; }
     auto output = ra_model_.forward({ra_obs}).toTensor();
+    injectTestFault("ra_nan", &output);
     if (!abs_observation::finite(output)) { safetyVeto("RA output"); return; }
     ra_value_ = output.item<double>();
 
@@ -895,6 +1066,7 @@ torch::Tensor StateRL::forward()
 {
     torch::autograd::GradMode::set_enabled(false);
     torch::Tensor clamped_obs = computeObservation();
+    injectTestFault("observation_nan", &clamped_obs);
     if (!abs_observation::finite(clamped_obs)) return torch::Tensor();
     torch::Tensor actions;
 
@@ -1222,6 +1394,7 @@ void StateRL::runModel()
     else
     {
         policy_actions = forward();
+        injectTestFault("action_nan", &policy_actions);
         if (!policy_actions.defined() || !abs_observation::finite(policy_actions)) { safetyVeto("agile policy action"); return; }
         clamped_actions = policyToCtrlDofOrder(policy_actions);
     }
@@ -1244,6 +1417,7 @@ void StateRL::runModel()
     output_torques = params_.rl_kp * (actions_scaled + params_.default_dof_pos - obs_.dof_pos) - params_.rl_kd * obs_.dof_vel;
 
     output_dof_pos_ = actions_scaled + params_.default_dof_pos;
+    injectTestFault("target_nan", &output_dof_pos_);
     if (!abs_observation::finite(output_dof_pos_)) { safetyVeto("joint target"); return; }
 
     // Clip target positions to Go2 joint limits (ROS1 deployment does this for Go1)
@@ -1259,8 +1433,6 @@ void StateRL::runModel()
             q = std::clamp(q, -2.7227, -0.83776);     // calf
         output_dof_pos_[0][i] = q;
     }
-    if (!finiteMotorCommand()) { safetyVeto("final motor command"); return; }
-
     for (int i = 0; i < params_.num_of_dofs; ++i)
     {
         robot_command_.motor_command.q[i] = output_dof_pos_[0][i].item<double>();
@@ -1269,6 +1441,9 @@ void StateRL::runModel()
         robot_command_.motor_command.kd[i] = params_.rl_kd[0][i].item<double>();
         robot_command_.motor_command.tau[i] = 0;
     }
+    injectTestFault("final_command_nan");
+    injectTestFault("final_command_inf");
+    if (!finiteMotorCommand()) { safetyVeto("final motor command"); return; }
 
     logEvalTelemetry(robot_wx, robot_wy, robot_yaw, goal_wx, goal_wy, dist_to_goal,
                      body_x, body_y, heading_cmd, arrived, in_recovery_, rec_hold_left_,
@@ -1287,6 +1462,7 @@ void StateRL::setCommand() const
         soft_start_step_++;
     }
     const double ratio = std::min(1.0, static_cast<double>(soft_start_step_) / soft_start_steps_);
+    applied_gain_ratio_ = ratio;
 
     for (int i = 0; i < 12; i++)
     {
@@ -1303,4 +1479,5 @@ void StateRL::setCommand() const
                                                                           set_value(
                                                                               robot_command_.motor_command.tau[i]);
     }
+    emitCommandTelemetry(safety_faulted_ ? "passive_command_write" : "rl_command_write");
 }

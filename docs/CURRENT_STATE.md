@@ -8,7 +8,7 @@ Phase 1 — MuJoCo Simulation Validation
 
 P1-01 — Policy Artifact Provenance and Joint/Contact/Action Order Contract
 
-Status: **BLOCKED / PARTIALLY COMPLETE — local 61/19/49 parity and P1-01F deployment corrections PASS; provenance and live fault evidence remain**
+Status: **BLOCKED / PARTIALLY COMPLETE — 61/19/49 parity and all local/live P1-01F deployment-contract checks PASS; artifact provenance/order closure remains server-blocked**
 
 ## Phase Acceptance
 
@@ -31,7 +31,8 @@ Status: **BLOCKED / PARTIALLY COMPLETE — local 61/19/49 parity and P1-01F depl
 - Current remap is bijective and correct for the captured training order, but correctness for the actual deployed artifacts: **UNKNOWN**.
 - Production-linked asymmetric golden parity: Agile 61 / RA 19 / Recovery 49: **PASS**.
 - P1-01F corrected rolling timer, contact temporal filter, nominal bias, fail-closed ray freshness and finite-value vetoes; helper-level fault tests **PASS**.
-- Contract: [`POLICY_IO_CONTRACT.md`](POLICY_IO_CONTRACT.md). Goal shaping remains **INTENTIONAL ENGINEERING VARIANT**; live fault injection is not yet evidence.
+- Live ROS2+MuJoCo P1-01F: normal writer, writer freeze/exit, ray NaN/Inf, observation/RA/action/target/final-command non-finite injections all **PASS**. Timing is one `steady_clock` domain; 200 ms freshness + one 20 ms ray-check interval is met. Telemetry proves finite post-veto targets and zero Kp/Kd/torque.
+- Contract: [`POLICY_IO_CONTRACT.md`](POLICY_IO_CONTRACT.md). Goal shaping remains **INTENTIONAL ENGINEERING VARIANT**. Real Go2 foot-force slot order and artifact provenance remain `UNKNOWN`.
 - Reviewer: prior **REJECT**; provenance and the remaining semantic gaps require re-review after closure.
 
 ## Current Metrics
@@ -57,4 +58,4 @@ ABS/RL real test: **NO-GO**
 
 ## Next
 
-Run P1-01F live ROS2/MuJoCo fault injection, then close server-dependent provenance when access returns. Do not start P1-02 or change core algorithms.
+Do not start P1-02. P1-01F live contract validation is complete; await training-server availability to close artifact provenance/order and then obtain independent Reviewer re-review of P1-01.

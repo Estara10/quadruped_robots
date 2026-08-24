@@ -31,6 +31,7 @@ set(SIM_DEPENDENCIES
 )
 
 add_executable(unitree_mujoco ${SIM_SRC} src/main.cc)
+target_include_directories(unitree_mujoco PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../common)
 target_link_libraries(unitree_mujoco ${SIM_DEPENDENCIES})
 
 add_executable(jstest src/joystick/jstest.cc src/joystick/joystick.cc)

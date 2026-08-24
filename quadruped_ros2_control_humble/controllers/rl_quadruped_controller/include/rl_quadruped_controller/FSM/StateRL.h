@@ -9,7 +9,11 @@
 #include <rl_quadruped_controller/control/CtrlComponent.h>
 #include <torch/script.h>
 
+#include <array>
+
 #include "controller_common/FSM/FSMState.h"
+
+namespace abs_ray2d_shm { struct FrameHeader; }
 
 struct CtrlComponent;
 
@@ -255,9 +259,14 @@ private:
     // Ray2d shared memory
     float* ray2d_shm_ptr_ = nullptr;
     int ray2d_shm_fd_ = -1;
-    uint64_t* ray2d_stamp_shm_ptr_ = nullptr;  // [magic, monotonic_ns]
+    abs_ray2d_shm::FrameHeader* ray2d_stamp_shm_ptr_ = nullptr;
     int ray2d_stamp_shm_fd_ = -1;
     bool ray2d_valid_ = false;
+    uint64_t last_ray_stamp_ns_ = 0;
+    uint64_t last_ray_age_ns_ = 0;
+    std::string last_ray_reason_ = "not_checked";
+    uint64_t ray_check_count_ = 0;
+    uint64_t ray_last_check_telemetry_ns_ = 0;
     torch::Tensor last_contacts_;
     bool safety_faulted_ = false;
 
@@ -301,6 +310,14 @@ private:
     bool emergency_stop_enabled_ = true;
     bool emergency_stop_triggered_ = false;
 
+    // Explicitly opt-in simulation-only fault injection and structured command evidence.
+    bool live_telemetry_enabled_ = false;
+    std::string test_fault_id_;
+    bool test_fault_consumed_ = false;
+    bool test_fault_blocked_ = false;
+    mutable uint64_t telemetry_sequence_ = 0;
+    mutable double applied_gain_ratio_ = 1.0;
+
     bool useRos1PolicyOrder() const;
     torch::Tensor ctrlToPolicyDofOrder(const torch::Tensor& ctrl_order) const;
     torch::Tensor policyToCtrlDofOrder(const torch::Tensor& policy_order) const;
@@ -309,6 +326,8 @@ private:
     bool updateRay2d();
     void safetyVeto(const char* stage);
     bool finiteMotorCommand() const;
+    bool injectTestFault(const char* id, torch::Tensor* value = nullptr);
+    void emitCommandTelemetry(const char* event, const char* reason = "") const;
 };
 
 

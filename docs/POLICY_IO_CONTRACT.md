@@ -221,9 +221,31 @@ The controller, simulator, motor chain, current Isaac Gym runtime order, dimensi
 - **Timer:** default is now `paper_faithful_rolling`; it exposes the training time-left phase over each 9-second deployment horizon. It intentionally does not claim a physical robot reset. `legacy_fixed` is explicit and non-default.
 - **Contact:** Agile, inline Recovery and manual Recovery retain the current raw controller-order contact for one prior policy cycle, exactly as training's `logical_or(current,last_contacts)` does. Entry initializes prior contacts false.
 - **Bias:** both configurations declare a controller-order nominal `dof_bias` and both policy observations remap/subtract it. The zero default is a deliberate nominal calibration, not an invented replay of training's random per-episode ±0.08 value.
-- **Rays:** geometric MuJoCo now writes a side-channel `/mujoco_ray2d_stamp` containing a contract magic and monotonic timestamp after completing the original 11-value `log2` frame. ROS2 accepts a ray frame only when the stamp is present, fresh (default 200 ms), and every beam finite. Invalid, missing, stale or partial-invalid data invokes `safetyVeto` and transitions to PASSIVE; a genuine fresh all-6m frame remains valid.
+- **Rays:** `/mujoco_ray2d_stamp` is now a versioned header: magic, version, odd/even sequence, and a `steady_clock` nanosecond completion timestamp. MuJoCo computes rays privately, then marks the frame odd only during the bounded 11-float copy and publishes it even after the matching stamp. ROS2 accepts only a stable, matching snapshot that is fresh (default 200 ms) and finite. Invalid, missing, stale or partial-invalid data invokes `safetyVeto`; a genuine fresh all-6m frame remains valid.
 - **Non-finite values:** observation, RA observation/output, Agile/Recovery output, joint target and final motor command are finite-checked. A failure zeros gains/torque, writes a finite nominal target and latches PASSIVE. This is a local contract veto, not a Phase-2 Safety Supervisor.
 
 `test_p1_01_local_contract.py` now injects single-foot touch/liftoff, timer boundary, missing writer, stale writer and Inf-ray helper faults in addition to 61/19/49 parity. The compiled controller package passes. Full live ROS2/MuJoCo fault injection remains required before Phase 1 acceptance.
 
 Recorded local evidence: [`p1_01f_local_contract.json`](evidence/P1-01/p1_01f_local_contract.json).
+
+### P1-01F live ROS2 + MuJoCo fault injection — 2026-08-24
+
+All timings below use the same `std::chrono::steady_clock` nanosecond domain in the writer, controller and test hooks. The normal run measured the writer at 1.0022 ms mean (min/max 1.0000/1.0470 ms) and the deployed ray freshness check at 20.0001 ms mean (min/max 19.9823/20.0221 ms). The 200 ms threshold is unchanged; the acceptance tolerance is 220 ms, one measured 50 Hz check interval.
+
+| Case | Result | Injection → detection | Safety command evidence |
+|---|---|---:|---|
+| Normal writer | **PASS** — no false-positive veto during measured RL run | n/a | finite RL commands observed |
+| Writer freeze | **PASS** | 211.706 ms | finite target; Kp/Kd/torque all zero |
+| Writer abrupt exit | **PASS**; old shared-memory stamp remained and became stale | 205.353 ms | finite target; Kp/Kd/torque all zero |
+| Ray NaN / Inf | **PASS** | 20.759 / 18.862 ms | finite target; Kp/Kd/torque all zero |
+| Observation NaN | **PASS** | 0.048 ms | finite target; Kp/Kd/torque all zero |
+| RA output NaN | **PASS** | 0.117 ms | finite target; Kp/Kd/torque all zero |
+| Policy action NaN | **PASS** | 0.131 ms | finite target; Kp/Kd/torque all zero |
+| Joint target NaN | **PASS** | 0.105 ms | finite target; Kp/Kd/torque all zero |
+| Final command NaN / Inf | **PASS** | 0.063 / 0.052 ms | non-finite candidate vetoed before interface write; finite zero-gain command emitted |
+
+Each fault log contains `[ABS-LIVE-FAULT] event=injected`, `[ABS-CONTRACT] event=detected`, `[ABS-LIVE-CMD] event=safety_veto`, `[ABS-LIVE-CMD] event=passive_command_write`, and `Switched from rl to passive`. `ABS_TEST_FAULT` and `MUJOCO_RAY_TEST_FAULT` require explicit simulation-only environment guards; `real_go2.launch.py` forces `ABS_SIMULATION_TEST=0`.
+
+The earlier 4.7–4.9 s readings are superseded: they compared independently orchestrated wall/log timings rather than one clock domain. The earlier normal-writer false positive is explained by the old writer marking a frame in-progress across the full geometry calculation; the revised bounded publish window and sequence-consistent reader eliminate that failure in the current normal run.
+
+This does not alter goal shaping (`INTENTIONAL ENGINEERING VARIANT`), server-dependent provenance `UNKNOWN`, real Go2 foot-force order `UNKNOWN`, or the Phase 2 NO-GO gate.

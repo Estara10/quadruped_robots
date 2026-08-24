@@ -31,3 +31,8 @@ Only accepted decisions belong here. Open questions remain in `GAP_MATRIX.md`.
 
 - Status: Accepted on Day 0
 - Decision: Any historical run that does not satisfy the current `EXPERIMENT_PROTOCOL.md` is retained as `LEGACY / NON-ACCEPTANCE` and cannot enter formal Acceptance statistics.
+
+## DEC-007 — Ray Frame Timing Contract
+
+- Status: Accepted on 2026-08-24 (P1-01F)
+- Decision: A runtime ray frame is valid only when the producer and consumer agree on the versioned shared-memory header, a sequence-consistent 11-beam snapshot, and a `steady_clock` nanosecond completion timestamp within the configured freshness threshold. Missing, stale, incoherent, or non-finite frames fail closed. Simulation-only fault injection must be explicitly armed and is disabled by the real-robot launch.

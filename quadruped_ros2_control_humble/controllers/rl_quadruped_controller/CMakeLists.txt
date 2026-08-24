@@ -57,6 +57,7 @@ target_include_directories(${PROJECT_NAME}
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
         "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
         PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../../common
         ${YAML_CPP_INCLUDE_DIR}
         src)
 target_link_libraries(${PROJECT_NAME} PUBLIC

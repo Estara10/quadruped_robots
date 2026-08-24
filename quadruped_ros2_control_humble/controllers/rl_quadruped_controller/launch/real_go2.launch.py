@@ -3,7 +3,7 @@ import os
 import xacro
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription, RegisterEventHandler
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription, RegisterEventHandler, SetEnvironmentVariable
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
@@ -108,5 +108,7 @@ def generate_launch_description():
     return LaunchDescription([
         pkg_description,
         network_interface,
+        # A test fault inherited from a developer shell must fail closed, never arm on hardware.
+        SetEnvironmentVariable('ABS_SIMULATION_TEST', '0'),
         OpaqueFunction(function=launch_setup),
     ])

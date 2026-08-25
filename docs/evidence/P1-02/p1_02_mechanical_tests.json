@@ -1,0 +1,37 @@
+{
+  "task": "P1-02 — Formal Experiment Contract",
+  "schema_version": "abs-go2-formal-run/v1",
+  "execution_date": "2026-08-25",
+  "commands": [
+    "rtk python3 scripts/test_formal_experiment_contract.py",
+    "rtk python3 -m py_compile scripts/formal_experiment_contract.py scripts/test_formal_experiment_contract.py",
+    "rtk python3 -m json.tool schemas/formal_experiment_run_v1.json >/dev/null"
+  ],
+  "result": {
+    "test_suite": "PASS",
+    "tests_run": 17,
+    "failures": 0,
+    "errors": 0,
+    "simulation_or_benchmark_run": false
+  },
+  "coverage": [
+    "valid fixture",
+    "manifest completeness",
+    "event ordering",
+    "missing or stale runtime artifacts",
+    "nested schema/version/variant/hash/pairing rejection",
+    "wrong-run telemetry/events and 11-ray/12-D vector rejection",
+    "summary hash chain and non-placeholder plot rejection",
+    "non-finite and malformed event clock rejection",
+    "telemetry/event/terminal safety consistency and SUCCESS veto",
+    "comparison CLI: complete, missing, duplicate and mismatched variants",
+    "safety event vetoes arrival",
+    "seed derivation and paired variants",
+    "legacy classification"
+  ],
+  "known_runtime_gaps": [
+    "No runtime adapter currently emits all formal telemetry/events.",
+    "Existing evaluator outputs remain LEGACY / NON-ACCEPTANCE.",
+    "P1-01 artifact provenance/order remains BLOCKED / UNKNOWN."
+  ]
+}

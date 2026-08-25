@@ -6,9 +6,15 @@ Phase 1 — MuJoCo Simulation Validation
 
 ## Current Task
 
-P1-01 — Policy Artifact Provenance and Joint/Contact/Action Order Contract
+Director-selected next engineering task: P1-02 — Formal Experiment Contract
+
+Status: **EXECUTING — `abs-go2-formal-run/v1` additionally fail-closes missing/malformed/non-finite event clocks, telemetry/event/terminal safety contradictions, and invalid comparison groups. 17 deterministic mechanical tests PASS. Runtime source adapter remains incomplete, so no pilot, benchmark, or formal run is authorized**
+
+Open blocked task: **P1-01 — Policy Artifact Provenance and Joint/Contact/Action Order Contract**
 
 Status: **BLOCKED / PARTIALLY COMPLETE — 61/19/49 parity and all local/live P1-01F deployment-contract checks PASS; artifact provenance/order closure remains server-blocked**
+
+State model and role boundaries: [`PROJECT_STATE_MODEL.md`](PROJECT_STATE_MODEL.md)
 
 ## Phase Acceptance
 
@@ -22,7 +28,7 @@ Status: **BLOCKED / PARTIALLY COMPLETE — 61/19/49 parity and all local/live P1
 - Real Go2 `foot_force[0..3]` semantics are not independently captured.
 - Isaac Gym Go2 `terminate_after_contacts_on=["base"]` currently matches no runtime body.
 - Recovery solver and switching contain known paper mismatches.
-- Formal experiment validity, seed control and event recording are not yet closed.
+- Formal experiment schema/validator are implemented, but authoritative runtime event, telemetry, seed and provenance sources are not yet connected; existing evaluator outputs remain `LEGACY / NON-ACCEPTANCE`.
 
 ## P1-01 Evidence
 
@@ -58,4 +64,4 @@ ABS/RL real test: **NO-GO**
 
 ## Next
 
-Do not start P1-02. P1-01F live contract validation is complete; await training-server availability to close artifact provenance/order and then obtain independent Reviewer re-review of P1-01.
+Continue only P1-02 formal experiment-contract implementation under [`exec-plans/P1-02.md`](exec-plans/P1-02.md): connect authoritative runtime sources without bypassing the validator, then submit P1-02 for Reviewer. In parallel, await training-server availability to close P1-01 artifact provenance/order and then obtain independent Reviewer re-review of P1-01.

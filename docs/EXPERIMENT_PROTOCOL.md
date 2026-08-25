@@ -2,6 +2,10 @@
 
 This protocol defines what may enter project Acceptance statistics. Visual behavior, interactive smoke tests and historical logs remain useful diagnostics but are not formal evidence unless they satisfy this document.
 
+## Implementation Binding
+
+The current machine-verifiable contract is schema version `abs-go2-formal-run/v1` in [`FORMAL_EXPERIMENT_SCHEMA.md`](FORMAL_EXPERIMENT_SCHEMA.md). The formal writer/validator must classify each artifact directory as `VALID`, `INVALID`, or `LEGACY / NON-ACCEPTANCE`; this binding does not upgrade historical outputs. Current runtime-source coverage is recorded in [`evidence/P1-02/field_to_runtime_source.md`](evidence/P1-02/field_to_runtime_source.md).
+
 ## Run Identity
 
 Every formal run has a globally unique `run_id` and records:
@@ -127,6 +131,7 @@ Invalid episodes are reported separately; they are never silently retried until 
 - Paired variants use the same seed list and scenario list.
 - Pilot seeds are separated from formal Acceptance seeds.
 - Formal thresholds and analysis rules are frozen before examining formal outcomes.
+- Before any formal aggregation or comparison, the three manifests must pass `rtk python3 scripts/formal_experiment_contract.py --validate-comparison <manifest...>`. The command rejects a missing/duplicate variant or a pairing-key mismatch; failed groups must not be aggregated.
 
 ## Experiment Variants
 

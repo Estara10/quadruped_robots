@@ -1,6 +1,6 @@
 schema_version: 2
 baseline_date: "2026-08-23"
-last_verified: "2026-08-25"
+last_verified: "2026-08-26"
 
 artifacts:
   agile_policy:
@@ -37,6 +37,7 @@ artifacts:
       recovered_config_candidate: ABS_fuwuqi/ABS/training/legged_gym/legged_gym/envs/go2/go2_pos_config.py
       recovered_config_candidate_sha256: ef13f1808fb2d1468afa37442610748121cc7ba5b807bfea4443c58804877cf5
       exact_run_config_snapshot: UNKNOWN
+      historical_retrieval: "2026-08-26 targeted search found no config/hparams/command/metadata sidecar; checkpoint has infos=None and no order/seed/commit; TensorBoard has no hparams/run metadata; Go2 config is untracked and absent from recovered Git objects/history"
       training_seed: UNKNOWN
       training_git_commit: UNKNOWN
       repository_introduced_commit: c949892e871886a9377ee6d5f352927eef8d048a
@@ -71,6 +72,7 @@ artifacts:
       dataset: "EPHEMERAL ONLINE QUEUES — no persisted sample artifact found"
       dataset_sha256: UNKNOWN
       dataset_episode_count: UNKNOWN
+      historical_retrieval: "2026-08-26 targeted RA/export/TensorBoard/Git search found no execution log, command record, dataset manifest, loaded-checkpoint metadata, seed, commit, or conversion invocation"
       training_seed: UNKNOWN
       training_git_commit: UNKNOWN
       repository_introduced_commit: 72dc79b1a2389e50efbf08b0295deede38b0bc00
@@ -79,6 +81,7 @@ artifacts:
       candidate_agile_checkpoint: ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/05_27_15-53-31_/model_4000.pt
       candidate_agile_checkpoint_sha256: a21419d2636c5ad6782b4be87a2ad7335a2b671ce2d6463c08e19fe49ead912f
       evidence: "testbed.py executes task_registry.loaded_policy_path and derives the RA output name from that path; the recovered RA source occupies the derived path/name, but no execution log or embedded model metadata proves which Agile checkpoint generated its samples"
+      retrieval_result: "2026-08-26: RA directory contains only source/JIT artifacts; their embedded metadata, the PPO TensorBoard event, and recovered Git history contain no independent loaded-checkpoint record"
       exact_artifact_binding: UNKNOWN
 
   recovery_policy:
@@ -115,6 +118,7 @@ artifacts:
       recovered_config_candidate: ABS_fuwuqi/ABS/training/legged_gym/legged_gym/envs/go2/go2_rec_config.py
       recovered_config_candidate_sha256: 6dfb91bb60fccdae4b90f8936acffdf13d5e398dd6850df9f7c07f0340066117
       exact_run_config_snapshot: UNKNOWN
+      historical_retrieval: "2026-08-26 targeted search found no config/hparams/command/metadata sidecar; checkpoint has infos=None and no order/seed/commit; TensorBoard has no hparams/run metadata; Go2 config/export script are untracked and absent from recovered Git objects/history"
       training_seed: UNKNOWN
       training_git_commit: UNKNOWN
       repository_replaced_commit: 84beae23255a147b9caded2237db6a5ff94f160e

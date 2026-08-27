@@ -1,0 +1,8 @@
+{
+  "task": "P1-03",
+  "trace": "docs/evidence/P1-03/formula_parameter_trace.yaml",
+  "records": 11,
+  "validator": "mechanical source-anchor validation",
+  "result": "PASS",
+  "errors": []
+}

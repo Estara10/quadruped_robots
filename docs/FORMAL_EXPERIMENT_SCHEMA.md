@@ -48,7 +48,15 @@ Safety evidence uses one rule across telemetry, events and terminal outcome. Eac
 
 ## Pairing
 
-The pairing key is the canonical SHA-256 of scenario ID/hash, root seed, effective-config hash, and the three deployed model hashes. Each formal comparison uses the same key for `paper-faithful`, `stabilized`, and `agile-only`; mixing labels or mismatched keys is rejected.
+The pairing key is the canonical SHA-256 of scenario ID/hash, root seed, effective-config hash, and the three deployed model hashes. Each formal comparison uses the same key for `paper-faithful`, `stabilized`, and `agile-only`; mixing labels, duplicate `run_id` values, or mismatched keys is rejected.
+
+Run-ID boundary:
+
+- `FormalRunWriter` allocates a process-local `run-<UUID4 hex>` ID before a manifest is written.
+- A caller-supplied `run_id` is not accepted as the writer's production uniqueness mechanism; if it differs from the allocated ID, manifest creation fails.
+- `write_summary()` applies the same binding: an omitted `run_id` is filled from the writer allocation, while a mismatched ID raises before `summary.json` is created or overwritten.
+- The writer's in-process registry prevents collisions among IDs allocated by one process. Cross-process/global uniqueness is probabilistic UUID4 uniqueness plus persisted artifact identity; it is not a distributed lock or a server-side registry.
+- Comparison validation independently rejects duplicate `run_id` values, so three pattern-valid manifests cannot represent one formal run under multiple variants.
 
 Before any formal aggregation or comparison, run:
 
@@ -57,7 +65,7 @@ rtk python3 scripts/formal_experiment_contract.py --validate-comparison \
   <paper-faithful-manifest.json> <stabilized-manifest.json> <agile-only-manifest.json>
 ```
 
-This comparison gate requires exactly the three distinct labels, schema-valid manifests, and one shared pairing key. A failed comparison gate prohibits aggregation.
+This comparison gate requires exactly the three distinct labels, schema-valid manifests, one shared pairing key, and three distinct run IDs. A failed comparison gate prohibits aggregation.
 
 ## Validation
 

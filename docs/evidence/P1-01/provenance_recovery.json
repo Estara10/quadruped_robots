@@ -2,7 +2,8 @@
   "schema_version": 1,
   "task": "P1-01 Provenance Closure",
   "captured_on": "2026-08-25",
-  "scope": "Recovered training-artifact provenance from ABS_fuwuqi; no policy or controller code changed",
+  "last_investigated_on": "2026-08-26",
+  "scope": "Recovered training-artifact provenance plus targeted historical order/binding/metadata retrieval from the approved ABS_fuwuqi paths; no policy or controller code changed",
   "evidence_root": "ABS_fuwuqi/ABS",
   "method": {
     "artifact_identity": "SHA-256 and byte size",
@@ -61,7 +62,15 @@
         "checkpoint_to_deployment_all_actor_tensors_exact": true,
         "export_to_deployment_bytes_exact": true
       },
-      "unknown": ["training seed", "historical training Git commit", "immutable exact-run config/source snapshot", "artifact joint/contact/action order", "exact export invocation and export-time environment"]
+      "unknown": ["training seed", "historical training Git commit", "immutable exact-run config/source snapshot", "artifact joint/contact/action order", "exact export invocation and export-time environment"],
+      "historical_retrieval": {
+        "status": "UNKNOWN",
+        "run_directory_inventory": "Only model_0.pt through model_4000.pt at 200-iteration intervals plus one TensorBoard event file; no config snapshot, params/hparams file, command/launch record, or metadata file",
+        "checkpoint_embedded_metadata": "Only model_state_dict, optimizer_state_dict, iter=4000, infos=None; no config, order, seed, command, or Git identity",
+        "tensorboard_metadata": "No hparams, tensor tags, graph, run_metadata, seed, command, checkpoint path, config, joint names, or foot names",
+        "git_result": "The Go2 position config is untracked and absent from all recovered Git objects/history; run and exported paths are ignored by training/legged_gym/.gitignore and absent from Git history",
+        "impact": "No immutable evidence binds model_4000.pt to the current FL/FR/RL/RR candidate source snapshot, so deployed Agile joint/action/contact/foot order remains UNKNOWN"
+      }
     },
     "ra_value": {
       "status": "SOURCE_MODEL_AND_DEPLOYED_WEIGHT_LINEAGE_VERIFIED; DATASET_NOT_PERSISTED",
@@ -114,7 +123,15 @@
         "source_to_deployment_all_tensors_exact": true,
         "export_to_deployment_bytes_exact": true
       },
-      "unknown": ["persisted dataset/sample hash", "dataset episode count", "exact executed Agile checkpoint binding", "RA training seed", "RA training invocation/environment", "historical training Git commit", "exact conversion invocation"]
+      "unknown": ["persisted dataset/sample hash", "dataset episode count", "exact executed Agile checkpoint binding", "RA training seed", "RA training invocation/environment", "historical training Git commit", "exact conversion invocation"],
+      "historical_retrieval": {
+        "status": "UNKNOWN",
+        "ra_directory_inventory": "Only 05_27_15-53-31_model_4000_ra.pt and ra_value_jit.pt; no execution log, command record, dataset manifest, params/hparams, or metadata sidecar",
+        "source_model_embedded_metadata": "Archive names contain the candidate filename but no loaded checkpoint path, checkpoint hash, dataset identity, seed, command, or Git identity",
+        "tensorboard_metadata": "The Agile PPO TensorBoard event has no RA hparams, loaded-policy record, command, or dataset manifest",
+        "git_result": "No recovered Git history contains either run identifier; logs/ is ignored and the current modified testbed.py does not constitute an immutable RA execution record",
+        "impact": "The code-derived filename candidate remains insufficient under the binding standard; exact executed Agile checkpoint binding remains UNKNOWN"
+      }
     },
     "recovery_policy": {
       "status": "WEIGHT_LINEAGE_VERIFIED",
@@ -155,14 +172,69 @@
         "checkpoint_to_deployment_all_actor_tensors_exact": true,
         "export_to_deployment_bytes_exact": true
       },
-      "unknown": ["training seed", "historical training Git commit", "immutable exact-run config/source snapshot", "artifact joint/contact/action order", "export execution log and export-time environment"]
+      "unknown": ["training seed", "historical training Git commit", "immutable exact-run config/source snapshot", "artifact joint/contact/action order", "export execution log and export-time environment"],
+      "historical_retrieval": {
+        "status": "UNKNOWN",
+        "run_directory_inventory": "Only model_0.pt through model_15000.pt at 200-iteration intervals plus one TensorBoard event file; no config snapshot, params/hparams file, command/launch record, or metadata file",
+        "checkpoint_embedded_metadata": "Only model_state_dict, optimizer_state_dict, iter=15000, infos=None; no config, order, seed, command, or Git identity",
+        "tensorboard_metadata": "No hparams, tensor tags, graph, run_metadata, seed, command, checkpoint path, config, joint names, or foot names",
+        "git_result": "The Go2 recovery config and export_rec_policy.py are untracked and absent from all recovered Git objects/history; run and exported paths are ignored by training/legged_gym/.gitignore and absent from Git history",
+        "impact": "No immutable evidence binds model_15000.pt to the current FL/FR/RL/RR candidate source snapshot, so deployed Recovery joint/action/contact/foot order remains UNKNOWN"
+      }
     }
+  },
+  "historical_retrieval_2026_08_26": {
+    "targets": {
+      "agile_and_recovery_training_order": "UNKNOWN",
+      "ra_exact_agile_binding": "UNKNOWN",
+      "historical_training_git_commit": "UNKNOWN",
+      "immutable_config_snapshot": "UNKNOWN",
+      "training_seed": "UNKNOWN",
+      "agile_export_invocation": "UNKNOWN",
+      "recovery_export_execution_record": "UNKNOWN",
+      "ra_conversion_invocation": "UNKNOWN"
+    },
+    "scoped_locations_checked": [
+      "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/05_27_15-53-31_/",
+      "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_rec_rough/06_04_22-43-20_/",
+      "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/",
+      "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_rec_rough/exported/",
+      "the training/export files already cited by this evidence",
+      "ABS_fuwuqi/ABS/.git through targeted status, log, rev-list, ls-files, check-ignore, and pickaxe queries"
+    ],
+    "git_queries": [
+      {
+        "command": "git -C ABS_fuwuqi/ABS status --short -- <cited Go2 configs/training/export files>",
+        "result": "go2_pos_config.py, go2_rec_config.py, and export_rec_policy.py are untracked; envs/__init__.py and testbed.py are modified"
+      },
+      {
+        "command": "git -C ABS_fuwuqi/ABS log --all --date=iso --format=<hash,date,subject> -- <cited Go2 configs/training/export files>",
+        "result": "No commit for the untracked Go2 config/export files; only upstream commit 713c3cc... for pre-existing tracked training files"
+      },
+      {
+        "command": "git -C ABS_fuwuqi/ABS rev-list --all --objects | grep <Go2 config/export paths>",
+        "result": "No matching Git object"
+      },
+      {
+        "command": "git -C ABS_fuwuqi/ABS log --all -S<go2_pos_rough|go2_rec_rough|05_27_15-53-31_|06_04_22-43-20_> -- training/legged_gym",
+        "result": "No matching commit"
+      },
+      {
+        "command": "git -C ABS_fuwuqi/ABS log --all -- <two run directories and exported directories>",
+        "result": "No history; training/legged_gym/.gitignore:54 ignores logs/",
+        "supporting_file": "ABS_fuwuqi/ABS/training/legged_gym/.gitignore",
+        "supporting_file_sha256": "17d4220b99a4bc6b3169ea0cdc2bb0a8d1424e34c7cc1d827705505e7fbf5cef"
+      }
+    ],
+    "conclusion": "The additional targeted retrieval produced negative evidence only. It does not close historical order, RA exact binding, commit/config/seed, or exact invocation. UNKNOWN is preserved."
   },
   "conflicts_and_limits": [
     "The recovered ABS Git checkout is at upstream HEAD 9b95329... but the Go2 configs, export_rec_policy.py, and run outputs are untracked; 9b95329... is not evidence of the historical training commit.",
     "Fresh re-exports under the available Torch 2.0.1 environment preserve all model weights and tested outputs but are not byte-identical to the archived exports; exact export-time environment remains UNKNOWN.",
     "RA training uses an online in-memory queue. The recovered tree contains the trained RA source model but no persisted episode dataset, seed record, command log, or exact sample manifest.",
-    "TensorBoard logs prove run spans but contain no seed, command line, Git commit, or saved configuration metadata.",
+    "TensorBoard logs prove run spans but contain no hparams, graph, run metadata, seed, command line, loaded checkpoint, Git commit, saved configuration, joint names, or foot names.",
+    "Targeted recovered Git history contains no Go2 config/export object and no run-identifier commit; the current Go2 configs/export script are untracked, testbed.py is modified, and logs/ is ignored.",
+    "The 2026-08-26 retrieval found no new immutable positive artifact; it records search coverage and preserves all affected facts as UNKNOWN.",
     "This evidence closes model weight lineage, not immutable historical training configuration, artifact joint/contact/action order, real Go2 foot-force semantics, or independent Reviewer acceptance."
   ]
 }

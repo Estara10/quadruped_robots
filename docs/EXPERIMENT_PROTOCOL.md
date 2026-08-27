@@ -131,7 +131,8 @@ Invalid episodes are reported separately; they are never silently retried until 
 - Paired variants use the same seed list and scenario list.
 - Pilot seeds are separated from formal Acceptance seeds.
 - Formal thresholds and analysis rules are frozen before examining formal outcomes.
-- Before any formal aggregation or comparison, the three manifests must pass `rtk python3 scripts/formal_experiment_contract.py --validate-comparison <manifest...>`. The command rejects a missing/duplicate variant or a pairing-key mismatch; failed groups must not be aggregated.
+- Before any formal aggregation or comparison, the three manifests must pass `rtk python3 scripts/formal_experiment_contract.py --validate-comparison <manifest...>`. The command rejects a missing/duplicate variant, duplicate `run_id`, or a pairing-key mismatch; failed groups must not be aggregated.
+- `FormalRunWriter` allocates a schema-valid `run-<UUID4 hex>` ID internally. Caller-provided pattern-valid IDs are not a production uniqueness guarantee and are rejected when they differ from the allocated ID. `write_summary()` also rejects mismatched IDs before any file write and fills an omitted ID from the writer allocation. The process-local registry prevents same-process collisions; cross-process uniqueness remains UUID4/provenance based rather than a distributed lock.
 
 ## Experiment Variants
 

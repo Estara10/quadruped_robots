@@ -1,0 +1,18 @@
+{
+  "task": "P1-03",
+  "scope": "offline trace mechanical validation and paper Eq.22 arithmetic fixture",
+  "fixtures": 6,
+  "eq22_cases": 2,
+  "tests_run": 9,
+  "failures": 0,
+  "errors": 0,
+  "result": "PASS",
+  "nonzero_yaw_expected": {
+    "dx": 0.061,
+    "dy": -0.017
+  },
+  "zero_yaw_expected": {
+    "dx": 0.06,
+    "dy": -0.02
+  }
+}

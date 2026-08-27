@@ -14,6 +14,8 @@ import hashlib
 import json
 import math
 import re
+import threading
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence
@@ -194,6 +196,7 @@ def validate_variant_group(manifests: Sequence[Mapping[str, Any]]) -> List[str]:
     """Return pairing errors; an empty list means a correctly paired variant group."""
     errors: List[str] = []
     labels = [manifest.get("variant") for manifest in manifests]
+    run_ids = [manifest.get("run_id") for manifest in manifests]
     if len(manifests) != len(VALID_VARIANTS):
         errors.append("comparison_requires_exactly_three_variants")
     invalid_labels = [str(label) for label in labels if label not in VALID_VARIANTS]
@@ -206,6 +209,8 @@ def validate_variant_group(manifests: Sequence[Mapping[str, Any]]) -> List[str]:
         errors.append("paired_variant_key_mismatch")
     if len(set(labels)) != len(labels):
         errors.append("duplicate_variant_label")
+    if len(set(run_ids)) != len(run_ids):
+        errors.append("duplicate_run_id")
     if set(labels) != set(VALID_VARIANTS):
         errors.append("missing_required_variant")
     return errors
@@ -227,14 +232,36 @@ def validate_comparison_manifests(manifest_paths: Sequence[Path]) -> Dict[str, A
     return {"schema_version": SCHEMA_VERSION, "comparison_valid": not errors, "manifest_count": len(manifests), "errors": sorted(set(errors))}
 
 
+def _generated_run_id() -> str:
+    """Create a process-unique, schema-valid ID for a production-facing run."""
+    return "run-" + uuid.uuid4().hex
+
+
 class FormalRunWriter:
-    """Writes a run-local artifact set; it never manufactures missing runtime fields."""
+    """Writes a run-local artifact set with an internally allocated run ID."""
+
+    _id_lock = threading.Lock()
+    _issued_ids = set()
+
+    @classmethod
+    def allocate_run_id(cls) -> str:
+        """Allocate an ID not previously issued by this writer process."""
+        with cls._id_lock:
+            while True:
+                run_id = _generated_run_id()
+                if run_id not in cls._issued_ids:
+                    cls._issued_ids.add(run_id)
+                    return run_id
 
     def __init__(self, run_dir: Path):
         self.run_dir = Path(run_dir)
         self.run_dir.mkdir(parents=True, exist_ok=True)
         (self.run_dir / "plots").mkdir(exist_ok=True)
-        self._run_id: Optional[str] = None
+        self._run_id = self.allocate_run_id()
+
+    @property
+    def run_id(self) -> str:
+        return self._run_id
 
     @property
     def manifest_path(self) -> Path:
@@ -255,7 +282,11 @@ class FormalRunWriter:
     def write_manifest(self, manifest: Mapping[str, Any]) -> None:
         payload = dict(manifest)
         payload.setdefault("schema_version", SCHEMA_VERSION)
-        payload.setdefault("pairing_key", pairing_key(payload))
+        requested_run_id = payload.get("run_id")
+        if requested_run_id is not None and requested_run_id != self._run_id:
+            raise ValueError("manifest run_id must match writer-allocated run_id")
+        payload["run_id"] = self._run_id
+        payload["pairing_key"] = pairing_key(payload)
         errors = schema_errors(payload)
         if errors:
             raise ValueError("manifest violates formal schema: " + "; ".join(errors))
@@ -291,7 +322,10 @@ class FormalRunWriter:
             raise RuntimeError("write manifest before summary")
         payload = dict(summary)
         payload.setdefault("schema_version", SCHEMA_VERSION)
-        payload.setdefault("run_id", self._run_id)
+        requested_run_id = payload.get("run_id")
+        if requested_run_id is not None and requested_run_id != self._run_id:
+            raise ValueError("summary run_id must match writer-allocated run_id")
+        payload["run_id"] = self._run_id
         payload.setdefault("artifacts", {
             "manifest": "manifest.json",
             "telemetry": "telemetry.csv",

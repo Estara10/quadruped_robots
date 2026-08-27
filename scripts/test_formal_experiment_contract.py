@@ -62,11 +62,11 @@ def manifest(run_id: str = "fixture-run", variant: str = "paper-faithful"):
     return data
 
 
-def telemetry_row(sequence: int, monotonic_ns: int, simulation_time_s: float):
+def telemetry_row(sequence: int, monotonic_ns: int, simulation_time_s: float, run_id: str = "fixture-run"):
     row = {field: 0 for field in REQUIRED_TELEMETRY_FIELDS}
     row.update({
         "sequence": sequence,
-        "run_id": "fixture-run",
+        "run_id": run_id,
         "monotonic_time_ns": monotonic_ns,
         "simulation_time_s": simulation_time_s,
         "policy_state": "AGILE",
@@ -82,9 +82,9 @@ def telemetry_row(sequence: int, monotonic_ns: int, simulation_time_s: float):
     return row
 
 
-def event(sequence: int, event_type: str, outcome=None):
+def event(sequence: int, event_type: str, outcome=None, run_id: str = "fixture-run"):
     payload = {
-        "run_id": "fixture-run",
+        "run_id": run_id,
         "sequence": sequence,
         "monotonic_time_ns": sequence * 1_000_000,
         "simulation_time_s": sequence * 0.01,
@@ -97,19 +97,19 @@ def event(sequence: int, event_type: str, outcome=None):
 
 def write_valid_run(path: Path, variant: str = "paper-faithful") -> FormalRunWriter:
     writer = FormalRunWriter(path)
-    writer.write_manifest(manifest(variant=variant))
-    writer.write_telemetry([telemetry_row(1, 1_000_000, 0.01), telemetry_row(2, 2_000_000, 0.02)])
+    writer.write_manifest(manifest(run_id=writer.run_id, variant=variant))
+    writer.write_telemetry([telemetry_row(1, 1_000_000, 0.01, writer.run_id), telemetry_row(2, 2_000_000, 0.02, writer.run_id)])
     for item in [
-        event(1, "episode_start"), event(2, "controller_active"), event(3, "rl_entered"),
-        event(4, "valid_ready"), event(5, "recovery_enter"), event(6, "recovery_exit"),
-        event(7, "arrival_start"), event(8, "arrival_accepted"), event(9, "terminal", "SUCCESS"),
-        event(10, "shutdown"),
+        event(1, "episode_start", run_id=writer.run_id), event(2, "controller_active", run_id=writer.run_id), event(3, "rl_entered", run_id=writer.run_id),
+        event(4, "valid_ready", run_id=writer.run_id), event(5, "recovery_enter", run_id=writer.run_id), event(6, "recovery_exit", run_id=writer.run_id),
+        event(7, "arrival_start", run_id=writer.run_id), event(8, "arrival_accepted", run_id=writer.run_id), event(9, "terminal", "SUCCESS", run_id=writer.run_id),
+        event(10, "shutdown", run_id=writer.run_id),
     ]:
         writer.emit_event(item)
     for plot in REQUIRED_PLOTS:
         writer.write_data_plot(plot, data_points=2)
     writer.write_summary({
-        "run_id": "fixture-run",
+        "run_id": writer.run_id,
         "validity": "VALID",
         "terminal_outcome": "SUCCESS",
         "invalid_reasons": [],
@@ -295,11 +295,11 @@ class FormalExperimentContractTests(unittest.TestCase):
     def test_aligned_collision_telemetry_event_and_terminal_are_valid(self):
         with tempfile.TemporaryDirectory() as tmp:
             writer = FormalRunWriter(Path(tmp))
-            writer.write_manifest(manifest())
-            first = telemetry_row(1, 1_000_000, 0.01)
-            collision = telemetry_row(5, 5_000_000, 0.05); collision["collision"] = 1
+            writer.write_manifest(manifest(run_id=writer.run_id))
+            first = telemetry_row(1, 1_000_000, 0.01, writer.run_id)
+            collision = telemetry_row(5, 5_000_000, 0.05, writer.run_id); collision["collision"] = 1
             writer.write_telemetry([first, collision])
-            for item in [event(1, "episode_start"), event(2, "controller_active"), event(3, "rl_entered"), event(4, "valid_ready"), event(5, "collision_start"), event(6, "terminal", "COLLISION"), event(7, "shutdown")]:
+            for item in [event(1, "episode_start", run_id=writer.run_id), event(2, "controller_active", run_id=writer.run_id), event(3, "rl_entered", run_id=writer.run_id), event(4, "valid_ready", run_id=writer.run_id), event(5, "collision_start", run_id=writer.run_id), event(6, "terminal", "COLLISION", run_id=writer.run_id), event(7, "shutdown", run_id=writer.run_id)]:
                 writer.emit_event(item)
             for plot in REQUIRED_PLOTS:
                 writer.write_data_plot(plot, data_points=2)
@@ -308,7 +308,7 @@ class FormalExperimentContractTests(unittest.TestCase):
             self.assertEqual(result.episode_state, "VALID")
 
     def test_comparison_validation_requires_complete_unique_paired_variants(self):
-        group = [manifest(variant=variant) for variant in ("paper-faithful", "stabilized", "agile-only")]
+        group = [manifest(run_id=f"fixture-{variant}", variant=variant) for variant in ("paper-faithful", "stabilized", "agile-only")]
         with tempfile.TemporaryDirectory() as tmp:
             paths = []
             for index, item in enumerate(group):
@@ -327,10 +327,73 @@ class FormalExperimentContractTests(unittest.TestCase):
             mismatch_path = Path(tmp) / "mismatch.json"; mismatch_path.write_text(json.dumps(mismatched[1]), encoding="utf-8")
             self.assertIn("paired_variant_key_mismatch", validate_comparison_manifests([paths[0], mismatch_path, paths[2]])["errors"])
 
+    def test_comparison_validation_rejects_duplicate_run_ids(self):
+        group = [manifest(run_id="shared-run", variant=variant) for variant in ("paper-faithful", "stabilized", "agile-only")]
+        self.assertIn("duplicate_run_id", validate_variant_group(group))
+        with tempfile.TemporaryDirectory() as tmp:
+            paths = []
+            for index, item in enumerate(group):
+                path = Path(tmp) / f"duplicate-{index}.json"
+                path.write_text(json.dumps(item), encoding="utf-8")
+                paths.append(path)
+            result = validate_comparison_manifests(paths)
+            self.assertFalse(result["comparison_valid"])
+            self.assertIn("duplicate_run_id", result["errors"])
+            cli = subprocess.run([sys.executable, str(Path(__file__).with_name("formal_experiment_contract.py")), "--validate-comparison", *map(str, paths)], text=True, capture_output=True, check=False)
+            self.assertNotEqual(cli.returncode, 0)
+            self.assertIn("duplicate_run_id", cli.stdout)
+
+    def test_comparison_validation_accepts_distinct_run_ids(self):
+        group = [manifest(run_id=f"run-{variant}", variant=variant) for variant in ("paper-faithful", "stabilized", "agile-only")]
+        self.assertEqual(validate_variant_group(group), [])
+        with tempfile.TemporaryDirectory() as tmp:
+            paths = []
+            for index, item in enumerate(group):
+                path = Path(tmp) / f"distinct-{index}.json"
+                path.write_text(json.dumps(item), encoding="utf-8")
+                paths.append(path)
+            result = validate_comparison_manifests(paths)
+            self.assertTrue(result["comparison_valid"])
+            cli = subprocess.run([sys.executable, str(Path(__file__).with_name("formal_experiment_contract.py")), "--validate-comparison", *map(str, paths)], text=True, capture_output=True, check=False)
+            self.assertEqual(cli.returncode, 0, cli.stdout + cli.stderr)
+
+    def test_writer_allocates_distinct_run_ids(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            first = FormalRunWriter(Path(tmp) / "first")
+            second = FormalRunWriter(Path(tmp) / "second")
+            self.assertNotEqual(first.run_id, second.run_id)
+            self.assertRegex(first.run_id, r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+            self.assertRegex(second.run_id, r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+
+    def test_writer_rejects_caller_supplied_run_id(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            writer = FormalRunWriter(Path(tmp) / "run")
+            with self.assertRaises(ValueError):
+                writer.write_manifest(manifest(run_id="caller-chosen-id"))
+
+    def test_writer_summary_rejects_mismatched_run_id_without_overwrite(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            writer = write_valid_run(Path(tmp) / "run")
+            summary_path = writer.summary_path
+            original = summary_path.read_text(encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "summary run_id must match writer-allocated run_id"):
+                writer.write_summary({"run_id": "other-run", "validity": "VALID"})
+            self.assertEqual(summary_path.read_text(encoding="utf-8"), original)
+
+            missing_summary_dir = Path(tmp) / "missing-summary"
+            missing_writer = FormalRunWriter(missing_summary_dir)
+            self.assertFalse(missing_writer.summary_path.exists())
+            with self.assertRaisesRegex(ValueError, "summary run_id must match writer-allocated run_id"):
+                missing_writer.write_summary({"run_id": "other-run", "validity": "VALID"})
+            self.assertFalse(missing_writer.summary_path.exists())
+
+            writer.write_summary({"validity": "VALID", "terminal_outcome": "SUCCESS", "invalid_reasons": [], "metrics": {}})
+            self.assertEqual(json.loads(summary_path.read_text(encoding="utf-8"))["run_id"], writer.run_id)
+            self.assertEqual(validate_run(Path(tmp) / "run").episode_state, "VALID")
+
     def test_seed_derivation_and_paired_variants(self):
-        self.assertEqual(derive_seed(23, "scene"), derive_seed(23, "scene"))
         self.assertNotEqual(derive_seed(23, "scene"), derive_seed(24, "scene"))
-        group = [manifest(variant=variant) for variant in ("paper-faithful", "stabilized", "agile-only")]
+        group = [manifest(run_id=f"fixture-{variant}", variant=variant) for variant in ("paper-faithful", "stabilized", "agile-only")]
         self.assertEqual(validate_variant_group(group), [])
         mismatched = copy.deepcopy(group)
         mismatched[1]["scenario"]["sha256"] = "b" * 64

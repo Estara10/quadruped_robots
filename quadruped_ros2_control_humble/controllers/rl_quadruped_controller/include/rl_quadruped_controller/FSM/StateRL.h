@@ -14,6 +14,7 @@
 #include "controller_common/FSM/FSMState.h"
 
 namespace abs_ray2d_shm { struct FrameHeader; }
+namespace abs_rt_frame { struct RuntimeFrame; }
 
 struct CtrlComponent;
 
@@ -270,6 +271,12 @@ private:
     torch::Tensor last_contacts_;
     bool safety_faulted_ = false;
 
+    // Real-time observation frame shared memory (single data link to HUD/recorder).
+    // Written only by StateRL; source = AUTHORITATIVE_RUNTIME.
+    int rt_frame_shm_fd_ = -1;
+    abs_rt_frame::RuntimeFrame* rt_frame_shm_ptr_ = nullptr;
+    uint64_t rt_session_id_ = 0;
+
     // ABS episode timer
     double episode_timer_ = 0.0;
     int rl_step_count_ = 0;
@@ -328,6 +335,18 @@ private:
     bool finiteMotorCommand() const;
     bool injectTestFault(const char* id, torch::Tensor* value = nullptr);
     void emitCommandTelemetry(const char* event, const char* reason = "") const;
+    void writeRtFrame(uint32_t policy_state,
+                      double robot_wx, double robot_wy, double robot_yaw,
+                      double body_x, double body_y, double heading_cmd,
+                      const torch::Tensor& action_raw,
+                      const torch::Tensor& action_clipped,
+                      const torch::Tensor& joint_target_rad,
+                      const torch::Tensor& torque_nm);
+    void writeRtFaultedFrame();
+    // Seqlock-safe invalidation of /mujoco_rt_frame (magic/version/sequence set
+    // to an unacceptable state) so a reader classifies INVALID immediately.
+    // Called on controller exit/destruction and on pre-publish validation failure.
+    void invalidateRtFrame();
 };
 
 

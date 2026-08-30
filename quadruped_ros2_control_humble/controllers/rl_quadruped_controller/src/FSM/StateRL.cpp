@@ -5,6 +5,7 @@
 #include "rl_quadruped_controller/FSM/StateRL.h"
 #include "rl_quadruped_controller/FSM/AbsObservationContract.h"
 #include <abs_ray2d_shm_contract.h>
+#include <abs_rt_frame_contract.h>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <algorithm>
 #include <rclcpp/logging.hpp>
@@ -260,6 +261,18 @@ StateRL::~StateRL()
     }
     if (ray2d_stamp_shm_ptr_ != nullptr && ray2d_stamp_shm_ptr_ != MAP_FAILED) munmap(ray2d_stamp_shm_ptr_, sizeof(abs_ray2d_shm::FrameHeader));
     if (ray2d_stamp_shm_fd_ >= 0) close(ray2d_stamp_shm_fd_);
+    // Cleanup real-time observation frame shared memory. Invalidate BEFORE
+    // unmapping so the HUD sees INVALID immediately instead of a stale LIVE
+    // frame that would only expire after the freshness timeout.
+    invalidateRtFrame();
+    if (rt_frame_shm_ptr_ != nullptr && rt_frame_shm_ptr_ != MAP_FAILED)
+    {
+        munmap(rt_frame_shm_ptr_, sizeof(abs_rt_frame::RuntimeFrame));
+    }
+    if (rt_frame_shm_fd_ >= 0)
+    {
+        close(rt_frame_shm_fd_);
+    }
 }
 
 void StateRL::enter()
@@ -303,6 +316,49 @@ void StateRL::enter()
     if (ray2d_stamp_shm_fd_ >= 0) {
         ray2d_stamp_shm_ptr_ = static_cast<abs_ray2d_shm::FrameHeader*>(mmap(NULL, sizeof(abs_ray2d_shm::FrameHeader), PROT_READ, MAP_SHARED, ray2d_stamp_shm_fd_, 0));
         if (ray2d_stamp_shm_ptr_ == MAP_FAILED) { ray2d_stamp_shm_ptr_ = nullptr; close(ray2d_stamp_shm_fd_); ray2d_stamp_shm_fd_ = -1; }
+    }
+
+    // Real-time observation frame (single data link to HUD/recorder). The
+    // controller owns this shm; source is AUTHORITATIVE_RUNTIME on every frame.
+    rt_session_id_ = monotonicNowNs();
+    rt_frame_shm_fd_ = shm_open(abs_rt_frame::kFrameShmName, O_CREAT | O_RDWR, 0666);
+    if (rt_frame_shm_fd_ >= 0)
+    {
+        if (ftruncate(rt_frame_shm_fd_, sizeof(abs_rt_frame::RuntimeFrame)) == 0)
+        {
+            rt_frame_shm_ptr_ = static_cast<abs_rt_frame::RuntimeFrame*>(
+                mmap(NULL, sizeof(abs_rt_frame::RuntimeFrame), PROT_READ | PROT_WRITE,
+                     MAP_SHARED, rt_frame_shm_fd_, 0));
+            if (rt_frame_shm_ptr_ == MAP_FAILED)
+            {
+                rt_frame_shm_ptr_ = nullptr;
+                close(rt_frame_shm_fd_);
+                rt_frame_shm_fd_ = -1;
+            }
+        }
+        else
+        {
+            RCLCPP_WARN(rclcpp::get_logger("StateRL"),
+                "[RtFrame] ftruncate failed: %s, real-time frame disabled", strerror(errno));
+            close(rt_frame_shm_fd_);
+            rt_frame_shm_fd_ = -1;
+        }
+    }
+    else
+    {
+        RCLCPP_WARN(rclcpp::get_logger("StateRL"),
+            "[RtFrame] shm_open failed: %s, real-time frame disabled", strerror(errno));
+    }
+    if (rt_frame_shm_ptr_ != nullptr)
+    {
+        // Invalid until the first complete frame (magic/version left at 0).
+        abs_rt_frame::storeRelease(&rt_frame_shm_ptr_->header.magic, 0);
+        abs_rt_frame::storeRelease(&rt_frame_shm_ptr_->header.version, 0);
+        abs_rt_frame::storeRelease(&rt_frame_shm_ptr_->header.sequence, 0);
+        abs_rt_frame::storeRelease(&rt_frame_shm_ptr_->header.monotonic_ns, 0);
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+            "[RtFrame] Shared memory initialized: %s session_id=%lu",
+            abs_rt_frame::kFrameShmName, rt_session_id_);
     }
 
     // Always initialize obs_.ray2d (will be updated from shm in runModel if available)
@@ -502,6 +558,12 @@ void StateRL::exit()
     running_ = false;
     RCLCPP_INFO(rclcpp::get_logger("StateRL"), "[VERIFY-EXIT] RL steps executed: %d", rl_step_count_);
     rl_step_count_ = 0;
+
+    // The controller stops publishing after exit; invalidate the frame so the
+    // HUD sees INVALID immediately instead of a stale LIVE frame. This is NOT
+    // the faulted frame path: a fault while still running publishes a real
+    // LIVE-faulted frame and never reaches exit().
+    invalidateRtFrame();
 
     // Zero PD gains so the robot goes limp when exiting to PASSIVE
     for (int i = 0; i < params_.num_of_dofs; ++i)
@@ -706,6 +768,7 @@ void StateRL::safetyVeto(const char* stage)
         robot_command_.motor_command.tau[i] = 0.0;
     }
     emitCommandTelemetry("safety_veto", stage);
+    writeRtFaultedFrame();
 }
 
 bool StateRL::finiteMotorCommand() const
@@ -776,6 +839,176 @@ void StateRL::emitCommandTelemetry(const char* event, const char* reason) const
         "[ABS-LIVE-CMD] event=%s clock=steady_clock_ns timestamp_ns=%lu sequence=%lu controller_state=RL rl_active=%d finite=%d kp_zero=%d kd_zero=%d tau_zero=%d veto_reason=%s q=[%s] kp=[%s] kd=[%s] tau=[%s]",
         event, monotonicNowNs(), telemetry_sequence_, running_ && !safety_faulted_, finite,
         kp_zero, kd_zero, tau_zero, reason, q.str().c_str(), kp.str().c_str(), kd.str().c_str(), tau.str().c_str());
+}
+
+void StateRL::writeRtFrame(uint32_t policy_state,
+                           double robot_wx, double robot_wy, double robot_yaw,
+                           double body_x, double body_y, double heading_cmd,
+                           const torch::Tensor& action_raw,
+                           const torch::Tensor& action_clipped,
+                           const torch::Tensor& joint_target_rad,
+                           const torch::Tensor& torque_nm)
+{
+    abs_rt_frame::RuntimeFrame* frame = rt_frame_shm_ptr_;
+    if (frame == nullptr || frame == MAP_FAILED)
+    {
+        return;
+    }
+    const uint64_t now_ns = monotonicNowNs();
+
+    // Strict producer-side validation (fail-closed). An incomplete, undefined,
+    // or non-finite vector must NEVER be zero-padded and published as a LIVE
+    // frame. On any violation the shared frame is explicitly invalidated so the
+    // HUD shows INVALID/MISSING instead of stale or fabricated data.
+    auto valid_dof_tensor = [](const torch::Tensor& t) -> bool {
+        return t.defined() && t.dim() == 2 &&
+               t.size(0) == 1 && t.size(1) == abs_rt_frame::kJointCount;
+    };
+    if (!valid_dof_tensor(action_raw) || !valid_dof_tensor(action_clipped) ||
+        !valid_dof_tensor(joint_target_rad) || !valid_dof_tensor(torque_nm))
+    {
+        invalidateRtFrame();
+        return;
+    }
+    if (!obs_.ray2d.defined() || obs_.ray2d.dim() != 2 ||
+        obs_.ray2d.size(0) != 1 || obs_.ray2d.size(1) != abs_rt_frame::kRayCount)
+    {
+        invalidateRtFrame();
+        return;
+    }
+    if (!obs_.lin_vel.defined() || obs_.lin_vel.dim() != 2 ||
+        obs_.lin_vel.size(0) != 1 || obs_.lin_vel.size(1) != 3)
+    {
+        invalidateRtFrame();
+        return;
+    }
+
+    // Fill a private copy first; the cross-process critical section is only the
+    // bounded payload memcpy below (mirrors unitree_sdk2_bridge::computeRay2d).
+    abs_rt_frame::RuntimeFrame local{};
+    local.header.magic = abs_rt_frame::kMagic;
+    local.header.version = abs_rt_frame::kVersion;
+    local.header.monotonic_ns = now_ns;
+    local.session_id = rt_session_id_;
+    local.rl_step = static_cast<uint64_t>(rl_step_count_);
+    local.source = abs_rt_frame::kSourceAuthoritativeRuntime;
+    local.controller_active = 1;
+    local.rl_entered = running_ ? 1 : 0;
+    local.rl_active = (running_ && !safety_faulted_) ? 1 : 0;
+    local.safety_faulted = safety_faulted_ ? 1 : 0;
+    local.policy_state = policy_state;
+    local.ray_origin = (ray2d_shm_ptr_ != nullptr) ? abs_rt_frame::kRayShmRuntime
+                                                   : abs_rt_frame::kRayUnavailable;
+    local.ray_valid = ray2d_valid_ ? 1 : 0;
+    local.ray_age_ns = last_ray_age_ns_;
+    local.collision_origin = abs_rt_frame::kCollisionUnavailable;  // bridge-side only
+    local.torque_saturated_computed = 0;                           // not computed anywhere
+    local.reserved_pad = 0;
+    local.ra_value = static_cast<float>(ra_value_);
+
+    // Every value copied into the frame must be finite; any NaN/Inf invalidates.
+    bool all_finite = true;
+    const auto require_finite = [&all_finite](double v) {
+        if (!std::isfinite(v)) all_finite = false;
+    };
+
+    require_finite(ra_value_);
+    for (int i = 0; i < 3; ++i)
+    {
+        const double v = obs_.lin_vel[0][i].item<double>();
+        require_finite(v);
+        local.lin_vel[i] = static_cast<float>(v);
+    }
+    require_finite(body_x); require_finite(body_y); require_finite(heading_cmd);
+    local.command[0] = static_cast<float>(body_x);
+    local.command[1] = static_cast<float>(body_y);
+    local.command[2] = static_cast<float>(heading_cmd);
+    require_finite(robot_wx); require_finite(robot_wy); require_finite(robot_yaw);
+    local.world_pose[0] = static_cast<float>(robot_wx);
+    local.world_pose[1] = static_cast<float>(robot_wy);
+    local.world_pose[2] = static_cast<float>(robot_yaw);
+
+    // Exactly abs_rt_frame::kRayCount rays (dimension validated above); never
+    // padded to a shorter vector.
+    for (int i = 0; i < abs_rt_frame::kRayCount; ++i)
+    {
+        const double v = obs_.ray2d[0][i].item<double>();
+        require_finite(v);
+        local.ray2d[i] = static_cast<float>(v);
+    }
+
+    // Four command-chain tensors, each exactly abs_rt_frame::kJointCount (validated
+    // above); never padded.
+    auto copy_dofs = [&require_finite](float* dst, const torch::Tensor& src) {
+        for (int i = 0; i < abs_rt_frame::kJointCount; ++i)
+        {
+            const double v = src[0][i].item<double>();
+            require_finite(v);
+            dst[i] = static_cast<float>(v);
+        }
+    };
+    copy_dofs(local.action_raw, action_raw);
+    copy_dofs(local.action_clipped, action_clipped);
+    copy_dofs(local.joint_target_rad, joint_target_rad);
+    copy_dofs(local.torque_nm, torque_nm);
+    for (int i = 0; i < abs_rt_frame::kJointCount; ++i)
+    {
+        local.torque_saturated[i] = 0.0f;  // flag torque_saturated_computed=0 above
+    }
+
+    // Any undefined/non-finite value invalidates the frame instead of publishing.
+    if (!all_finite)
+    {
+        invalidateRtFrame();
+        return;
+    }
+
+    // Publish: sequence odd while the payload changes, then magic/version/time,
+    // then sequence even (seqlock, identical to the ray2d stamp protocol).
+    uint64_t sequence = abs_rt_frame::loadAcquire(&frame->header.sequence);
+    if (sequence & 1U) ++sequence;
+    abs_rt_frame::storeRelease(&frame->header.sequence, sequence + 1U);
+    std::memcpy(reinterpret_cast<char*>(frame) + sizeof(abs_rt_frame::FrameHeader),
+                reinterpret_cast<const char*>(&local) + sizeof(abs_rt_frame::FrameHeader),
+                sizeof(abs_rt_frame::RuntimeFrame) - sizeof(abs_rt_frame::FrameHeader));
+    abs_rt_frame::storeRelease(&frame->header.magic, abs_rt_frame::kMagic);
+    abs_rt_frame::storeRelease(&frame->header.version, abs_rt_frame::kVersion);
+    abs_rt_frame::storeRelease(&frame->header.monotonic_ns, now_ns);
+    abs_rt_frame::storeRelease(&frame->header.sequence, sequence + 2U);
+}
+
+void StateRL::invalidateRtFrame()
+{
+    if (rt_frame_shm_ptr_ == nullptr || rt_frame_shm_ptr_ == MAP_FAILED)
+    {
+        return;
+    }
+    abs_rt_frame::FrameHeader* header = &rt_frame_shm_ptr_->header;
+    // Seqlock-safe invalidation so a concurrent reader never accepts a torn
+    // frame: mark sequence odd (writer owns), write an invalid signature, then
+    // a stable even sequence. magic=0 (≠ kMagic) makes the reader classify the
+    // frame INVALID immediately — no stale-timeout wait, never LIVE. Called from
+    // the destructor/exit() (controller stopped publishing) and from
+    // writeRtFrame() on a pre-publish validation failure (transient; the next
+    // successful step re-publishes a valid frame).
+    abs_rt_frame::storeRelease(&header->sequence, 1);
+    abs_rt_frame::storeRelease(&header->magic, 0);
+    abs_rt_frame::storeRelease(&header->version, 0);
+    abs_rt_frame::storeRelease(&header->sequence, 2);
+}
+
+void StateRL::writeRtFaultedFrame()
+{
+    if (rt_frame_shm_ptr_ == nullptr || rt_frame_shm_ptr_ == MAP_FAILED)
+    {
+        return;
+    }
+    // A faulted step produces no command; writeRtFrame reads rl_active/safety_faulted
+    // from members (already set by safetyVeto), so this frame marks the fault.
+    const torch::Tensor zeros = torch::zeros({1, params_.num_of_dofs});
+    writeRtFrame(abs_rt_frame::kPolicyFaulted,
+                 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                 zeros, zeros, zeros, zeros);
 }
 
 bool StateRL::checkBodySafety() const
@@ -1450,6 +1683,14 @@ void StateRL::runModel()
                      cached_rec_vx_, cached_rec_vy_, cached_rec_wz_);
     logSymmetryDebug(robot_wx, robot_wy, robot_yaw, body_y, heading_cmd, in_recovery_,
                      policy_actions, clamped_actions);
+
+    // Publish the real-time observation frame (single data link to HUD/recorder).
+    // Observational only: reads the already-computed command chain; no control change.
+    const uint32_t policy_state = in_recovery_ ? abs_rt_frame::kPolicyRecovery
+                                               : abs_rt_frame::kPolicyAgile;
+    writeRtFrame(policy_state, robot_wx, robot_wy, robot_yaw,
+                 body_x, body_y, heading_cmd,
+                 policy_actions, clamped_actions, output_dof_pos_, output_torques);
 
     rl_step_count_++;
 }

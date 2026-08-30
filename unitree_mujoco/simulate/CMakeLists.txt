@@ -35,3 +35,8 @@ target_include_directories(unitree_mujoco PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..
 target_link_libraries(unitree_mujoco ${SIM_DEPENDENCIES})
 
 add_executable(jstest src/joystick/jstest.cc src/joystick/joystick.cc)
+
+add_executable(p1_09o_joinable_thread_test test/p1_09o_joinable_thread.cpp)
+add_executable(p1_09p_reload_barrier_test test/p1_09p_reload_barrier.cpp)
+add_executable(p1_09u_bridge_lifecycle_state_test test/p1_09u_bridge_lifecycle_state.cpp)
+add_executable(p1_09v_terminal_invariant_test test/p1_09v_terminal_invariant.cpp)

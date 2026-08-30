@@ -57,27 +57,48 @@ StateRLRec::StateRLRec(CtrlInterfaces& ctrl_interfaces,
     RCLCPP_INFO(node_->get_logger(), "[REC-VERIFY] action_scale=%.2f dof_vel_scale=%.2f contact_thr=%.1fN",
                 params_.action_scale, params_.dof_vel_scale, params_.contact_threshold);
 
-    // RL inference thread
-    if (use_rl_thread_)
-    {
-        rl_thread_ = std::thread([&]{
-            while (true)
+}
+
+StateRLRec::~StateRLRec()
+{
+    stopRlThread();
+}
+
+void StateRLRec::startRlThread()
+{
+    if (!use_rl_thread_ || !rl_thread_.start([this](rl_quadruped_controller::StoppableThread& lifecycle) {
+            while (!lifecycle.stopRequested())
             {
                 try
                 {
-                    executeAndSleepRec(
-                        [&]{ if (running_) runModel(); },
-                        ctrl_interfaces_.frequency_ / params_.decimation);
+                    if (running_.load(std::memory_order_acquire))
+                    {
+                        runModel();
+                    }
                 }
                 catch (const std::exception& e)
                 {
-                    running_ = false;
+                    running_.store(false, std::memory_order_release);
                     RCLCPP_ERROR(rclcpp::get_logger("StateRLRec"), "Error in RL thread: %s", e.what());
                 }
+
+                // Equivalent periodic cadence to executeAndSleepRec(), but
+                // shutdown wakes this wait immediately instead of waiting for
+                // the next policy period.
+                lifecycle.waitForStop(std::chrono::duration<double>(
+                    static_cast<double>(params_.decimation) / ctrl_interfaces_.frequency_));
             }
-        });
-        setThreadPriorityRec(60, rl_thread_);
+        }))
+    {
+        return;
     }
+    setThreadPriorityRec(60, rl_thread_.nativeThread());
+}
+
+void StateRLRec::stopRlThread()
+{
+    running_.store(false, std::memory_order_release);
+    rl_thread_.stopAndJoin();
 }
 
 void StateRLRec::enter()
@@ -120,7 +141,8 @@ void StateRLRec::enter()
     if (!params_.observations_history.empty())
         history_obs_buf_->clear();
 
-    running_ = true;
+    running_.store(true, std::memory_order_release);
+    startRlThread();
 
     RCLCPP_INFO(rclcpp::get_logger("StateRLRec"), "[REC-ENTER] 49-dim recovery policy active");
 }
@@ -144,7 +166,9 @@ void StateRLRec::run(const rclcpp::Time&, const rclcpp::Duration&)
 
 void StateRLRec::exit()
 {
-    running_ = false;
+    // State transitions and plugin teardown must not leave an inference
+    // worker holding this FSM object's memory after exit returns.
+    stopRlThread();
     RCLCPP_INFO(rclcpp::get_logger("StateRLRec"), "[REC-EXIT] RL steps executed: %d", rl_step_count_);
     rl_step_count_ = 0;
 

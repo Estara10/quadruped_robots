@@ -20,6 +20,9 @@
 #include <cstring>
 #include <limits>
 #include <string>
+#include <vector>
+
+#include "joinable_thread.h"
 
 #include <abs_ray2d_shm_contract.h>
 #include "param.h"
@@ -46,9 +49,13 @@
 
 class UnitreeSDK2BridgeBase {
 public:
-  UnitreeSDK2BridgeBase(mjModel* model, mjData* data)
-    : mj_model_(model), mj_data_(data) {
-    _check_sensor();
+  UnitreeSDK2BridgeBase(mjModel* model, mjData* data,
+                        std::recursive_mutex* md_mutex)
+    : mj_model_(model), mj_data_(data), md_mutex_(md_mutex) {
+    {
+      std::lock_guard<std::recursive_mutex> md_lock(*md_mutex_);
+      _check_sensor();
+    }
     if (param::config.print_scene_information == 1) {
       printSceneInformation();
     }
@@ -98,7 +105,7 @@ public:
               << std::endl;
   }
 
-  ~UnitreeSDK2BridgeBase() {
+  virtual ~UnitreeSDK2BridgeBase() {
     if (ray2d_shm_ptr_ != MAP_FAILED && ray2d_shm_ptr_ != nullptr) {
       munmap(ray2d_shm_ptr_, RAY2D_COUNT * sizeof(float));
     }
@@ -121,6 +128,8 @@ public:
     }
   }
 
+  virtual void requestStop() {}
+
   void computeRay2d() {
     updateCollisionTelemetry();
 
@@ -138,11 +147,8 @@ public:
     if (!ray_test_fault_.empty() && !ray_test_active_ &&
         monotonicNowNs() - ray_test_start_ns_ >= static_cast<uint64_t>(ray_test_delay_ms_) * 1000000ULL) {
       ray_test_active_ = true;
-      std::cout << "[ABS-LIVE-FAULT] event=injected clock=steady_clock_ns injection_ns="
-                << monotonicNowNs() << " id=" << ray_test_fault_ << std::endl;
       if (ray_test_fault_ == "exit") {
-        std::cout.flush();
-        std::_Exit(EXIT_SUCCESS);  // emulate abrupt writer-process exit; header intentionally persists
+        std::_Exit(EXIT_SUCCESS);  // preserve the original immediate fault path
       }
     }
     if (ray_test_active_ && ray_test_fault_ == "freeze") return;
@@ -290,10 +296,21 @@ public:
     if (ray_telemetry_enabled_ && ++ray_write_count_ % 1000U == 0U) {
       const double average_period_ms = ray_last_telemetry_ns_ == 0 ? 0.0
           : static_cast<double>(stamp_ns - ray_last_telemetry_ns_) / 1000.0 / 1e6;
-      std::cout << "[ABS-LIVE-RAY] clock=steady_clock_ns stamp_ns=" << stamp_ns
-                << " frames=1000 average_period_ms=" << average_period_ms << std::endl;
+      ray_telemetry_log_pending_ = true;
+      ray_telemetry_stamp_ns_ = stamp_ns;
+      ray_telemetry_period_ms_ = average_period_ms;
       ray_last_telemetry_ns_ = stamp_ns;
     }
+  }
+
+  void emitRayDiagnostics() {
+    if (ray_telemetry_log_pending_) {
+      std::cout << "[ABS-LIVE-RAY] clock=steady_clock_ns stamp_ns="
+                << ray_telemetry_stamp_ns_ << " frames=1000 average_period_ms="
+                << ray_telemetry_period_ms_ << std::endl;
+      ray_telemetry_log_pending_ = false;
+    }
+
   }
 
 private:
@@ -309,6 +326,9 @@ private:
   int ray_test_delay_ms_ = 1000;
   uint64_t ray_test_start_ns_ = 0;
   bool ray_test_active_ = false;
+  bool ray_telemetry_log_pending_ = false;
+  uint64_t ray_telemetry_stamp_ns_ = 0;
+  double ray_telemetry_period_ms_ = 0.0;
 
   int ray2d_shm_fd_ = -1;
   float* ray2d_shm_ptr_ = nullptr;
@@ -466,36 +486,61 @@ private:
   }
 
   void printSceneInformation() {
-    auto printObjects = [this](const char* title, int count, int type,
-                               auto getIndex) {
-      std::cout << "<<------------- " << title << " ------------->> " <<
-          std::endl;
-      for (int i = 0; i < count; i++) {
-        const char* name = mj_id2name(mj_model_, type, i);
-        if (name) {
-          std::cout << title << "_index: " << getIndex(i) << ", " << "name: " <<
-              name;
-          if (type == mjOBJ_SENSOR) {
-            std::cout << ", dim: " << mj_model_->sensor_dim[i];
+    struct SceneEntry {
+      int index;
+      std::string name;
+      int dimension = -1;
+    };
+    struct SceneInfoSnapshot {
+      std::vector<SceneEntry> links;
+      std::vector<SceneEntry> joints;
+      std::vector<SceneEntry> actuators;
+      std::vector<SceneEntry> sensors;
+    } snapshot;
+
+    {
+      std::lock_guard<std::recursive_mutex> md_lock(*md_mutex_);
+      auto collectObjects = [this](std::vector<SceneEntry>& entries, int count,
+                                   int type, bool with_dimensions) {
+        int sensor_index = 0;
+        for (int i = 0; i < count; ++i) {
+          const char* name = mj_id2name(mj_model_, type, i);
+          if (name == nullptr) continue;
+          SceneEntry entry{sensor_index, name};
+          if (with_dimensions) {
+            entry.dimension = mj_model_->sensor_dim[i];
+            sensor_index += entry.dimension;
+          } else {
+            entry.index = i;
           }
-          std::cout << std::endl;
+          entries.push_back(std::move(entry));
         }
+      };
+      collectObjects(snapshot.links, mj_model_->nbody, mjOBJ_BODY, false);
+      collectObjects(snapshot.joints, mj_model_->njnt, mjOBJ_JOINT, false);
+      collectObjects(snapshot.actuators, mj_model_->nu, mjOBJ_ACTUATOR, false);
+      collectObjects(snapshot.sensors, mj_model_->nsensor, mjOBJ_SENSOR, true);
+    }
+
+    auto printObjects = [](const char* title,
+                           const std::vector<SceneEntry>& entries) {
+      std::cout << "<<------------- " << title << " ------------->> "
+                << std::endl;
+      for (const auto& entry : entries) {
+        std::cout << title << "_index: " << entry.index << ", name: "
+                  << entry.name;
+        if (entry.dimension >= 0) {
+          std::cout << ", dim: " << entry.dimension;
+        }
+        std::cout << std::endl;
       }
       std::cout << std::endl;
     };
 
-    printObjects("Link", mj_model_->nbody, mjOBJ_BODY, [](int i) { return i; });
-    printObjects("Joint", mj_model_->njnt, mjOBJ_JOINT,
-                 [](int i) { return i; });
-    printObjects("Actuator", mj_model_->nu, mjOBJ_ACTUATOR,
-                 [](int i) { return i; });
-
-    int sensorIndex = 0;
-    printObjects("Sensor", mj_model_->nsensor, mjOBJ_SENSOR, [&](int i) {
-      int currentIndex = sensorIndex;
-      sensorIndex += mj_model_->sensor_dim[i];
-      return currentIndex;
-    });
+    printObjects("Link", snapshot.links);
+    printObjects("Joint", snapshot.joints);
+    printObjects("Actuator", snapshot.actuators);
+    printObjects("Sensor", snapshot.sensors);
   }
 
 protected:
@@ -504,6 +549,7 @@ protected:
 
   mjData* mj_data_;
   mjModel* mj_model_;
+  std::recursive_mutex* md_mutex_;
 
   int have_imu_ = false;
   int have_frame_sensor_ = false;
@@ -538,114 +584,129 @@ class RobotBridge : public UnitreeSDK2BridgeBase {
 
 protected:
   // 触摸传感器处理的虚函数，子类可以重写
-  virtual void processTouchSensors() {
+  virtual void readTouchSensors(std::array<double, 4>&) {
     // 默认实现为空，适用于没有触摸传感器的机器人
   }
 
+  virtual void writeTouchSensors(const std::array<double, 4>&) {}
+
 public:
-  RobotBridge(mjModel* model, mjData* data) : UnitreeSDK2BridgeBase(
-      model, data) {
+  RobotBridge(mjModel* model, mjData* data, std::recursive_mutex* md_mutex)
+      : UnitreeSDK2BridgeBase(model, data, md_mutex) {
     lowcmd = std::make_shared<LowCmd_t>("rt/lowcmd");
     lowstate = std::make_unique<LowState_t>();
     lowstate->joystick = joystick;
     highstate = std::make_unique<HighState_t>();
     wireless_controller = std::make_unique<WirelessController_t>();
     wireless_controller->joystick = joystick;
-    thread_ = std::make_shared<unitree::common::RecurrentThread>(
-        "unitree_bridge", UT_CPU_ID_NONE, 1000,
-        std::bind(&RobotBridge::run, this));
+    thread_ = std::make_unique<JoinableThread>([this] {
+      while (!thread_->stopRequested()) {
+        run();
+        thread_->waitForStop(std::chrono::milliseconds(1));
+      }
+    });
+    thread_->start();
+  }
+
+  void requestStop() override {
+    if (thread_) thread_->stopAndJoin();
   }
 
   void run() {
-    if (!mj_data_)
-      return;
     if (lowstate->joystick) { lowstate->joystick->update(); }
-    // lowcmd
+
+    std::vector<double> command_q(num_motor_);
+    std::vector<double> command_dq(num_motor_);
+    std::vector<double> command_kp(num_motor_);
+    std::vector<double> command_kd(num_motor_);
+    std::vector<double> command_tau(num_motor_);
     {
       std::lock_guard<std::mutex> lock(lowcmd->mutex_);
-      for (int i(0); i < num_motor_; i++) {
-        auto& m = lowcmd->msg_.motor_cmd()[i];
-        mj_data_->ctrl[i] = m.tau() +
-                            m.kp() * (m.q() - mj_data_->sensordata[i]) +
-                            m.kd() * (
-                              m.dq() - mj_data_->sensordata[i + num_motor_]);
+      for (int i = 0; i < num_motor_; ++i) {
+        auto& command = lowcmd->msg_.motor_cmd()[i];
+        command_q[i] = command.q();
+        command_dq[i] = command.dq();
+        command_kp[i] = command.kp();
+        command_kd[i] = command.kd();
+        command_tau[i] = command.tau();
       }
     }
 
-    // lowstate
-    if (lowstate->trylock()) {
-      for (int i(0); i < num_motor_; i++) {
-        lowstate->msg_.motor_state()[i].q() = mj_data_->sensordata[i];
-        lowstate->msg_.motor_state()[i].dq() = mj_data_->sensordata[
-          i + num_motor_];
-        lowstate->msg_.motor_state()[i].tau_est() = mj_data_->sensordata[
-          i + 2 * num_motor_];
+    std::vector<double> state_q(num_motor_);
+    std::vector<double> state_dq(num_motor_);
+    std::vector<double> state_tau(num_motor_);
+    std::array<double, 4> quaternion{};
+    std::array<double, 3> gyroscope{};
+    std::array<double, 3> accelerometer{};
+    std::array<double, 3> position{};
+    std::array<double, 3> velocity{};
+    std::array<double, 4> foot_force{};
+    {
+      std::lock_guard<std::recursive_mutex> md_lock(*md_mutex_);
+      if (!mj_data_) return;
+      for (int i = 0; i < num_motor_; ++i) {
+        mj_data_->ctrl[i] = command_tau[i] +
+            command_kp[i] * (command_q[i] - mj_data_->sensordata[i]) +
+            command_kd[i] * (command_dq[i] -
+                             mj_data_->sensordata[i + num_motor_]);
+        state_q[i] = mj_data_->sensordata[i];
+        state_dq[i] = mj_data_->sensordata[i + num_motor_];
+        state_tau[i] = mj_data_->sensordata[i + 2 * num_motor_];
       }
       if (have_frame_sensor_) {
-        lowstate->msg_.imu_state().quaternion()[0] = mj_data_->sensordata[
-          dim_motor_sensor_ + 0];
-        lowstate->msg_.imu_state().quaternion()[1] = mj_data_->sensordata[
-          dim_motor_sensor_ + 1];
-        lowstate->msg_.imu_state().quaternion()[2] = mj_data_->sensordata[
-          dim_motor_sensor_ + 2];
-        lowstate->msg_.imu_state().quaternion()[3] = mj_data_->sensordata[
-          dim_motor_sensor_ + 3];
+        for (int i = 0; i < 4; ++i) {
+          quaternion[i] = mj_data_->sensordata[dim_motor_sensor_ + i];
+        }
+        for (int i = 0; i < 3; ++i) {
+          gyroscope[i] = mj_data_->sensordata[dim_motor_sensor_ + 4 + i];
+          accelerometer[i] = mj_data_->sensordata[dim_motor_sensor_ + 7 + i];
+          position[i] = mj_data_->sensordata[dim_motor_sensor_ + 10 + i];
+          velocity[i] = mj_data_->sensordata[dim_motor_sensor_ + 13 + i];
+        }
+      }
+      if (have_touch_sensor_) readTouchSensors(foot_force);
+      computeRay2d();
+    }
 
-        double w = lowstate->msg_.imu_state().quaternion()[0];
-        double x = lowstate->msg_.imu_state().quaternion()[1];
-        double y = lowstate->msg_.imu_state().quaternion()[2];
-        double z = lowstate->msg_.imu_state().quaternion()[3];
+    emitRayDiagnostics();
 
+    if (lowstate->trylock()) {
+      for (int i = 0; i < num_motor_; ++i) {
+        lowstate->msg_.motor_state()[i].q() = state_q[i];
+        lowstate->msg_.motor_state()[i].dq() = state_dq[i];
+        lowstate->msg_.motor_state()[i].tau_est() = state_tau[i];
+      }
+      if (have_frame_sensor_) {
+        for (int i = 0; i < 4; ++i) {
+          lowstate->msg_.imu_state().quaternion()[i] = quaternion[i];
+        }
+        double w = quaternion[0], x = quaternion[1];
+        double y = quaternion[2], z = quaternion[3];
         lowstate->msg_.imu_state().rpy()[0] = atan2(
             2 * (w * x + y * z), 1 - 2 * (x * x + y * y));
         lowstate->msg_.imu_state().rpy()[1] = asin(2 * (w * y - z * x));
         lowstate->msg_.imu_state().rpy()[2] = atan2(
             2 * (w * z + x * y), 1 - 2 * (y * y + z * z));
-
-        lowstate->msg_.imu_state().gyroscope()[0] = mj_data_->sensordata[
-          dim_motor_sensor_ + 4];
-        lowstate->msg_.imu_state().gyroscope()[1] = mj_data_->sensordata[
-          dim_motor_sensor_ + 5];
-        lowstate->msg_.imu_state().gyroscope()[2] = mj_data_->sensordata[
-          dim_motor_sensor_ + 6];
-
-        lowstate->msg_.imu_state().accelerometer()[0] = mj_data_->sensordata[
-          dim_motor_sensor_ + 7];
-        lowstate->msg_.imu_state().accelerometer()[1] = mj_data_->sensordata[
-          dim_motor_sensor_ + 8];
-        lowstate->msg_.imu_state().accelerometer()[2] = mj_data_->sensordata[
-          dim_motor_sensor_ + 9];
+        for (int i = 0; i < 3; ++i) {
+          lowstate->msg_.imu_state().gyroscope()[i] = gyroscope[i];
+          lowstate->msg_.imu_state().accelerometer()[i] = accelerometer[i];
+        }
       }
-
       if (have_touch_sensor_) {
-        processTouchSensors();
+        writeTouchSensors(foot_force);
       }
-
       lowstate->unlockAndPublish();
     }
-    // highstate
     if (have_frame_sensor_ && highstate->trylock()) {
-      highstate->msg_.position()[0] = mj_data_->sensordata[
-        dim_motor_sensor_ + 10];
-      highstate->msg_.position()[1] = mj_data_->sensordata[
-        dim_motor_sensor_ + 11];
-      highstate->msg_.position()[2] = mj_data_->sensordata[
-        dim_motor_sensor_ + 12];
-      highstate->msg_.velocity()[0] = mj_data_->sensordata[
-        dim_motor_sensor_ + 13];
-      highstate->msg_.velocity()[1] = mj_data_->sensordata[
-        dim_motor_sensor_ + 14];
-      highstate->msg_.velocity()[2] = mj_data_->sensordata[
-        dim_motor_sensor_ + 15];
+      for (int i = 0; i < 3; ++i) {
+        highstate->msg_.position()[i] = position[i];
+        highstate->msg_.velocity()[i] = velocity[i];
+      }
       highstate->unlockAndPublish();
     }
-    // wireless_controller
     if (wireless_controller->joystick) {
       wireless_controller->unlockAndPublish();
     }
-
-    // compute ray2d and write to shared memory
-    computeRay2d();
   }
 
   std::unique_ptr<HighState_t> highstate;
@@ -654,27 +715,28 @@ public:
   std::unique_ptr<LowState_t> lowstate;
 
 private:
-  unitree::common::RecurrentThreadPtr thread_;
+  std::unique_ptr<JoinableThread> thread_;
 };
 
 class Go2Bridge : public RobotBridge<
       unitree::robot::go2::subscription::LowCmd,
       unitree::robot::go2::publisher::LowState> {
 public:
-  Go2Bridge(mjModel* model, mjData* data)
-    : RobotBridge(model, data) {}
+  Go2Bridge(mjModel* model, mjData* data, std::recursive_mutex* md_mutex)
+    : RobotBridge(model, data, md_mutex) {}
 
 protected:
-  void processTouchSensors() override {
+  void readTouchSensors(std::array<double, 4>& foot_force) override {
     if (have_touch_sensor_) {
-      lowstate->msg_.foot_force()[0] = mj_data_->sensordata[
-        dim_motor_sensor_ + 16];
-      lowstate->msg_.foot_force()[1] = mj_data_->sensordata[
-        dim_motor_sensor_ + 17];
-      lowstate->msg_.foot_force()[2] = mj_data_->sensordata[
-        dim_motor_sensor_ + 18];
-      lowstate->msg_.foot_force()[3] = mj_data_->sensordata[
-        dim_motor_sensor_ + 19];
+      for (int i = 0; i < 4; ++i) {
+        foot_force[i] = mj_data_->sensordata[dim_motor_sensor_ + 16 + i];
+      }
+    }
+  }
+
+  void writeTouchSensors(const std::array<double, 4>& foot_force) override {
+    if (have_touch_sensor_) {
+      for (int i = 0; i < 4; ++i) lowstate->msg_.foot_force()[i] = foot_force[i];
     }
   }
 };

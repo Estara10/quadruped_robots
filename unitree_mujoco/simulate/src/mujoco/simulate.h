@@ -17,6 +17,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <csignal>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -32,6 +33,7 @@
 #include "platform_ui_adapter.h"
 
 namespace mujoco {
+extern volatile sig_atomic_t g_mujoco_signal_stop_requested;
 class ElasticBand {
 public:
   ElasticBand();

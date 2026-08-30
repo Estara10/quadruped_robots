@@ -1894,6 +1894,8 @@ void UiEvent(mjuiState* state) {
 }
 } // namespace
 
+volatile sig_atomic_t mujoco::g_mujoco_signal_stop_requested = 0;
+
 namespace mujoco {
 namespace mju = ::mujoco::sample_util;
 
@@ -2789,6 +2791,10 @@ void Simulate::RenderLoop() {
 
   // run event loop
   while (!this->platform_ui->ShouldCloseWindow() && !this->exitrequest.load()) {
+    if (g_mujoco_signal_stop_requested != 0) {
+      this->exitrequest.store(1);
+      break;
+    }
     {
       const MutexLock lock(this->mtx);
 

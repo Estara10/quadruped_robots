@@ -13,6 +13,8 @@
 // limitations under the License.
 
 #include <chrono>
+#include <atomic>
+#include <condition_variable>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -23,12 +25,14 @@
 #include <new>
 #include <string>
 #include <thread>
+#include <signal.h>
 
 #include <mujoco/mujoco.h>
 #include "mujoco/glfw_adapter.h"
 #include "mujoco/simulate.h"
 #include "mujoco/array_safety.h"
 #include "unitree_sdk2_bridge.h"
+#include "bridge_lifecycle.h"
 #include "param.h"
 
 #define MUJOCO_PLUGIN_DIR "mujoco_plugin"
@@ -286,7 +290,7 @@ namespace
   }
 
   // simulate in background thread (while rendering in main thread)
-  void PhysicsLoop(mj::Simulate &sim)
+  void PhysicsLoop(mj::Simulate &sim, BridgeLifecycle *bridge_lifecycle)
   {
     // cpu-sim syncronization point
     std::chrono::time_point<mj::Simulate::Clock> syncCPU;
@@ -307,24 +311,44 @@ namespace
         mjData *dnew = nullptr;
         if (mnew)
           dnew = mj_makeData(mnew);
-        if (dnew)
+        if (dnew && bridge_lifecycle->reloadAllowed())
         {
           sim.Load(mnew, dnew, sim.dropfilename);
-
-          mj_deleteData(d);
-          mj_deleteModel(m);
-
-          m = mnew;
-          d = dnew;
-          mj_forward(m, d);
-
-          // allocate ctrlnoise
-          free(ctrlnoise);
-          ctrlnoise = (mjtNum *)malloc(sizeof(mjtNum) * m->nu);
-          mju_zero(ctrlnoise, m->nu);
+          bool reload_rejected = false;
+          {
+            std::lock_guard<std::recursive_mutex> md_lock(sim.mtx);
+            if (!bridge_lifecycle->reloadAllowed()) {
+              mj_deleteData(dnew);
+              mj_deleteModel(mnew);
+              reload_rejected = true;
+            } else {
+              mj_deleteData(d);
+              mj_deleteModel(m);
+              m = mnew;
+              d = dnew;
+              mj_forward(m, d);
+              free(ctrlnoise);
+              ctrlnoise = (mjtNum *)malloc(sizeof(mjtNum) * m->nu);
+              mju_zero(ctrlnoise, m->nu);
+            }
+          }
+          if (reload_rejected) {
+            sim.LoadMessageClear();
+            std::cerr << "[MuJoCoShutdown] reload rejected before m/d replace"
+                      << std::endl;
+          }
+        }
+        else if (dnew)
+        {
+          std::cerr << "[MuJoCoShutdown] reload rejected: active bridge owns m/d"
+                    << std::endl;
+          mj_deleteData(dnew);
+          mj_deleteModel(mnew);
+          sim.LoadMessageClear();
         }
         else
         {
+          if (mnew) mj_deleteModel(mnew);
           sim.LoadMessageClear();
         }
       }
@@ -337,24 +361,44 @@ namespace
         mjData *dnew = nullptr;
         if (mnew)
           dnew = mj_makeData(mnew);
-        if (dnew)
+        if (dnew && bridge_lifecycle->reloadAllowed())
         {
           sim.Load(mnew, dnew, sim.filename);
-
-          mj_deleteData(d);
-          mj_deleteModel(m);
-
-          m = mnew;
-          d = dnew;
-          mj_forward(m, d);
-
-          // allocate ctrlnoise
-          free(ctrlnoise);
-          ctrlnoise = static_cast<mjtNum *>(malloc(sizeof(mjtNum) * m->nu));
-          mju_zero(ctrlnoise, m->nu);
+          bool reload_rejected = false;
+          {
+            std::lock_guard<std::recursive_mutex> md_lock(sim.mtx);
+            if (!bridge_lifecycle->reloadAllowed()) {
+              mj_deleteData(dnew);
+              mj_deleteModel(mnew);
+              reload_rejected = true;
+            } else {
+              mj_deleteData(d);
+              mj_deleteModel(m);
+              m = mnew;
+              d = dnew;
+              mj_forward(m, d);
+              free(ctrlnoise);
+              ctrlnoise = static_cast<mjtNum *>(malloc(sizeof(mjtNum) * m->nu));
+              mju_zero(ctrlnoise, m->nu);
+            }
+          }
+          if (reload_rejected) {
+            sim.LoadMessageClear();
+            std::cerr << "[MuJoCoShutdown] reload rejected before m/d replace"
+                      << std::endl;
+          }
+        }
+        else if (dnew)
+        {
+          std::cerr << "[MuJoCoShutdown] reload rejected: active bridge owns m/d"
+                    << std::endl;
+          mj_deleteData(dnew);
+          mj_deleteModel(mnew);
+          sim.LoadMessageClear();
         }
         else
         {
+          if (mnew) mj_deleteModel(mnew);
           sim.LoadMessageClear();
         }
       }
@@ -495,9 +539,16 @@ namespace
   }
 } // namespace
 
+namespace {
+void MuJoCoSignalHandler(int) {
+  mujoco::g_mujoco_signal_stop_requested = 1;
+}
+}
+
 //-------------------------------------- physics_thread --------------------------------------------
 
-void PhysicsThread(mj::Simulate *sim, const char *filename)
+void PhysicsThread(mj::Simulate *sim, const char *filename,
+                   BridgeLifecycle *bridge_lifecycle)
 {
   // request loadmodel if file given (otherwise drag-and-drop)
   if (filename != nullptr)
@@ -515,6 +566,7 @@ void PhysicsThread(mj::Simulate *sim, const char *filename)
       free(ctrlnoise);
       ctrlnoise = static_cast<mjtNum *>(malloc(sizeof(mjtNum) * m->nu));
       mju_zero(ctrlnoise, m->nu);
+      bridge_lifecycle->markInitialReady();
     }
     else
     {
@@ -522,49 +574,54 @@ void PhysicsThread(mj::Simulate *sim, const char *filename)
     }
   }
 
-  PhysicsLoop(*sim);
-
-  // delete everything we allocated
-  free(ctrlnoise);
-  mj_deleteData(d);
-  mj_deleteModel(m);
-
-  exit(0);
+  PhysicsLoop(*sim, bridge_lifecycle);
 }
 
 void *UnitreeSdk2BridgeThread(void *arg)
 {
-  // Wait for mujoco data
-  while (true)
+  auto *stop_request = static_cast<BridgeLifecycle *>(arg);
+  if (!stop_request->markBridgeActive()) {
+    return nullptr;
+  }
+  // Wait for the synchronized initial model/data publication.
+  while (!stop_request->stopRequested() && !stop_request->initialReady())
   {
-    if (d)
-    {
-      std::cout << "Mujoco data is prepared" << std::endl;
-      break;
-    }
-    usleep(500000);
+    stop_request->waitForStopFor(std::chrono::milliseconds(10));
+  }
+
+  if (stop_request->stopRequested()) {
+    return nullptr;
   }
 
   unitree::robot::ChannelFactory::Instance()->Init(param::config.domain_id, param::config.interface);
 
 
-  int body_id = mj_name2id(m, mjOBJ_BODY, "torso_link");
+  int body_id = -1;
+  int model_nu = 0;
+  {
+    std::lock_guard<std::recursive_mutex> md_lock(*stop_request->mdMutex());
+    body_id = mj_name2id(m, mjOBJ_BODY, "torso_link");
+    if (body_id < 0) {
+      body_id = mj_name2id(m, mjOBJ_BODY, "base_link");
+    }
+    model_nu = m->nu;
+  }
   if (body_id < 0) {
-    body_id = mj_name2id(m, mjOBJ_BODY, "base_link");
+    std::cerr << "[MuJoCoShutdown] required bridge body is missing" << std::endl;
   }
   param::config.band_attached_link = 6 * body_id;
-  
+
   std::unique_ptr<UnitreeSDK2BridgeBase> interface = nullptr;
-  if (m->nu > NUM_MOTOR_IDL_GO) {
-    interface = std::make_unique<G1Bridge>(m, d);
+  if (model_nu > NUM_MOTOR_IDL_GO) {
+    interface = std::make_unique<G1Bridge>(m, d, stop_request->mdMutex());
   } else {
-    interface = std::make_unique<Go2Bridge>(m, d);
+    interface = std::make_unique<Go2Bridge>(m, d, stop_request->mdMutex());
   }
-  
-  while (true)
-  {
-    sleep(1);
-  }
+
+  stop_request->waitForStop();
+  interface->requestStop();
+  interface.reset();
+  return nullptr;
 }
 //------------------------------------------ main --------------------------------------------------
 
@@ -581,6 +638,11 @@ __attribute__((used, visibility("default"))) extern "C" void _mj_rosettaError(co
 // run event loop
 int main(int argc, char **argv)
 {
+  struct sigaction signal_action{};
+  signal_action.sa_handler = MuJoCoSignalHandler;
+  sigemptyset(&signal_action.sa_mask);
+  sigaction(SIGINT, &signal_action, nullptr);
+  sigaction(SIGTERM, &signal_action, nullptr);
 
   // display an error if running on macOS under Rosetta 2
 #if defined(__APPLE__) && defined(__AVX__)
@@ -625,14 +687,33 @@ int main(int argc, char **argv)
 
   sim->use_elastic_band_ = param::config.enable_elastic_band;
 
-  std::thread unitree_thread(UnitreeSdk2BridgeThread, nullptr);
+  BridgeLifecycle bridge_stop_request;
+  bridge_stop_request.setMdMutex(&sim->mtx);
+  // Reserve the model/data lifetime before either worker can observe it.
+  // Reload is fail-closed for the entire active bridge lifetime; no rebind
+  // protocol exists yet.
+  if (!bridge_stop_request.reserveBridge()) {
+    std::cerr << "[MuJoCoShutdown] failed to reserve bridge lifecycle" << std::endl;
+    return 1;
+  }
+  std::thread unitree_thread(UnitreeSdk2BridgeThread, &bridge_stop_request);
 
   // start physics thread
-  std::thread physicsthreadhandle(&PhysicsThread, sim.get(), param::config.robot_scene.c_str());
+  std::thread physicsthreadhandle(&PhysicsThread, sim.get(), param::config.robot_scene.c_str(), &bridge_stop_request);
   // start simulation UI loop (blocking call)
   sim->RenderLoop();
+  bridge_stop_request.beginStop();
+  unitree_thread.join();
+  if (!bridge_stop_request.completeTerminal()) {
+    std::cerr << "[MuJoCoShutdown] bridge did not reach STOPPING before terminal completion"
+              << std::endl;
+    physicsthreadhandle.join();
+    return 1;
+  }
   physicsthreadhandle.join();
 
-  pthread_exit(NULL);
+  free(ctrlnoise);
+  mj_deleteData(d);
+  mj_deleteModel(m);
   return 0;
 }

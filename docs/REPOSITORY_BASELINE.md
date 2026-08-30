@@ -40,6 +40,20 @@
 - Project-specific tracked modifications include Go2 defaults, DDS bridge, ray/qpos/collision telemetry, scene selection and MuJoCo compatibility.
 - Only Go2 runtime assets are vendored into this top-level repository; unrelated upstream robot assets remain outside this baseline.
 
+## Recovered Training-Server Snapshot
+
+- `ABS_fuwuqi/ABS` is a restored snapshot of the training server and is a
+  required evidence root for any investigation of ABS training provenance,
+  checkpoints, TensorBoard events, exported policies, RA artifacts, training
+  scripts, or recovered Git history.
+- It is distinct from the canonical `ABS/` checkout. Audits of training or
+  artifact provenance must search both roots before declaring an item absent.
+- Snapshot contents are historical evidence, not automatic proof of a training
+  run's configuration, seed, command, or execution. Each claimed link still
+  requires its own hash, file, source, or runtime evidence.
+- Current P1-01 findings derived from this root are recorded in
+  `docs/evidence/P1-01/P1-01_server_snapshot_reaudit_20260830.md`.
+
 ## Clean-Checkout Dependency Map
 
 After the Day 0 asset commit, Git contains the project source, ROS configs, three core ABS TorchScripts, MuJoCo simulator source, Go2 MJCF, mesh assets and current scene XMLs.

@@ -1,0 +1,23 @@
+
+=== SAMPLER SUMMARY ===
+{
+  "total_reads": 877,
+  "live_reads": 301,
+  "best_consecutive_live_run": 301,
+  "distinct_live_frames": 287,
+  "session_ids": [
+    12087183097814
+  ],
+  "session_consistent": true,
+  "sequence_strictly_increasing": true,
+  "monotonic_strictly_increasing": true,
+  "all_source_authoritative": true,
+  "all_policy_states_valid": true,
+  "first_live_read_t": 12087497358997,
+  "live_to_nonlive_transition": {
+    "from": "LIVE",
+    "to": "INVALID",
+    "t_monotonic_ns": 12093698827039
+  }
+}
+RESULT=OK

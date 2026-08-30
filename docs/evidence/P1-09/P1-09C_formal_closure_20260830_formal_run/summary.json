@@ -1,0 +1,55 @@
+{
+  "validity": "INVALID",
+  "terminal_outcome": "UNKNOWN",
+  "invalid_reasons": [
+    "simulation_time_s:no_authoritative_runtime_source",
+    "collision:no_authoritative_runtime_source",
+    "fall:no_authoritative_runtime_source",
+    "reached_goal:no_authoritative_runtime_source",
+    "timeout:no_authoritative_runtime_source"
+  ],
+  "metrics": {
+    "duration_ns": 15200137475,
+    "velocity_avg_m_s": 0.6132721747250867,
+    "velocity_peak_m_s": 2.550606086879799,
+    "ra_mean": -0.9552658186402432,
+    "ra_min": -0.9996011257171631,
+    "ra_max": -0.7240049839019775,
+    "recovery_live_steps": 0,
+    "safety_fault_live_steps": 0,
+    "live_frame_count": 301
+  },
+  "terminal_facts": {
+    "process_exit_code": 0,
+    "forced_termination": false,
+    "shutdown_complete": true,
+    "shutdown_request_source": "recorder_stop;SIGINT_ros_launch;SIGINT_mujoco",
+    "normal_shutdown": true
+  },
+  "schema_version": "abs-go2-formal-run/v1",
+  "run_id": "run-0cbf4a31137e48c79a1f61b4bb639a3e",
+  "artifacts": {
+    "manifest": "manifest.json",
+    "telemetry": "telemetry.csv",
+    "events": "events.jsonl",
+    "plots": [
+      "plots/ra_switching.svg",
+      "plots/trajectory_obstacles.svg",
+      "plots/command_tracking.svg",
+      "plots/stability.svg",
+      "plots/recovery_markers.svg"
+    ]
+  },
+  "artifact_hashes": {
+    "manifest": "dc5ec4f36880fea1d40274b9ff075b9e759a0de6bbb15dfa463ce67ea63b33c5",
+    "telemetry": "03a8ddb39061c43d0b41b39e1dffadbcc4ead15487ba9a98dfa05aec6cc60444",
+    "events": "76a886581784b6537d53d13d51a59bee274a7dffc32f8695a74eb667c0e3b9de",
+    "plots": {
+      "ra_switching.svg": "f3dcaff84b6b4f9c54211ae19a613a43f1f37481e21efd83f681d1f9c2e1b0c4",
+      "trajectory_obstacles.svg": "9815a0c87f4cf0ca5a2ad7365b8d92adb4317f3f6fd65e90db8aac43b74ec525",
+      "command_tracking.svg": "756baccd448c726f1f297ff6137ce56e668ae2393e3678529d77e35ff827509f",
+      "stability.svg": "0126c2badc9fb2fde4ae248cf69f67daf729635bfe37b9f6360bcf80052274ce",
+      "recovery_markers.svg": "833d71bb5938a309d6a71b9a9c375e33612fc6f2c74200be04c0310f73c3b49d"
+    }
+  }
+}

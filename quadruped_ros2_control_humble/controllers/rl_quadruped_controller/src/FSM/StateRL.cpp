@@ -4,6 +4,7 @@
 
 #include "rl_quadruped_controller/FSM/StateRL.h"
 #include "rl_quadruped_controller/FSM/AbsObservationContract.h"
+#include "rl_quadruped_controller/FSM/RASwitchingLogic.hpp"
 #include <abs_ray2d_shm_contract.h>
 #include <abs_rt_frame_contract.h>
 #include <ament_index_cpp/get_package_share_directory.hpp>
@@ -22,6 +23,7 @@
 #include <limits>
 #include <chrono>
 #include <sstream>
+#include <stdexcept>
 
 namespace {
 uint64_t monotonicNowNs()
@@ -1247,6 +1249,20 @@ void StateRL::loadYaml(const std::string& config_path)
         if (abs_node["recovery_steps"]) params_.recovery_steps = abs_node["recovery_steps"].as<int>();
         if (abs_node["soft_start_steps"]) soft_start_steps_ = abs_node["soft_start_steps"].as<int>();
         if (abs_node["recovery_hold_steps"]) recovery_hold_steps_ = abs_node["recovery_hold_steps"].as<int>();
+        // P1-07: RA-to-Recovery switching mode. Exactly two valid values; any
+        // other value is a hard configuration error at initialization (no
+        // silent fallback to paper or stabilized mode).
+        if (abs_node["switching_mode"])
+        {
+            const std::string mode_str = abs_node["switching_mode"].as<std::string>();
+            if (!abs_switching::parseSwitchMode(mode_str, switching_mode_))
+            {
+                RCLCPP_FATAL(node_->get_logger(),
+                    "[P1-07] Invalid switching_mode '%s' (valid: 'stabilized_switch', 'paper_faithful_switch'); refusing to start",
+                    mode_str.c_str());
+                throw std::invalid_argument("invalid ABS switching_mode: " + mode_str);
+            }
+        }
         if (abs_node["goal_x"]) goal_x_ = abs_node["goal_x"].as<double>();
         if (abs_node["goal_y"]) goal_y_ = abs_node["goal_y"].as<double>();
         if (abs_node["resample_goal_on_arrival"])
@@ -1564,29 +1580,41 @@ void StateRL::runModel()
 
     if (ra_loaded_ && rec_loaded_)
     {
-        if (!in_recovery_ && ra_value_ > ra_entry_thr)
+        // P1-07: the switching decision is delegated to the single pure helper
+        // (RASwitchingLogic.hpp). stabilized_switch reproduces the exact
+        // ENTER/EXIT semantics below; paper_faithful_switch applies only the
+        // paper rule (RA >= -0.05 -> Recovery, RA < -0.05 -> Agile, no hold).
+        // runRAModel() already fail-closed on a non-finite RA observation/output
+        // above; the helper additionally refuses any transition on NaN/Inf
+        // (invalid=true) so it can never drive the state machine.
+        const bool was_in_recovery = in_recovery_;
+        abs_switching::SwitchState sw{in_recovery_, rec_hold_left_};
+        const abs_switching::SwitchDecision decision =
+            abs_switching::stepSwitching(switching_mode_, sw, ra_value_,
+                                         ra_entry_thr, ra_exit_thr, REC_HOLD_STEPS);
+        if (!decision.invalid)
         {
-            // ENTER recovery (ROS1 L495-497)
-            in_recovery_ = true;
-            rec_hold_left_ = REC_HOLD_STEPS;
-            computeRecoveryTwist();  // GD optimization (ROS1 L498-525)
-            cached_rec_vx_ = ctrl_component_.recovery_twist_vx;
-            cached_rec_vy_ = ctrl_component_.recovery_twist_vy;
-            cached_rec_wz_ = ctrl_component_.recovery_twist_wz;
-            RCLCPP_WARN(rclcpp::get_logger("StateRL"),
-                "[RA-REC] 进入恢复 | 风险值 ra=%.4f > 进入阈值=%.4f 恢复速度=[%.2f,%.2f,%.2f] 保持步数=%d",
-                ra_value_, ra_entry_thr, cached_rec_vx_, cached_rec_vy_, cached_rec_wz_, REC_HOLD_STEPS);
-        }
-        else if (in_recovery_)
-        {
-            rec_hold_left_--;
-            if (rec_hold_left_ <= 0 && ra_value_ < ra_exit_thr)
+            in_recovery_ = decision.state.in_recovery;
+            rec_hold_left_ = decision.state.hold_left;
+            if (decision.enter_edge)
             {
-                // EXIT recovery — hold expired and RA confirmed safe
-                in_recovery_ = false;
+                // ENTER recovery (ROS1 L495-497): optimize + cache the safe twist
+                computeRecoveryTwist();  // GD optimization (ROS1 L498-525)
+                cached_rec_vx_ = ctrl_component_.recovery_twist_vx;
+                cached_rec_vy_ = ctrl_component_.recovery_twist_vy;
+                cached_rec_wz_ = ctrl_component_.recovery_twist_wz;
+                RCLCPP_WARN(rclcpp::get_logger("StateRL"),
+                    "[RA-REC] 进入恢复 | mode=%s 风险值 ra=%.4f 进入阈值=%.4f 恢复速度=[%.2f,%.2f,%.2f] 保持步数=%d",
+                    abs_switching::switchModeName(switching_mode_), ra_value_,
+                    ra_entry_thr, cached_rec_vx_, cached_rec_vy_, cached_rec_wz_, REC_HOLD_STEPS);
+            }
+            else if (was_in_recovery && !in_recovery_)
+            {
+                const double return_thr = (switching_mode_ == abs_switching::SwitchMode::paper_faithful_switch)
+                                              ? ra_entry_thr : ra_exit_thr;
                 RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-                    "[RA-REC] 退出恢复 | 风险值 ra=%.4f < 退出阈值=%.4f, 回到敏捷策略",
-                    ra_value_, ra_exit_thr);
+                    "[RA-REC] 退出恢复 | mode=%s 风险值 ra=%.4f < 退出阈值=%.4f, 回到敏捷策略",
+                    abs_switching::switchModeName(switching_mode_), ra_value_, return_thr);
             }
         }
     }

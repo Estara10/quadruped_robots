@@ -7,6 +7,7 @@
 
 #include <common/ObservationBuffer.h>
 #include <rl_quadruped_controller/control/CtrlComponent.h>
+#include <rl_quadruped_controller/FSM/RASwitchingLogic.hpp>
 #include <torch/script.h>
 
 #include <array>
@@ -304,6 +305,11 @@ private:
 
     // Recovery hold: minimum RL steps before allowing exit (frequency-adapted)
     int recovery_hold_steps_ = 30;
+
+    // P1-07: RA-to-Recovery switching mode. Default is stabilized_switch so
+    // existing launch/config behavior is unchanged.  An invalid configured value
+    // is rejected in loadYaml() (never silently downgraded to a default).
+    abs_switching::SwitchMode switching_mode_ = abs_switching::SwitchMode::stabilized_switch;
 
     // Safety: body tilt limit and action output clip (from YAML)
     double body_tilt_limit_deg_ = 75.0;

@@ -17,10 +17,17 @@ Milestone: prove the ABS mechanism and experiment system on Go2 + MuJoCo. Phase 
 | P1-07 | W2–W3 | Separate and test paper-faithful versus stabilized switching | P1-05, P1-06 |
 | P1-08 | W2–W3 | Freeze MuJoCo model, timing and dynamics baseline | P1-01 |
 | P1-09 | W3 | Complete telemetry, structured events, HUD and plots | P1-02 |
-| P1-10 | W3 | Establish deterministic scenario suite and seed propagation | P1-02, P1-08 |
-| P1-11 | W4 | Run pilot, estimate variance and preregister Acceptance settings | P1-04 through P1-10 |
+| P1-10 | W3 | Establish a deterministic, repeatable multi-scenario suite including obstacle environments and repeatable scenario runs | P1-02, P1-08 |
+| P1-11 | W4 | Run pilot, estimate variance and preregister Acceptance settings | P1-04 through P1-10, including an accepted P1-10 multi-obstacle scenario suite |
 | P1-12 | W4–W5 | Run paired multi-seed Full/Agile/variant evaluation | P1-11 |
 | P1-13 | W5 | Attribute failures and issue Phase 1 Go/No-Go | P1-12 |
+
+P1-10's flat replay is an internal infrastructure/repeatability sub-gate only;
+it is not P1-10 final acceptance and cannot by itself authorize P1-11 or
+P1-12. P1-10 final behavioral validation requires an accepted multi-obstacle
+scenario suite with real behavior evidence and repeatable runs. The sequence
+of P1-11, P1-12, and P1-13 remains unchanged, and none of these tasks starts
+automatically.
 
 ### Phase 1 Acceptance Gate
 

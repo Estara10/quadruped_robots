@@ -76,3 +76,35 @@ Only accepted decisions belong here. Open questions remain in `GAP_MATRIX.md`.
   artifact metadata. This decision does not change the underlying controller
   remap and does not reopen P1-09. The independent Reviewer accepted P1-01
   with known issues on 2026-08-30; Phase 1 remains NOT ACCEPTED.
+
+## DEC-011 — P1-10 Behavioral-Validation Gate
+
+- Status: Accepted on 2026-09-03 by the Director / project owner.
+- Decision: Flat replay is the minimum infrastructure and repeatability
+  acceptance for P1-10, but passing flat replay does not constitute P1-10
+  final acceptance.
+- P1-10 must not authorize P1-11 or P1-12 merely because the flat scenario is
+  complete. Formal Phase 1 must include real behavioral evidence in obstacle
+  scenarios.
+- The approved progression is fixed as follows:
+
+  ```text
+  flat replay
+  ↓
+  第一张障碍地图冻结
+  ↓
+  第一张障碍地图真实运行
+  ↓
+  确认关键行为数据真实可用
+  ↓
+  扩展其余障碍scenario
+  ↓
+  形成正式scenario suite
+  ↓
+  P1-11 pilot
+  ↓
+  P1-12 multi-seed evaluation
+  ```
+
+- This decision does not prescribe a final number of obstacle maps. P1-10
+  remains a gate for P1-11, and no later task starts automatically.

@@ -1,0 +1,20 @@
+{
+  "schema_version": "abs-go2-deterministic-suite/v2",
+  "suite_path": "scenarios/p1_10/scenario_suite_manifest.json",
+  "suite_sha256": "eb81d60742864fe9c870e957ba3ab601e80da3e64bc48a42c26f849570f3152d",
+  "validation": "PASS",
+  "scenario_count": 3,
+  "scenario_file_sha256": {
+    "flat_goal_forward": "beba99ed4e6f6c8f84eb1ac514f2da4b6e910c1587fdf91f5e95ac6bc639e092",
+    "flat_goal_lateral": "c95f83c345797ce31a449e27df16cffe84f3650ed2be498ac79cef51f6e09ff5",
+    "static_obstacle_authority_unavailable": "60c217fd616818637ec0e3435ba3144ce9f01246d4429a16011af8969e746f53"
+  },
+  "supported_scenarios": ["flat_goal_forward", "flat_goal_lateral"],
+  "unsupported_scenarios": ["static_obstacle_authority_unavailable"],
+  "baseline_manifest_sha256": "2667ed37a854f85e5a7c493e7d4a8b1871a84ce95d3e3b0742801d383f8dc915",
+  "baseline_identity_sha256": "59dd13fed5ebd026ec519f2659643237502be8e4d8df5174a65b7d35ceb4f7e0",
+  "model_closure_sha256": "8d9218de0dc02978fc0ef4ba1c790fa3b968fbdbfdb945e14522436a2574ea07",
+  "initial_state_qpos_sha256": "a604dd11dc57ea655bf6d746dcf068a91e80a0a1eddc73d20c1a3800468f59d8",
+  "supported_variants": ["stabilized"],
+  "unsupported_variants": ["paper-faithful", "agile-only"]
+}

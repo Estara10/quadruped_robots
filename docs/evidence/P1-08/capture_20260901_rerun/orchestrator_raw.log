@@ -1,0 +1,19 @@
+[14:02:38] == P1-08 baseline capture: preflight ==
+[14:02:38] DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority
+[14:02:38] preflight: mujoco binary SHA-256 OK 298d9b7008c69710…
+[14:02:38] preflight PASS
+[14:02:38] launch MuJoCo: /home/lidio/quadruped_robots/unitree_mujoco/simulate/build2/unitree_mujoco -s scene_flat.xml (scene_flat.xml; interface lo default)
+[14:02:38] MuJoCo pid=44493 pgid=44493
+[14:02:39] MuJoCo physics clock advancing (sim-clock instrumentation live)
+[14:02:39] launch ros2: mujoco.launch.py simulation_test:=0
+[14:02:39] ros2 launch pid=44520 pgid=44520
+[14:02:44] controller active
+[14:02:44] auto-RL: pub 2 -> 2 -> 3 (reliable)
+[14:02:54] RL active (rl_active=1)
+[14:02:54] sampling for 25.0s (rt_frame + sim_clock)
+[14:03:19] captured rt_frame=1251 sim_clock=12500 in 25.0s
+[14:03:19] shutdown: SIGINT to ros2 launch pgid then mujoco pgid
+[14:03:19] SIGINT sent to ros2 pgid=44520
+[14:03:19] ros2 exit rc=0
+[14:03:19] SIGINT sent to mujoco pgid=44493
+[14:03:20] mujoco exit rc=0

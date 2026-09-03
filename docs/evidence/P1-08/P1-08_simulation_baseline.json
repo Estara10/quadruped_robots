@@ -1,0 +1,332 @@
+{
+  "baseline_identity_sha256": "bdd47a0d1414a0e8642c2e51cda3fef303ab32288366c5451988047251ea0734",
+  "baseline_identity_source": "model_closure|mujoco_binary|controller_plugin|hardware_plugin|agile|ra|recovery|robot_control_config|abs_config|mujoco_config|git_commit|dirty|start_wall|timing_samples",
+  "binaries_sha256": {
+    "controller_plugin": "2b31e558471227a385906239a4fd20d1f9cb759a4960c743b6f5065f13fe6d4e",
+    "hardware_plugin": "9c56d00d1cca1d396d760c21bce54bbb4dc0e9f7cd7453e4060940fb8c13918d",
+    "libmujoco_shared": "e35ba7f65d2eeccfeda2c5f251d49e26de6fbbc1067170a889fefaa4a35aa24e",
+    "mujoco_executable": "298d9b7008c69710c5b5388d673ab4919fe3a3b85ff8e5f163b40fa79de3bd83"
+  },
+  "capture": {
+    "dir": "capture_20260901_rerun",
+    "end_wall": "2026-09-01T14:03:20+0800",
+    "mujoco_exit_code": 0,
+    "ros2_launch_exit_code": 0,
+    "rt_frame_samples": 1251,
+    "shutdown": {
+      "complete": true,
+      "escalation": "none",
+      "signal": "SIGINT"
+    },
+    "sim_clock_samples": 12500,
+    "start_wall": "2026-09-01T14:02:38+0800",
+    "window_s": 25.000050766
+  },
+  "config_files_sha256": {
+    "abs_controller_config": "1cd42c4bb29baad1873bd55e7f2f1d82fb0c8ec8bf35fb8e4eff61338758c586",
+    "launch_script": "74bd6412171b08531fb953019f9ff4c912e139345fa37f02e36b4e71c1c8d41b",
+    "mujoco_launch": "ed87b9204cf9d5dde83e4ff54bcafac16aae5e1407ecd8b394d2c5e777a17fb9",
+    "mujoco_simulate_config": "86fcfab9ecdf888901340697ef9c99fcc72bbd3d88c86f2178b4ce2ab2c88b95",
+    "rec_controller_config": "939519289f93107f90ed109ce8dd945340767f0eb5b0499afe5294c32da1f48b",
+    "robot_control_config": "59c61ad4f29c2b37b3741236b35ce11c773fb6cfe16ed8d58b92757febf8bf7c"
+  },
+  "date": "2026-09-01",
+  "deployed_policy_artifacts_sha256": {
+    "agile_policy": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf",
+    "ra_model": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7",
+    "recovery_policy": "e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171"
+  },
+  "effective_controller_static_facts": {
+    "abs.decimation": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": 4
+    },
+    "abs.goal_x": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": 7.0
+    },
+    "abs.goal_y": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": 0.0
+    },
+    "abs.num_observations": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": 61
+    },
+    "abs.ra_threshold": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": -0.05
+    },
+    "abs.recovery_hold_steps": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": 30
+    },
+    "abs.switching_mode": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": "stabilized_switch"
+    },
+    "abs.twist_*": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": {
+        "twist_eps": 0.05,
+        "twist_lam": 10.0,
+        "twist_lr": 0.5,
+        "twist_tau": 0.05,
+        "twist_vx_max": 1.5,
+        "twist_vx_min": -1.5,
+        "twist_vy_max": 0.3,
+        "twist_vy_min": -0.3,
+        "twist_wz_max": 3.0,
+        "twist_wz_min": -3.0
+      }
+    },
+    "controller_manager.update_rate_hz": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/robot_control.yaml",
+      "value": 1000
+    },
+    "mujoco_simulate.domain_id": {
+      "source": "/home/lidio/quadruped_robots/unitree_mujoco/simulate/config.yaml",
+      "value": "duplicate_key_static_ambiguity"
+    },
+    "mujoco_simulate.interface": {
+      "source": "/home/lidio/quadruped_robots/unitree_mujoco/simulate/config.yaml",
+      "value": "duplicate_key_static_ambiguity"
+    },
+    "mujoco_simulate.robot_scene": {
+      "source": "/home/lidio/quadruped_robots/unitree_mujoco/simulate/config.yaml",
+      "value": "scene_flat.xml"
+    },
+    "rec.config_model_folder": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/rec/config.yaml",
+      "value": "rec"
+    },
+    "rl_quadruped_controller.model_folder": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/robot_control.yaml",
+      "value": "abs"
+    },
+    "rl_quadruped_controller.update_rate_hz": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/robot_control.yaml",
+      "value": 200
+    },
+    "rl_quadruped_controller.use_rl_thread": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/robot_control.yaml",
+      "value": false
+    }
+  },
+  "effective_static_model_facts": {
+    "actuator": {
+      "0.ctrlrange": "-23.700000,23.700000",
+      "0.forcerange": "0.000000,0.000000",
+      "1.ctrlrange": "-23.700000,23.700000",
+      "1.forcerange": "0.000000,0.000000",
+      "10.ctrlrange": "-23.700000,23.700000",
+      "10.forcerange": "0.000000,0.000000",
+      "11.ctrlrange": "-45.430000,45.430000",
+      "11.forcerange": "0.000000,0.000000",
+      "2.ctrlrange": "-45.430000,45.430000",
+      "2.forcerange": "0.000000,0.000000",
+      "3.ctrlrange": "-23.700000,23.700000",
+      "3.forcerange": "0.000000,0.000000",
+      "4.ctrlrange": "-23.700000,23.700000",
+      "4.forcerange": "0.000000,0.000000",
+      "5.ctrlrange": "-45.430000,45.430000",
+      "5.forcerange": "0.000000,0.000000",
+      "6.ctrlrange": "-23.700000,23.700000",
+      "6.forcerange": "0.000000,0.000000",
+      "7.ctrlrange": "-23.700000,23.700000",
+      "7.forcerange": "0.000000,0.000000",
+      "8.ctrlrange": "-45.430000,45.430000",
+      "8.forcerange": "0.000000,0.000000",
+      "9.ctrlrange": "-23.700000,23.700000",
+      "9.forcerange": "0.000000,0.000000",
+      "nu": "12"
+    },
+    "dims": {
+      "nbody": "18",
+      "ncam": "0",
+      "nflex": "0",
+      "ngeom": "57",
+      "njnt": "13",
+      "nmesh": "16",
+      "nq": "19",
+      "nsensor": "45",
+      "nsite": "5",
+      "nu": "12",
+      "nv": "18"
+    },
+    "opt": {
+      "apirate": "100.000000",
+      "ccd_iterations": "50",
+      "ccd_tolerance": "1.000e-06",
+      "cone": "elliptic",
+      "density": "0.000000",
+      "disableflags": "0x0",
+      "enableflags": "0x0",
+      "gravity": "0.000000,0.000000,-9.810000",
+      "impratio": "100.000000",
+      "integrator": "Euler",
+      "iterations": "100",
+      "jacobian": "2",
+      "ls_iterations": "50",
+      "ls_tolerance": "1.000e-02",
+      "noslip_iterations": "0",
+      "noslip_tolerance": "1.000e-06",
+      "o_margin": "0.000000",
+      "o_solimp": "0.900000,0.950000,0.001000,0.500000,2.000000",
+      "o_solref": "0.020000,1.000000",
+      "solver": "Newton",
+      "timestep": "0.002000000",
+      "tolerance": "1.000e-08",
+      "viscosity": "0.000000"
+    },
+    "step": {
+      "10steps_advance": "0.020000000 (10 * timestep = 0.020000000)",
+      "advance_matches": "true"
+    }
+  },
+  "git": {
+    "branch": "feat/ray-pred-source-switch",
+    "commit": "d27f34d97cc8e449d1e24497a5b11db4a07badec",
+    "dirty": true,
+    "dirty_patch_sha256": "98c942e01d9adea3731fe9fea5fa70cb9a8cb4e386b087f609b672041f8a1e5f",
+    "dirty_paths": [
+      "D paper.txt",
+      " M quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      " M quadruped_ros2_control_humble/descriptions/unitree/go2_description/xacro/ros2_control.xacro",
+      " M unitree_mujoco/simulate/CMakeLists.txt",
+      " M unitree_mujoco/simulate/src/main.cc",
+      "?? ABS_fuwuqi/",
+      "?? common/abs_sim_clock_contract.h",
+      "?? docs/evidence/P1-08/",
+      "?? scripts/build_p1_08_manifest.py",
+      "?? scripts/generate_project_report.py",
+      "?? scripts/p1_08_baseline_capture.py",
+      "?? scripts/p1_08_timing_stats.py",
+      "?? unitree_mujoco/MUJOCO_LOG.TXT",
+      "?? unitree_mujoco/simulate/test/p1_08_model_probe.cpp",
+      "?? unitree_mujoco/simulate/test/p1_08_sim_clock.cpp"
+    ]
+  },
+  "known_unknowns": {
+    "controller_callback_direct_period": "no authoritative 200 Hz per-callback timestamp source; derived = observed policy period / decimation 4 = 5.0 ms under periodic-callback assumption",
+    "goal_shaping": "INTENTIONAL_VARIANT (P1-01), unchanged",
+    "mujoco_simulate_domain_interface": "duplicate YAML keys - static ambiguity",
+    "policy_artifact_order": "deferred reproducibility (DEC-010), unchanged",
+    "recovery_tick_period": "not active during capture (0 recovery-active samples, 0 transitions) - not measurable"
+  },
+  "model_closure": {
+    "closure_sha256": "8d9218de0dc02978fc0ef4ba1c790fa3b968fbdbfdb945e14522436a2574ea07",
+    "launched_scene": "scene_flat.xml",
+    "missing_files": [],
+    "present_file_count": 18
+  },
+  "not_claimed": [
+    "not paper equivalence",
+    "not Sim-to-Real equivalence",
+    "not benchmark",
+    "not formal experiment",
+    "not performance tuning"
+  ],
+  "observed_timing": {
+    "capture_dir": "docs/evidence/P1-08/capture_20260901_rerun",
+    "controller_callback": {
+      "declared_source": "robot_control.yaml rl_quadruped_controller.update_rate",
+      "declared_update_rate_hz": 200,
+      "derived_period_ms": 4.999699552,
+      "derived_period_ns": 4999699.552,
+      "direct_per_callback_timestamps": "UNKNOWN - no authoritative runtime source exposes 200 Hz callbacks; derived under periodic-callback assumption"
+    },
+    "declared_decimation": 4,
+    "physics": {
+      "conclusion": "observed physics timestep == nominal opt.timestep 0.002 s",
+      "nominal_opt_timestep_s": 0.002,
+      "note": "dstep counts assume opt.timestep 0.002 s (probe-confirmed); sim_advance in seconds",
+      "observed_sim_advance_per_step_s": {
+        "max": 0.0020000000000024443,
+        "mean": 0.0020000000000000755,
+        "median": 0.0019999999999988916,
+        "min": 0.0019999999999988916,
+        "p95": 0.0020000000000024443,
+        "p99": 0.0020000000000024443,
+        "sample_count": 12499
+      },
+      "observed_wallclock_per_physics_step": {
+        "mean_hz": 500.011397521582,
+        "mean_ms": 1.9999544109528764,
+        "ns": {
+          "max": 5272889.0,
+          "mean": 1999954.4109528763,
+          "median": 2247450.0,
+          "min": 85489.0,
+          "p95": 2409136.6999999997,
+          "p99": 2550107.360000001,
+          "sample_count": 12499
+        }
+      },
+      "samples": 12500
+    },
+    "policy_tick": {
+      "name": "policy_rl_step",
+      "period_hz": {
+        "mean": 50.00300466054885,
+        "median": 49.99700267968935
+      },
+      "period_ms": {
+        "max": 47.836329,
+        "mean": 19.998798208,
+        "median": 20.001199,
+        "min": 3.341782,
+        "p95": 21.09938445,
+        "p99": 27.947193819999992
+      },
+      "period_ns": {
+        "max": 47836329,
+        "mean": 19998798.208,
+        "median": 20001199.0,
+        "min": 3341782,
+        "p95": 21099384.45,
+        "p99": 27947193.819999993
+      },
+      "sample_count": 1250
+    },
+    "ra_tick": {
+      "observed_period": {
+        "name": "policy_rl_step",
+        "period_hz": {
+          "mean": 50.00300466054885,
+          "median": 49.99700267968935
+        },
+        "period_ms": {
+          "max": 47.836329,
+          "mean": 19.998798208,
+          "median": 20.001199,
+          "min": 3.341782,
+          "p95": 21.09938445,
+          "p99": 27.947193819999992
+        },
+        "period_ns": {
+          "max": 47836329,
+          "mean": 19998798.208,
+          "median": 20001199.0,
+          "min": 3341782,
+          "p95": 21099384.45,
+          "p99": 27947193.819999993
+        },
+        "sample_count": 1250
+      },
+      "source": "runRAModel() invoked every RL step (StateRL.cpp)"
+    },
+    "recovery_active_samples": 0,
+    "recovery_tick": {
+      "name": "recovery_active",
+      "note": "insufficient samples",
+      "period_ns": null,
+      "sample_count": 0
+    },
+    "recovery_transitions": 0
+  },
+  "schema": "abs-go2-p1-08-simulation-baseline/v1",
+  "status": "IMPLEMENTED / AWAITING INDEPENDENT REVIEW",
+  "switching_mode": "stabilized_switch (P1-07 default, unchanged)",
+  "task": "P1-08"
+}

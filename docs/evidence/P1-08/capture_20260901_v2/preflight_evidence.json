@@ -1,0 +1,44 @@
+{
+  "checks": {
+    "fresh_out_dir": "fresh",
+    "ldd": {
+      "command": [
+        "ldd",
+        "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/hardware_unitree_mujoco/lib/libhardware_unitree_mujoco.so"
+      ],
+      "env_summary": {
+        "LD_LIBRARY_PATH": "/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/unitree_guide_controller/lib:/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/rl_quadruped_controller/lib:/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/leg_pd_controller/lib:/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/hardware_unitree_mujoco/lib:/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/controller_common/lib:/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/control_input_msgs/lib:/home/lidio/catkin_ws/devel/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib:/home/lidio/Libraries/mujoco/lib:/home/lidio/Libraries/libfranka/lib:/home/lidio/Libraries/mujoco/lib:/home/lidio/Libraries/libfranka/lib"
+      },
+      "exception": null,
+      "not_found": [],
+      "ok": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "\tlinux-vdso.so.1 (0x00007ffe6474a000)\n\tlibrclcpp_lifecycle.so => /opt/ros/humble/lib/librclcpp_lifecycle.so (0x000079624a4f6000)\n\tlibddsc.so.0 => /home/lidio/Libraries/unitree_sdk2/lib/libddsc.so.0 (0x0000796249eef000)\n\tlibddscxx.so.0 => /home/lidio/Libraries/unitree_sdk2/lib/libddscxx.so.0 (0x0000796249c00000)\n\tlibclass_loader.so => /opt/ros/humble/lib/libclass_loader.so (0x000079624a4e1000)\n\tlibconsole_bridge.so.1.0 => /lib/x86_64-linux-gnu/libconsole_bridge.so.1.0 (0x000079624a4b6000)\n\tlibrclcpp.so => /opt/ros/humble/lib/librclcpp.so (0x0000796249a0a000)\n\tlibrcutils.so => /opt/ros/humble/lib/librcutils.so (0x000079624a49e000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x0000796249600000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x000079624a47e000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x0000796249200000)\n\t/lib64/ld-linux-x86-64.so.2 (0x000079624a53b000)\n\tlibrcl_lifecycle.so => /opt/ros/humble/lib/librcl_lifecycle.so (0x000079624a472000)\n\tliblifecycle_msgs__rosidl_typesupport_cpp.so => /opt/ros/humble/lib/liblifecycle_msgs__rosidl_typesupport_cpp.so (0x000079624a46a000)\n\tliblifecycle_msgs__rosidl_typesupport_c.so => /opt/ros/humble/lib/liblifecycle_msgs__rosidl_typesupport_c.so (0x000079624a463000)\n\tlibrcl.so => /opt/ros/humble/lib/librcl.so (0x0000796249eb1000)\n\tlibtracetools.so => /opt/ros/humble/lib/libtracetools.so (0x000079624a45e000)\n\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x000079624a457000)\n\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x000079624a452000)\n\tlibrcpputils.so => /opt/ros/humble/lib/librcpputils.so (0x0000796249ea3000)\n\tliblibstatistics_collector.so => /opt/ros/humble/lib/liblibstatistics_collector.so (0x0000796249e9c000)\n\tlibrcl_interfaces__rosidl_typesupport_cpp.so => /opt/ros/humble/lib/librcl_interfaces__rosidl_typesupport_cpp.so (0x0000796249e91000)\n\tlibrcl_yaml_param_parser.so => /opt/ros/humble/lib/librcl_yaml_param_parser.so (0x0000796249e85000)\n\tlibrosgraph_msgs__rosidl_typesupport_cpp.so => /opt/ros/humble/lib/librosgraph_msgs__rosidl_typesupport_cpp.so (0x0000796249e80000)\n\tlibstatistics_msgs__rosidl_typesupport_cpp.so => /opt/ros/humble/lib/libstatistics_msgs__rosidl_typesupport_cpp.so (0x0000796249e7b000)\n\tlibrmw_implementation.so => /opt/ros/humble/lib/librmw_implementation.so (0x0000796249e6e000)\n\tlibament_index_cpp.so => /opt/ros/humble/lib/libament_index_cpp.so (0x0000796249e63000)\n\tlibrcl_logging_interface.so => /opt/ros/humble/lib/librcl_logging_interface.so (0x0000796249e5e000)\n\tlibrmw.so => /opt/ros/humble/lib/librmw.so (0x0000796249e50000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x0000796249923000)\n\tliblifecycle_msgs__rosidl_generator_c.so => /opt/ros/humble/lib/liblifecycle_msgs__rosidl_generator_c.so (0x0000796249e40000)\n\tlibrosidl_runtime_c.so => /opt/ros/humble/lib/librosidl_runtime_c.so (0x0000796249e35000)\n\tlibrosidl_typesupport_cpp.so => /opt/ros/humble/lib/librosidl_typesupport_cpp.so (0x0000796249e2f000)\n\tlibrosidl_typesupport_c.so => /opt/ros/humble/lib/librosidl_typesupport_c.so (0x0000796249e27000)\n\tlibrcl_logging_spdlog.so => /opt/ros/humble/lib/librcl_logging_spdlog.so (0x0000796249e1f000)\n\tlibrcl_interfaces__rosidl_typesupport_c.so => /opt/ros/humble/lib/librcl_interfaces__rosidl_typesupport_c.so (0x0000796249e16000)\n\tlibrcl_interfaces__rosidl_generator_c.so => /opt/ros/humble/lib/librcl_interfaces__rosidl_generator_c.so (0x0000796249907000)\n\tlibyaml.so => /opt/ros/humble/lib/libyaml.so (0x00007962498e5000)\n\tlibspdlog.so.1 => /lib/x86_64-linux-gnu/libspdlog.so.1 (0x000079624986a000)\n\tlibbuiltin_interfaces__rosidl_generator_c.so => /opt/ros/humble/lib/libbuiltin_interfaces__rosidl_generator_c.so (0x0000796249e0f000)\n\tlibfmt.so.8 => /lib/x86_64-linux-gnu/libfmt.so.8 (0x0000796249849000)\n"
+    },
+    "manifest": {
+      "failures": [],
+      "fresh_closure_failures": [],
+      "manifest_included_xml_count": 1,
+      "mujoco_bin_actual": "1e9b330f2b6c39dabaaa8424ee53c41d3be08ea00eb3e69ba71f332de50654e2",
+      "mujoco_bin_manifest": "1e9b330f2b6c39dabaaa8424ee53c41d3be08ea00eb3e69ba71f332de50654e2",
+      "scene_resolved": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/scene_flat.xml",
+      "scene_root_manifest": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/scene_flat.xml"
+    },
+    "residual_processes": "none",
+    "residual_processes_after_cleanup": "none",
+    "shm_cleanup": {
+      "after": {
+        "/dev/shm/mujoco_rt_frame": "absent",
+        "/dev/shm/mujoco_sim_clock": "absent"
+      },
+      "before": {
+        "/dev/shm/mujoco_rt_frame": "absent",
+        "/dev/shm/mujoco_sim_clock": "absent"
+      },
+      "removed": []
+    },
+    "window_s": 25.0,
+    "x11": "reachable"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "schema_version": "abs-go2-deterministic-scenario/v2",
+  "scenario_id": "flat_goal_forward",
+  "status": "SUPPORTED",
+  "description": "Flat Go2 scene with a fixed world-frame goal directly forward.",
+  "baseline": {
+    "manifest_path": "docs/evidence/P1-08/P1-08_baseline_manifest.json",
+    "manifest_sha256": "2667ed37a854f85e5a7c493e7d4a8b1871a84ce95d3e3b0742801d383f8dc915",
+    "identity_path": "docs/evidence/P1-08/P1-08_simulation_baseline_identity.json",
+    "identity_file_sha256": "6c3563c25d45cc275db6b083f9f0fc0cc2067b48bc8f4a93dcace9f6d42817ea",
+    "identity_sha256": "59dd13fed5ebd026ec519f2659643237502be8e4d8df5174a65b7d35ceb4f7e0"
+  },
+  "scene": {
+    "launch_arg": "scene_flat.xml",
+    "root_xml": "unitree_mujoco/unitree_robots/go2/scene_flat.xml",
+    "root_xml_sha256": "9ce83b3e61c722a523d0359536cee803f17610f95d2275fc32e96801ec3c1908",
+    "model_closure_sha256": "8d9218de0dc02978fc0ef4ba1c790fa3b968fbdbfdb945e14522436a2574ea07"
+  },
+  "initial_state_source": {
+    "kind": "scene_default",
+    "startup_path": "main.cc:PhysicsThread: mj_loadXML -> mj_makeData -> sim.Load -> mj_forward",
+    "reset_source": "mj_makeData:qpos0; no keyframe reset",
+    "probe_source": "unitree_mujoco/simulate/test/p1_10_initial_state_probe.cpp",
+    "probe_source_sha256": "71d148721fa9a14d88cf2eb32577ec0ca2942a3e36a956c14a5ceaf1578890f3"
+  },
+  "initial_state": {
+    "qpos": [0, 0, 0.445, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "qpos_sha256": "a604dd11dc57ea655bf6d746dcf068a91e80a0a1eddc73d20c1a3800468f59d8"
+  },
+  "goal": {
+    "world_xy_m": [7.0, 0.0],
+    "resample_goal_on_arrival": false
+  },
+  "goal_injection": {
+    "source": "scripts/p1_08_baseline_capture.py:pub_input before RL",
+    "baseline_config_world_xy_m": [7.0, 0.0],
+    "control_input": {"lx": 0.0, "ly": 0.0, "rx": 0.0},
+    "effective_world_xy_m": [7.0, 0.0]
+  },
+  "switching_mode": "stabilized_switch",
+  "run_window_s": 25.0,
+  "obstacle_layout": {
+    "status": "EMPTY",
+    "objects": []
+  },
+  "config_overrides": {},
+  "random_sources": {
+    "scenario_initial_condition_sampling": {
+      "status": "NOT_USED_IN_THIS_SCENARIO",
+      "actual_injection_point": "none; startup state is the literal scene-default qpos0",
+      "evidence": "offline probe confirms mj_makeData qpos equals qpos0; no initial-condition sampling producer"
+    },
+    "mujoco_model_randomization": {
+      "status": "NOT_USED_IN_THIS_SCENARIO",
+      "actual_injection_point": "none; accepted P1-08 flat model closure is fixed",
+      "evidence": "scene_flat.xml/go2.xml contains fixed model/assets and no randomization entry point"
+    },
+    "controller_goal_resampling": {
+      "status": "NOT_USED_IN_THIS_SCENARIO",
+      "actual_injection_point": "none; StateRL resampling branch is disabled by scenario goal flag",
+      "evidence": "goal.resample_goal_on_arrival=false; StateRL.cpp only calls rand() inside the true branch"
+    },
+    "python_orchestrator": {
+      "status": "DECLARED_NOT_CONSUMED",
+      "actual_injection_point": "none; root seed is retained only for pairing/provenance",
+      "evidence": "current capture path contains no Python random consumer"
+    },
+    "cpp_rand": {
+      "status": "NOT_USED_IN_THIS_SCENARIO",
+      "actual_injection_point": "none; no C++ rand draw is reachable with goal resampling disabled",
+      "evidence": "StateRL.cpp goal-resample branch is guarded by resample_goal_on_arrival_"
+    },
+    "torch_python_numpy": {
+      "status": "NOT_USED_IN_THIS_SCENARIO",
+      "actual_injection_point": "none; current capture path performs inference only and has no sampling call",
+      "evidence": "P1-08 capture path has no Torch/Python/NumPy sampling producer"
+    },
+    "obstacle_placement": {
+      "status": "NOT_USED_IN_THIS_SCENARIO",
+      "actual_injection_point": "none; obstacle_layout is explicitly EMPTY",
+      "evidence": "scenario declares zero objects and does not generate or mutate scene geometry"
+    }
+  }
+}

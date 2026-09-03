@@ -1,0 +1,61 @@
+{
+  "schema_version": "abs-go2-deterministic-suite/v2",
+  "suite_id": "p1-10-minimal-go2",
+  "canonical_encoding": "json.dumps(value, sort_keys=True, separators=(',', ':')).encode('utf-8'); sha256",
+  "baseline": {
+    "manifest_path": "docs/evidence/P1-08/P1-08_baseline_manifest.json",
+    "manifest_sha256": "2667ed37a854f85e5a7c493e7d4a8b1871a84ce95d3e3b0742801d383f8dc915",
+    "identity_path": "docs/evidence/P1-08/P1-08_simulation_baseline_identity.json",
+    "identity_file_sha256": "6c3563c25d45cc275db6b083f9f0fc0cc2067b48bc8f4a93dcace9f6d42817ea",
+    "identity_sha256": "59dd13fed5ebd026ec519f2659643237502be8e4d8df5174a65b7d35ceb4f7e0"
+  },
+  "variants": {
+    "stabilized": {
+      "label": "stabilized",
+      "status": "SUPPORTED",
+      "runtime_configuration": {
+        "abs_controller_config_path": "quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+        "abs_controller_config_sha256": "1cd42c4bb29baad1873bd55e7f2f1d82fb0c8ec8bf35fb8e4eff61338758c586",
+        "switching_mode": "stabilized_switch"
+      },
+      "consumed_behavior": {
+        "consumer": "rl_quadruped_controller StateRL::loadYaml + StateRL::step",
+        "source": "quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp + FSM/RASwitchingLogic.hpp",
+        "controller_plugin_path": "quadruped_ros2_control_humble/install/rl_quadruped_controller/lib/rl_quadruped_controller/librl_quadruped_controller.so",
+        "controller_plugin_sha256": "2b31e558471227a385906239a4fd20d1f9cb759a4960c743b6f5065f13fe6d4e",
+        "behavior": "P1-07 stabilized_switch consumed by the deployed controller"
+      },
+      "binding_sha256": "2f0dfc4e8bf5237a578d99030facc38459fd5f899af49b508e48e29b7e8a4e1c"
+    },
+    "paper-faithful": {
+      "label": "paper-faithful",
+      "status": "UNSUPPORTED",
+      "reason": "no P1-10 capture binding to a consumed paper_faithful_switch configuration"
+    },
+    "agile-only": {
+      "label": "agile-only",
+      "status": "UNSUPPORTED",
+      "reason": "no P1-10 capture binding to an Agile-only runtime consumer"
+    }
+  },
+  "scenarios": [
+    {
+      "scenario_id": "flat_goal_forward",
+      "path": "scenarios/p1_10/flat_goal_forward.json",
+      "sha256": "beba99ed4e6f6c8f84eb1ac514f2da4b6e910c1587fdf91f5e95ac6bc639e092",
+      "status": "SUPPORTED"
+    },
+    {
+      "scenario_id": "flat_goal_lateral",
+      "path": "scenarios/p1_10/flat_goal_lateral.json",
+      "sha256": "c95f83c345797ce31a449e27df16cffe84f3650ed2be498ac79cef51f6e09ff5",
+      "status": "SUPPORTED"
+    },
+    {
+      "scenario_id": "static_obstacle_authority_unavailable",
+      "path": "scenarios/p1_10/static_obstacle_authority_unavailable.json",
+      "sha256": "60c217fd616818637ec0e3435ba3144ce9f01246d4429a16011af8969e746f53",
+      "status": "UNSUPPORTED"
+    }
+  ]
+}

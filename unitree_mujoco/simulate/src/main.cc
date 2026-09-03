@@ -34,6 +34,8 @@
 #include "unitree_sdk2_bridge.h"
 #include "bridge_lifecycle.h"
 #include "param.h"
+#include "abs_sim_clock_contract.h"
+#include "obstacle_collision_authority.h"
 
 #define MUJOCO_PLUGIN_DIR "mujoco_plugin"
 #define NUM_MOTOR_IDL_GO 20
@@ -64,6 +66,11 @@ namespace
   // model and data
   mjModel *m = nullptr;
   mjData *d = nullptr;
+
+  // P1-08 observability-only physics clock: publishes {sequence, monotonic_ns,
+  // sim_time} after every mj_step. Never affects scheduling or behavior.
+  abs_sim_clock::SimClockWriter g_sim_clock;
+  ObstacleCollisionAuthority g_collision_authority;
 
   // control noise variables
   mjtNum *ctrlnoise = nullptr;
@@ -295,6 +302,7 @@ namespace
     // cpu-sim syncronization point
     std::chrono::time_point<mj::Simulate::Clock> syncCPU;
     mjtNum syncSim = 0;
+    uint64_t physics_step_counter = 0;
 
     // ChannelFactory::Instance()->Init(0);
     // UnitreeDds ud(d);
@@ -468,6 +476,10 @@ namespace
 
               // run single step, let next iteration deal with timing
               mj_step(m, d);
+              g_sim_clock.publish(abs_sim_clock::monotonicNowNs(), d->time);
+              // Stage-B collision authority is formal only on this
+              // harness-controlled PhysicsLoop path; UI stepping is excluded.
+              g_collision_authority.publish(m, d, ++physics_step_counter);
               stepped = true;
             }
 
@@ -509,6 +521,10 @@ namespace
 
                 // call mj_step
                 mj_step(m, d);
+                g_sim_clock.publish(abs_sim_clock::monotonicNowNs(), d->time);
+                // Same formal PhysicsLoop-only collision scope as the path
+                // above; simulate.cc UI step-forward is debug-only.
+                g_collision_authority.publish(m, d, ++physics_step_counter);
                 stepped = true;
 
                 // break if reset
@@ -643,6 +659,13 @@ int main(int argc, char **argv)
   sigemptyset(&signal_action.sa_mask);
   sigaction(SIGINT, &signal_action, nullptr);
   sigaction(SIGTERM, &signal_action, nullptr);
+
+  // P1-08: route every in-scope mj_step through the single sim-clock contract.
+  // PhysicsLoop calls g_sim_clock.publish directly; library step paths (the UI
+  // step-forward in simulate.cc) publish via this hook. Observability only.
+  abs_sim_clock::installPublishHook([](uint64_t monotonic_ns, double sim_time) {
+    g_sim_clock.publish(monotonic_ns, sim_time);
+  });
 
   // display an error if running on macOS under Rosetta 2
 #if defined(__APPLE__) && defined(__AVX__)

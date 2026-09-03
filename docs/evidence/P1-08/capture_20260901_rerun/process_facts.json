@@ -1,0 +1,26 @@
+{
+  "start_wall": "2026-09-01T14:02:38+0800",
+  "end_wall": "2026-09-01T14:03:20+0800",
+  "mujoco": {
+    "pid": 44493,
+    "pgid": 44493,
+    "exit_code": 0,
+    "signal_requested": "SIGINT",
+    "escalation": "none"
+  },
+  "ros2_launch": {
+    "pid": 44520,
+    "pgid": 44520,
+    "exit_code": 0,
+    "signal_requested": "SIGINT",
+    "escalation": "none"
+  },
+  "forced_termination": false,
+  "shutdown_complete": true,
+  "scene": "scene_flat.xml",
+  "capture_samples": {
+    "rt_frame_samples": 1251,
+    "sim_clock_samples": 12500,
+    "window_ns": 25000050766
+  }
+}

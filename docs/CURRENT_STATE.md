@@ -1,12 +1,117 @@
 # Current State
 
+### P1-10 offline saved-record closure freeze
+
+The new pair
+`P1-10-REPLAY-20260903-saved-record-closure-flat_goal_forward-stabilized`
+was frozen offline in
+`docs/evidence/P1-10/replay_pair_20260903_saved_record_closure/` with pair
+manifest SHA-256
+`86ae55914db294d269d6f70909bfad1878c287c644f5a85c4075fa758f923a6c`.
+It binds `flat_goal_forward`, `stabilized`, `root_seed=20260902`, fixed
+`25.0 s`, `scene_default / mj_makeData:qpos0`, the accepted P1-08 baseline,
+and the current P1-10 suite. Its frozen status is
+**FROZEN_OFFLINE_PENDING_INDEPENDENT_REVIEW**; Operator Run A/Run B launch is prohibited until the Reviewer
+accepts this offline closure. Historical failed pairs remain unchanged and
+were not retried.
+
+The offline-only comparator
+`scripts/p1_10_saved_record_compare.py` accepts only `--pair-dir`, derives
+`run_A`/`run_B` from the frozen manifest, and requires process facts, runtime
+record, resolved manifest, and P1-10 context for each run. It never opens live
+shared memory and never launches MuJoCo/ROS2. Process facts, terminal
+structure, session identity, and all fixed scenario/baseline bindings are
+validated fail-closed; terminal domain and artifact origin are fail-closed;
+binding fields are never backfilled; exact/numeric/excluded projection rules
+remain frozen; outputs refuse overwrite. Production context writer now emits
+the complete resolved scene binding without fallback. Offline comparator tests
+are **17 test methods PASS**.
+No Run A, Run B, saved-record comparison, benchmark, FormalRun, or Phase 1
+acceptance result exists yet. Flat replay is currently only the P1-10
+infrastructure/repeatability sub-gate; even a successful flat replay would
+not be P1-10 final acceptance or authorize P1-11/P1-12. P1-10 remains
+**IMPLEMENTED / AWAITING INDEPENDENT REVIEW**, and Phase 1 remains **NOT
+ACCEPTED**.
+
+The REJECT and repair scope are recorded in
+`docs/evidence/P1-10/replay_pair_20260903_saved_record_closure/comparator_contract_closure_20260903.md`.
+The Operator runbook is
+`docs/evidence/P1-10/replay_pair_20260903_saved_record_closure/operator_replay_runbook.md`.
+The baseline identity fields are recorded distinctly: document SHA-256
+`6c3563c25d45cc275db6b083f9f0fc0cc2067b48bc8f4a93dcace9f6d42817ea` and
+canonical identity
+`59dd13fed5ebd026ec519f2659643237502be8e4d8df5174a65b7d35ceb4f7e0`.
+
+### P1-10 residual-process preflight review
+
+The residual-process repair sub-gate is independently accepted with known
+issues. Overall P1-10 remains **IMPLEMENTED / AWAITING INDEPENDENT REVIEW**;
+the latest offline pair is frozen pending independent review and the
+behavioral-validation Stage B/C gates remain open. The historical
+`P1-10-REPLAY-20260902-flat_goal_forward-stabilized` remains
+`FAILED_FOR_THIS_PAIR` and was not retried. See
+[`REVIEW_2026-09-02_RESIDUAL_PROCESS_PREFLIGHT.md`](evidence/P1-10/REVIEW_2026-09-02_RESIDUAL_PROCESS_PREFLIGHT.md).
+
+The historical pair `P1-10-REPLAY-20260903-flat_goal_forward-stabilized` was
+frozen and attempted exactly once. Run A passed residual-process identity
+inspection but failed X11 preflight (`xdpyinfo rc=1`) before ldd or child
+launch; Run B was not attempted and no retry was made. The new pair is
+`FAILED_FOR_THIS_PAIR`; pair manifest SHA-256 is
+`b86a19887dee8a441c7a5643eca698ea4a092a92bd549e972d41b1067c8f049e` and
+result SHA-256 is
+`72caf926e8da7e2c27ef60b7c21eb8699613f1ffc7a35734ea93c00fc226dc3e`.
+The historical pair `P1-10-REPLAY-20260902-flat_goal_forward-stabilized` also
+remains `FAILED_FOR_THIS_PAIR` and was not retried.
+
+The 2026-09-03 X11 preflight failure is recorded as **ENVIRONMENT BLOCKED**:
+the current and exact harness child environments both used `DISPLAY=:0` and
+`XAUTHORITY=/run/user/1000/gdm/Xauthority`, and `xdpyinfo` failed identically
+with rc=1. The X0 socket node existed but was not reachable; the lower-level
+cause remains UNKNOWN. No harness code change was justified. See
+[`x11_preflight_failure_diagnosis_20260903.md`](evidence/P1-10/x11_preflight_failure_diagnosis_20260903.md).
+
+The read-only execution-context comparison confirms the operator-supplied
+known-good graphical terminal previously had `xdpyinfo rc=0`, while the
+current Execution and exact child environment both use `DISPLAY=:0` and
+`XAUTHORITY=/run/user/1000/gdm/Xauthority` and both fail with rc=1. The current
+X0 socket is not reachable; namespace versus credential sub-cause remains
+UNKNOWN because the known-good uid/gid and namespace links were not archived.
+The minimal prerequisite is the same reachable desktop namespace/session plus
+an exact-child-environment `xdpyinfo rc=0` check. See
+[`x11_execution_context_comparison_20260903.md`](evidence/P1-10/x11_execution_context_comparison_20260903.md).
+
 ## Current Phase
 
 Phase 1 — MuJoCo Simulation Validation
 
 ## Current Task
 
+P1-10 — Runtime-Bound Initial State and Supported-Variant Closure — **IMPLEMENTED / AWAITING INDEPENDENT REVIEW**. The frozen flat replay pair remains offline-only and pending its own final review; no A/B runtime comparison exists. Historical pairs `replay_pair_20260902` and `replay_pair_20260903` remain `FAILED_FOR_THIS_PAIR` and were not retried.
+
+Stage-B offline collision authority for canonical `obstacle_test1` is **ACCEPT WITH KNOWN ISSUES — independent review 2026-09-03**. It binds future collision snapshots to a harness-generated capture identity and to a full loaded-model fingerprint; it covers only the two harness-controlled PhysicsLoop paths, not UI step-forward. The accepted P1-08 executable identity is `1e9b330f...`; the current instrumented Stage-B binary is a distinct artifact and must receive an independent Stage-B execution manifest/identity. See [`REVIEW_2026-09-03_STAGE_B_AUTHORITY.md`](evidence/P1-10/REVIEW_2026-09-03_STAGE_B_AUTHORITY.md).
+
+No obstacle runtime has occurred. `obstacle_test1` remains **IMPLEMENTED / AWAITING RUNTIME VALIDATION**; `obstacle_test2`–`obstacle_test5` remain `UNSUPPORTED`; goal/fall/controller-timeout authority and episode-wide collision-free coverage remain UNKNOWN. Flat replay is only an infrastructure/repeatability sub-gate. P1-11/P1-12/P1-13 were not started; no benchmark, pilot, multi-seed evaluation, or FormalRun exists. Phase 1 remains NOT ACCEPTED.
+
+P1-08 — Freeze MuJoCo Model, Effective Timing, and Dynamics Baseline — **ACCEPT WITH KNOWN ISSUES — final independent review 2026-09-02**. No active engineering task after closure; P1-10 does not start automatically; Phase 1 remains NOT ACCEPTED. Accepted scope: v2 MuJoCo model/config/artifact hash-bound baseline (closure `8d9218de…`, 18 files); authoritative sim-clock/timing capture (run_id `4f14416672244cbfb4af93573bd9d86c`, session `1970665031624`, fixed 25 s; 0 rejected reads); observed physics 0.002 s exactly / wall-clock 500 Hz; Policy/RA tick ≈49.97 Hz (rt_frame, 1250 LIVE, mean 20.014 ms); reproducible identity v2 `59dd13fe…` (old `14e8d14f…`/`bdd47a0d…` superseded); real runtime record VALID with two-phase finalize and real process facts (SIGINT delivered, rc 0, no escalation, `FRAMES_ENDED_RC0`). Retained Known Issues: capture-end orphan inventory UNKNOWN (no capture-end artifact archived); Recovery cadence UNKNOWN/not observed (0 transitions); direct controller-callback cadence UNKNOWN (5.003 ms DERIVED only); corrected reader-stats `generated_at` byte-stability boundary (gap math deterministic, timestamp embedded); no benchmark/paper-equivalence/Sim-to-Real/performance conclusion. Evidence: [`REVIEW_2026-09-02_FINAL.md`](evidence/P1-08/REVIEW_2026-09-02_FINAL.md) + [`P1-08_v2_baseline_capture_20260902.md`](evidence/P1-08/P1-08_v2_baseline_capture_20260902.md) + [`P1-08_stride2_gap_correction_20260902.md`](evidence/P1-08/P1-08_stride2_gap_correction_20260902.md) + `capture_20260901_v2/`. Old v1 capture, its identities, and the 2026-09-01 preflight failure remain superseded/non-acceptance. Historical closures: the 2026-09-01 capture (`capture_20260901_rerun`) used the **v1 sim-clock contract + unhashed timing** and is **NOT an accepted baseline** (superseded). Testability/writer-boundary closure (2026-09-01): v2 C++ test now CTest-registered (`include(CTest)` + `add_test`; built from `test/p1_08_sim_clock_test.cpp`; `ctest` **1/1 PASS**, direct **PASS (39 checks)**; Release `-O3 -DNDEBUG`-safe via CHECK, not assert); hook test uses a **non-capturing static callback** with a real install→publishStep→writer→reader round-trip + no-op case; `SimClockWriter::publish()` is **mutex-serialized** (no reliance on external `sim.mtx`) and construction is **fail-closed** (explicit odd in-progress marker + NaN payload + zero monotonic kept until first publish, invalidating stale frames); hook store/load atomic with documented lifetime; default shm name unchanged; old v1 test retired to `test/p1_08_sim_clock_v1_legacy.cpp` (**NOT registered/run**). **Atomicity + C++→Python integration closure (2026-09-01)**: `SimClockWriter` 构造改为**先原子 release-store odd in-progress 标记、再原子写 magic/version/NaN/0**（无 `memset` 先于 odd 标记）；所有共享字段读写全原子（`sim_time` 经 IEEE-754 bit-pattern `uint64` 视图原子存取，ABI 40B/`<4Qd` 不变）；reader 亦全原子（修复 `snap.sequence` 未初始化 bug）；新增 CMake 构建的 `p1_08_sim_clock_bridge`（无 MuJoCo）在唯一临时 shm 上跑**真实** `SimClockWriter`，Python `read_sim_clock(shm_path=…)` 实际读回同一 v2 snapshot（正向集成非 struct.pack 伪造）；负例在真实 C++ shm 上 fail-closed；`struct.pack` 假字节测试标注为 decode/rejection-only；临时 shm 唯一且清理、生产 `/mujoco_sim_clock` 未触碰。C++ v2 test **PASS (45)**（含 stale valid v2 snapshot 被新 writer 构造失效 + 多线程多调用者压力 0 撕裂）；`ctest` **1/1**；Python `test_p1_08_sim_clock.py` **PASS (32)**。`p1_08_model_probe.cpp` 为离线静态 probe，不承诺其 `mj_step` 发布 sim-clock；三个运行时 `mj_step` 路径覆盖事实保留；`publishStep` 无 hook 为 no-op、非库级 every-step 保证。证据：[`P1-08_repair_v2_atomicity_integration_20260901.md`](evidence/P1-08/P1-08_repair_v2_atomicity_integration_20260901.md)。**Recapture harness closure (2026-09-01，无 runtime run)**：child-env `ldd`（returncode/timeout/exception/not-found 全检查 + 证据归档）、launch identity 绑定（实际 `mujoco_bin` hash + `--scene` 解析到 canonical root_xml + path-escape + artifact/config/plugin hash）、窄化 shm 清理（仅任务精确 shm，无活进程确认 + unlink 失败即 FAIL）、runtime record fail-closed（每个 distinct present 帧原始传入 `record_snapshot`，坏帧使整条 record INVALID）、两阶段 facts（顶层 `exit_code` 仅双 wait=0 才为 0；`shutdown_request_source` 真实 SIGINT）、统一 try/finally cleanup（stop sampling → SIGINT+wait → 仅超时才 TERM 且逐条记录）、固定 25s 窗口（非 25 即 FAIL）、identity **v2**（schema `abs-go2-p1-08-baseline-identity/v2`、generator 2.0，全部输入必需、缺失即失败、旧 v1 capture 被 v2 生成器明确拒绝）。离线测试：C++ `p1_08_sim_clock_test` **PASS (45)** + ctest 1/1；`test_p1_08_sim_clock.py` **32**；`test_p1_08_baseline_identity.py` **21**（mutation/missing/old-v1-reject）；`test_p1_08_harness.py` **29**。证据：[`P1-08_recapture_harness_closure_20260901.md`](evidence/P1-08/P1-08_recapture_harness_closure_20260901.md) + [`P1-08_harness_lifecycle_closure_20260901.md`](evidence/P1-08/P1-08_harness_lifecycle_closure_20260901.md) + [`P1-08_process_signal_truthfulness_20260901.md`](evidence/P1-08/P1-08_process_signal_truthfulness_20260901.md) + [`P1-08_generic_signal_exception_20260901.md`](evidence/P1-08/P1-08_generic_signal_exception_20260901.md) + [`P1-08_cleanup_error_persistence_20260901.md`](evidence/P1-08/P1-08_cleanup_error_persistence_20260901.md)。**Cleanup-error persistence / poll-exception closure (2026-09-01，无 runtime run)**：per-child `cleanup_errors`（stage/exception_type/exception_message/time_s）与 `poll_attempts` 结构化持久化到最终 `process_facts.json` 的对应 child facts + 顶层 `cleanup_error_count`（不替代 per-child）；`proc.poll()` 异常不再早退——记录 poll_attempt 异常事实后仍执行 SIGINT signal-attempt 与 wait-attempt、无法确认时 wait_rc 保持 None/UNKNOWN（不伪造已退出/rc=0），其余 child 继续清理；`wait_pid` poll-异常容忍（retry + deadline 返回 None）；`process_facts.json` 落盘 → `recorder.finalize(same facts)` → stats/logs 不可绕过。新 negative tests 实际读取生成 `process_facts.json`（不 mock `build_process_facts`）；`test_p1_08_harness.py` **PASS (77)**。**Generic signal-exception fail-closed cleanup closure (2026-09-01，无 runtime run)**：`_signal_pg()` 现捕获 `Exception`（非 BaseException/SystemExit/KeyboardInterrupt），任意异常记录 `delivered=false` + `result`/`exception_type`/`exception_message` + signal/目标 PID-PGID/时间，绝不误记为 delivered/SIGINT source/forced；`_finalize_capture()` 每 child 异常隔离（`_handle_child` 捕获 + `cleanup_errors` 记录 + 仍尝试 wait 记 UNKNOWN/失败），单 child 异常不阻断其余 child，`process_facts.json` 落盘与 `recorder.finalize(same facts)` 不可绕过，TERM/KILL 仍仅 timeout 分支且 delivered 语义。新增 negative tests（SIGINT RuntimeError、TERM 普通异常、finalize 连续性、多 child 不互相阻断、facts 不伪造正常关闭）；`test_p1_08_harness.py` **PASS (62)**。**Process-signal fact truthfulness closure (2026-09-01，无 runtime run)**：`shutdown_request_source="SIGINT"` 仅在实际 delivered SIGINT 后写入；`forced_termination=true` 仅在 TERM/KILL 实际 delivered 后写入；`_signal_pg` 每信号记录 `delivered`（killpg 成功才 True，失败保留 `failed:<reason>`）；`_wait_or_escalate` 仅在 TERM/KILL delivered 时置 `escalated`；`build_process_facts` 从 delivered 时间线重算 per-child `escalated` 与顶层 `forced_termination`/`source`，三者一致；非零自然退出永不 forced。新增 negative tests（SIGINT 成功/失败、TERM 成功/失败、KILL 成功/失败、natural nonzero、facts↔recorder 一致），信号 sender 注入（mock `os.killpg` + fake proc，不启动真实 child）。`test_p1_08_harness.py` **PASS (51)**。**Harness lifecycle + full model closure + deterministic clock-test closure (2026-09-01，无 runtime run)**：完整 model-closure 校验（`resolve_closure` 递归发现 include XML + mesh/hfield asset，相对当前 XML 目录解析，escape/cycle/missing 全部 fail-closed，manifest 显式记录 included XML 列表与逐文件 SHA；`verify_manifest_hashes` 重跑整 closure 对比）；preflight 异常/锁/shm fail-closed（preflight 整体 try/except → 结构化 PRECHECK FAIL + 证据归档；`pgrep` 区分 not-found(rc=1)/exec-fail(rc=2/异常)；harness 独占 flock 锁 preflight 前取得、cleanup 后释放，锁被占即 FAIL；窄 shm 清理 before/after/spawn 三查）；统一两阶段 cleanup（单一 `_finalize_capture`：stop_sampling → SIGINT+记录 → wait → 仅超时才 TERM/KILL 且逐信号记录 → 先写 process_facts.json → 用同一 facts finalize → 存 stats/logs）；facts 语义 fail-closed（`forced_termination` 仅真实 TERM/KILL；`shutdown_request_source` 仅真实 SIGINT 否则 UNKNOWN；`exit_code=0` 仅全 required child wait=0，缺失→None 不造 0）；**C++ 压力测试 flake 根因 = test bug（读取前阶段 hook 的 stale-but-consistent snapshot），非 contract bug**；修复 = 跳过 pre-stress snapshot + 收紧为精确相等断言；**50 次连续 ctest + 60 次 direct 全通过**。**v2 recapture run FAILED AT PREFLIGHT (2026-09-01，单次、不重试)**：授权的一次性 v2 采集在 preflight 即中止（orchestrator 的 `ldd` 检查用了当前 env 而非子进程 env，`libddsc` 显示 not-found；子进程 env 下实际可解析——测量脚本缺陷，非环境/hash 失败）。未启动任何进程、未创建 `capture_20260901_v2`；按任务规则判 **BLOCKED / FAILED FOR THIS RUN**，不重试、不产出 accepted baseline。orchestrator 的 ldd preflight 已修复（child-env），后续授权重跑可用。重新采集需 Director 另行授权。证据：[`P1-08_v2_capture_preflight_fail_20260901.md`](evidence/P1-08/P1-08_v2_capture_preflight_fail_20260901.md)。 **Repair increment (no runtime run):** (A) v2 strict odd/even seqlock contract (`abs_sim_clock_contract.h` `kVersion=2`; writer marks odd before payload, even after; acquire/release; reader rejects odd/changed/version-mismatch/non-finite; no torn snapshot accepted); all in-scope `mj_step` sites covered — PhysicsLoop main.cc ×2 (`g_sim_clock.publish`) + UI step-forward simulate.cc (`publishStep` via global hook installed by `main()`); C++ `p1_08_sim_clock_test` **PASS** + Python `test_p1_08_sim_clock.py` **PASS (22)**. (B) canonical baseline identity (`build_p1_08_baseline_identity.py` v1.0): `sha256(json.dumps(INPUT, sort_keys=True, separators=(",",":")).encode("utf-8"))` binding SHA-256 of every raw timing JSONL + process-facts + manifest + asset/binary/config hashes + git commit/dirty + generator version/hash; `test_p1_08_baseline_identity.py` **PASS (6)** (determinism, timing-change, manifest-change, recomputation). Old identity `bdd47a0d…` superseded; demonstration identity over old capture = `99b995b0…` (not accepted). Offline baseline facts from the v1 era remain recorded (closure `8d9218de…`, MuJoCo 3.3.3/timestep 0.002 s/Euler/Newton/iter 100/tol 1e-8/gravity −9.81/impratio 100; controller static 1000/200 Hz/decimation 4/`switching_mode=stabilized_switch`; observed timing from the v1 capture: physics 0.002 s, policy/RA ≈50 Hz, Recovery inactive, controller derived 5.0 ms). Manifest refreshed with **v2** `mujoco_executable` `f51ee432…`. Evidence: [`P1-08_repair_20260901.md`](evidence/P1-08/P1-08_repair_20260901.md) + [`P1-08_simulation_baseline.md`](evidence/P1-08/P1-08_simulation_baseline.md) (superseded record) + [`P1-08_baseline_identity.json`](evidence/P1-08/P1-08_baseline_identity.json). Not paper/Sim-to-Real equivalence, not benchmark, not tuning. Phase 1 remains NOT ACCEPTED.
+
 P1-07 — Separate and Test Paper-Faithful vs Stabilized Switching — **ACCEPT WITH KNOWN ISSUES — final independent review 2026-09-01**. No active engineering task after closure; P1-08 must not start automatically. Acceptance is switching-only: two explicit `abs.switching_mode` modes — `paper_faithful_switch` (paper rule only: `RA >= -0.05` → Recovery, `RA < -0.05` → Agile; no hysteresis, no forced hold, equality at `-0.05` enters) and `stabilized_switch` (**default**, pre-P1-07 behavior byte-for-byte: strict `RA > -0.05` enter, `RA < -0.08` + `recovery_hold_steps` 30-step hold exit); truth tables PASS at all threshold equalities (`p1_07_switching.cpp` **292 checks**, exit 0); invalid mode fails initialization (no silent fallback); NaN/±Inf RA fail-closed (no transition; existing `runRAModel` path unchanged); default-compat regression PASS; `colcon build --packages-select rl_quadruped_controller` **PASS**. Known issues (recorded, not fixed): CTest not registered (executable target only, run directly — no `add_test()` added); `paper_faithful_switch` is switching-only, **NOT** full paper-faithful ABS; MuJoCo/ROS2 runtime switching unmeasured (**UNKNOWN**); P1-06 Eq.21/Eq.22 optimizer MISMATCH unresolved and outside this task. Evidence: [`REVIEW_2026-09-01_FINAL.md`](evidence/P1-07/REVIEW_2026-09-01_FINAL.md) + [`P1-07_switching_modes.md`](evidence/P1-07/P1-07_switching_modes.md) + [`P1-07_switching_decision_table.json`](evidence/P1-07/P1-07_switching_decision_table.json). Phase 1 remains NOT ACCEPTED.
+
+### P1-10 residual-process preflight correction
+
+The previous broad `pgrep -af` substring detector is replaced by offline
+implemented `/proc` executable/argv identity inspection. Exact MuJoCo
+identity and attributable capture ROS launch/controller identities remain
+fail-closed rejects; the harness PID and ancestor chain plus shell/path-only
+mentions are excluded. Process-table read failure, malformed identity, or
+ambiguous controller attribution returns `uncertain` and rejects preflight.
+Focused offline regression is **93 checks PASS**. The residual-process repair
+sub-gate is independently accepted with known issues; see
+[`REVIEW_2026-09-02_RESIDUAL_PROCESS_PREFLIGHT.md`](evidence/P1-10/REVIEW_2026-09-02_RESIDUAL_PROCESS_PREFLIGHT.md).
+Overall P1-10 remains **IMPLEMENTED / AWAITING INDEPENDENT REVIEW**; the
+latest offline pair remains pending independent review and the behavioral-
+validation Stage B/C gates remain open. No replay was run for this
+documentation synchronization, the historical runtime pairs remain
+`FAILED_FOR_THIS_PAIR`, and neither was retried. Phase 1 remains NOT ACCEPTED.
 
 P1-06 — Recovery Eq.21/Eq.22 and Safe-Twist Optimizer Parity — **ACCEPT WITH KNOWN ISSUES — final independent review 2026-08-31**. P1-07 was later authorized by the Director (2026-09-01); P1-08 and later tasks must not start automatically. Key results (recorded, not fixed): Eq.22 reference `get_pos_integral` (`testbed.py:55-61`) matches paper (yaw-coupled second-order); deployment `pos_x=vx*tau`/`pos_y=vy*tau` (`StateRL.cpp:623-624`) omits both terms → **MISMATCH** (gap, ABS_PAPER_NOTES:131); first-order goal-penalty consequence **MISMATCH**; gradient clip L2-norm vs per-element **MISMATCH** (not an approved stabilized variant); iteration count testbed 10 (not paper MATCH) vs deployment 3 (paper upper-bound MATCH only), testbed↔deployment **MISMATCH**; objective constants/RA λε/lr/clip-type/feasibility/fallback/RA-input concatenation: paper **UNKNOWN**, testbed↔deployment **MATCH**; twist bounds ±[1.5,0.3,3.0] paper+testbed+deployment **MATCH**. Numeric fixture `test_p1_06_recovery_optimizer.py` **14/14 PASS** (independent arithmetic only; not runtime parity). Not paper equivalence / runtime parity / benchmark / safety claim; runtime parity and feasibility rates UNKNOWN. Evidence: [`P1-06_recovery_optimizer_parity.md`](evidence/P1-06/P1-06_recovery_optimizer_parity.md) + [`P1-06_recovery_optimizer_matrix.json`](evidence/P1-06/P1-06_recovery_optimizer_matrix.json) + [`REVIEW_2026-08-31_FINAL.md`](evidence/P1-06/REVIEW_2026-08-31_FINAL.md). Phase 1 remains NOT ACCEPTED.
 
@@ -365,3 +470,98 @@ not P1-09 Acceptance, not P1-02 runtime integration, not Phase 1 Acceptance.
 Evidence: [`P1-09AE_record_capture_20260830.md`](evidence/P1-09/P1-09AE_record_capture_20260830.md)
 and its raw logs; the pre-run launch failure is recorded in
 [`P1-09AE_record_capture_fail_20260830.md`](evidence/P1-09/P1-09AE_record_capture_fail_20260830.md).
+
+### P1-10 Stage B/C historical-map preparation — 2026-09-03
+
+The five historical obstacle roots were formally inventoried offline. The
+candidate suite is
+[`obstacle_candidate_suite_manifest.json`](../scenarios/p1_10/obstacle_candidate_suite_manifest.json),
+with evidence in
+[`historical_five_map_formalization_20260903.md`](evidence/P1-10/historical_five_map_formalization_20260903.md)
+and
+[`historical_five_map_inventory_20260903.json`](evidence/P1-10/historical_five_map_inventory_20260903.json).
+`scene_obstacle.xml` is a byte-identical alias of `scene_test1.xml`; the five
+formal candidate identities are `obstacle_test1`–`obstacle_test5`, while
+`scene_terrain.xml` remains an extra future/generalization candidate. All five
+candidate statuses are `UNSUPPORTED`: their XML/closure/obstacle metadata are
+hash-bound, but obstacle runtime authority, collision/terminal authority, and
+repeatability are not closed. The existing accepted flat suite and its frozen
+pair were not changed.
+
+P1-10 remains **IMPLEMENTED / AWAITING INDEPENDENT REVIEW** and is not
+Accepted. Flat replay remains only the Stage A infrastructure/repeatability
+sub-gate; even a flat pass would not be P1-10 final acceptance. The current
+latest frozen flat pair remains
+`FROZEN_OFFLINE_PENDING_INDEPENDENT_REVIEW`, manifest SHA
+`86ae55914db294d269d6f70909bfad1878c287c644f5a85c4075fa758f923a6c`, with
+comparator `scripts/p1_10_saved_record_compare.py` in the same evidence
+directory. Historical pairs remain explicitly `FAILED_FOR_THIS_PAIR` and are
+not current or active.
+
+The next behavioral-validation gap is obstacle-scenario definition/freeze,
+obstacle authority, collision/terminal authority, real runtime record, and
+repeatability. No obstacle runtime, benchmark, FormalRun, P1-11, P1-12, or
+P1-13 was started. Phase 1 remains **NOT ACCEPTED**.
+
+### P1-10 Stage B minimal collision/terminal authority — 2026-09-03
+
+The minimum offline collision authority for `obstacle_test1` is now implemented
+in the simulator physics path and the existing saved runtime recorder. The
+versioned `/mujoco_collision_v2` source is bound to the frozen scene root/full
+closure and XML-derived obstacle signatures, reads authoritative MuJoCo
+`mjData::ncon`/contact pairs after each existing physics step, and records only
+robot↔bound-obstacle contact as obstacle collision. Floor, self-contact, other,
+unknown, stale, malformed, and scene-mismatched inputs remain fail-closed; the
+legacy `/mujoco_collision` diagnostics are not formal authority. An observed
+valid contact can enter `runtime_record.jsonl`; a sampled final no-contact value
+cannot be promoted to an episode-wide collision-free result without complete
+episode coverage.
+
+This is observability/authority work, not an ABS algorithm or control change.
+Goal arrival is source-trace-only and not a formal terminal producer; fall and
+controller timeout remain UNKNOWN. The fixed 25 s capture window is not relabeled
+as a controller timeout. `obstacle_test1` has not been runtime validated, the
+five historical maps are not an accepted P1-10 suite, and no obstacle runtime,
+benchmark, FormalRun, or later P1 task was started. P1-10 remains
+**IMPLEMENTED / AWAITING INDEPENDENT REVIEW**; Phase 1 remains **NOT ACCEPTED**.
+Evidence: [`stage_b_collision_terminal_authority_20260903.md`](evidence/P1-10/stage_b_collision_terminal_authority_20260903.md).
+The pre-repair obstacle candidate-suite manifest SHA was
+`4552fc5b408855174337c7b2d73acf49a92a5b44622a540e0d1b90082ab58cb5`; the
+scenario status remains `UNSUPPORTED`, while only `obstacle_test1`'s nested
+collision-authority binding is `IMPLEMENTED / AWAITING RUNTIME VALIDATION`.
+
+### P1-10 Stage B capture-binding and runtime-fingerprint repair — 2026-09-03
+
+The independent-review REJECT blockers are repaired offline. Collision snapshot
+v2 now carries a harness-generated capture identity and a full loaded-model
+fingerprint; the recorder binds the snapshot to the same capture identity and
+expected fingerprint recorded in context/process facts. The shared canonical
+fingerprint covers every model geom, including non-obstacle contact-relevant
+identity. Closure SHA-256 remains the preflight file identity, while the
+runtime fingerprint is the loaded MuJoCo contact-model identity.
+
+Formal authority scope is limited to the two harness-controlled `main.cc`
+PhysicsLoop paths. `simulate.cc` UI step-forward is interactive debugging only,
+not formal capture; the runbook prohibits UI reset/keyframe/step-forward/teleop
+intervention. The instrumented executable is distinct from accepted P1-08
+executable SHA-256
+`1e9b330f2b6c39dabaaa8424ee53c41d3be08ea00eb3e69ba71f332de50654e2`; any
+future obstacle run needs an independent Stage-B manifest/identity.
+
+Current obstacle candidate-suite manifest SHA-256 is
+`01e53d66ee9d716ac0d4a6b776417120cdd8997bc672e80d90e7752a95efb286`, with
+inventory evidence at
+[`historical_five_map_inventory_20260903.json`](evidence/P1-10/historical_five_map_inventory_20260903.json).
+The latest frozen flat pair remains manifest SHA-256
+`86ae55914db294d269d6f70909bfad1878c287c644f5a85c4075fa758f923a6c`, and the
+saved-record comparator remains offline-only with **17/17 tests PASS** in
+[`replay_pair_20260903_saved_record_closure/`](evidence/P1-10/replay_pair_20260903_saved_record_closure/).
+Historical pairs remain `FAILED_FOR_THIS_PAIR`, never current or active.
+
+Status is **P1-10 Stage B AUTHORITY IMPLEMENTATION — REPAIRED / AWAITING
+INDEPENDENT REVIEW**. `obstacle_test1` remains
+`IMPLEMENTED / AWAITING RUNTIME VALIDATION`; goal/fall/timeout remain UNKNOWN,
+the five maps are not an accepted formal suite, and P1-10 is not accepted.
+No runtime capture, A/B replay, benchmark, FormalRun, P1-11, P1-12, or P1-13
+was started; Operator authorization remains withheld. Phase 1 remains
+**NOT ACCEPTED**.

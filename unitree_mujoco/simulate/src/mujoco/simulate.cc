@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "simulate.h"
+#include "abs_sim_clock_contract.h"
 
 #include <algorithm>
 #include <atomic>
@@ -1678,6 +1679,9 @@ void UiEvent(mjuiState* state) {
           // not in scrubber: step, add to history buffer
           else {
             mj_step(sim->m_, sim->d_);
+            // P1-08: every in-scope mj_step publishes through the single
+            // sim-clock contract (observability only; no-op until installed).
+            abs_sim_clock::publishStep(abs_sim_clock::monotonicNowNs(), sim->d_->time);
             sim->AddToHistory();
           }
 

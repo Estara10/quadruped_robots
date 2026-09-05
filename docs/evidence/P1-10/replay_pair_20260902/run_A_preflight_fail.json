@@ -1,0 +1,301 @@
+{
+  "checks": {
+    "residual_processes": {
+      "detail": "1 /home/lidio/.codex/tmp/arg0/codex-arg0OzT2U7/codex-linux-sandbox --sandbox-policy-cwd /home/lidio/quadruped_robots --command-cwd /home/lidio/quadruped_robots --permission-profile {\"type\":\"managed\",\"file_system\":{\"type\":\"restricted\",\"entries\":[{\"path\":{\"type\":\"special\",\"value\":{\"kind\":\"root\"}},\"acc",
+      "state": "found"
+    },
+    "scenario_context": {
+      "launch_contract": {
+        "baseline_manifest": "docs/evidence/P1-08/P1-08_baseline_manifest.json",
+        "initial_state_source": "scene_default",
+        "manifest": "docs/evidence/P1-08/P1-08_baseline_manifest.json",
+        "root_seed": 20260902,
+        "scenario": "flat_goal_forward",
+        "scenario_path": "scenarios/p1_10/flat_goal_forward.json",
+        "scene": "scene_flat.xml",
+        "variant": "stabilized",
+        "window_s": 25.0
+      },
+      "ok": true,
+      "random_consumer": "none in current flat capture path",
+      "root_seed": 20260902,
+      "root_seed_role": "pairing/provenance_only",
+      "scenario_id": "flat_goal_forward",
+      "scenario_sha256": "beba99ed4e6f6c8f84eb1ac514f2da4b6e910c1587fdf91f5e95ac6bc639e092",
+      "suite_sha256": "eb81d60742864fe9c870e957ba3ab601e80da3e64bc48a42c26f849570f3152d",
+      "variant": "stabilized"
+    }
+  },
+  "scenario_context": {
+    "baseline": {
+      "identity_file_sha256": "6c3563c25d45cc275db6b083f9f0fc0cc2067b48bc8f4a93dcace9f6d42817ea",
+      "identity_path": "docs/evidence/P1-08/P1-08_simulation_baseline_identity.json",
+      "identity_sha256": "59dd13fed5ebd026ec519f2659643237502be8e4d8df5174a65b7d35ceb4f7e0",
+      "manifest_path": "docs/evidence/P1-08/P1-08_baseline_manifest.json",
+      "manifest_sha256": "2667ed37a854f85e5a7c493e7d4a8b1871a84ce95d3e3b0742801d383f8dc915"
+    },
+    "config_overrides": {},
+    "formal_context": {
+      "baseline_identity_sha256": "59dd13fed5ebd026ec519f2659643237502be8e4d8df5174a65b7d35ceb4f7e0",
+      "derived_seed_registry": {
+        "controller_goal_resampling": {
+          "actual_injection_point": "none; StateRL resampling branch is disabled by scenario goal flag",
+          "evidence": "goal.resample_goal_on_arrival=false; StateRL.cpp only calls rand() inside the true branch",
+          "status": "NOT_USED_IN_THIS_SCENARIO"
+        },
+        "cpp_rand": {
+          "actual_injection_point": "none; no C++ rand draw is reachable with goal resampling disabled",
+          "evidence": "StateRL.cpp goal-resample branch is guarded by resample_goal_on_arrival_",
+          "status": "NOT_USED_IN_THIS_SCENARIO"
+        },
+        "mujoco_model_randomization": {
+          "actual_injection_point": "none; accepted P1-08 flat model closure is fixed",
+          "evidence": "scene_flat.xml/go2.xml contains fixed model/assets and no randomization entry point",
+          "status": "NOT_USED_IN_THIS_SCENARIO"
+        },
+        "obstacle_placement": {
+          "actual_injection_point": "none; obstacle_layout is explicitly EMPTY",
+          "evidence": "scenario declares zero objects and does not generate or mutate scene geometry",
+          "status": "NOT_USED_IN_THIS_SCENARIO"
+        },
+        "python_orchestrator": {
+          "actual_injection_point": "none; root seed is retained only for pairing/provenance",
+          "evidence": "current capture path contains no Python random consumer",
+          "status": "DECLARED_NOT_CONSUMED"
+        },
+        "scenario_initial_condition_sampling": {
+          "actual_injection_point": "none; startup state is the literal scene-default qpos0",
+          "evidence": "offline probe confirms mj_makeData qpos equals qpos0; no initial-condition sampling producer",
+          "status": "NOT_USED_IN_THIS_SCENARIO"
+        },
+        "torch_python_numpy": {
+          "actual_injection_point": "none; current capture path performs inference only and has no sampling call",
+          "evidence": "P1-08 capture path has no Torch/Python/NumPy sampling producer",
+          "status": "NOT_USED_IN_THIS_SCENARIO"
+        }
+      },
+      "initial_state_binding_sha256": "f7907a927c31d3d6a5d497ab274b3d913bf4fc8ccb0e9713a9dbd1e182d0a9a0",
+      "p1_02_pairing_key": "6ac5d17dd81862e91dbf8cdbaacf141ca4d0e7b553bf8717f0f722d58b073d96",
+      "root_seed": 20260902,
+      "scenario_id": "flat_goal_forward",
+      "scenario_sha256": "beba99ed4e6f6c8f84eb1ac514f2da4b6e910c1587fdf91f5e95ac6bc639e092",
+      "suite_sha256": "eb81d60742864fe9c870e957ba3ab601e80da3e64bc48a42c26f849570f3152d",
+      "variant": "stabilized",
+      "variant_binding_sha256": "2f0dfc4e8bf5237a578d99030facc38459fd5f899af49b508e48e29b7e8a4e1c"
+    },
+    "goal": {
+      "resample_goal_on_arrival": false,
+      "world_xy_m": [
+        7.0,
+        0.0
+      ]
+    },
+    "goal_injection": {
+      "baseline_config_world_xy_m": [
+        7.0,
+        0.0
+      ],
+      "control_input": {
+        "lx": 0.0,
+        "ly": 0.0,
+        "rx": 0.0
+      },
+      "effective_world_xy_m": [
+        7.0,
+        0.0
+      ],
+      "source": "scripts/p1_08_baseline_capture.py:pub_input before RL"
+    },
+    "initial_state": {
+      "base_pose_world_m": [
+        0,
+        0,
+        0.445
+      ],
+      "base_quat_wxyz": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "binding_sha256": "f7907a927c31d3d6a5d497ab274b3d913bf4fc8ccb0e9713a9dbd1e182d0a9a0",
+      "qpos": [
+        0,
+        0,
+        0.445,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "qpos_sha256": "a604dd11dc57ea655bf6d746dcf068a91e80a0a1eddc73d20c1a3800468f59d8",
+      "yaw_rad": 0.0
+    },
+    "initial_state_source": {
+      "base_pose_world_m": [
+        0,
+        0,
+        0.445
+      ],
+      "base_quat_wxyz": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "keyframe0_is_not_loaded": true,
+      "keyframe0_name": "home",
+      "kind": "scene_default",
+      "probe_executable": "unitree_mujoco/simulate/build2/p1_10_initial_state_probe",
+      "probe_executable_sha256": "944ecfd0b0bd0e3c7b3b932852ec13a48a8c7fc0888e8bbb4f9e328268977fc1",
+      "probe_source": "unitree_mujoco/simulate/test/p1_10_initial_state_probe.cpp",
+      "probe_source_sha256": "71d148721fa9a14d88cf2eb32577ec0ca2942a3e36a956c14a5ceaf1578890f3",
+      "qpos": [
+        0,
+        0,
+        0.445,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "qpos_sha256": "a604dd11dc57ea655bf6d746dcf068a91e80a0a1eddc73d20c1a3800468f59d8",
+      "reset_source": "mj_makeData:qpos0; no keyframe reset",
+      "startup_path": "main.cc:PhysicsThread: mj_loadXML -> mj_makeData -> sim.Load -> mj_forward",
+      "yaw_rad": 0.0
+    },
+    "launch_contract": {
+      "baseline_manifest": "docs/evidence/P1-08/P1-08_baseline_manifest.json",
+      "initial_state_source": "scene_default",
+      "manifest": "docs/evidence/P1-08/P1-08_baseline_manifest.json",
+      "root_seed": 20260902,
+      "scenario": "flat_goal_forward",
+      "scenario_path": "scenarios/p1_10/flat_goal_forward.json",
+      "scene": "scene_flat.xml",
+      "variant": "stabilized",
+      "window_s": 25.0
+    },
+    "obstacle_layout": {
+      "objects": [],
+      "status": "EMPTY"
+    },
+    "pairing": {
+      "p1_02_pairing_key": "6ac5d17dd81862e91dbf8cdbaacf141ca4d0e7b553bf8717f0f722d58b073d96",
+      "scenario_root_seed_key": "fc887e89ce542e5062ba6669611cb459c4ffe7de35198c59df29cedc9b2bed29",
+      "variant": "stabilized"
+    },
+    "process_context": {
+      "consumer": "none in current flat capture path",
+      "environment": {
+        "ABS_P1_10_BASELINE_IDENTITY_SHA256": "59dd13fed5ebd026ec519f2659643237502be8e4d8df5174a65b7d35ceb4f7e0",
+        "ABS_P1_10_DERIVED_SEED_REGISTRY": "{\"controller_goal_resampling\":{\"actual_injection_point\":\"none; StateRL resampling branch is disabled by scenario goal flag\",\"evidence\":\"goal.resample_goal_on_arrival=false; StateRL.cpp only calls rand() inside the true branch\",\"status\":\"NOT_USED_IN_THIS_SCENARIO\"},\"cpp_rand\":{\"actual_injection_point\":\"none; no C++ rand draw is reachable with goal resampling disabled\",\"evidence\":\"StateRL.cpp goal-resample branch is guarded by resample_goal_on_arrival_\",\"status\":\"NOT_USED_IN_THIS_SCENARIO\"},\"mujoco_model_randomization\":{\"actual_injection_point\":\"none; accepted P1-08 flat model closure is fixed\",\"evidence\":\"scene_flat.xml/go2.xml contains fixed model/assets and no randomization entry point\",\"status\":\"NOT_USED_IN_THIS_SCENARIO\"},\"obstacle_placement\":{\"actual_injection_point\":\"none; obstacle_layout is explicitly EMPTY\",\"evidence\":\"scenario declares zero objects and does not generate or mutate scene geometry\",\"status\":\"NOT_USED_IN_THIS_SCENARIO\"},\"python_orchestrator\":{\"actual_injection_point\":\"none; root seed is retained only for pairing/provenance\",\"evidence\":\"current capture path contains no Python random consumer\",\"status\":\"DECLARED_NOT_CONSUMED\"},\"scenario_initial_condition_sampling\":{\"actual_injection_point\":\"none; startup state is the literal scene-default qpos0\",\"evidence\":\"offline probe confirms mj_makeData qpos equals qpos0; no initial-condition sampling producer\",\"status\":\"NOT_USED_IN_THIS_SCENARIO\"},\"torch_python_numpy\":{\"actual_injection_point\":\"none; current capture path performs inference only and has no sampling call\",\"evidence\":\"P1-08 capture path has no Torch/Python/NumPy sampling producer\",\"status\":\"NOT_USED_IN_THIS_SCENARIO\"}}",
+        "ABS_P1_10_INITIAL_STATE_BINDING_SHA256": "f7907a927c31d3d6a5d497ab274b3d913bf4fc8ccb0e9713a9dbd1e182d0a9a0",
+        "ABS_P1_10_ROOT_SEED": "20260902",
+        "ABS_P1_10_SCENARIO_ID": "flat_goal_forward",
+        "ABS_P1_10_SCENARIO_SHA256": "beba99ed4e6f6c8f84eb1ac514f2da4b6e910c1587fdf91f5e95ac6bc639e092",
+        "ABS_P1_10_SUITE_SHA256": "eb81d60742864fe9c870e957ba3ab601e80da3e64bc48a42c26f849570f3152d",
+        "ABS_P1_10_VARIANT": "stabilized",
+        "ABS_P1_10_VARIANT_BINDING_SHA256": "2f0dfc4e8bf5237a578d99030facc38459fd5f899af49b508e48e29b7e8a4e1c"
+      },
+      "root_seed_role": "pairing/provenance_only"
+    },
+    "run_window_s": 25.0,
+    "scenario_id": "flat_goal_forward",
+    "scenario_path": "scenarios/p1_10/flat_goal_forward.json",
+    "scenario_sha256": "beba99ed4e6f6c8f84eb1ac514f2da4b6e910c1587fdf91f5e95ac6bc639e092",
+    "scenario_status": "SUPPORTED",
+    "scene": {
+      "closure_file_count": 18,
+      "launch_arg": "scene_flat.xml",
+      "model_closure_sha256": "8d9218de0dc02978fc0ef4ba1c790fa3b968fbdbfdb945e14522436a2574ea07",
+      "root_xml": "unitree_mujoco/unitree_robots/go2/scene_flat.xml",
+      "root_xml_sha256": "9ce83b3e61c722a523d0359536cee803f17610f95d2275fc32e96801ec3c1908"
+    },
+    "schema_version": "abs-go2-deterministic-scenario/v2",
+    "seeds": {
+      "derived_seeds": {},
+      "root_seed": 20260902,
+      "sources": {
+        "controller_goal_resampling": {
+          "actual_injection_point": "none; StateRL resampling branch is disabled by scenario goal flag",
+          "evidence": "goal.resample_goal_on_arrival=false; StateRL.cpp only calls rand() inside the true branch",
+          "status": "NOT_USED_IN_THIS_SCENARIO"
+        },
+        "cpp_rand": {
+          "actual_injection_point": "none; no C++ rand draw is reachable with goal resampling disabled",
+          "evidence": "StateRL.cpp goal-resample branch is guarded by resample_goal_on_arrival_",
+          "status": "NOT_USED_IN_THIS_SCENARIO"
+        },
+        "mujoco_model_randomization": {
+          "actual_injection_point": "none; accepted P1-08 flat model closure is fixed",
+          "evidence": "scene_flat.xml/go2.xml contains fixed model/assets and no randomization entry point",
+          "status": "NOT_USED_IN_THIS_SCENARIO"
+        },
+        "obstacle_placement": {
+          "actual_injection_point": "none; obstacle_layout is explicitly EMPTY",
+          "evidence": "scenario declares zero objects and does not generate or mutate scene geometry",
+          "status": "NOT_USED_IN_THIS_SCENARIO"
+        },
+        "python_orchestrator": {
+          "actual_injection_point": "none; root seed is retained only for pairing/provenance",
+          "evidence": "current capture path contains no Python random consumer",
+          "status": "DECLARED_NOT_CONSUMED"
+        },
+        "scenario_initial_condition_sampling": {
+          "actual_injection_point": "none; startup state is the literal scene-default qpos0",
+          "evidence": "offline probe confirms mj_makeData qpos equals qpos0; no initial-condition sampling producer",
+          "status": "NOT_USED_IN_THIS_SCENARIO"
+        },
+        "torch_python_numpy": {
+          "actual_injection_point": "none; current capture path performs inference only and has no sampling call",
+          "evidence": "P1-08 capture path has no Torch/Python/NumPy sampling producer",
+          "status": "NOT_USED_IN_THIS_SCENARIO"
+        }
+      }
+    },
+    "suite_path": "scenarios/p1_10/scenario_suite_manifest.json",
+    "suite_sha256": "eb81d60742864fe9c870e957ba3ab601e80da3e64bc48a42c26f849570f3152d",
+    "switching_mode": "stabilized_switch",
+    "variant_binding": {
+      "binding_sha256": "2f0dfc4e8bf5237a578d99030facc38459fd5f899af49b508e48e29b7e8a4e1c",
+      "consumed_behavior": {
+        "behavior": "P1-07 stabilized_switch consumed by the deployed controller",
+        "consumer": "rl_quadruped_controller StateRL::loadYaml + StateRL::step",
+        "controller_plugin_path": "quadruped_ros2_control_humble/install/rl_quadruped_controller/lib/rl_quadruped_controller/librl_quadruped_controller.so",
+        "controller_plugin_sha256": "2b31e558471227a385906239a4fd20d1f9cb759a4960c743b6f5065f13fe6d4e",
+        "source": "quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp + FSM/RASwitchingLogic.hpp"
+      },
+      "label": "stabilized",
+      "runtime_configuration": {
+        "abs_controller_config_path": "quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+        "abs_controller_config_sha256": "1cd42c4bb29baad1873bd55e7f2f1d82fb0c8ec8bf35fb8e4eff61338758c586",
+        "switching_mode": "stabilized_switch"
+      },
+      "status": "SUPPORTED"
+    }
+  }
+}

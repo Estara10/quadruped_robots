@@ -1,0 +1,21 @@
+{
+  "record_statuses": {
+    "LIVE": 1250
+  },
+  "rt_frame": {
+    "accepted": 753069,
+    "attempts": 753069,
+    "reasons": {},
+    "rejected": 0,
+    "rl_step_gap_max": 1,
+    "rl_step_gaps": 1
+  },
+  "sim_clock": {
+    "accepted": 753069,
+    "attempts": 753069,
+    "reasons": {},
+    "rejected": 0,
+    "seq_gap_max": 21,
+    "seq_gaps": 12512
+  }
+}

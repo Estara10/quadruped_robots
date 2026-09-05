@@ -1,0 +1,430 @@
+{
+  "binaries": [
+    {
+      "bytes": 4197424,
+      "path": "/home/lidio/quadruped_robots/unitree_mujoco/simulate/build2/unitree_mujoco",
+      "present": true,
+      "role": "mujoco_executable",
+      "sha256": "1e9b330f2b6c39dabaaa8424ee53c41d3be08ea00eb3e69ba71f332de50654e2"
+    },
+    {
+      "bytes": 4140632,
+      "path": "/home/lidio/Libraries/mujoco-3.3.3/lib/libmujoco.so.3.3.3",
+      "present": true,
+      "role": "libmujoco_shared",
+      "sha256": "e35ba7f65d2eeccfeda2c5f251d49e26de6fbbc1067170a889fefaa4a35aa24e"
+    },
+    {
+      "bytes": 2149512,
+      "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/rl_quadruped_controller/lib/rl_quadruped_controller/librl_quadruped_controller.so",
+      "present": true,
+      "role": "controller_plugin",
+      "sha256": "2b31e558471227a385906239a4fd20d1f9cb759a4960c743b6f5065f13fe6d4e"
+    },
+    {
+      "bytes": 12125536,
+      "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/hardware_unitree_mujoco/lib/libhardware_unitree_mujoco.so",
+      "present": true,
+      "role": "hardware_plugin",
+      "sha256": "9c56d00d1cca1d396d760c21bce54bbb4dc0e9f7cd7453e4060940fb8c13918d"
+    }
+  ],
+  "config_files": [
+    {
+      "bytes": 620,
+      "path": "/home/lidio/quadruped_robots/unitree_mujoco/simulate/config.yaml",
+      "present": true,
+      "role": "mujoco_simulate_config",
+      "sha256": "86fcfab9ecdf888901340697ef9c99fcc72bbd3d88c86f2178b4ce2ab2c88b95"
+    },
+    {
+      "bytes": 5178,
+      "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/robot_control.yaml",
+      "present": true,
+      "role": "robot_control_config",
+      "sha256": "59c61ad4f29c2b37b3741236b35ce11c773fb6cfe16ed8d58b92757febf8bf7c"
+    },
+    {
+      "bytes": 5717,
+      "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "present": true,
+      "role": "abs_controller_config",
+      "sha256": "1cd42c4bb29baad1873bd55e7f2f1d82fb0c8ec8bf35fb8e4eff61338758c586"
+    },
+    {
+      "bytes": 1373,
+      "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/rec/config.yaml",
+      "present": true,
+      "role": "rec_controller_config",
+      "sha256": "939519289f93107f90ed109ce8dd945340767f0eb5b0499afe5294c32da1f48b"
+    },
+    {
+      "bytes": 3684,
+      "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/controllers/rl_quadruped_controller/launch/mujoco.launch.py",
+      "present": true,
+      "role": "mujoco_launch",
+      "sha256": "ed87b9204cf9d5dde83e4ff54bcafac16aae5e1407ecd8b394d2c5e777a17fb9"
+    },
+    {
+      "bytes": 5139,
+      "path": "/home/lidio/quadruped_robots/scripts/launch_abs_sim.sh",
+      "present": true,
+      "role": "launch_script",
+      "sha256": "74bd6412171b08531fb953019f9ff4c912e139345fa37f02e36b4e71c1c8d41b"
+    }
+  ],
+  "deployed_policy_artifacts": [
+    {
+      "bytes": 801726,
+      "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/policy.pt",
+      "present": true,
+      "role": "agile_policy",
+      "sha256": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf"
+    },
+    {
+      "bytes": 32011,
+      "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/ra_value.pt",
+      "present": true,
+      "role": "ra_model",
+      "sha256": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7"
+    },
+    {
+      "bytes": 775715,
+      "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/rec/policy.pt",
+      "present": true,
+      "role": "recovery_policy",
+      "sha256": "e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171"
+    }
+  ],
+  "effective_controller_static_facts": {
+    "abs.decimation": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": 4
+    },
+    "abs.goal_x": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": 7.0
+    },
+    "abs.goal_y": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": 0.0
+    },
+    "abs.num_observations": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": 61
+    },
+    "abs.ra_threshold": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": -0.05
+    },
+    "abs.recovery_hold_steps": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": 30
+    },
+    "abs.switching_mode": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": "stabilized_switch"
+    },
+    "abs.twist_*": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      "value": {
+        "twist_eps": 0.05,
+        "twist_lam": 10.0,
+        "twist_lr": 0.5,
+        "twist_tau": 0.05,
+        "twist_vx_max": 1.5,
+        "twist_vx_min": -1.5,
+        "twist_vy_max": 0.3,
+        "twist_vy_min": -0.3,
+        "twist_wz_max": 3.0,
+        "twist_wz_min": -3.0
+      }
+    },
+    "controller_manager.update_rate_hz": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/robot_control.yaml",
+      "value": 1000
+    },
+    "mujoco_simulate.domain_id": {
+      "source": "/home/lidio/quadruped_robots/unitree_mujoco/simulate/config.yaml",
+      "value": "duplicate_key_static_ambiguity"
+    },
+    "mujoco_simulate.interface": {
+      "source": "/home/lidio/quadruped_robots/unitree_mujoco/simulate/config.yaml",
+      "value": "duplicate_key_static_ambiguity"
+    },
+    "mujoco_simulate.robot_scene": {
+      "source": "/home/lidio/quadruped_robots/unitree_mujoco/simulate/config.yaml",
+      "value": "scene_flat.xml"
+    },
+    "rec.config_model_folder": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/rec/config.yaml",
+      "value": "rec"
+    },
+    "rl_quadruped_controller.model_folder": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/robot_control.yaml",
+      "value": "abs"
+    },
+    "rl_quadruped_controller.update_rate_hz": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/robot_control.yaml",
+      "value": 200
+    },
+    "rl_quadruped_controller.use_rl_thread": {
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/robot_control.yaml",
+      "value": false
+    }
+  },
+  "effective_static_model_facts": {
+    "actuator": {
+      "0.ctrlrange": "-23.700000,23.700000",
+      "0.forcerange": "0.000000,0.000000",
+      "1.ctrlrange": "-23.700000,23.700000",
+      "1.forcerange": "0.000000,0.000000",
+      "10.ctrlrange": "-23.700000,23.700000",
+      "10.forcerange": "0.000000,0.000000",
+      "11.ctrlrange": "-45.430000,45.430000",
+      "11.forcerange": "0.000000,0.000000",
+      "2.ctrlrange": "-45.430000,45.430000",
+      "2.forcerange": "0.000000,0.000000",
+      "3.ctrlrange": "-23.700000,23.700000",
+      "3.forcerange": "0.000000,0.000000",
+      "4.ctrlrange": "-23.700000,23.700000",
+      "4.forcerange": "0.000000,0.000000",
+      "5.ctrlrange": "-45.430000,45.430000",
+      "5.forcerange": "0.000000,0.000000",
+      "6.ctrlrange": "-23.700000,23.700000",
+      "6.forcerange": "0.000000,0.000000",
+      "7.ctrlrange": "-23.700000,23.700000",
+      "7.forcerange": "0.000000,0.000000",
+      "8.ctrlrange": "-45.430000,45.430000",
+      "8.forcerange": "0.000000,0.000000",
+      "9.ctrlrange": "-23.700000,23.700000",
+      "9.forcerange": "0.000000,0.000000",
+      "nu": "12"
+    },
+    "dims": {
+      "nbody": "18",
+      "ncam": "0",
+      "nflex": "0",
+      "ngeom": "57",
+      "njnt": "13",
+      "nmesh": "16",
+      "nq": "19",
+      "nsensor": "45",
+      "nsite": "5",
+      "nu": "12",
+      "nv": "18"
+    },
+    "opt": {
+      "apirate": "100.000000",
+      "ccd_iterations": "50",
+      "ccd_tolerance": "1.000e-06",
+      "cone": "elliptic",
+      "density": "0.000000",
+      "disableflags": "0x0",
+      "enableflags": "0x0",
+      "gravity": "0.000000,0.000000,-9.810000",
+      "impratio": "100.000000",
+      "integrator": "Euler",
+      "iterations": "100",
+      "jacobian": "2",
+      "ls_iterations": "50",
+      "ls_tolerance": "1.000e-02",
+      "noslip_iterations": "0",
+      "noslip_tolerance": "1.000e-06",
+      "o_margin": "0.000000",
+      "o_solimp": "0.900000,0.950000,0.001000,0.500000,2.000000",
+      "o_solref": "0.020000,1.000000",
+      "solver": "Newton",
+      "timestep": "0.002000000",
+      "tolerance": "1.000e-08",
+      "viscosity": "0.000000"
+    },
+    "step": {
+      "10steps_advance": "0.020000000 (10 * timestep = 0.020000000)",
+      "advance_matches": "true"
+    }
+  },
+  "generated_by": "scripts/build_p1_08_manifest.py",
+  "git": {
+    "branch": "feat/ray-pred-source-switch",
+    "commit": "d27f34d97cc8e449d1e24497a5b11db4a07badec",
+    "dirty": true,
+    "dirty_patch_sha256": "b7ea4d325616561aeb41fc2db29c05872d74914b27392af72e07549cb4481211",
+    "dirty_paths": [
+      "M docs/CURRENT_STATE.md",
+      " M docs/GAP_MATRIX.md",
+      " D paper.txt",
+      " M quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+      " M quadruped_ros2_control_humble/descriptions/unitree/go2_description/xacro/ros2_control.xacro",
+      " M unitree_mujoco/simulate/CMakeLists.txt",
+      " M unitree_mujoco/simulate/src/main.cc",
+      " M unitree_mujoco/simulate/src/mujoco/simulate.cc",
+      "?? ABS_fuwuqi/",
+      "?? common/abs_sim_clock_contract.h",
+      "?? docs/evidence/P1-08/",
+      "?? docs/exec-plans/P1-08.md",
+      "?? scripts/build_p1_08_baseline_identity.py",
+      "?? scripts/build_p1_08_manifest.py",
+      "?? scripts/generate_project_report.py",
+      "?? scripts/p1_08_baseline_capture.py",
+      "?? scripts/p1_08_timing_stats.py",
+      "?? scripts/test_p1_08_baseline_identity.py",
+      "?? scripts/test_p1_08_harness.py",
+      "?? scripts/test_p1_08_sim_clock.py",
+      "?? unitree_mujoco/MUJOCO_LOG.TXT",
+      "?? unitree_mujoco/simulate/test/p1_08_model_probe.cpp",
+      "?? unitree_mujoco/simulate/test/p1_08_sim_clock_bridge.cpp",
+      "?? unitree_mujoco/simulate/test/p1_08_sim_clock_test.cpp",
+      "?? unitree_mujoco/simulate/test/p1_08_sim_clock_v1_legacy.cpp"
+    ]
+  },
+  "model_closure": {
+    "asset_files": [
+      {
+        "bytes": 1330465,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/base_0.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "8cdc53719002a5ee737d867904e534a6d6fa930b616bdcc1b3131e577d4e46c0"
+      },
+      {
+        "bytes": 811791,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/base_1.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "39d2f4724ff64dd5a0640c308fd98902a2946660a8d033ec8dbf368fd5af0dd6"
+      },
+      {
+        "bytes": 294090,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/base_2.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "29cae463f95d678e4ede863c36c9b19b0d356b8340412add10670d70bdcc3095"
+      },
+      {
+        "bytes": 379093,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/base_3.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "f51ba43bf300e68957a0c1aa83eaf3e4926f4ac7e64a0d6c33ae5d21fcbcf5f6"
+      },
+      {
+        "bytes": 7776234,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/base_4.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "49ddec0129546e5dd2075d5beacf7f207baa2860aeff7626818e64d2efbf3821"
+      },
+      {
+        "bytes": 2863864,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/hip_0.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "cc29932ab4d251ce3f72389ec4c1f757e44eee138b87e772b648c2bc76b506cd"
+      },
+      {
+        "bytes": 2767918,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/hip_1.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "3fd5bd9b2ef6abe622c0739d3c67eaa1679b19b47132951972c4892a779ea7cf"
+      },
+      {
+        "bytes": 2841868,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/thigh_0.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "bb3edfe6a7b04f4f4dff1ce7b05d426ddce941e276cc6372fb542055893c71ec"
+      },
+      {
+        "bytes": 1491320,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/thigh_1.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "3a631822f9f7d2114b1b79dcdff5abf95103630abb7d91d1f3b8b18117132ed2"
+      },
+      {
+        "bytes": 2817674,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/thigh_mirror_0.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "07abaedce761f1dd48647384ac14ba1959276bc78d5a2a62051e8f1c6093933b"
+      },
+      {
+        "bytes": 1482261,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/thigh_mirror_1.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "db984a3e983eabbc9b38183427cca9ab0bb3bdb049f9eab030e06edda36579d6"
+      },
+      {
+        "bytes": 877174,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/calf_0.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "4a818cd563c5b7e2a271504442d05fd777d38cbaa028d4a10ad29c9f87bb355e"
+      },
+      {
+        "bytes": 326865,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/calf_1.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "51950c3a153ae3208592df86ea11c9d6756f8f645ebca5caf6910c61aeb03817"
+      },
+      {
+        "bytes": 876538,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/calf_mirror_0.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "6dc0406207a1c08a5953fd5962aca1a270fd06593d30d100205e05c1b32d4af2"
+      },
+      {
+        "bytes": 327261,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/calf_mirror_1.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "f84f5af90b914633165beb3a5493ee499169144c5797dcf04c6eb5842f74b31a"
+      },
+      {
+        "bytes": 1144729,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/assets/foot.obj",
+        "present": true,
+        "role": "mesh_asset",
+        "sha256": "df9e78a7c0110d02557439010f2a5f11f0ec4fd907b32704145dbd6aa7affc0b"
+      }
+    ],
+    "closure_root": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2",
+    "closure_sha256": "8d9218de0dc02978fc0ef4ba1c790fa3b968fbdbfdb945e14522436a2574ea07",
+    "failures": [],
+    "included_xml_files": [
+      {
+        "bytes": 15457,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/go2.xml",
+        "present": true,
+        "role": "included_scene_xml",
+        "sha256": "f8d2c3e8e23c7405a2034f9025dedc656b5bfc4ca0971ca83d734c6071cbdb29"
+      }
+    ],
+    "present_file_count": 18,
+    "root_xml": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/scene_flat.xml",
+    "xml_files": [
+      {
+        "bytes": 861,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/scene_flat.xml",
+        "present": true,
+        "role": "launched_scene_xml",
+        "sha256": "9ce83b3e61c722a523d0359536cee803f17610f95d2275fc32e96801ec3c1908"
+      },
+      {
+        "bytes": 15457,
+        "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/go2.xml",
+        "present": true,
+        "role": "included_scene_xml",
+        "sha256": "f8d2c3e8e23c7405a2034f9025dedc656b5bfc4ca0971ca83d734c6071cbdb29"
+      }
+    ]
+  },
+  "model_probe_output": "scene=unitree_mujoco/unitree_robots/go2/scene_flat.xml\nmujoco_version=3.3.3\ndims.nq=19\ndims.nv=18\ndims.nu=12\ndims.njnt=13\ndims.nbody=18\ndims.ngeom=57\ndims.nsite=5\ndims.nsensor=45\ndims.nmesh=16\ndims.nflex=0\ndims.ncam=0\nopt.timestep=0.002000000\nopt.apirate=100.000000\nopt.integrator=Euler\nopt.cone=elliptic\nopt.jacobian=2\nopt.solver=Newton\nopt.iterations=100\nopt.ls_iterations=50\nopt.noslip_iterations=0\nopt.ccd_iterations=50\nopt.tolerance=1.000e-08\nopt.ls_tolerance=1.000e-02\nopt.noslip_tolerance=1.000e-06\nopt.ccd_tolerance=1.000e-06\nopt.gravity=0.000000,0.000000,-9.810000\nopt.density=0.000000\nopt.viscosity=0.000000\nopt.impratio=100.000000\nopt.disableflags=0x0\nopt.enableflags=0x0\nopt.o_margin=0.000000\nopt.o_solref=0.020000,1.000000\nopt.o_solimp=0.900000,0.950000,0.001000,0.500000,2.000000\nactuator.nu=12\nactuator.0.ctrlrange=-23.700000,23.700000\nactuator.0.forcerange=0.000000,0.000000\nactuator.1.ctrlrange=-23.700000,23.700000\nactuator.1.forcerange=0.000000,0.000000\nactuator.2.ctrlrange=-45.430000,45.430000\nactuator.2.forcerange=0.000000,0.000000\nactuator.3.ctrlrange=-23.700000,23.700000\nactuator.3.forcerange=0.000000,0.000000\nactuator.4.ctrlrange=-23.700000,23.700000\nactuator.4.forcerange=0.000000,0.000000\nactuator.5.ctrlrange=-45.430000,45.430000\nactuator.5.forcerange=0.000000,0.000000\nactuator.6.ctrlrange=-23.700000,23.700000\nactuator.6.forcerange=0.000000,0.000000\nactuator.7.ctrlrange=-23.700000,23.700000\nactuator.7.forcerange=0.000000,0.000000\nactuator.8.ctrlrange=-45.430000,45.430000\nactuator.8.forcerange=0.000000,0.000000\nactuator.9.ctrlrange=-23.700000,23.700000\nactuator.9.forcerange=0.000000,0.000000\nactuator.10.ctrlrange=-23.700000,23.700000\nactuator.10.forcerange=0.000000,0.000000\nactuator.11.ctrlrange=-45.430000,45.430000\nactuator.11.forcerange=0.000000,0.000000\njoint.1.range=-1.047200,1.047200\njoint.2.range=-1.570800,3.490700\njoint.3.range=-2.722700,-0.837760\njoint.4.range=-1.047200,1.047200\njoint.5.range=-1.570800,3.490700\njoint.6.range=-2.722700,-0.837760\njoint.7.range=-1.047200,1.047200\njoint.8.range=-0.523600,4.537900\njoint.9.range=-2.722700,-0.837760\njoint.10.range=-1.047200,1.047200\njoint.11.range=-0.523600,4.537900\njoint.12.range=-2.722700,-0.837760\nstep.10steps_advance=0.020000000 (10 * timestep = 0.020000000)\nstep.advance_matches= true\n",
+  "schema": "abs-go2-p1-08-baseline-manifest/v1",
+  "task": "P1-08"
+}

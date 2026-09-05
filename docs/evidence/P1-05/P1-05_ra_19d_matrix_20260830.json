@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "task": "P1-05",
+  "audit_on": "2026-08-30",
+  "mode": "offline_evidence_audit",
+  "evidence_roots": ["ABS/", "ABS_fuwuqi/ABS/ (testbed.py RA-label lines 197-570 byte-identical across both)"],
+  "declared_agile_binding": "OPERATOR_DECLARED model_4000.pt; historical execution binding deferred (DEC-010)",
+  "training_label": {
+    "source": "ABS_fuwuqi/ABS/training/legged_gym/legged_gym/scripts/testbed.py:498-545",
+    "ra_obs": "cat(base_lin_vel(3), base_ang_vel(3), obs[:,10:12](2), obs[:,-11:](11)) = 19",
+    "g_avoid": "collision*2-1 (+1 collision / -1 safe)",
+    "l_reach": "tanh(log2(norm(goal_xy)/0.65 + 1e-8))",
+    "collision": "(base_contact>1N OR front_foot_hor>2*vert+10N) AND near_obj_filter(<0.95m & >0.5m/s OR base_contact)",
+    "bellman": "V' = gamma*max(g_soft_next, min(l, V_next)) + (1-gamma)*max(l, g_soft_next)",
+    "gamma": 0.999999,
+    "hindsight_soften": "g_soft = 1 - 2*d/10 over the last 10 pre-terminal steps",
+    "terminal_bootstrap": "V=1.0 on done",
+    "loss_scale": 100,
+    "constants": {"sigma_reach_m": 0.65, "epsilon": "1e-8", "hindsight_steps": 10, "lr": 0.002}
+  },
+  "paper_comparison": {
+    "bellman_eq_16_17": "MATCH (gamma=0.999999; soft collision over 10 steps; max/min reach-avoid operator)",
+    "reach_eq_18": "INTENTIONAL_VARIANT / UNKNOWN (training tanh(log2(d/0.65+1e-8)); paper exact log base and sigma_tight not recorded locally)",
+    "collision_definition": "INTENTIONAL_VARIANT (extra front-foot shear heuristic + near-object filter vs paper base contact)",
+    "terminal_bootstrap": "INTENTIONAL_VARIANT / UNKNOWN (V=1.0 on any done; paper value not recorded)",
+    "loss_scale": "INTENTIONAL_VARIANT / UNKNOWN (x100; paper not recorded)"
+  },
+  "ra_19d_input": {
+    "deployment": "StateRL::computeRAObservation() -> abs_observation::ra() = cat(lin_vel, ang_vel, commands[0:2], ray2d)",
+    "slots": [
+      {"slots": "0:3", "field": "base_lin_vel", "training": "env.base_lin_vel (body)", "deployment": "obs_.lin_vel quatRotateInverse(odom_vel) (body)", "classification": "MATCH"},
+      {"slots": "3:6", "field": "base_ang_vel", "training": "env.base_ang_vel (body)", "deployment": "obs_.ang_vel IMU gyro (body)", "classification": "MATCH"},
+      {"slots": "6:8", "field": "goal_xy", "training": "obs[:,10:12] raw body rel x/y", "deployment": "obs_.commands[0:2] SHAPED (radial min(1,5/(d+0.01)), path correction, arrival stand-still)", "classification": "INTENTIONAL_VARIANT"},
+      {"slots": "8:19", "field": "rays", "training": "obs[:,-11:] log2 rays", "deployment": "obs_.ray2d log2 from MuJoCo shm, fail-closed on missing/stale/NaN/Inf", "classification": "MATCH (value) / INTENTIONAL_VARIANT (validity)"}
+    ],
+    "order_matches_paper_eq_14": true
+  },
+  "deployed_ra_model": {
+    "artifact": "quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/ra_value.pt",
+    "sha256": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7",
+    "architecture": "[19, 64, 64, 1] + Tanh",
+    "io": "19 -> 1",
+    "output_range": "(-1, +1) via Tanh",
+    "direction": "higher = higher risk (die_v>0.2, start_v<-0.1, turn_v<-0.1 checkpoint gate; testbed.py:561)"
+  },
+  "switching": {
+    "source": "StateRL.cpp:1557-1592",
+    "entry": "ra_value_ > ra_threshold (-0.05, strict >)",
+    "exit": "ra_value_ < (ra_threshold - 0.03) = -0.08, AND rec_hold_left_ <= 0 (REC_HOLD_STEPS = 30)",
+    "paper": "RA >= -0.05 -> Recovery; RA < -0.05 -> Agile; no -0.08 exit, no 30-step hold (ABS_PAPER_NOTES)",
+    "recovered_testbed": "testbed.py:64,324 (ABS/ and ABS_fuwuqi/ABS/ identical): twist_eps=0.05; recovery = (v_pred > -twist_eps) = (v_pred > -0.05), strict >, immediate testbed branch; no -0.08 exit hysteresis, no 30-step hold",
+    "classification": "INTENTIONAL_VARIANT (strict > entry shared by recovered testbed and deployment vs paper >=; deployment -0.08 hysteresis exit + 30-step forced hold not in paper or testbed; recorded, not changed)"
+  },
+  "mismatches": [],
+  "unknowns": [
+    "paper Eq.18 exact log base / sigma_tight value / loss scale / terminal bootstrap (not recorded locally)",
+    "RA training dataset/seed/historical execution (deferred reproducibility, DEC-010)",
+    "RA <-> Agile exact executed binding (OPERATOR_DECLARED only)"
+  ]
+}

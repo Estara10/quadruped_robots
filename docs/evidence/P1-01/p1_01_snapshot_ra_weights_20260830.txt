@@ -1,0 +1,23 @@
+named RA is a module
+named RA tensors: {'0.weight': (64, 19), '0.bias': (64,), '2.weight': (64, 64), '2.bias': (64,), '4.weight': (1, 64), '4.bias': (1,)}
+
+=== jit params: {'0.weight': (64, 19), '0.bias': (64,), '2.weight': (64, 64), '2.bias': (64,), '4.weight': (1, 64), '4.bias': (1,)}
+    buffers: {}
+  named[0.bias] == jit[0.bias] : True
+  named[0.weight] == jit[0.weight] : True
+  named[2.bias] == jit[2.bias] : True
+  named[2.weight] == jit[2.weight] : True
+  named[4.bias] == jit[4.bias] : True
+  named[4.weight] == jit[4.weight] : True
+  => named RA -> jit: ALL 6 TENSORS EQUAL
+
+=== deployed params: {'0.weight': (64, 19), '0.bias': (64,), '2.weight': (64, 64), '2.bias': (64,), '4.weight': (1, 64), '4.bias': (1,)}
+    buffers: {}
+  named[0.bias] == deployed[0.bias] : True
+  named[0.weight] == deployed[0.weight] : True
+  named[2.bias] == deployed[2.bias] : True
+  named[2.weight] == deployed[2.weight] : True
+  named[4.bias] == deployed[4.bias] : True
+  named[4.weight] == deployed[4.weight] : True
+  => named RA -> deployed: ALL 6 TENSORS EQUAL
+

@@ -1,13 +1,51 @@
-  测试（3 终端，同之前）：
+# ABS 当前仿真复现结论存档（2026-06-10）
 
-  # 终端1：MuJoCo
-  cd ~/quadruped_robots/unitree_mujoco && export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:$LD_LIBRARY_PATH && ./simulate/build2/unitree_mujoco
+## 1. 当前结论
 
-  # 终端2：RL控制器
-  source /opt/ros/humble/setup.bash && source ~/quadruped_robots/quadruped_ros2_control_humble/install/setup.bash && export
-  LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:$LD_LIBRARY_PATH && ros2 launch rl_quadruped_controller mujoco.launch.py
+当前项目可以表述为：ABS 核心控制链路已在 Go2 + MuJoCo + ROS2 Humble 中端到端复现；当前仿真感知输入使用 MuJoCo 几何 ray2d，作为论文 Ray-Pred 输出的低维替代。
 
-  # 终端3：键盘
-  source /opt/ros/humble/setup.bash && source ~/quadruped_robots/quadruped_ros2_control_humble/install/setup.bash && ros2 run keyboard_input keyboard_input
+这意味着当前成功率应解释为：几何 ray2d 仿真条件下的 ABS 控制链路成功率。它可以证明 agile policy、RA value network、recovery policy、recovery twist 梯度优化、目标导航和仿真闭环已经工作，但不能直接声称已经复现论文的深度相机 + ResNet18 感知模块，也不能直接等同于实机复现。
 
-  操作：W×20 → 2 → 2 → 3 → 继续按 W。看 debug 日志中 cmd= 是否在 [1.5, 7.5] 范围，以及 MuJoCo 中机器人是否走直线。
+推荐报告表述：
+
+> 本项目已完成 ABS 方法在 Go2 MuJoCo 仿真中的核心控制链路复现，包括 agile policy、RA value network、recovery policy、论文 recovery twist 梯度优化和目标导航闭环。当前仿真中 ray2d 输入由 MuJoCo 几何射线提供，用作论文 Ray-Pred 输出的低维替代，因此实验结果应表述为“几何射线条件下的 ABS 仿真复现”。ResNet18 Ray-Pred 感知链路和 Go2 实机部署仍属于后续工作。
+
+## 2. 已忠实复现论文方法的部分
+
+- Agile policy：61 维观测输入，输出 12 关节目标。
+- RA value network：19 维观测，按阈值触发 recovery。
+- Recovery policy：49 维观测，触发期间内联替代 agile action。
+- Recovery twist 优化：按论文梯度下降 3 次，使用 RA loss + position deviation loss。
+- Goal navigation：世界坐标目标转换到机体系 command。
+- Contact detection：按训练约定使用足力阈值生成 contact 观测。
+- 自动评估：记录成功、超时、跌倒、recovery 触发、真实 MuJoCo 碰撞与近碰撞代理。
+
+## 3. 仿真替代或适配的部分
+
+- Ray2d 感知：当前由 MuJoCo 几何射线直接计算 11 条 log2 距离，等价于给控制器提供低维 ray 输入，但不是论文中的深度图 → ResNet18 → ray prediction。
+- 机器人平台：论文使用 Go1，本项目在 Go2 上复现，因此关节顺序、URDF/MJCF、控制频率和动力学存在平台差异。
+- 运行架构：论文部署参考为 ROS1，本项目为 ROS2 Humble + ros2_control + DDS/MuJoCo bridge。
+
+## 4. 当前评估口径
+
+原先的 `COLLISION_PROXY` 只是前向 ray2d 近距离代理，不是真实 MuJoCo 接触。现在已补充 `/mujoco_collision`：MuJoCo bridge 读取 contact pair，只统计机器人 collision geom group=3 与静态 box/cylinder/sphere/capsule/ellipsoid 障碍物 geom 的接触。
+
+因此后续正式评估中：
+
+- `COLLISION`：真实 MuJoCo 机器人-障碍物接触，优先级高于 `SUCCESS`。
+- `COLLISION_PROXY`：ray2d 近距离风险诊断，保留但不替代真实碰撞率。
+- 如果机器人撞到障碍后仍到达目标，应计为 `COLLISION`，不计为成功。
+
+## 5. 什么时候上 Ray-Pred
+
+Ray-Pred 不建议在当前控制链路还要调参时强行接入；它会把问题从“控制是否正确”变成“控制 + 感知域差异 + 深度渲染同步是否正确”的混合问题。
+
+建议满足以下条件后再上：
+
+1. 几何 ray2d 基线稳定：full ABS 在 baseline/extended 场景中能稳定到达，真实碰撞指标可用，主要失败模式能解释。
+2. Ray-Pred 单独验证合格：`scripts/ray_predictor.py` 输出的 11 条 ray 与 MuJoCo 几何 ray 在同一场景下误差可接受，尤其是前方 0.2–1.5m 障碍距离不能系统性偏大。
+3. 写入源明确切换：启用 Ray-Pred 时必须避免 C++ 几何 ray 和 Python Ray-Pred 同时写 `/mujoco_ray2d`；需要增加开关，例如 `MUJOCO_RAY_SOURCE=geometric|ray_pred`。
+4. 延迟可控：Ray-Pred 推理 + 渲染 + shm 写入应稳定小于控制可接受延迟；当前约 14ms 推理只是模型部分，还要算渲染和同步。
+5. 域适应完成：当前 ResNet18 使用 ZED 实机深度训练，MuJoCo 深度图分布不同；若误差大，需要用 MuJoCo 渲染数据微调或重训。
+
+推荐进入 Ray-Pred 的时间点：完成几何 ray2d 的结论存档、坡地/复杂地形 smoke test、真实碰撞指标确认之后。如果目标是论文完整复现，可以随后做 Ray-Pred；如果目标优先上 Go2 实机，则应先做急停、限速、温度/力矩监控，再把实机深度相机 Ray-Pred 接入。

@@ -1,0 +1,45 @@
+2026-08-28T10:52:27Z P1-09G_ATTEMPT2_BEGIN scene=scene_flat.xml interface=lo launch=mujoco.launch.py simulation_test=0
+2026-08-28T10:52:27Z DISPLAY_ENV DISPLAY=:0 WAYLAND_DISPLAY=UNSET XDG_RUNTIME_DIR=/run/user/1000
+2026-08-28T10:52:27Z PROCESS_PRECHECK
+2026-08-28T10:52:27Z PROCESS_START mujoco pid=108097
+2026-08-28T10:52:30Z PROCESS_START ros2_launch pid=108196
+2026-08-28T10:52:38Z CONTROLLER_READY=1
+2026-08-28T10:52:38Z CONTROL_COMMAND command=2 lx=0.0 ly=0.0 rx=0.0 ry=0.0
+publisher: beginning loop
+publishing #1: control_input_msgs.msg.Inputs(command=2, lx=0.0, ly=0.0, rx=0.0, ry=0.0)
+
+2026-08-28T10:52:40Z CONTROL_COMMAND command=2 lx=0.0 ly=0.0 rx=0.0 ry=0.0
+publisher: beginning loop
+publishing #1: control_input_msgs.msg.Inputs(command=2, lx=0.0, ly=0.0, rx=0.0, ry=0.0)
+
+2026-08-28T10:52:45Z CONTROL_COMMAND command=3 lx=0.0 ly=1.0 rx=0.0 ry=0.0
+publisher: beginning loop
+publishing #1: control_input_msgs.msg.Inputs(command=3, lx=0.0, ly=1.0, rx=0.0, ry=0.0)
+
+2026-08-28T10:52:47Z CONTROL_COMMAND command=3 lx=0.0 ly=1.0 rx=0.0 ry=0.0
+Waiting for at least 1 matching subscription(s)...
+publisher: beginning loop
+publishing #1: control_input_msgs.msg.Inputs(command=3, lx=0.0, ly=1.0, rx=0.0, ry=0.0)
+
+2026-08-28T10:52:49Z RL_ENTER_CONFIRMED
+2026-08-28T10:52:49Z CONTROL_COMMAND command=4 lx=0.0 ly=0.0 rx=0.0 ry=0.0
+publisher: beginning loop
+publishing #1: control_input_msgs.msg.Inputs(command=4, lx=0.0, ly=0.0, rx=0.0, ry=0.0)
+
+2026-08-28T10:52:50Z RECOVERY_ENTER_CONFIRMED
+2026-08-28T10:52:50Z CONTROL_COMMAND command=3 lx=0.0 ly=0.0 rx=0.0 ry=0.0
+Waiting for at least 1 matching subscription(s)...
+Waiting for at least 1 matching subscription(s)...
+publisher: beginning loop
+publishing #1: control_input_msgs.msg.Inputs(command=3, lx=0.0, ly=0.0, rx=0.0, ry=0.0)
+
+2026-08-28T10:52:53Z RECOVERY_EXIT_CONFIRMED
+2026-08-28T10:52:54Z STOP_REQUEST ros2_launch pid=108196 signal=INT
+2026-08-28T10:52:54Z PROCESS_EXIT ros2_launch pid=108196 rc=0
+2026-08-28T10:52:54Z STOP_REQUEST mujoco pid=108097 signal=INT
+2026-08-28T10:53:10Z STOP_TIMEOUT mujoco pid=108097 signal=TERM
+2026-08-28T10:53:10Z PROCESS_EXIT mujoco pid=108097 rc=143
+2026-08-28T10:53:10Z PROCESS_POSTCHECK
+2026-08-28T10:53:10Z STATUS rec_enter=1 rec_exit=1 ros_rc=0 mujoco_rc=143
+2026-08-28T10:53:10Z ERROR_SCAN_BEGIN
+2026-08-28T10:53:10Z ERROR_SCAN_END

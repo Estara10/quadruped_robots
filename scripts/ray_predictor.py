@@ -27,12 +27,18 @@ ROBOT = "go2"
 SCENE = os.environ.get("MUJOCO_SCENE", "scene.xml")
 SCENE_PATH = str(MUJOCO_DIR / "unitree_robots" / ROBOT / SCENE)
 
-MODEL_PATH = str(HOME / "quadruped_robots" / "ABS" / "training" / "legged_gym" /
+DEFAULT_MODEL_PATH = str(HOME / "quadruped_robots" / "logs" / "ray_pred_finetune" /
+    "mujoco_finetune_soft_safety_20260611" / "ray_pred_mujoco_finetuned_best.pt")
+FALLBACK_MODEL_PATH = str(HOME / "quadruped_robots" / "ABS" / "training" / "legged_gym" /
     "legged_gym" / "depth_logs" / "20260528-143154-resnet18-go2_depth" /
     "depth_lidar_model_20260528-143154_250.pt")
+MODEL_PATH = os.environ.get("RAY_PRED_MODEL", DEFAULT_MODEL_PATH)
 
 # ── Parameters ─────────────────────────────────────────────────
 CAM_W, CAM_H = 160, 90          # matches ZED publisher resolution
+CAMERA_HFOV_DEG = 102.0          # matches Isaac Gym depth_cam.hfov
+CAMERA_LOCAL_POS = np.array([0.0, 0.0, 0.27], dtype=np.float64)
+CAMERA_LOOKAHEAD_M = 3.0
 RAY2D_COUNT = 11
 RAY2D_MAX_DIST = 6.0
 RAY2D_MIN_DIST = 0.1
@@ -42,15 +48,27 @@ QPOS_COUNT = 19                 # 7 free + 12 joints
 FPS = 30                        # rendering rate
 
 
+def mujoco_fovy_from_hfov(hfov_deg: float, width: int = CAM_W, height: int = CAM_H) -> float:
+    hfov = np.radians(hfov_deg)
+    vfov = 2.0 * np.arctan(np.tan(hfov * 0.5) * (height / width))
+    return float(np.degrees(vfov))
+
+
 def main():
     import mujoco
     import torch
 
     print(f"[RayPredictor] Scene: {SCENE_PATH}")
+    if not Path(MODEL_PATH).exists() and Path(FALLBACK_MODEL_PATH).exists():
+        print(f"[RayPredictor] Model not found, fallback to: {FALLBACK_MODEL_PATH}")
+        model_path = FALLBACK_MODEL_PATH
+    else:
+        model_path = MODEL_PATH
     model = mujoco.MjModel.from_xml_path(SCENE_PATH)
     data = mujoco.MjData(model)
 
     # Offscreen renderer with depth enabled
+    model.vis.global_.fovy = mujoco_fovy_from_hfov(CAMERA_HFOV_DEG)
     renderer = mujoco.Renderer(model, CAM_H, CAM_W)
     renderer.enable_depth_rendering()
 
@@ -59,8 +77,9 @@ def main():
     cam.type = mujoco.mjtCamera.mjCAMERA_FREE
 
     # Load ResNet18 TorchScript model
-    print(f"[RayPredictor] Loading model: {MODEL_PATH}")
-    resnet = torch.jit.load(MODEL_PATH)
+    print(f"[RayPredictor] Loading model: {model_path}")
+    print(f"[RayPredictor] Writing Ray-Pred rays to {RAY2D_SHM}")
+    resnet = torch.jit.load(model_path)
     resnet.eval()
 
     # Open / create ray2d shared memory
@@ -117,20 +136,17 @@ def main():
                           data.xmat[body_id*9+3], data.xmat[body_id*9+4], data.xmat[body_id*9+5],
                           data.xmat[body_id*9+6], data.xmat[body_id*9+7], data.xmat[body_id*9+8]]).reshape(3, 3)
 
-            # Camera in body frame: 0.08m forward, 0.02m up
-            cam_local = np.array([0.08, 0.0, 0.02])
-            cam_world = body_xpos + body_xmat @ cam_local
-            # Look at point 3m ahead
-            look_local = np.array([3.0, 0.0, 0.0])
-            look_world = body_xpos + body_xmat @ look_local
+            # Camera matches Isaac Gym depth_cam: body frame (0, 0, 0.27), hfov=102°
+            cam_world = body_xpos + body_xmat @ CAMERA_LOCAL_POS
+            look_world = body_xpos + body_xmat @ np.array([CAMERA_LOOKAHEAD_M, 0.0, 0.0])
 
             # Compute camera parameters for MjvCamera
             diff = look_world - cam_world
             dist = np.linalg.norm(diff)
             cam.lookat[:] = look_world
             cam.distance = dist
-            cam.azimuth = np.degrees(np.arctan2(-diff[1], -diff[0]))
-            cam.elevation = np.degrees(np.arcsin(-diff[2] / max(dist, 0.001)))
+            cam.azimuth = np.degrees(np.arctan2(diff[1], diff[0]))
+            cam.elevation = np.degrees(np.arcsin(diff[2] / max(dist, 0.001)))
 
             # Render depth from robot camera
             renderer.update_scene(data, camera=cam)
@@ -147,9 +163,10 @@ def main():
 
             with torch.no_grad():
                 rays = resnet.forward(depth_tensor).squeeze(0)  # (11,)
+            rays = torch.clamp(rays, np.log2(RAY2D_MIN_DIST), np.log2(RAY2D_MAX_DIST))
             rays_np = rays.numpy().astype(np.float32)
 
-            # Write to shared memory
+            # Write log2 ray distances to shared memory
             ray2d_buf.seek(0)
             ray2d_buf.write(rays_np.tobytes())
             ray2d_buf.flush()

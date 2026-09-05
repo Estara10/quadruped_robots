@@ -1,6 +1,6 @@
 robot: "go2"  # Robot name
 
-robot_scene: "scene_terrain.xml" # Robot scene with obstacles
+robot_scene: "scene_flat.xml" # Default flat ground; override with -s flag
 
 domain_id: 1  # Domain id
 interface: "lo" # Interface 

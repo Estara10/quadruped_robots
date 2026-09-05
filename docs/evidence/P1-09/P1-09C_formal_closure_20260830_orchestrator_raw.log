@@ -1,0 +1,65 @@
+2026-08-30T13:50:35+0800 P1-09C_BEGIN scene=scene_flat.xml interface=lo launch=mujoco.launch.py simulation_test=0
+2026-08-30T13:50:35+0800 DISPLAY_ENV DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority
+2026-08-30T13:50:35+0800 PROCESS_PRECHECK
+2026-08-30T13:50:35+0800 PRECHECK_SHM existing=[]
+2026-08-30T13:50:35+0800 PRECHECK_PGREP []
+2026-08-30T13:50:35+0800 PROCESS_START mujoco
+2026-08-30T13:50:35+0800 PROCESS_START mujoco pid=55645 pgid=55645
+2026-08-30T13:50:38+0800 SIGDISP pid=55645 SigIgn:	0000000000000000
+2026-08-30T13:50:38+0800 SIGDISP pid=55645 SigCgt:	0000000100004002
+2026-08-30T13:50:38+0800 PROCESS_START ros2_launch
+2026-08-30T13:50:38+0800 PROCESS_START ros2_launch pid=55719 pgid=55719
+2026-08-30T13:50:42+0800 CONTROLLER_READY=1 last=[[92mjoint_state_broadcaster[0m joint_state_broadcaster/JointStateBroadcaster  [92mactive[0m
+[92mimu_sensor_broadcaster [0m imu_sensor_broadcaster/IMUSensorBroadcaster    [92mactive[0m
+[92mrl_]
+2026-08-30T13:50:42+0800 PROCESS_START hud
+2026-08-30T13:50:42+0800 PROCESS_START hud pid=56079
+2026-08-30T13:50:42+0800 RECORDER_START run_id=26861e6c08d5483ea5e911d2aeaf959e -> /tmp/p1_09_formal_capture/record.jsonl state=CAPTURING
+2026-08-30T13:50:42+0800 CONTROL_COMMAND command=2 lx=0.0 ly=0.0 rx=0.0 ry=0.0
+2026-08-30T13:50:43+0800 CONTROL_PUB_RC rc=0
+2026-08-30T13:50:44+0800 CONTROL_COMMAND command=2 lx=0.0 ly=0.0 rx=0.0 ry=0.0
+2026-08-30T13:50:45+0800 CONTROL_PUB_RC rc=0
+2026-08-30T13:50:45+0800 WAIT_FIXEDDOWN_TO_FIXEDSTAND
+2026-08-30T13:50:49+0800 CONTROL_COMMAND command=3 lx=0.0 ly=1.0 rx=0.0 ry=0.0
+2026-08-30T13:50:51+0800 CONTROL_PUB_RC rc=0
+2026-08-30T13:50:52+0800 CONTROL_COMMAND command=3 lx=0.0 ly=1.0 rx=0.0 ry=0.0
+2026-08-30T13:50:53+0800 CONTROL_PUB_RC rc=0
+2026-08-30T13:50:53+0800 WAIT_FIXEDSTAND_TO_RL
+2026-08-30T13:50:56+0800 RL_LIVE_CONFIRMED session_id=15818838355107 rl_step=266 policy_state=0 ra_value=-0.9994
+2026-08-30T13:50:56+0800 OBSERVE_WINDOW start window_s=10.0
+2026-08-30T13:51:06+0800 OBSERVE_WINDOW end stats_live=301 missing=183 other=0
+2026-08-30T13:51:06+0800 RECORDER_STOPPED state=STOPPED finalized=False
+2026-08-30T13:51:06+0800 RECORDER_STOP_VERIFY last_line_kind=frame terminal_present=False line_count=485
+2026-08-30T13:51:06+0800 SIGDISP pid=55719 SigIgn:	0000000001001000
+2026-08-30T13:51:06+0800 SIGDISP pid=55719 SigCgt:	0000000100000002
+2026-08-30T13:51:06+0800 STOP_REQUEST ros2_launch pid=55719 pgid=55719 signal=2
+2026-08-30T13:51:06+0800 STOP_KILL_RC ros2_launch leader_pid=55719 rc=0
+2026-08-30T13:51:06+0800 PROCESS_EXIT ros2_launch pid=55719 rc=0
+2026-08-30T13:51:06+0800 SIGDISP pid=55645 SigIgn:	0000000000000000
+2026-08-30T13:51:06+0800 SIGDISP pid=55645 SigCgt:	0000000100004002
+2026-08-30T13:51:06+0800 STOP_REQUEST mujoco pid=55645 pgid=55645 signal=2
+2026-08-30T13:51:06+0800 STOP_KILL_RC mujoco leader_pid=55645 rc=0
+2026-08-30T13:51:07+0800 PROCESS_EXIT mujoco pid=55645 rc=0
+2026-08-30T13:51:07+0800 SHUTDOWN_MONOTONIC_NS 15834904293179
+2026-08-30T13:51:11+0800 PROCESS_EXIT hud pid=56079 rc=0
+2026-08-30T13:51:12+0800 PROCESS_POSTCHECK residue=NONE []
+2026-08-30T13:51:12+0800 FACTS_WRITTEN {"exit_code": 0, "forced_termination": false, "mujoco_rc": 0, "ros_launch_rc": 0, "shutdown_complete": true, "shutdown_monotonic_ns": 15834904293179, "shutdown_request_source": "recorder_stop;SIGINT_ros_launch;SIGINT_mujoco"}
+2026-08-30T13:51:12+0800 RECORDER_FINALIZE run_id=26861e6c08d5483ea5e911d2aeaf959e state=FINALIZED normal_shutdown=True term=FRAMES_ENDED_RC0 frames_observed=301
+2026-08-30T13:51:12+0800 POST_RUN_SUMMARY rc=0
+2026-08-30T13:51:13+0800 CONTEXT_BUILD rc=0 stderr=[[context] git.commit_sha1=13c92a03c42fb20fad2ec2a2cc77e31cba00cb9f -> manifest git.commit(sha256)=c7d0e94b83aaddb8588940fa3ef1dd87fc81b8c62ab1ae8ce18992986a1fc890]
+2026-08-30T13:51:13+0800 FORMAL_BINDING rc=1 verdict=[{
+  "episode_state": "INVALID",
+  "formal_run_id": "run-0cbf4a31137e48c79a1f61b4bb639a3e",
+  "reasons": [
+    "invalid_event_clock:1",
+    "invalid_event_clock:2",
+    "invalid_event_clock:3",
+    "invalid_event_clock:4",
+    "invalid_event_clock:5",
+    "invalid_event_clock:6",
+    "invalid_terminal_event",
+    "non_numeric_telemetry_clock"
+  ],
+  "run_id": "run-0cbf4a31137e48c79a1f61b4bb639a3e",]
+2026-08-30T13:51:13+0800 STATUS ros_rc=0 mujoco_rc=0 forced=False shutdown_complete=True live_frames=301 run_id=26861e6c08d5483ea5e911d2aeaf959e
+2026-08-30T13:51:13+0800 P1-09C_END

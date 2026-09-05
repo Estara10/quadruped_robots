@@ -1,55 +1,31 @@
-# Repository Guidelines
+# Project
 
-## Project Structure & Module Organization
+Reproduce ABS on Unitree Go2 + MuJoCo, then build a safe, measurable Sim-to-Real and graduation-project experiment system.
 
-This workspace reproduces and deploys ABS locomotion for Unitree Go2. Key roots:
+@/home/lidio/.codex/RTK.md
 
-- `ABS/`: ABS paper reproduction, with Isaac Gym training in `ABS/training/` and legacy deployment code in `ABS/deployment/`.
-- `quadruped_ros2_control_humble/`: ROS 2 Humble workspace. Controllers live in `controllers/`, URDF/config in `descriptions/`, hardware interfaces in `hardwares/`, and input nodes in `commands/`.
-- `rl_sar/`: RL sim-to-real reference code and ROS packages.
-- `unitree_mujoco/`: Unitree MuJoCo simulator and examples.
-- `scripts/`: local helper scripts, such as daily summaries.
-- Notes are in `README.md`, `CLAUDE.md`, `仿真部署手册.md`, and `服务器训练指南.md`.
+## Source of Truth
 
-Avoid treating `FileZilla3/` and generated build/install/log directories as source.
+- Current project state: `docs/CURRENT_STATE.md`
+- Overall roadmap: `docs/ROADMAP.md`
+- Known gaps: `docs/GAP_MATRIX.md`
+- ABS math/spec: `docs/ABS_PAPER_NOTES.md`
+- Experiment rules: `docs/EXPERIMENT_PROTOCOL.md`
+- Metrics and gates: `docs/METRICS.md`
+- Architecture decisions: `docs/DECISIONS.md`
+- Repository/artifact baseline: `docs/REPOSITORY_BASELINE.md`
+- Current task: `docs/exec-plans/<TASK-ID>.md`
 
-## Build, Test, and Development Commands
+## Rules
 
-- Train ABS policy:
-  ```bash
-  conda activate abs
-  cd ABS/training/legged_gym/legged_gym
-  python scripts/train.py --task=go2_pos_rough --num_envs=1280 --max_iterations=4000 --headless
-  ```
-- Build the ROS 2 RL controller:
-  ```bash
-  cd quadruped_ros2_control_humble
-  source /opt/ros/humble/setup.bash
-  colcon build --packages-select rl_quadruped_controller --symlink-install
-  ```
-- Run MuJoCo deployment: start `unitree_mujoco/simulate/build2/unitree_mujoco`, then launch `ros2 launch rl_quadruped_controller mujoco.launch.py`, then run `ros2 run keyboard_input keyboard_input`.
-- Run ROS package tests when present:
-  ```bash
-  colcon test --packages-select <package_name>
-  colcon test-result --verbose
-  ```
-
-## Coding Style & Naming Conventions
-
-C++ ROS code uses package-local `include/<package>/` headers and `src/` implementations. Keep classes in PascalCase, ROS parameters and YAML keys in `snake_case`, and package names lowercase with underscores. Python training code follows Legged Gym/RSL-RL style: 4-space indentation, `snake_case` functions, and task-grouped config classes.
-
-Preserve the critical ordering convention: joints and contacts are `FR, FL, RR, RL`. Do not mix `rl_quadruped_controller` with `unitree_guide_controller`; ABS deployment uses `rl_quadruped_controller`.
-
-## Testing Guidelines
-
-There is no single top-level test suite. Prefer package-scoped checks: `colcon test` for ROS packages and Python smoke tests for training changes. For controller edits, validate build success and a MuJoCo launch when dependencies are available. For RL observation changes, verify tensor dimensions: agile policy is 61-dim; recovery policy is 49-dim.
-
-## Commit & Pull Request Guidelines
-
-Recent commits use Conventional Commit-style prefixes, for example `docs: add AI-compatible project documentation`. Use `docs:`, `fix:`, `feat:`, or `refactor:` with a short imperative summary.
-
-Pull requests should include the affected subsystem, commands run, simulation or training evidence, and changed robot assumptions. Include screenshots or log snippets for MuJoCo, Gazebo, or real-robot behavior changes.
-
-## Security & Configuration Tips
-
-Do not commit trained checkpoints, server credentials, or machine-specific secrets. Keep local library paths such as `/home/lidio/Libraries/libtorch-cpu-2.0.1` documented but configurable. On shared GPU servers, use `CUDA_VISIBLE_DEVICES` and do not kill other users' processes.
+- Priority: Correctness > Stability > Observability > Safety > Performance > Paper Speed.
+- Never declare algorithm correctness from visual MuJoCo behavior alone.
+- Preserve `UNKNOWN`; do not replace missing evidence with assumptions.
+- Keep `paper-faithful` and `stabilized` implementations and results separate.
+- Formal experiments must satisfy `docs/EXPERIMENT_PROTOCOL.md`.
+- Read `CURRENT_STATE.md` and the current exec plan before changing code.
+- Update `CURRENT_STATE.md` after every formal task; update `DECISIONS.md` only for an actual decision.
+- Critical algorithm tasks require an independent Reviewer before the next gate.
+- Do not advance a gate without its recorded Acceptance evidence.
+- Real-robot safety overrides policy performance. Phase 2 ABS/RL is NO-GO until the documented gate changes.
+- Controller/hardware order is FR, FL, RR, RL; policy order is currently `UNKNOWN` and must not be assumed before P1-01.

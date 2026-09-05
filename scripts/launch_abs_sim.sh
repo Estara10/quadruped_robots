@@ -2,6 +2,7 @@
 # ============================================================
 # ABS Simulation Launch Script
 # Starts MuJoCo + ROS2 Controller → Auto-enter RL mode
+# The controller stops at the first configured goal unless abs.resample_goal_on_arrival=true.
 # Press Ctrl+C to stop all processes
 # ============================================================
 set -e
@@ -15,6 +16,9 @@ LIBTORCH_LIB="${HOME}/Libraries/libtorch-cpu-2.0.1/lib"
 
 # Auto-enter RL mode (set to "false" to disable)
 AUTO_RL="${AUTO_RL:-true}"
+# Explicitly opt-in only for local fault-injection evidence.  The launch file
+# defaults to 0 and real_go2.launch.py forces 0 regardless of this shell value.
+ABS_SIMULATION_TEST="${ABS_SIMULATION_TEST:-0}"
 
 # Environment
 export LD_LIBRARY_PATH="${UNITREE_SDK2_LIB}:${LIBTORCH_LIB}:${LD_LIBRARY_PATH}"
@@ -38,11 +42,12 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 # -------------------------------------------------------
-# Step 1: MuJoCo Simulator
+# Step 1: MuJoCo Simulator (flat ground)
 # -------------------------------------------------------
-echo -e "${GREEN}[1/3] Starting MuJoCo simulator...${NC}"
+MUJOCO_SCENE="${MUJOCO_SCENE:-scene_flat.xml}"
+echo -e "${GREEN}[1/3] Starting MuJoCo simulator (scene: ${MUJOCO_SCENE})...${NC}"
 cd "${MUJOCO_DIR}"
-${MUJOCO_BIN} &
+${MUJOCO_BIN} -s "${MUJOCO_SCENE}" &
 MUJOCO_PID=$!
 sleep 3
 
@@ -57,7 +62,7 @@ echo -e "${GREEN}  -> MuJoCo running (PID ${MUJOCO_PID})${NC}"
 # -------------------------------------------------------
 echo -e "${GREEN}[2/3] Starting ROS2 Controller...${NC}"
 cd "${ROS2_WS}"
-ros2 launch rl_quadruped_controller mujoco.launch.py &
+ros2 launch rl_quadruped_controller mujoco.launch.py simulation_test:="${ABS_SIMULATION_TEST}" &
 ROS2_PID=$!
 sleep 8
 
@@ -128,4 +133,9 @@ echo -e "${YELLOW}  Press Ctrl+C to stop all simulation processes${NC}"
 
 # Keep running until user Ctrl+C
 wait ${MUJOCO_PID} 2>/dev/null
+if [ "${ABS_LIVE_KEEP_ROS_AFTER_MUJOCO_EXIT:-0}" = "1" ]; then
+    # Test-only: preserve the local controller long enough to observe the stale
+    # frame after an abrupt MuJoCo writer exit.  Default production behavior is unchanged.
+    sleep 1
+fi
 cleanup

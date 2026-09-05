@@ -27,6 +27,10 @@ hip_scale_reduction_indices: [0, 3, 6, 9]
 num_of_dofs: 12
 action_scale: 0.25
 
+# Nominal deployment bias; training's per-episode randomization is not
+# observable on hardware and must not be fabricated here.
+dof_bias: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
 lin_vel_scale: 1.0
 ang_vel_scale: 1.0
 dof_pos_scale: 1.0

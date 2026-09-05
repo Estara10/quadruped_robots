@@ -11,6 +11,73 @@ BASE_SCENE = "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/go2
 OUTPUT_DIR = "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/"
 NUM_SCENES = 5
 SEED = 42
+SPAWN_CLEARANCE_M = 1.0
+CORRIDOR_CLEAR_X_M = 1.5
+CORRIDOR_HALF_WIDTH_M = 0.5
+MAX_PLACEMENT_ATTEMPTS = 200
+
+def obstacle_clearance(obs):
+    x, y = obs["pos"][0], obs["pos"][1]
+    if obs["type"] == "box":
+        sx, sy = obs["size"][0], obs["size"][1]
+        dx = max(abs(x) - sx, 0.0)
+        dy = max(abs(y) - sy, 0.0)
+        return float(np.hypot(dx, dy))
+    radius = obs["size"][0]
+    return max(0.0, float(np.hypot(x, y) - radius))
+
+
+def blocks_initial_corridor(obs):
+    x, y = obs["pos"][0], obs["pos"][1]
+    if obs["type"] == "box":
+        front = x - obs["size"][0]
+        rear = x + obs["size"][0]
+        lateral_clearance = abs(y) - obs["size"][1]
+    else:
+        radius = obs["size"][0]
+        front = x - radius
+        rear = x + radius
+        lateral_clearance = abs(y) - radius
+    return rear >= 0.0 and front <= CORRIDOR_CLEAR_X_M and lateral_clearance <= CORRIDOR_HALF_WIDTH_M
+
+
+def is_valid_obstacle(obs):
+    return obstacle_clearance(obs) >= SPAWN_CLEARANCE_M and not blocks_initial_corridor(obs)
+
+
+def sample_box():
+    x = np.random.uniform(0.5, 5.0)     # forward range
+    y = np.random.uniform(-3.0, 3.0)    # lateral range
+    z = np.random.uniform(0.05, 0.5)    # height
+    sx = np.random.uniform(0.1, 0.6)    # half-length
+    sy = np.random.uniform(0.1, 0.6)    # half-width
+    sz = np.random.uniform(0.05, z)     # half-height <= z
+    return {
+        "type": "box",
+        "pos": [x, y, z],
+        "size": [sx, sy, sz],
+    }
+
+
+def sample_cylinder():
+    x = np.random.uniform(1.0, 4.0)
+    y = np.random.uniform(-2.5, 2.5)
+    h = np.random.uniform(0.2, 0.8)
+    r = np.random.uniform(0.1, 0.35)
+    return {
+        "type": "cylinder",
+        "pos": [x, y, h],
+        "size": [r, h, h],  # MuJoCo cylinder: radius, half-height x2
+    }
+
+
+def sample_valid_obstacle(kind):
+    sampler = sample_box if kind == "box" else sample_cylinder
+    for _ in range(MAX_PLACEMENT_ATTEMPTS):
+        obs = sampler()
+        if is_valid_obstacle(obs):
+            return obs
+    raise RuntimeError(f"Could not place valid {kind} after {MAX_PLACEMENT_ATTEMPTS} attempts")
 
 def euler_to_quat(roll, pitch, yaw):
     cx, sx = np.cos(roll/2), np.sin(roll/2)
@@ -73,35 +140,18 @@ def main():
         # Random number of box obstacles (3-8)
         n_boxes = np.random.randint(3, 9)
         for _ in range(n_boxes):
-            x = np.random.uniform(0.5, 5.0)     # forward range
-            y = np.random.uniform(-3.0, 3.0)    # lateral range
-            z = np.random.uniform(0.05, 0.5)    # height
-            sx = np.random.uniform(0.1, 0.6)    # half-length
-            sy = np.random.uniform(0.1, 0.6)    # half-width
-            sz = np.random.uniform(0.05, z)     # half-height <= z
-            obstacles.append({
-                "type": "box",
-                "pos": [x, y, z],
-                "size": [sx, sy, sz],
-            })
+            obstacles.append(sample_valid_obstacle("box"))
 
         # 1-3 cylinders (pillars)
         n_cyl = np.random.randint(1, 4)
         for _ in range(n_cyl):
-            x = np.random.uniform(1.0, 4.0)
-            y = np.random.uniform(-2.5, 2.5)
-            h = np.random.uniform(0.2, 0.8)
-            r = np.random.uniform(0.1, 0.35)
-            obstacles.append({
-                "type": "cylinder",
-                "pos": [x, y, h],
-                "size": [r, h, h],  # MuJoCo cylinder: radius, half-height x2
-            })
+            obstacles.append(sample_valid_obstacle("cylinder"))
 
         path = generate_scene(f"test{i+1}", obstacles)
         print(f"  {path}  ({len(obstacles)} obstacles)")
 
     print(f"\nGenerated {NUM_SCENES} test scenes.")
+    print(f"Constraints: spawn_clearance>={SPAWN_CLEARANCE_M}m, clear corridor x<={CORRIDOR_CLEAR_X_M}m |y|<={CORRIDOR_HALF_WIDTH_M}m")
     print("Usage:")
     for i in range(NUM_SCENES):
         print(f"  MUJOCO_SCENE_OVERRIDE=scene_test{i+1}.xml ./scripts/launch_abs_terrain.sh")

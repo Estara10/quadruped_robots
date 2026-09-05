@@ -1,0 +1,5 @@
+DISPLAY=:0
+XAUTHORITY=/run/user/1000/gdm/Xauthority
+COMMAND=xdpyinfo
+XDPYINFO_RC=1
+xdpyinfo:  unable to open display ":0".

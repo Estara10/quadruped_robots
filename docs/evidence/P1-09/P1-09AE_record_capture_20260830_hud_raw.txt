@@ -1,0 +1,708 @@
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ MISSING ] no live simulation data
+  reason: no frame present at /dev/shm/mujoco_rt_frame
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 17
+  frame age            = 2.3 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.7456
+  lin_vel (actual)     = -0.2180 -0.0314 -0.2379
+  command (target)     =  4.9942 -0.0510 -0.0255
+  world_pose           = -0.0804 -0.0015  0.0111
+  ray_valid            = 1
+  ray_age_ns           = 4078551
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.2301  1.7628 -2.6473  0.1190  2.3104 -2.8443  0.0376  2.1768 -0.2465  0.1080  3.2250 -0.4910
+  action_clipped[12]   =  0.1190  2.3104 -2.8443 -0.2301  1.7628 -2.6473  0.1080  3.2250 -0.4910  0.0376  2.1768 -0.2465
+  joint_target[12]     =  0.0297  1.3776 -2.2111 -0.0575  1.2407 -2.1618  0.0270  1.6063 -1.6227  0.0094  1.3442 -1.5616
+  torque_nm[12]        =  4.5580  3.5574  15.7664 -6.0586  0.1694  16.3963  18.5374  3.7630  32.9020 -15.7504  2.6436  34.6387
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 42
+  frame age            = 11.2 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.7955
+  lin_vel (actual)     =  0.4915  0.0872  0.3910
+  command (target)     =  4.9777 -0.4809 -0.2370
+  world_pose           =  0.0200  0.0290  0.0787
+  ray_valid            = 1
+  ray_age_ns           = 881527
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       =  0.2029  1.3311  0.8765 -1.3736  0.4291 -1.3117  0.3974  1.4515  1.6042 -1.2555  0.9290 -0.8293
+  action_clipped[12]   = -1.3736  0.4291 -1.3117  0.2029  1.3311  0.8765 -1.2555  0.9290 -0.8293  0.3974  1.4515  1.6042
+  joint_target[12]     = -0.3434  0.9073 -1.8279  0.0507  1.1328 -1.2809 -0.3139  1.0323 -1.7073  0.0994  1.1629 -1.0989
+  torque_nm[12]        = -2.5846 -4.2084 -6.9895 -0.1573  1.0501  17.4013 -3.3249 -4.2171 -11.0202  1.7581 -4.0850  10.4477
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 67
+  frame age            = 12.3 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.8097
+  lin_vel (actual)     =  1.1506  0.1192 -0.1294
+  command (target)     =  4.9913 -0.1069 -0.0535
+  world_pose           =  0.4404  0.1111 -0.0471
+  ray_valid            = 1
+  ray_age_ns           = 1058781
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       =  3.6201  0.5316  0.6216  0.0077 -1.2522  0.4213  0.9325 -1.0884 -0.7950  0.1062  0.9812  1.5882
+  action_clipped[12]   =  0.0077 -1.2522  0.4213  3.6201  0.5316  0.6216  0.1062  0.9812  1.5882  0.9325 -1.0884 -0.7950
+  joint_target[12]     =  0.0019  0.4869 -1.3947  0.9050  0.9329 -1.3446  0.0265  1.0453 -1.1029  0.2331  0.5279 -1.6987
+  torque_nm[12]        = -1.7282  20.2792  3.3576  18.0161 -2.6895 -10.0815 -1.5590  4.4601  15.5041 -12.6632 -2.2338  1.6205
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 92
+  frame age            = 12.1 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.8212
+  lin_vel (actual)     =  1.9061  0.4686  0.0335
+  command (target)     =  4.9934 -0.5751 -0.2803
+  world_pose           =  1.2453  0.2162 -0.0209
+  ray_valid            = 1
+  ray_age_ns           = 25039
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       =  1.0212 -1.0302  0.5736  0.2243  1.3440  0.7282 -0.6814  1.4443  0.8173 -0.5285  1.5302  2.4407
+  action_clipped[12]   =  0.2243  1.3440  0.7282  1.0212 -1.0302  0.5736 -0.5285  1.5302  2.4407 -0.6814  1.4443  0.8173
+  joint_target[12]     =  0.0561  1.1360 -1.3179  0.2553  0.5425 -1.3566 -0.1321  1.1825 -0.8898 -0.1704  1.1611 -1.2957
+  torque_nm[12]        =  0.3057  0.6295  15.8870 -7.0290  9.2741  6.6116  2.1972 -4.1773  16.8210  1.5817  5.8112  21.3947
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 117
+  frame age            = 13.1 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.8289
+  lin_vel (actual)     =  2.0393  0.3452  0.0348
+  command (target)     =  4.9802 -0.5308 -0.2604
+  world_pose           =  2.2444  0.3555 -0.1230
+  ray_valid            = 1
+  ray_age_ns           = 806635
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.9573  0.4517  1.9638 -3.2010 -1.5444 -1.5514  1.0273  1.2392  1.3597 -1.4097 -0.5019 -0.6908
+  action_clipped[12]   = -3.2010 -1.5444 -1.5514 -0.9573  0.4517  1.9638 -1.4097 -0.5019 -0.6908  1.0273  1.2392  1.3597
+  joint_target[12]     = -0.8002  0.4139 -1.8879 -0.2393  0.9129 -1.0091 -0.3524  0.6745 -1.6727  0.2568  1.1098 -1.1601
+  torque_nm[12]        = -5.6793 -20.1756 -6.0526 -5.3986 -3.5533  16.6589  6.7582 -1.4761 -2.4894  13.8263  0.7282 -13.3304
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 142
+  frame age            = 14.2 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.8298
+  lin_vel (actual)     =  2.2396  0.5397 -0.3361
+  command (target)     =  4.9420 -0.2991 -0.1501
+  world_pose           =  3.3127  0.4086 -0.2123
+  ray_valid            = 1
+  ray_age_ns           = 885045
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       =  3.0666 -1.7945 -0.8444 -0.1083  0.4535  1.5579 -0.6938  0.0542 -0.3690  0.4299  1.5090  1.8809
+  action_clipped[12]   = -0.1083  0.4535  1.5579  3.0666 -1.7945 -0.8444  0.4299  1.5090  1.8809 -0.6938  0.0542 -0.3690
+  joint_target[12]     = -0.0271  0.9134 -1.1105  0.7666  0.3514 -1.7111  0.1075  1.1773 -1.0298 -0.1734  0.8135 -1.5922
+  torque_nm[12]        = -5.1593  10.7119  9.0682 -10.2166 -12.2730 -5.6973  5.2061 -1.3128  18.2492 -6.8213  14.2240  4.8013
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 167
+  frame age            = 15.2 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.8885
+  lin_vel (actual)     =  2.2726  0.4125  0.2998
+  command (target)     =  4.5409 -0.4481 -0.2419
+  world_pose           =  4.4409  0.4248 -0.2217
+  ray_valid            = 1
+  ray_age_ns           = 671905
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.1836  0.4708  1.7465 -1.7776  1.5510 -0.1401 -0.8703  1.2047  2.2742 -1.8562 -0.0803  0.1855
+  action_clipped[12]   = -1.7776  1.5510 -0.1401 -0.1836  0.4708  1.7465 -1.8562 -0.0803  0.1855 -0.8703  1.2047  2.2742
+  joint_target[12]     = -0.4444  1.1877 -1.5350 -0.0459  0.9177 -1.0634 -0.4640  0.7799 -1.4536 -0.2176  1.1012 -0.9314
+  torque_nm[12]        = -8.1258  0.4142 -11.2070 -5.7005  7.2327  15.3608  2.0465 -13.3745 -2.5777  0.9508 -5.1665  12.1657
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 192
+  frame age            = 15.7 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9537
+  lin_vel (actual)     =  2.0926  0.4095 -0.3944
+  command (target)     =  3.3741 -0.1308 -0.0966
+  world_pose           =  5.5681  0.3590 -0.3152
+  ray_valid            = 1
+  ray_age_ns           = 523060
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       =  3.4240  0.9603  0.7070 -0.2765 -2.4120  0.7814  1.3829 -1.3059 -0.8202 -0.0681  0.9386  1.7848
+  action_clipped[12]   = -0.2765 -2.4120  0.7814  3.4240  0.9603  0.7070 -0.0681  0.9386  1.7848  1.3829 -1.3059 -0.8202
+  joint_target[12]     = -0.0691  0.1970 -1.3046  0.8560  1.0401 -1.3233 -0.0170  1.0346 -1.0538  0.3457  0.4735 -1.7051
+  torque_nm[12]        = -4.3236  22.0205  4.9304  20.8529 -2.4165 -11.9575 -0.7934  7.4702  19.6695 -13.2008 -2.0436  0.3429
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 217
+  frame age            = 16.2 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9910
+  lin_vel (actual)     =  2.3641  0.7510  0.4056
+  command (target)     =  2.1903  0.0710  0.0808
+  world_pose           =  6.7296  0.2502 -0.3973
+  ray_valid            = 1
+  ray_age_ns           = 150604
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       =  0.8753 -0.7687  1.4690  0.3183  0.2616  2.9774 -0.3791  1.4597  1.6777 -2.3485  1.9454  1.4200
+  action_clipped[12]   =  0.3183  0.2616  2.9774  0.8753 -0.7687  1.4690 -2.3485  1.9454  1.4200 -0.3791  1.4597  1.6777
+  joint_target[12]     =  0.0796  0.8654 -0.8378  0.2188  0.6078 -1.1327 -0.5871  1.2863 -1.1450 -0.0948  1.1649 -1.0806
+  torque_nm[12]        =  5.3873 -8.2188  14.7035  2.3729  11.6944  4.5884 -13.2127  6.1116 -12.7372  4.0722  1.9305  20.3513
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 242
+  frame age            = 13.8 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9980
+  lin_vel (actual)     =  1.9868  0.1617 -0.1515
+  command (target)     =  1.1117  0.1932  0.4098
+  world_pose           =  7.8381  0.0643 -0.3553
+  ray_valid            = 1
+  ray_age_ns           = 173501
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       =  1.7844  1.0769  1.1585 -0.1159 -3.1956  0.2825  1.2890 -0.7068 -0.8557 -0.1935  0.5261  2.0767
+  action_clipped[12]   = -0.1159 -3.1956  0.2825  1.7844  1.0769  1.1585 -0.1935  0.5261  2.0767  1.2890 -0.7068 -0.8557
+  joint_target[12]     = -0.0290  0.0011 -1.4294  0.4461  1.0692 -1.2104 -0.0484  0.9315 -0.9808  0.3222  0.6233 -1.7139
+  torque_nm[12]        =  7.9746  7.7864  8.7615  19.0131 -4.3784  1.8020 -0.7382  13.8842  14.5783 -11.7159 -5.5066 -4.7121
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 267
+  frame age            = 18.2 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9995
+  lin_vel (actual)     =  1.2548  0.0011 -0.3072
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  8.7364 -0.0789 -0.2035
+  ray_valid            = 1
+  ray_age_ns           = 285823
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       =  0.2617 -0.5777  1.9709  0.6856  0.3468 -0.3623  0.2891  0.5212 -0.1954 -0.0875  1.3943 -1.8635
+  action_clipped[12]   =  0.6856  0.3468 -0.3623  0.2617 -0.5777  1.9709 -0.0875  1.3943 -1.8635  0.2891  0.5212 -0.1954
+  joint_target[12]     =  0.1714  0.8867 -1.5906  0.0654  0.6556 -1.0073 -0.0219  1.1486 -1.9659  0.0723  0.9303 -1.5489
+  torque_nm[12]        =  10.0166  4.0852  2.2474  3.8229  19.4424  12.0108  2.7641 -2.5356 -2.4165  2.5880  2.8761  14.6795
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 292
+  frame age            = 15.2 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9990
+  lin_vel (actual)     =  0.0829 -0.0172  0.0107
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0301 -0.1634 -0.2880
+  ray_valid            = 1
+  ray_age_ns           = 752927
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.2333  0.6628 -1.1103  0.5762  0.5752 -0.0939 -0.2479  1.0795 -0.8163  0.0122  0.9420 -0.6972
+  action_clipped[12]   =  0.5762  0.5752 -0.0939 -0.2333  0.6628 -1.1103  0.0122  0.9420 -0.6972 -0.2479  1.0795 -0.8163
+  joint_target[12]     =  0.1441  0.9438 -1.5235 -0.0583  0.9657 -1.7776  0.0030  1.0355 -1.6743 -0.0620  1.0699 -1.7041
+  torque_nm[12]        =  4.0190 -5.2032  10.3768 -3.0332 -4.3354  1.4661  0.4831 -0.7620  3.5274 -2.4483 -2.9047  0.3488
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 317
+  frame age            = 12.2 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     = -0.0040 -0.0043 -0.0001
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0230 -0.1580 -0.3051
+  ray_valid            = 1
+  ray_age_ns           = 202014
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.1046  0.9876 -0.1699  0.3195  0.6440 -0.8772 -0.1979  1.2072 -0.7143  0.1232  0.7609 -0.5501
+  action_clipped[12]   =  0.3195  0.6440 -0.8772 -0.1046  0.9876 -0.1699  0.1232  0.7609 -0.5501 -0.1979  1.2072 -0.7143
+  joint_target[12]     =  0.0799  0.9610 -1.7193 -0.0262  1.0469 -1.5425  0.0308  0.9902 -1.6375 -0.0495  1.1018 -1.6786
+  torque_nm[12]        =  1.9265 -3.3269  4.3546 -2.3071 -1.0428  8.2308  1.7396 -0.7455  4.2161 -1.2397 -1.6310  1.9037
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 343
+  frame age            = 0.2 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     = -0.0029 -0.0023  0.0001
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0210 -0.1590 -0.3090
+  ray_valid            = 1
+  ray_age_ns           = 1143582
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.1204  1.0060 -0.1206  0.3356  0.7033 -0.8369 -0.1907  1.1644 -0.7825  0.1083  0.7368 -0.5586
+  action_clipped[12]   =  0.3356  0.7033 -0.8369 -0.1204  1.0060 -0.1206  0.1083  0.7368 -0.5586 -0.1907  1.1644 -0.7825
+  joint_target[12]     =  0.0839  0.9758 -1.7092 -0.0301  1.0515 -1.5302  0.0271  0.9842 -1.6397 -0.0477  1.0911 -1.6956
+  torque_nm[12]        =  1.9548 -2.7862  4.7541 -2.5246 -0.7367  8.3554  1.6967 -0.9037  4.3372 -1.1044 -1.9840  1.4762
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 367
+  frame age            = 20.1 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     = -0.0027 -0.0020  0.0002
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0194 -0.1595 -0.3118
+  ray_valid            = 1
+  ray_age_ns           = 1134606
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.1296  1.0236 -0.0666  0.3391  0.7549 -0.8100 -0.1798  1.1276 -0.8410  0.0931  0.7135 -0.5690
+  action_clipped[12]   =  0.3391  0.7549 -0.8100 -0.1296  1.0236 -0.0666  0.0931  0.7135 -0.5690 -0.1798  1.1276 -0.8410
+  joint_target[12]     =  0.0848  0.9887 -1.7025 -0.0324  1.0559 -1.5166  0.0233  0.9784 -1.6423 -0.0450  1.0819 -1.7103
+  torque_nm[12]        =  1.9194 -2.3165  4.9743 -2.6563 -0.4701  8.5390  1.6384 -1.0807  4.4005 -0.9600 -2.3082  1.1192
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 392
+  frame age            = 13.3 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     = -0.0026 -0.0018  0.0003
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0178 -0.1600 -0.3143
+  ray_valid            = 1
+  ray_age_ns           = 125278
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.1364  1.0428 -0.0095  0.3384  0.8121 -0.7798 -0.1646  1.0880 -0.8982  0.0772  0.6914 -0.5815
+  action_clipped[12]   =  0.3384  0.8121 -0.7798 -0.1364  1.0428 -0.0095  0.0772  0.6914 -0.5815 -0.1646  1.0880 -0.8982
+  joint_target[12]     =  0.0846  1.0030 -1.6950 -0.0341  1.0607 -1.5024  0.0193  0.9729 -1.6454 -0.0411  1.0720 -1.7246
+  torque_nm[12]        =  1.8615 -1.8074  5.1869 -2.7588 -0.1955  8.7335  1.5732 -1.2640  4.4459 -0.7868 -2.6628  0.7778
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 418
+  frame age            = 1.9 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     = -0.0025 -0.0018  0.0003
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0163 -0.1605 -0.3166
+  ray_valid            = 1
+  ray_age_ns           = 527605
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.1422  1.0611  0.0480  0.3345  0.8775 -0.7433 -0.1419  1.0422 -0.9543  0.0631  0.6734 -0.5985
+  action_clipped[12]   =  0.3345  0.8775 -0.7433 -0.1422  1.0611  0.0480  0.0631  0.6734 -0.5985 -0.1419  1.0422 -0.9543
+  joint_target[12]     =  0.0836  1.0194 -1.6858 -0.0356  1.0653 -1.4880  0.0158  0.9683 -1.6496 -0.0355  1.0606 -1.7386
+  torque_nm[12]        =  1.7850 -1.2416  5.4229 -2.8468  0.0745  8.9135  1.5181 -1.4372  4.4653 -0.5657 -3.0651  0.4517
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 443
+  frame age            = 2.2 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     = -0.0021 -0.0015  0.0002
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0149 -0.1610 -0.3186
+  ray_valid            = 1
+  ray_age_ns           = 266000
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.1466  1.0732  0.0951  0.3278  0.9429 -0.7062 -0.1150  0.9957 -1.0004  0.0554  0.6624 -0.6126
+  action_clipped[12]   =  0.3278  0.9429 -0.7062 -0.1466  1.0732  0.0951  0.0554  0.6624 -0.6126 -0.1150  0.9957 -1.0004
+  joint_target[12]     =  0.0819  1.0357 -1.6766 -0.0366  1.0683 -1.4762  0.0139  0.9656 -1.6531 -0.0287  1.0489 -1.7501
+  torque_nm[12]        =  1.6948 -0.6989  5.6305 -2.9156  0.2722  9.0081  1.5071 -1.6022  4.5168 -0.3505 -3.3910  0.3005
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 467
+  frame age            = 23.0 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9988
+  lin_vel (actual)     =  0.0630  0.0370  0.0588
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0265 -0.1562 -0.2836
+  ray_valid            = 1
+  ray_age_ns           = 112263
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.2442  0.4374 -0.4058  0.1145  0.2914  0.1208 -0.0773  1.1112 -0.1670 -0.0771  1.1318 -0.5721
+  action_clipped[12]   =  0.1145  0.2914  0.1208 -0.2442  0.4374 -0.4058 -0.0771  1.1318 -0.5721 -0.0773  1.1112 -0.1670
+  joint_target[12]     =  0.0286  0.8728 -1.4698 -0.0610  0.9094 -1.6014 -0.0193  1.0829 -1.6430 -0.0193  1.0778 -1.5418
+  torque_nm[12]        =  2.6536 -1.0135  8.6429 -2.5221  3.0790  5.9244 -0.2150 -1.8927  1.7266 -0.9713 -2.2006  5.1103
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 493
+  frame age            = 1.7 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     =  0.0004  0.0009 -0.0002
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0354 -0.1563 -0.2758
+  ray_valid            = 1
+  ray_age_ns           = 1497583
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.2689  0.5538 -0.3038  0.1077  0.2962  0.1344 -0.0740  1.0697 -0.0915 -0.1584  1.0904 -0.6816
+  action_clipped[12]   =  0.1077  0.2962  0.1344 -0.2689  0.5538 -0.3038 -0.1584  1.0904 -0.6816 -0.0740  1.0697 -0.0915
+  joint_target[12]     =  0.0269  0.8740 -1.4664 -0.0672  0.9385 -1.5759 -0.0396  1.0726 -1.6704 -0.0185  1.0674 -1.5229
+  torque_nm[12]        =  3.2675 -1.4571  7.9161 -2.0292  3.2810  6.2438 -0.1585 -1.9204  0.6728 -0.6149 -2.7975  4.9085
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 518
+  frame age            = 4.9 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     =  0.0046 -0.0005 -0.0038
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0364 -0.1565 -0.2759
+  ray_valid            = 1
+  ray_age_ns           = 190938
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.2610  0.6563 -0.2516  0.1730  0.3517 -0.0073 -0.1049  1.0800 -0.1086 -0.1408  1.0273 -0.7577
+  action_clipped[12]   =  0.1730  0.3517 -0.0073 -0.2610  0.6563 -0.2516 -0.1408  1.0273 -0.7577 -0.1049  1.0800 -0.1086
+  joint_target[12]     =  0.0433  0.8879 -1.5018 -0.0652  0.9641 -1.5629 -0.0352  1.0568 -1.6894 -0.0262  1.0700 -1.5271
+  torque_nm[12]        =  3.7316 -1.2341  7.0634 -2.0086  3.8565  6.8536 -0.0413 -2.4873  0.1981 -0.8884 -2.8692  4.8803
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 543
+  frame age            = 4.6 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     =  0.0046 -0.0013 -0.0033
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0386 -0.1576 -0.2765
+  ray_valid            = 1
+  ray_age_ns           = 605832
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.2577  0.7394 -0.2391  0.2284  0.4157 -0.0937 -0.1357  1.0993 -0.1508 -0.1077  0.9756 -0.7853
+  action_clipped[12]   =  0.2284  0.4157 -0.0937 -0.2577  0.7394 -0.2391 -0.1077  0.9756 -0.7853 -0.1357  1.0993 -0.1508
+  joint_target[12]     =  0.0571  0.9039 -1.5234 -0.0644  0.9848 -1.5598 -0.0269  1.0439 -1.6963 -0.0339  1.0748 -1.5377
+  torque_nm[12]        =  4.0851 -1.1669  6.9187 -2.0750  4.0938  7.3969  0.2321 -2.8987  0.2207 -1.1842 -2.9363  4.6535
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 568
+  frame age            = 2.2 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     =  0.0057 -0.0014 -0.0025
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0407 -0.1589 -0.2784
+  ray_valid            = 1
+  ray_age_ns           = 1215563
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.2664  0.8128 -0.2417  0.2755  0.4785 -0.1402 -0.1681  1.1110 -0.2012 -0.0750  0.9233 -0.7881
+  action_clipped[12]   =  0.2755  0.4785 -0.1402 -0.2664  0.8128 -0.2417 -0.0750  0.9233 -0.7881 -0.1681  1.1110 -0.2012
+  joint_target[12]     =  0.0689  0.9196 -1.5351 -0.0666  1.0032 -1.5604 -0.0188  1.0308 -1.6970 -0.0420  1.0778 -1.5503
+  torque_nm[12]        =  4.3037 -1.0477  6.9649 -2.3031  4.2717  7.6888  0.4770 -3.2762  0.3426 -1.4945 -3.0542  4.2993
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 593
+  frame age            = 6.4 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     =  0.0065 -0.0016 -0.0023
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0435 -0.1605 -0.2828
+  ray_valid            = 1
+  ray_age_ns           = 1031247
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.2737  0.8848 -0.2312  0.3138  0.5363 -0.1960 -0.1909  1.1192 -0.2589 -0.0473  0.8672 -0.7994
+  action_clipped[12]   =  0.3138  0.5363 -0.1960 -0.2737  0.8848 -0.2312 -0.0473  0.8672 -0.7994 -0.1909  1.1192 -0.2589
+  joint_target[12]     =  0.0784  0.9341 -1.5490 -0.0684  1.0212 -1.5578 -0.0118  1.0168 -1.6998 -0.0477  1.0798 -1.5647
+  torque_nm[12]        =  4.3687 -1.0012  6.9379 -2.6166  4.3303  8.0036  0.7040 -3.6303  0.3621 -1.7023 -3.2714  3.8321
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 618
+  frame age            = 5.0 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     =  0.0068 -0.0017 -0.0022
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0465 -0.1622 -0.2889
+  ray_valid            = 1
+  ray_age_ns           = 822161
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.2774  0.9582 -0.2095  0.3439  0.5950 -0.2583 -0.2118  1.1249 -0.3176 -0.0180  0.8138 -0.8056
+  action_clipped[12]   =  0.3439  0.5950 -0.2583 -0.2774  0.9582 -0.2095 -0.0180  0.8138 -0.8056 -0.2118  1.1249 -0.3176
+  joint_target[12]     =  0.0860  0.9487 -1.5646 -0.0693  1.0395 -1.5524 -0.0045  1.0034 -1.7014 -0.0530  1.0812 -1.5794
+  torque_nm[12]        =  4.3408 -0.9405  6.8880 -2.9374  4.3728  8.3612  0.9700 -3.8500  0.4183 -1.8436 -3.4977  3.3150
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 643
+  frame age            = 5.9 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     =  0.0059 -0.0018 -0.0018
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0492 -0.1640 -0.2961
+  ray_valid            = 1
+  ray_age_ns           = 962308
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.2780  1.0278 -0.1789  0.3663  0.6550 -0.3193 -0.2289  1.1251 -0.3811  0.0106  0.7612 -0.8064
+  action_clipped[12]   =  0.3663  0.6550 -0.3193 -0.2780  1.0278 -0.1789  0.0106  0.7612 -0.8064 -0.2289  1.1251 -0.3811
+  joint_target[12]     =  0.0916  0.9638 -1.5798 -0.0695  1.0569 -1.5447  0.0026  0.9903 -1.7016 -0.0572  1.0813 -1.5953
+  torque_nm[12]        =  4.2534 -0.8405  6.8492 -3.2345  4.4032  8.7308  1.2466 -4.0589  0.5033 -1.9054 -3.7496  2.7534
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 668
+  frame age            = 10.0 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     =  0.0046 -0.0020 -0.0016
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0514 -0.1656 -0.3034
+  ray_valid            = 1
+  ray_age_ns           = 949712
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.2783  1.0894 -0.1392  0.3812  0.7160 -0.3752 -0.2373  1.1160 -0.4510  0.0351  0.7109 -0.8067
+  action_clipped[12]   =  0.3812  0.7160 -0.3752 -0.2783  1.0894 -0.1392  0.0351  0.7109 -0.8067 -0.2373  1.1160 -0.4510
+  joint_target[12]     =  0.0953  0.9790 -1.5938 -0.0696  1.0723 -1.5348  0.0088  0.9777 -1.7017 -0.0593  1.0790 -1.6128
+  torque_nm[12]        =  4.1297 -0.6763  6.8277 -3.5033  4.4454  9.1042  1.5066 -4.2716  0.5840 -1.8646 -4.0288  2.1534
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 693
+  frame age            = 8.2 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     =  0.0033 -0.0024 -0.0014
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0530 -0.1673 -0.3106
+  ray_valid            = 1
+  ray_age_ns           = 1044645
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.2798  1.1450 -0.0899  0.3902  0.7773 -0.4236 -0.2366  1.0977 -0.5254  0.0541  0.6663 -0.8109
+  action_clipped[12]   =  0.3902  0.7773 -0.4236 -0.2798  1.1450 -0.0899  0.0541  0.6663 -0.8109 -0.2366  1.0977 -0.5254
+  joint_target[12]     =  0.0975  0.9943 -1.6059 -0.0700  1.0863 -1.5225  0.0135  0.9666 -1.7027 -0.0591  1.0744 -1.6313
+  torque_nm[12]        =  3.9788 -0.4554  6.8330 -3.7572  4.5240  9.4786  1.7333 -4.4788  0.6524 -1.7387 -4.3436  1.5452
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 717
+  frame age            = 23.8 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     =  0.0020 -0.0027 -0.0009
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0538 -0.1688 -0.3169
+  ray_valid            = 1
+  ray_age_ns           = 48160
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.2824  1.1923 -0.0362  0.3951  0.8359 -0.4550 -0.2290  1.0727 -0.5962  0.0643  0.6324 -0.8176
+  action_clipped[12]   =  0.3951  0.8359 -0.4550 -0.2824  1.1923 -0.0362  0.0643  0.6324 -0.8176 -0.2290  1.0727 -0.5962
+  joint_target[12]     =  0.0988  1.0090 -1.6137 -0.0706  1.0981 -1.5091  0.0161  0.9581 -1.7044 -0.0573  1.0682 -1.6491
+  torque_nm[12]        =  3.8260 -0.1903  6.8947 -3.9805  4.6369  9.8065  1.8910 -4.6492  0.7210 -1.5686 -4.6696  0.9857
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 743
+  frame age            = 13.1 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     =  0.0006 -0.0029 -0.0005
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0539 -0.1704 -0.3232
+  ray_valid            = 1
+  ray_age_ns           = 625511
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.2858  1.2297  0.0238  0.4022  0.8953 -0.4680 -0.2149  1.0393 -0.6741  0.0637  0.6058 -0.8295
+  action_clipped[12]   =  0.4022  0.8953 -0.4680 -0.2858  1.2297  0.0238  0.0637  0.6058 -0.8295 -0.2149  1.0393 -0.6741
+  joint_target[12]     =  0.1006  1.0238 -1.6170 -0.0715  1.1074 -1.4941  0.0159  0.9514 -1.7074 -0.0537  1.0598 -1.6685
+  torque_nm[12]        =  3.6921  0.1287  7.0399 -4.1985  4.7401  10.0859  1.9723 -4.7764  0.7847 -1.3476 -5.0426  0.3940
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ LIVE ] authoritative runtime frame
+  session_id           = 8049381969251
+  rl_step              = 768
+  frame age            = 9.6 ms
+  policy_state         = AGILE
+  safety_faulted       = 0
+  ra_value             = -0.9989
+  lin_vel (actual)     = -0.0002 -0.0032 -0.0002
+  command (target)     =  0.0000  0.0000  0.0000
+  world_pose           =  9.0535 -0.1718 -0.3288
+  ray_valid            = 1
+  ray_age_ns           = 1184353
+  ray2d[11]            =  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850  2.5850
+  action_raw[12]       = -0.2883  1.2514  0.0742  0.4111  0.9481 -0.4652 -0.1975  1.0048 -0.7497  0.0568  0.5887 -0.8391
+  action_clipped[12]   =  0.4111  0.9481 -0.4652 -0.2883  1.2514  0.0742  0.0568  0.5887 -0.8391 -0.1975  1.0048 -0.7497
+  joint_target[12]     =  0.1028  1.0370 -1.6163 -0.0721  1.1129 -1.4815  0.0142  0.9472 -1.7098 -0.0494  1.0512 -1.6874
+  torque_nm[12]        =  3.5803  0.4498  7.2417 -4.3925  4.7975  10.2272  1.9993 -4.8571  0.8916 -1.1215 -5.3950 -0.1329
+  collision            = N/A (unavailable — bridge-side only)
+  torque_saturated     = N/A (unavailable — not computed)
+[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ INVALID ] no live simulation data
+  reason: frame is corrupt (size/magic/version/sequence/flags/non-finite)
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ INVALID ] no live simulation data
+  reason: frame is corrupt (size/magic/version/sequence/flags/non-finite)
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ INVALID ] no live simulation data
+  reason: frame is corrupt (size/magic/version/sequence/flags/non-finite)
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ INVALID ] no live simulation data
+  reason: frame is corrupt (size/magic/version/sequence/flags/non-finite)
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ INVALID ] no live simulation data
+  reason: frame is corrupt (size/magic/version/sequence/flags/non-finite)
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ INVALID ] no live simulation data
+  reason: frame is corrupt (size/magic/version/sequence/flags/non-finite)
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ INVALID ] no live simulation data
+  reason: frame is corrupt (size/magic/version/sequence/flags/non-finite)
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ INVALID ] no live simulation data
+  reason: frame is corrupt (size/magic/version/sequence/flags/non-finite)
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ INVALID ] no live simulation data
+  reason: frame is corrupt (size/magic/version/sequence/flags/non-finite)
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ INVALID ] no live simulation data
+  reason: frame is corrupt (size/magic/version/sequence/flags/non-finite)
+  previous frame values are NOT shown (no residual data).[2J[HP1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ INVALID ] no live simulation data
+  reason: frame is corrupt (size/magic/version/sequence/flags/non-finite)
+  previous frame values are NOT shown (no residual data).

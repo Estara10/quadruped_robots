@@ -153,8 +153,9 @@ rl_quadruped_controller:
     robot_pkg: "go2_description"
     use_rl_thread: false
     model_folder: "abs"
-    # CRITICAL: Joint order MUST be FR, FL, RR, RL to match IsaacGym training URDF order
-    # MuJoCo actuators, DDS motor_state, and ros2_control.xacro all use this same order
+    # Controller/hardware order is FR, FL, RR, RL.
+    # Current Isaac Gym runtime order is FL, FR, RL, RR; policy artifact order remains UNKNOWN.
+    # The ABS config therefore enables an explicit conditional policy/controller remap.
     joints:
       - FR_hip_joint
       - FR_thigh_joint
@@ -196,6 +197,9 @@ rl_quadruped_controller:
       - -0.3     # RL hip
       - 1.31     # RL thigh
       - -2.8     # RL calf
+
+    stand_kp: 80.0    # Go2 fixed stand gain (matches rl_sar reference)
+    stand_kd: 3.0
 
     command_interfaces:
       - effort

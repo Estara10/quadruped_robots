@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-09-02T13:27:28+0800",
+  "generator_sha256": "93aaf176b417b070f2003880d4c13b582556fe8ad0fe5e50631193161e27c3ed",
+  "generator_version": "1.0",
+  "record_statuses": {
+    "LIVE": 1250
+  },
+  "rt_frame": {
+    "accepted_reads": 753069,
+    "attempts_reads": 753069,
+    "distinct_rl_steps": 1250,
+    "raw_timing_source_sha256": "89ff99379203e97b9a6fa68110f6cc297025e3473bf7a6dee560e607fa10a8da",
+    "reasons": {},
+    "rejected": 0,
+    "rl_step_gap_max": 1,
+    "rl_step_gaps": 1,
+    "rl_step_stride": 1
+  },
+  "schema": "abs-go2-p1-08-reader-stats/v2",
+  "sequence_stride_note": "v2 sim-clock even sequence advances +2 per publish; missing = (next-prev)/2 - 1. rt_frame rl_step is stride-1.",
+  "sim_clock": {
+    "accepted_reads": 753069,
+    "attempts_reads": 753069,
+    "distinct_accepted": 12489,
+    "gap_errors": [],
+    "note": "seq_gaps are MISSING PUBLISHES over distinct accepted sequences; distinct from reader rejected reads (rejected=0).",
+    "raw_timing_source_sha256": "d7568d6824305c0e03038eb2cdf7cd53a590181e518eeaf3865d26551b6f9aba",
+    "reasons": {},
+    "rejected": 0,
+    "seq_gap_max_single": 10,
+    "seq_gaps_total_missing": 12,
+    "sequence_stride": 2
+  },
+  "supersedes": {
+    "artifact": "reader_stats_pre_stride2_correction.json",
+    "bytes": 356,
+    "reason": "original reader_stats.json used a stride-1 sequence-gap formula (seq_gaps=12512) but the v2 sim-clock even sequence advances +2; the raw timing data was valid, only the derived gap statistic was wrong.",
+    "sha256": "d3b0d28bb11f8fcb365ed3268fe2a4d399456d619c68138bf52b397b4605f865"
+  }
+}

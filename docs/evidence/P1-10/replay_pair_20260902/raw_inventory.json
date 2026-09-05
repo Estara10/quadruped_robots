@@ -1,0 +1,27 @@
+{
+  "schema": "abs-go2-p1-10-replay-raw-inventory/v1",
+  "pair_id": "P1-10-REPLAY-20260902-flat_goal_forward-stabilized",
+  "files": [
+    {
+      "path": "pair_manifest.json",
+      "sha256": "a5d5de6c58629121a4316719f1fb9ed10d1a3e2e221c40ce57b1236af89fb080",
+      "bytes": 5163,
+      "kind": "frozen pair protocol"
+    },
+    {
+      "path": "run_A_preflight_fail.json",
+      "sha256": "8e131fce2b1d25a598caec0b412713ee39e4ef67876c5c620d963211844bde0f",
+      "bytes": 14485,
+      "kind": "raw harness preflight evidence"
+    },
+    {
+      "path": "pair_result.json",
+      "sha256": "d0c242caebb8cdee4536489a148043bb01a68de5db160e7cf93eb461655aac73",
+      "bytes": 3299,
+      "kind": "machine-readable pair result"
+    }
+  ],
+  "runtime_raw_logs": [],
+  "runtime_records": [],
+  "note": "No MuJoCo/ROS2 child was launched, so no PID/PGID, signal timeline, wait result, runtime JSONL, timing JSONL, or child log exists. Run B was not attempted."
+}

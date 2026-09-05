@@ -4,6 +4,9 @@
 
 #include "RlQuadrupedController.h"
 
+#include <algorithm>
+#include <unordered_map>
+
 namespace rl_quadruped_controller
 {
     using config_type = controller_interface::interface_configuration_type;
@@ -65,9 +68,31 @@ namespace rl_quadruped_controller
     controller_interface::return_type LeggedGymController::
     update(const rclcpp::Time& time, const rclcpp::Duration& period)
     {
+        // Global hard stop: handled before estimator/model/FSM logic so it works
+        // from FIXEDDOWN, FIXEDSTAND, RL, and RL_REC in both simulation and real robot.
+        if (ctrl_interfaces_.control_inputs_.command == 1 || ctrl_interfaces_.control_inputs_.command == 9)
+        {
+            if (current_state_ && current_state_->state_name != FSMStateName::PASSIVE)
+            {
+                RCLCPP_ERROR(get_node()->get_logger(),
+                             "[HARD-STOP] command=%d -> forcing PASSIVE",
+                             ctrl_interfaces_.control_inputs_.command);
+                current_state_->exit();
+                current_state_ = state_list_.passive;
+                current_state_->enter();
+                next_state_ = current_state_;
+                next_state_name_ = current_state_->state_name;
+                mode_ = FSMMode::NORMAL;
+            }
+            ctrl_interfaces_.control_inputs_.command = 0;
+            return controller_interface::return_type::OK;
+        }
+
         // ===== DDS Timeout Detection =====
         // Check if joint positions have frozen (DDS communication lost)
-        if (!last_joint_positions_.empty() && !dds_timeout_triggered_)
+        // Skip in PASSIVE state — robot is not being controlled, joints naturally idle
+        if (!last_joint_positions_.empty() && !dds_timeout_triggered_
+            && current_state_->state_name != FSMStateName::PASSIVE)
         {
             bool frozen = true;
             for (size_t i = 0; i < last_joint_positions_.size(); i++)
@@ -264,6 +289,43 @@ namespace rl_quadruped_controller
             {
                 state_interface_map_[interface.get_interface_name()]->push_back(interface);
             }
+        }
+
+        std::unordered_map<std::string, size_t> joint_index;
+        for (size_t i = 0; i < joint_names_.size(); ++i)
+        {
+            joint_index[joint_names_[i]] = i;
+        }
+        const auto sort_joint_interfaces = [&joint_index](auto& interfaces)
+        {
+            std::sort(interfaces.begin(), interfaces.end(),
+                [&joint_index](const auto& lhs, const auto& rhs)
+                {
+                    const auto lhs_it = joint_index.find(lhs.get().get_prefix_name());
+                    const auto rhs_it = joint_index.find(rhs.get().get_prefix_name());
+                    const size_t lhs_idx = lhs_it == joint_index.end() ? joint_index.size() : lhs_it->second;
+                    const size_t rhs_idx = rhs_it == joint_index.end() ? joint_index.size() : rhs_it->second;
+                    return lhs_idx < rhs_idx;
+                });
+        };
+
+        sort_joint_interfaces(ctrl_interfaces_.joint_torque_command_interface_);
+        sort_joint_interfaces(ctrl_interfaces_.joint_position_command_interface_);
+        sort_joint_interfaces(ctrl_interfaces_.joint_velocity_command_interface_);
+        sort_joint_interfaces(ctrl_interfaces_.joint_kp_command_interface_);
+        sort_joint_interfaces(ctrl_interfaces_.joint_kd_command_interface_);
+        sort_joint_interfaces(ctrl_interfaces_.joint_effort_state_interface_);
+        sort_joint_interfaces(ctrl_interfaces_.joint_position_state_interface_);
+        sort_joint_interfaces(ctrl_interfaces_.joint_velocity_state_interface_);
+
+        if (ctrl_interfaces_.joint_position_state_interface_.size() == joint_names_.size())
+        {
+            RCLCPP_INFO(get_node()->get_logger(),
+                        "[VERIFY] joint interface order: %s %s %s ... %s",
+                        ctrl_interfaces_.joint_position_state_interface_[0].get().get_prefix_name().c_str(),
+                        ctrl_interfaces_.joint_position_state_interface_[1].get().get_prefix_name().c_str(),
+                        ctrl_interfaces_.joint_position_state_interface_[2].get().get_prefix_name().c_str(),
+                        ctrl_interfaces_.joint_position_state_interface_.back().get().get_prefix_name().c_str());
         }
 
         // Create FSM List

@@ -1,0 +1,6 @@
+{"monotonic_time_ns":15809737818094,"run_id":"run-0cbf4a31137e48c79a1f61b4bb639a3e","sequence":0,"simulation_time_s":null,"type":"episode_start"}
+{"monotonic_time_ns":15818939611838,"run_id":"run-0cbf4a31137e48c79a1f61b4bb639a3e","sequence":1,"simulation_time_s":null,"type":"controller_active"}
+{"monotonic_time_ns":15818939611838,"run_id":"run-0cbf4a31137e48c79a1f61b4bb639a3e","sequence":2,"simulation_time_s":null,"type":"rl_entered"}
+{"monotonic_time_ns":15834139749313,"run_id":"run-0cbf4a31137e48c79a1f61b4bb639a3e","sequence":3,"simulation_time_s":null,"type":"valid_ready"}
+{"monotonic_time_ns":15834139749313,"outcome":"UNKNOWN","run_id":"run-0cbf4a31137e48c79a1f61b4bb639a3e","sequence":4,"simulation_time_s":null,"type":"terminal"}
+{"forced_termination":false,"monotonic_time_ns":15834904293179,"process_exit_code":0,"run_id":"run-0cbf4a31137e48c79a1f61b4bb639a3e","sequence":5,"shutdown_complete":true,"shutdown_request_source":"recorder_stop;SIGINT_ros_launch;SIGINT_mujoco","simulation_time_s":null,"type":"shutdown"}

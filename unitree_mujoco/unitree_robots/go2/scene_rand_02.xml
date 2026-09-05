@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<mujoco model="go2 rand_02">
+  <include file="go2.xml"/>
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="-130" elevation="-20"/>
+  </visual>
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+  </asset>
+  <worldbody>
+    <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
+    <geom name="floor" size="0 0 0.05" type="plane" material="groundplane"/>
+    <geom type="box" pos="0.636595 2.38477 0.260344" size="0.303663 0.272702 0.145621"/>
+    <geom type="box" pos="1.3668 -2.63788 0.367033" size="0.201225 0.455235 0.109034"/>
+    <geom type="box" pos="3.65551 0.564609 0.106865" size="0.184983 0.557714 0.0540835"/>
+    <geom type="box" pos="2.64274 -0.546439 0.493606" size="0.331461 0.368159 0.355977"/>
+    <geom type="box" pos="1.17118 2.8181 0.487173" size="0.395859 0.239662 0.45769"/>
+    <geom type="box" pos="0.654016 -1.26634 0.102115" size="0.191244 0.375483 0.091726"/>
+    <geom type="box" pos="3.09342 -1.06721 0.28778" size="0.191815 0.414798 0.225623"/>
+    <geom type="box" pos="3.97445 0.112118 0.429675" size="0.595959 0.529616 0.246612"/>
+    <geom type="cylinder" pos="2.80334 -1.77996 0.730435" size="0.184264 0.730435 0.730435"/>
+    <geom type="cylinder" pos="3.21639 -1.85943 0.320742" size="0.315844 0.320742 0.320742"/>
+    <geom type="cylinder" pos="1.72893 2.46691 0.344419" size="0.210876 0.344419 0.344419"/>
+    <geom type="cylinder" pos="1.85213 -1.20076 0.721915" size="0.335057 0.721915 0.721915"/>
+    <geom type="box" pos="2.79326 0.659061 0.25" size="0.325687 0.257077 0.25" rgba="0.8 0.25 0.2 1"/>
+  </worldbody>
+</mujoco>

@@ -1,0 +1,370 @@
+schema_version: abs-go2-formula-parameter-trace/v1
+task: P1-03 — ABS Paper-to-Code Formula and Parameter Trace
+status: EXECUTING
+capture_date: "2026-08-27"
+scope:
+  - runtime rates
+  - Agile 61-D observation, 12-D action, and PD contract
+  - ray representation
+  - RA 19-D observation and target path
+  - Recovery 49-D observation
+  - Eq.21 and Eq.22
+  - switching semantics
+constraints:
+  - No algorithm, controller, training, threshold, or configuration behavior was changed.
+  - No simulation, ROS2, MuJoCo, benchmark, pilot, model export, or real-robot process was run.
+  - P1-01 provenance, deployed artifact order, RA binding, and foot-force UNKNOWNs are out of scope.
+record_contract:
+  required_fields:
+    - id
+    - kind
+    - paper
+    - training
+    - reference
+    - runtime
+    - classification
+    - confidence
+    - claims_not_made
+    - validation
+  allowed_classifications:
+    - MATCH
+    - PAPER_FAITHFUL
+    - STABILIZED_VARIANT
+    - MISMATCH
+    - UNKNOWN
+    - CONFLICT
+  allowed_confidence:
+    - DIRECT_SOURCE
+    - DERIVED_MECHANICALLY
+    - CONDITIONAL
+    - UNKNOWN
+records:
+  - id: ABS-ARCH-001
+    kind: architecture
+    paper:
+      source: docs/ABS_PAPER_NOTES.md:7-19
+      expression: PD=200 Hz; Agile=50 Hz; Recovery=50 Hz; RA=50 Hz; Ray-Pred=40 Hz.
+      variables: [PD rate (Hz), policy/Recovery/RA rate (Hz), perception rate (Hz)]
+    training:
+      path: ABS/training/legged_gym/legged_gym/envs/go2/go2_pos_config.py
+      symbol: Go2PosRoughCfg.control
+      line_range: 70-75
+      expression_or_value: action/control decimation=4; this entrypoint does not declare the simulation/control base rate.
+    reference:
+      status: PRESENT
+      path: ABS/training/legged_gym/legged_gym/scripts/testbed.py
+      symbol: play
+      line_range: 104-110
+    runtime:
+      path: quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/RlQuadrupedController.cpp
+      symbol: update
+      line_range: 68-205
+      expression_or_value: LeggedGymController::update (line 147) calls current_state_->run once per callback and (line 204) reads local update_rate=200 into ctrl_interfaces_.frequency_. robot_control.yaml sets controller_manager.update_rate=1000 (line 4), rl_quadruped_controller.update_rate=200 (line 152), and use_rl_thread=false (line 154). abs/config.yaml sets decimation=4 (line 7). StateRL::run (StateRL.cpp:374-387) increments sync_decimation_counter_ and calls runModel() every decimation callbacks only when use_rl_thread_ is false; when true, a dedicated thread (StateRL.cpp:173-198) calls runModel() at frequency_/decimation = 200/4 = 50 Hz. With use_rl_thread=false the runModel cadence is (callback rate)/4 = 250 Hz if callbacks run at the controller-manager 1000 Hz, or 50 Hz if callbacks run at the controller-local 200 Hz.
+    classification: CONFLICT
+    confidence: DIRECT_SOURCE
+    claims_not_made:
+      - No measured controller, policy, RA, Recovery, or ray-writer cadence is claimed.
+      - An existing runtime log (logs/abs_eval/paper_full_20260610/scene_terrain/run_001/runtime.log:129,159,173,174) echoes "update rate is 1000 Hz", "Controller Update Rate: 200 Hz", "decimation=4 frequency=200Hz dt=0.0200s", and "use_rl_thread=false"; these are startup configuration echoes, not a measured callback cadence.
+      - Which value (1000 Hz controller-manager vs 200 Hz controller-local) drives the actual update() callback rate is not resolvable from local repository code alone: it depends on the external ros2_control framework scheduling semantics.
+    validation:
+      fixture: NONE
+      method: Static scheduling derivation from RlQuadrupedController.cpp, StateRL.cpp, robot_control.yaml and abs/config.yaml, plus an existing runtime log's startup configuration echoes; measured callback/policy cadence remains deferred.
+
+  - id: ABS-OBS-061
+    kind: semantic-rule
+    paper:
+      source: docs/ABS_PAPER_NOTES.md:21-48
+      expression: Agile observation = contact(4)+angular velocity(3)+projected gravity(3)+goal(3)+time-left(1)+joint position(12)+joint velocity(12)+previous action(12)+log rays(11)=61; action is 12 joint targets.
+      variables: [contact, omega_body rad/s, gravity_body, goal body-frame, normalized time-left, q-q_default, qdot rad/s, previous action, log2 ray distance]
+    training:
+      path: ABS/training/legged_gym/legged_gym/envs/base/legged_robot_pos.py
+      symbol: LeggedRobotPos.compute_observations
+      line_range: 217-255
+      expression_or_value: concatenates slices 0:4,4:7,7:10,10:13,13:14,14:26,26:38,38:50,50:61; timer_left/max_episode_length_s; q-q_default-dof_bias; log2 rays.
+    reference:
+      status: ABSENT
+      path: NONE
+      symbol: NONE
+    runtime:
+      path: quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/AbsObservationContract.cpp
+      symbol: abs_observation::agile
+      line_range: 21-23
+      expression_or_value: concatenates the same 4+3+3+3+1+12+12+12+11 layout after controller-to-policy remap and clamps to clip_obs; StateRL supplies rolling timer and shaped goal.
+    classification: STABILIZED_VARIANT
+    confidence: CONDITIONAL
+    claims_not_made:
+      - The conditional policy-order remap does not establish deployed artifact order (P1-01 UNKNOWN).
+      - Runtime goal shaping and rolling timer are not paper-faithful merely because the static layout matches.
+    validation:
+      fixture: docs/evidence/P1-01/p1_01_contract.json
+      method: Existing asymmetric 61-D golden parity establishes element layout only; this record does not promote upstream semantics to paper fidelity.
+
+  - id: ABS-ACT-012-PD
+    kind: parameter
+    paper:
+      source: docs/ABS_PAPER_NOTES.md:40-48
+      expression: q_target is 12-D; tau=Kp*(q_target-q)-Kd*qdot, with Kp=30 and Kd=0.65; Go2 action scale=0.25.
+      variables: [q_target rad, q rad, qdot rad/s, tau Nm, Kp, Kd, action scale rad/action]
+    training:
+      path: ABS/training/legged_gym/legged_gym/envs/go2/go2_pos_config.py
+      symbol: Go2PosRoughCfg.control
+      line_range: 70-75
+      expression_or_value: control_type=P; stiffness=30; damping=0.65; action_scale=0.25; decimation=4.
+    reference:
+      status: PRESENT
+      path: ABS/training/legged_gym/legged_gym/scripts/testbed.py
+      symbol: play
+      line_range: 104-110
+    runtime:
+      path: quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp
+      symbol: action_output_clip_
+      line_range: 1402-1446
+      expression_or_value: optional hip scaling, action clamp ±4, q_target=q_default+0.25*action, PD torque equation with configured Kp/Kd, then Go2 joint-limit clamp before 12 motor commands.
+    classification: STABILIZED_VARIANT
+    confidence: DIRECT_SOURCE
+    claims_not_made:
+      - No claim is made that deployed artifact action order is resolved.
+      - Runtime action and joint-limit clamps are not asserted to be in the paper specification.
+    validation:
+      fixture: docs/evidence/P1-01/p1_01_contract.json
+      method: Existing 12-D action-to-motor trace; static parameter comparison only in this task.
+
+  - id: ABS-RAY-011
+    kind: parameter
+    paper:
+      source: docs/ABS_PAPER_NOTES.md:50-59
+      expression: 11 horizontal body-frame rays from -pi/4 to +pi/4 in pi/20 increments, range 0.1-6.0 m, logarithmic/log2 policy representation, origin (-0.05,0) m.
+      variables: [ray index, angle rad, distance m, body-frame origin m, log2 distance]
+    training:
+      path: ABS/training/legged_gym/legged_gym/envs/go2/go2_pos_config.py
+      symbol: Go2PosRoughCfg.sensors.ray2d
+      line_range: 130-143
+      expression_or_value: enable=true; log2=true; min=0.1 m; max=6.0 m; theta_start=-pi/4; theta_step=pi/20; x0=-0.05 m; y0=0; illusion=true.
+    reference:
+      status: PRESENT
+      path: ABS/training/legged_gym/legged_gym/envs/base/legged_robot_pos.py
+      symbol: LeggedRobotPos.compute_observations
+      line_range: 217-255
+    runtime:
+      path: unitree_mujoco/simulate/src/unitree_sdk2_bridge.h
+      symbol: UnitreeSDK2BridgeBase::computeRay2d
+      line_range: 124-297
+      expression_or_value: default geometric mode writes 11 log2(m) values after world-frame rays from local origin (-0.05,0), -pi/4+i*pi/20 and clipping to [0.1,6.0] m; it skips dynamic, plane, hfield and mesh geoms and uses exact box intersections rather than the training circle query.
+    classification: MISMATCH
+    confidence: DIRECT_SOURCE
+    claims_not_made:
+      - No equivalence between paper depth/Ray-Pred, training circle-ray geometry, and the default MuJoCo writer is claimed.
+      - This does not establish which ray source mode was active in any historical or future run.
+    validation:
+      fixture: docs/evidence/P1-01/p1_01f_local_contract.json
+      method: Static geometry trace; existing validity/freshness tests verify transport and finite values, not scene-geometry equivalence.
+
+  - id: ABS-RAY-SOURCE-001
+    kind: semantic-rule
+    paper:
+      source: docs/ABS_PAPER_NOTES.md:50-59
+      expression: Paper perception predicts the policy ray representation from depth imagery; the source mode must preserve the declared ray contract.
+      variables: [ray source mode, geometry source, timestamp clock, sequence, ray representation]
+    training:
+      path: ABS/training/legged_gym/legged_gym/envs/base/legged_robot_pos.py
+      symbol: LeggedRobotPos.compute_observations
+      line_range: 217-255
+      expression_or_value: ray2d observations are generated from training object-relative positions through circle_ray_query before optional log2 conversion.
+    reference:
+      status: NOT_APPLICABLE
+      path: NONE
+      symbol: NONE
+    runtime:
+      path: scripts/ray_predictor.py
+      symbol: main
+      line_range: 37-57,139-171
+      expression_or_value: The external/ray_pred writer is scripts/ray_predictor.py, launched by scripts/launch_abs_ray_pred.sh (RAY_PRED_SCRIPT=scripts/ray_predictor.py at line 17; default MUJOCO_RAY_SOURCE=ray_pred at line 21). unitree_sdk2_bridge.h:69-74 disables the geometric writer when MUJOCO_RAY_SOURCE is ray_pred or external. ray_predictor.py renders offscreen MuJoCo depth 160x90 (hfov 102 deg, camera local (0,0,0.27) m, lookahead 3 m), runs ResNet18 to 11 rays, clips depth to [0.1,6.0] m and writes log2(m) distances. It writes 11 raw float32 to /mujoco_ray2d with NO FrameHeader (no magic/version/sequence/steady_clock timestamp) and a static FPS=30 (line 48); paper declares Ray-Pred=40 Hz.
+    classification: MISMATCH
+    confidence: DIRECT_SOURCE
+    claims_not_made:
+      - The active source mode for any run is UNKNOWN: it is selected at runtime by the MUJOCO_RAY_SOURCE environment variable and no effective-runtime capture records which mode a given run used.
+      - FPS=30 is a static launch parameter, not a measured cadence; no measured ray-writer cadence is claimed.
+      - No claim is made that the external writer implements the DEC-007 v2 FrameHeader; it writes raw floats without sequence or timestamp.
+    validation:
+      fixture: NONE
+      method: Static source trace of scripts/launch_abs_ray_pred.sh, scripts/ray_predictor.py and unitree_sdk2_bridge.h:69-74; an effective-config/runtime capture is still required to establish the selected writer and measured cadence.
+
+  - id: ABS-RA-019
+    kind: semantic-rule
+    paper:
+      source: docs/ABS_PAPER_NOTES.md:61-85
+      expression: RA observation = base linear velocity(3)+base angular velocity(3)+relative goal x/y(2)+log rays(11)=19; joint state is excluded.
+      variables: [v_body m/s, omega_body rad/s, goal x/y body-frame m, log2 ray distance]
+    training:
+      path: ABS/training/legged_gym/legged_gym/scripts/testbed.py
+      symbol: ra_obs
+      line_range: 498-512
+      expression_or_value: ra_obs=cat(base_lin_vel,base_ang_vel,obs[:,10:12],ray observations), yielding 19 dimensions.
+    reference:
+      status: PRESENT
+      path: ABS/training/legged_gym/legged_gym/scripts/testbed.py
+      symbol: recovery
+      line_range: 318-356
+    runtime:
+      path: quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/AbsObservationContract.cpp
+      symbol: abs_observation::ra
+      line_range: 29-32
+      expression_or_value: cat(lin_vel,ang_vel,commands[0:2],ray2d); StateRL::computeRAObservation supplies its current shaped Agile commands.
+    classification: STABILIZED_VARIANT
+    confidence: CONDITIONAL
+    claims_not_made:
+      - This layout trace does not establish which Agile checkpoint generated the deployed RA dataset (P1-01 UNKNOWN).
+      - Runtime shaped goal x/y is not raw paper goal evidence.
+    validation:
+      fixture: docs/evidence/P1-01/p1_01_contract.json
+      method: Existing asymmetric 19-D golden parity establishes element layout only.
+
+  - id: ABS-RA-TARGET
+    kind: equation
+    paper:
+      source: docs/ABS_PAPER_NOTES.md:77-85
+      expression: discounted Bellman regression uses gamma=0.999999, collision target softening for the final ten steps, and l(s)=tanh(log(d_goal/sigma_tight)).
+      variables: [gamma, collision/reach target, hindsight horizon steps, d_goal m, sigma_tight m]
+    training:
+      path: ABS/training/legged_gym/legged_gym/scripts/testbed.py
+      symbol: gamma
+      line_range: 500-549
+      expression_or_value: gs=2*collision-1; ls=tanh(log2(norm(goal_xy)/0.65+1e-8)); hindsight=10; gamma=0.999999; regression target uses max/min construction at lines 542-545.
+    reference:
+      status: PRESENT
+      path: ABS/training/legged_gym/legged_gym/scripts/testbed.py
+      symbol: gamma
+      line_range: 500-549
+    runtime:
+      path: quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp
+      symbol: StateRL::runRAModel
+      line_range: 896-920
+      expression_or_value: inference only; no RA target/dataset construction exists in deployment runtime.
+    classification: UNKNOWN
+    confidence: CONDITIONAL
+    claims_not_made:
+      - The discovered training implementation is not proof that deployed ra_value.pt used this target or this Agile-policy data.
+      - log2 in the implementation is not silently normalized to the paper-note log notation.
+    validation:
+      fixture: NONE
+      method: Source trace only; checkpoint/run/dataset binding remains an explicit P1-01 UNKNOWN.
+
+  - id: ABS-REC-049
+    kind: semantic-rule
+    paper:
+      source: docs/ABS_PAPER_NOTES.md:87-114
+      expression: Recovery observation = contact(4)+angular velocity(3)+projected gravity(3)+safe twist(3)+joint position(12)+joint velocity(12)+previous action(12)=49; no ray input; action is 12 joint targets.
+      variables: [contact, omega_body rad/s, gravity_body, safe twist vx/vy m/s and wz rad/s, q relative, qdot, previous action]
+    training:
+      path: ABS/training/legged_gym/legged_gym/envs/base/legged_robot_rec.py
+      symbol: LeggedRobotRec.compute_observations
+      line_range: 140-176
+      expression_or_value: concatenates contact, angular velocity, projected gravity, three commands, q-q_default-dof_bias, qdot, actions to 49 dimensions; ray sensor is disabled by Go2RecRoughCfg.
+    reference:
+      status: PRESENT
+      path: ABS/training/legged_gym/legged_gym/scripts/testbed.py
+      symbol: obs_rec
+      line_range: 337-352
+    runtime:
+      path: quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp
+      symbol: StateRL::computeRecoveryObservation
+      line_range: 599-614
+      expression_or_value: reuses the common recovery constructor with contact, angular velocity, projected gravity, optimized twist, q/qdot/actions and no ray tensor; 49-D layout.
+    classification: MATCH
+    confidence: CONDITIONAL
+    claims_not_made:
+      - MATCH covers field layout and scale path, not deployed policy-order provenance or equivalence of the optimized twist solver.
+      - The nominal deployment bias does not reproduce training's per-episode randomized bias distribution.
+    validation:
+      fixture: docs/evidence/P1-01/p1_01_contract.json
+      method: Existing asymmetric 49-D golden parity establishes element layout only.
+
+  - id: ABS-EQ-021
+    kind: equation
+    paper:
+      source: docs/ABS_PAPER_NOTES.md:116-121
+      expression: Optimize a short-horizon twist from the current twist to minimize predicted goal-position deviation subject to RA below the switching threshold; paper describes five gradient iterations.
+      variables: [twist vx/vy m/s and wz rad/s, RA value, threshold, predicted goal deviation, iteration count]
+    training:
+      path: ABS/training/legged_gym/legged_gym/scripts/testbed.py
+      symbol: twist_iter
+      line_range: 337-348
+      expression_or_value: 10 iterations; loss=10*clip(RA+2*0.05,min=0)+0.02*((x-goal_x)^2+(y-goal_y)^2); L2-norm gradient clip 1.0; lr=0.5; bounded twist.
+    reference:
+      status: PRESENT
+      path: ABS/training/legged_gym/legged_gym/scripts/testbed.py
+      symbol: twist_iter
+      line_range: 337-348
+    runtime:
+      path: quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp
+      symbol: StateRL::computeRecoveryTwist
+      line_range: 515-597
+      expression_or_value: 3 iterations; same named penalty constants and bounds, but componentwise clamp(-1,1) replaces reference L2-norm clipping and the position integral is first order.
+    classification: MISMATCH
+    confidence: DIRECT_SOURCE
+    claims_not_made:
+      - No solver change is proposed or performed.
+      - Runtime comments claiming paper/ROS1 correspondence are not treated as proof when executable expressions differ.
+    validation:
+      fixture: NONE
+      method: Eq.21 arithmetic/replay fixture is required later; this first pass is direct source comparison only.
+
+  - id: ABS-EQ-022
+    kind: equation
+    paper:
+      source: docs/ABS_PAPER_NOTES.md:122-131
+      expression: dx=vx*dt-0.5*vy*wz*dt^2; dy=vy*dt+0.5*vx*wz*dt^2; dt=0.05 s.
+      variables: [vx m/s, vy m/s, wz rad/s, dt s, dx m, dy m]
+    training:
+      path: ABS/training/legged_gym/legged_gym/scripts/testbed.py
+      symbol: get_pos_integral
+      line_range: 55-68
+      expression_or_value: x=vx*tau-0.5*vy*wz*tau^2; y=vy*tau+0.5*vx*wz*tau^2; tau=0.05 s.
+    reference:
+      status: PRESENT
+      path: ABS/training/legged_gym/legged_gym/scripts/testbed.py
+      symbol: get_pos_integral
+      line_range: 55-61
+    runtime:
+      path: quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp
+      symbol: pos_x
+      line_range: 560-567
+      expression_or_value: pos_x=vx*tau and pos_y=vy*tau; yaw-coupled second-order terms are omitted while tau remains configured as 0.05 s.
+    classification: MISMATCH
+    confidence: DIRECT_SOURCE
+    claims_not_made:
+      - No claim is made that the runtime approximation is an accepted stabilized variant.
+      - No code correction is made in P1-03.
+    validation:
+      fixture: docs/evidence/P1-03/p1_03_trace_tests.json
+      method: Independent scalar Eq.22 fixture verifies a nonzero-yaw case retains the two yaw-coupled second-order terms and a zero-yaw case reduces to first order; it does not execute or alter runtime code.
+
+  - id: ABS-SWITCH-001
+    kind: semantic-rule
+    paper:
+      source: docs/ABS_PAPER_NOTES.md:7-19,133-146
+      expression: RA < -0.05 selects Agile; RA >= -0.05 selects safe-twist optimization then Recovery; no -0.08 exit threshold or forced hold is specified.
+      variables: [RA value, entry threshold, exit threshold, recovery hold steps]
+    training:
+      path: ABS/training/legged_gym/legged_gym/scripts/testbed.py
+      symbol: recovery
+      line_range: 318-356
+      expression_or_value: recovery=(v_pred>-twist_eps) with twist_eps=0.05; recovered elements optimize twist and use Recovery in that loop iteration; no hysteretic exit threshold or fixed hold is expressed.
+    reference:
+      status: PRESENT
+      path: ABS/training/legged_gym/legged_gym/scripts/testbed.py
+      symbol: recovery
+      line_range: 318-356
+    runtime:
+      path: quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp
+      symbol: REC_HOLD_STEPS
+      line_range: 1313-1369
+      expression_or_value: entry RA>-0.05; exit only after recovery_hold_steps=30 and RA<(-0.05-0.03)=-0.08; optimized twist is cached during hold.
+    classification: STABILIZED_VARIANT
+    confidence: DIRECT_SOURCE
+    claims_not_made:
+      - The variant is not paper-faithful and is not accepted as an algorithmic fix.
+      - No threshold, hold, path gain, or switching behavior is changed.
+    validation:
+      fixture: NONE
+      method: Later offline state-machine fixture must preserve paper threshold and stabilized entry/exit/hold values separately.

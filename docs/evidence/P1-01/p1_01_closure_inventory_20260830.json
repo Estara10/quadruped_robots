@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "task": "P1-01",
+  "audit_on": "2026-08-30",
+  "kind": "evidence_recovery_read_only",
+  "probe_environment": {"conda_env": "abs", "python": "3.8.20", "torch": "2.0.1+cu118"},
+  "artifacts": {
+    "agile_policy": {
+      "role": "currently_deployed",
+      "path": "quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/policy.pt",
+      "installed_loader_symlink": "install/go2_description/share/go2_description/config/abs/policy.pt -> tracked path",
+      "size_bytes": 801726,
+      "sha256": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf",
+      "format": "torchscript",
+      "io": "61 -> 12",
+      "loader": "StateRL (config/abs, model_folder=abs)",
+      "provenance_status": "weight_lineage_verified",
+      "source_checkpoint": {"path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/05_27_15-53-31_/model_4000.pt", "sha256": "a21419d2636c5ad6782b4be87a2ad7335a2b671ce2d6463c08e19fe49ead912f"},
+      "source_export": {"path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/policies/05_27_15-53-31_model_4000.pt", "sha256": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf"},
+      "embedded_order_metadata": "NONE",
+      "order_probe_verdict": "UNKNOWN (prev_action diagonal persistence 7/12 over 40 operating points; inconclusive)",
+      "remap_necessity": "UNKNOWN"
+    },
+    "ra_value": {
+      "role": "currently_deployed",
+      "path": "quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/ra_value.pt",
+      "installed_loader_symlink": "install/go2_description/share/go2_description/config/abs/ra_value.pt -> tracked path",
+      "size_bytes": 32011,
+      "sha256": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7",
+      "format": "torchscript",
+      "io": "19 -> 1 (Tanh tail)",
+      "loader": "StateRL (config/abs)",
+      "provenance_status": "source_and_weight_lineage_verified_dataset_unavailable",
+      "source_model": {"path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/RA/05_27_15-53-31_model_4000_ra.pt", "sha256": "ed3c75f41ada130c150ba3c1101ebc72e85f7d25732314a582ef8303f02aaa92"},
+      "source_jit": {"path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/RA/ra_value_jit.pt", "sha256": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7"},
+      "embedded_agile_reference": "NONE",
+      "agile_binding_verdict": "UNKNOWN (no execution log / dataset manifest / loaded-checkpoint metadata; source-code candidate only)"
+    },
+    "recovery_policy": {
+      "role": "currently_deployed",
+      "path": "quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/rec/policy.pt",
+      "installed_loader_symlink": "install/go2_description/share/go2_description/config/rec/policy.pt -> tracked path",
+      "size_bytes": 775715,
+      "sha256": "e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171",
+      "format": "torchscript",
+      "io": "49 -> 12",
+      "loader": "StateRLRec / StateRL (config/rec)",
+      "provenance_status": "weight_lineage_verified",
+      "source_checkpoint": {"path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_rec_rough/06_04_22-43-20_/model_15000.pt", "sha256": "51ee8e6545871f32feb6b40d00e82ddafd255acf74aad61a79c6cf37053eeec5"},
+      "source_export": {"path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_rec_rough/exported/policies/policy.pt", "sha256": "e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171"},
+      "embedded_order_metadata": "NONE",
+      "order_probe_verdict": "PARTIAL (prev_action block empirically at 37:49; diagonal coupling 11/12 over 40 operating points — consistent with candidate 49-D FL-first layout; named joint binding remains conditional on candidate-layout authority)",
+      "remap_necessity": "PARTIAL (artifact-side consistency only; not full proof)"
+    }
+  },
+  "orders": {
+    "training_runtime_order": {"status": "CONFIRMED", "evidence": "isaac_gym_asset_order.json", "order": "FL,FR,RL,RR"},
+    "controller_mujoco_motor_order": {"status": "CONFIRMED", "evidence": "ros2_motor_map.json + robot_control.yaml", "order": "FR,FL,RR,RL"},
+    "deployed_agile_order": {"status": "UNKNOWN", "reason": "no embedded metadata; probe inconclusive (7/12)"},
+    "deployed_recovery_order": {"status": "PARTIAL", "reason": "artifact prev_action diagonal 11/12 consistent with candidate FL-first layout; named binding conditional"},
+    "remap_proven_correct": {"status": "UNKNOWN", "reason": "not proven for deployed artifacts; Recovery PARTIAL only"}
+  },
+  "ra_agile_binding": {"status": "UNKNOWN", "reason": "no direct evidence in artifact or records; source-code candidate only"},
+  "historical_run_metadata": {
+    "status": "UNKNOWN",
+    "searched_boundaries": ["ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/05_27_15-53-31_", "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_rec_rough/06_04_22-43-20_", "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/RA", "recovered Git history (prior P1-01 search)"],
+    "available": ["checkpoints", "tfevents scalar curves"],
+    "unavailable": ["config snapshot", "command", "seed", "git commit", "hparams", "dataset manifest", "export invocation log"]
+  },
+  "real_foot_force_semantics": {"status": "UNKNOWN", "reason": "no independent hardware capture; simulation/controller order only (FR,FL,RR,RL)"}
+}

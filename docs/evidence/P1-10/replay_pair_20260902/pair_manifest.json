@@ -1,0 +1,91 @@
+{
+  "schema": "abs-go2-p1-10-same-seed-replay-pair/v1",
+  "comparison_schema_version": "p1-10-canonical-replay/v1",
+  "pair_id": "P1-10-REPLAY-20260902-flat_goal_forward-stabilized",
+  "status_at_freeze": "FROZEN_BEFORE_RUN_A",
+  "scenario": {
+    "scenario_id": "flat_goal_forward",
+    "scenario_sha256": "beba99ed4e6f6c8f84eb1ac514f2da4b6e910c1587fdf91f5e95ac6bc639e092",
+    "suite_manifest_sha256": "eb81d60742864fe9c870e957ba3ab601e80da3e64bc48a42c26f849570f3152d",
+    "resolved_manifest_sha256": "9b67bbd30dd363cc035a9dc3896e195027fb18ae8170f36b60648b47073cea42"
+  },
+  "seed": {
+    "root_seed": 20260902,
+    "scenario_root_seed_key": "fc887e89ce542e5062ba6669611cb459c4ffe7de35198c59df29cedc9b2bed29",
+    "p1_02_pairing_key": "6ac5d17dd81862e91dbf8cdbaacf141ca4d0e7b553bf8717f0f722d58b073d96",
+    "role": "pairing/provenance_only",
+    "derived_seed_registry": {},
+    "random_producers": "none used in this fixed scene/default-initial-state/fixed-goal path"
+  },
+  "variant": {
+    "label": "stabilized",
+    "binding_sha256": "2f0dfc4e8bf5237a578d99030facc38459fd5f899af49b508e48e29b7e8a4e1c",
+    "switching_mode": "stabilized_switch",
+    "status": "SUPPORTED"
+  },
+  "baseline": {
+    "manifest_path": "docs/evidence/P1-08/P1-08_baseline_manifest.json",
+    "manifest_sha256": "2667ed37a854f85e5a7c493e7d4a8b1871a84ce95d3e3b0742801d383f8dc915",
+    "identity_path": "docs/evidence/P1-08/P1-08_simulation_baseline_identity.json",
+    "identity_file_sha256": "6c3563c25d45cc275db6b083f9f0fc0cc2067b48bc8f4a93dcace9f6d42817ea",
+    "identity_sha256": "59dd13fed5ebd026ec519f2659643237502be8e4d8df5174a65b7d35ceb4f7e0"
+  },
+  "runtime_identity": {
+    "scene_root_sha256": "9ce83b3e61c722a523d0359536cee803f17610f95d2275fc32e96801ec3c1908",
+    "model_closure_sha256": "8d9218de0dc02978fc0ef4ba1c790fa3b968fbdbfdb945e14522436a2574ea07",
+    "mujoco_executable_sha256": "1e9b330f2b6c39dabaaa8424ee53c41d3be08ea00eb3e69ba71f332de50654e2",
+    "libmujoco_sha256": "e35ba7f65d2eeccfeda2c5f251d49e26de6fbbc1067170a889fefaa4a35aa24e",
+    "controller_plugin_sha256": "2b31e558471227a385906239a4fd20d1f9cb759a4960c743b6f5065f13fe6d4e",
+    "hardware_plugin_sha256": "9c56d00d1cca1d396d760c21bce54bbb4dc0e9f7cd7453e4060940fb8c13918d",
+    "abs_config_sha256": "1cd42c4bb29baad1873bd55e7f2f1d82fb0c8ec8bf35fb8e4eff61338758c586",
+    "robot_control_config_sha256": "59c61ad4f29c2b37b3741236b35ce11c773fb6cfe16ed8d58b92757febf8bf7c",
+    "mujoco_simulate_config_sha256": "86fcfab9ecdf888901340697ef9c99fcc72bbd3d88c86f2178b4ce2ab2c88b95",
+    "launch_file_sha256": "ed87b9204cf9d5dde83e4ff54bcafac16aae5e1407ecd8b394d2c5e777a17fb9"
+  },
+  "initial_state": {
+    "source": "scene_default",
+    "startup_path": "main.cc:PhysicsThread: mj_loadXML -> mj_makeData -> sim.Load -> mj_forward",
+    "reset_source": "mj_makeData:qpos0; no keyframe reset",
+    "qpos_sha256": "a604dd11dc57ea655bf6d746dcf068a91e80a0a1eddc73d20c1a3800468f59d8",
+    "binding_sha256": "f7907a927c31d3d6a5d497ab274b3d913bf4fc8ccb0e9713a9dbd1e182d0a9a0"
+  },
+  "scenario_contract": {
+    "switching_mode": "stabilized_switch",
+    "run_window_s": 25.0,
+    "goal_world_xy_m": [7.0, 0.0],
+    "resample_goal_on_arrival": false,
+    "obstacle_layout": {"status": "EMPTY", "objects": []},
+    "config_overrides": {},
+    "initial_state_source_cli": "scene_default"
+  },
+  "replay_decision_protocol": {
+    "must_match_exactly": [
+      "scenario/baseline/variant/seed binding",
+      "resolved manifest",
+      "initial-state static binding",
+      "frame count and strict rl_step sequence",
+      "controller_active/rl_entered/rl_active",
+      "policy_state/safety_faulted",
+      "Recovery entry/exit discrete sequence",
+      "terminal classification/process-facts success semantics",
+      "forced termination absent"
+    ],
+    "numeric_projection": {
+      "fields": ["world_pose", "command", "ra_value", "action_raw", "action_clipped", "joint_target_rad", "torque_nm", "ray2d"],
+      "rule": "exact canonical JSON hash; no tolerance permitted because the current record stores float32 values and exact identity is the predeclared gate",
+      "first_divergence": "first differing rl_step after strict sequence alignment",
+      "max_mean_delta": "reported only as diagnostics; any nonzero delta fails"
+    },
+    "sim_clock": {
+      "validate": ["v2 validity", "physics timestep", "timing range", "sequence gaps", "rejected reads"],
+      "excluded_from_equality": ["polling row count", "wall-clock jitter", "reader polling cadence"]
+    },
+    "excluded_nondeterministic_fields": ["run_id", "session_id", "monotonic_ns", "recorded_at_ns", "wall-clock timestamps", "PID/PGID", "reader polling cadence"],
+    "comparison_input": "saved runtime_record.jsonl only; never live shared memory"
+  },
+  "execution_policy": {
+    "ordering": "Run A must succeed before Run B; each run exactly once; Run B failure is terminal and not retried",
+    "runtime": "real MuJoCo + ROS2/controller only for the two authorized runs",
+    "not_authorized": ["benchmark", "pilot", "multi-seed", "FormalRun acceptance", "obstacle scenario", "paper-faithful", "agile-only", "P1-11", "P1-12", "P1-13"]
+  }
+}

@@ -1,0 +1,13 @@
+# Treat model and geometry artifacts as binary. Deployment artifacts are
+# versioned deliberately; training checkpoints remain governed by .gitignore
+# and artifacts/manifest.yaml.
+*.pt binary
+*.pth binary
+*.ckpt binary
+*.onnx binary
+*.obj binary
+*.stl binary
+*.dae binary
+*.png binary
+*.pdf binary
+*.docx binary

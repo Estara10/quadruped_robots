@@ -1,0 +1,20 @@
+{
+  "episode_state": "INVALID",
+  "formal_run_id": "run-0cbf4a31137e48c79a1f61b4bb639a3e",
+  "reasons": [
+    "invalid_event_clock:1",
+    "invalid_event_clock:2",
+    "invalid_event_clock:3",
+    "invalid_event_clock:4",
+    "invalid_event_clock:5",
+    "invalid_event_clock:6",
+    "invalid_terminal_event",
+    "non_numeric_telemetry_clock"
+  ],
+  "run_id": "run-0cbf4a31137e48c79a1f61b4bb639a3e",
+  "runtime_live_frames": 301,
+  "runtime_record_run_id": "26861e6c08d5483ea5e911d2aeaf959e",
+  "runtime_session_id": 15818838355107,
+  "schema_version": "abs-go2-formal-run/v1",
+  "validator_completed": true
+}

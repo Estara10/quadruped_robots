@@ -22,6 +22,7 @@ StateFixedDown::StateFixedDown(CtrlInterfaces& ctrl_interfaces,
 
 void StateFixedDown::enter()
 {
+    soft_start_step_ = 0;
     for (int i = 0; i < 12; i++)
     {
         start_pos_[i] = ctrl_interfaces_.joint_position_state_interface_[i].get().get_value();
@@ -32,19 +33,28 @@ void StateFixedDown::enter()
         ctrl_interfaces_.joint_position_command_interface_[i].get().set_value(start_pos_[i]);
         ctrl_interfaces_.joint_velocity_command_interface_[i].get().set_value(0);
         ctrl_interfaces_.joint_torque_command_interface_[i].get().set_value(0);
-        ctrl_interfaces_.joint_kp_command_interface_[i].get().set_value(kp_);
-        ctrl_interfaces_.joint_kd_command_interface_[i].get().set_value(kd_);
+        ctrl_interfaces_.joint_kp_command_interface_[i].get().set_value(0.0);
+        ctrl_interfaces_.joint_kd_command_interface_[i].get().set_value(0.0);
     }
 }
 
 void StateFixedDown::run(const rclcpp::Time&/*time*/, const rclcpp::Duration&/*period*/)
 {
+    // Soft start: ramp Kp/Kd from 0 to target
+    if (soft_start_step_ < soft_start_steps_)
+    {
+        soft_start_step_++;
+    }
+    const double ratio = std::min(1.0, static_cast<double>(soft_start_step_) / soft_start_steps_);
+
     percent_ += 1 / duration_;
     phase = std::tanh(percent_);
     for (int i = 0; i < 12; i++)
     {
         ctrl_interfaces_.joint_position_command_interface_[i].get().set_value(
             phase * target_pos_[i] + (1 - phase) * start_pos_[i]);
+        ctrl_interfaces_.joint_kp_command_interface_[i].get().set_value(kp_ * ratio);
+        ctrl_interfaces_.joint_kd_command_interface_[i].get().set_value(kd_ * ratio);
     }
 }
 

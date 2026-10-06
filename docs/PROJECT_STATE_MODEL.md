@@ -1,4 +1,7 @@
-# Project State Model
+# Project State Model（LEGACY / SUPERSEDED）
+
+> Frozen historical Phase/Director/Reviewer model. Current lightweight rules are in [`thesis_project/OVERVIEW.md`](thesis_project/OVERVIEW.md).
+
 
 本文件定义 ABS-Go2 长期开发的任务状态和 Agent 权限边界。项目实时事实仍以 [CURRENT_STATE.md](CURRENT_STATE.md) 为唯一入口；本文件不替代 Roadmap、exec plan 或 Acceptance evidence。
 

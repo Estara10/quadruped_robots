@@ -1,4 +1,7 @@
-# Director Governance — Proportional Rigor and Scope Control
+# Director Governance（LEGACY / SUPERSEDED）
+
+> Frozen historical workflow. Current planning uses the lightweight rules in [`thesis_project/OVERVIEW.md`](thesis_project/OVERVIEW.md).
+
 
 ## Purpose
 

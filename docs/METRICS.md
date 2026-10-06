@@ -1,4 +1,7 @@
-# Metrics and Acceptance Targets
+# Metrics and Acceptance Targets（LEGACY TECHNICAL REFERENCE）
+
+> Historical P1 metrics and gates no longer define thesis acceptance. Use [`thesis_project/EXPERIMENT_PLAN.md`](thesis_project/EXPERIMENT_PLAN.md).
+
 
 Metric definitions are frozen before a formal run. A run that violates `EXPERIMENT_PROTOCOL.md` is INVALID and excluded from all rates.
 

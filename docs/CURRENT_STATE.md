@@ -1,4 +1,7 @@
-# Current State
+# Current State（LEGACY / SUPERSEDED）
+
+> Frozen historical P1 snapshot. Current project state is maintained only in [`thesis_project/CURRENT_STATE.md`](thesis_project/CURRENT_STATE.md).
+
 
 ### P1-10 offline saved-record closure freeze
 

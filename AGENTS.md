@@ -1,31 +1,34 @@
 # Project
 
-Reproduce ABS on Unitree Go2 + MuJoCo, then build a safe, measurable Sim-to-Real and graduation-project experiment system.
+Complete the passed undergraduate thesis project on risk-driven safe policy switching for Unitree Go2 in complex static-obstacle environments.
 
 @/home/lidio/.codex/RTK.md
 
-## Source of Truth
+## Current Source of Truth
 
-- Current project state: `docs/CURRENT_STATE.md`
-- Overall roadmap: `docs/ROADMAP.md`
-- Known gaps: `docs/GAP_MATRIX.md`
-- ABS math/spec: `docs/ABS_PAPER_NOTES.md`
-- Experiment rules: `docs/EXPERIMENT_PROTOCOL.md`
-- Metrics and gates: `docs/METRICS.md`
-- Architecture decisions: `docs/DECISIONS.md`
-- Repository/artifact baseline: `docs/REPOSITORY_BASELINE.md`
-- Current task: `docs/exec-plans/<TASK-ID>.md`
+Read only this lightweight set for current planning:
 
-## Rules
+- `docs/thesis_project/OVERVIEW.md`
+- `docs/thesis_project/ROADMAP.md`
+- `docs/thesis_project/CURRENT_STATE.md`
+- `docs/thesis_project/EXPERIMENT_PLAN.md`
+- the single active file under `docs/thesis_project/tasks/`
 
-- Priority: Correctness > Stability > Observability > Safety > Performance > Paper Speed.
-- Never declare algorithm correctness from visual MuJoCo behavior alone.
-- Preserve `UNKNOWN`; do not replace missing evidence with assumptions.
-- Keep `paper-faithful` and `stabilized` implementations and results separate.
-- Formal experiments must satisfy `docs/EXPERIMENT_PROTOCOL.md`.
-- Read `CURRENT_STATE.md` and the current exec plan before changing code.
-- Update `CURRENT_STATE.md` after every formal task; update `DECISIONS.md` only for an actual decision.
-- Critical algorithm tasks require an independent Reviewer before the next gate.
-- Do not advance a gate without its recorded Acceptance evidence.
-- Real-robot safety overrides policy performance. Phase 2 ABS/RL is NO-GO until the documented gate changes.
-- Controller/hardware order is FR, FL, RR, RL; policy order is currently `UNKNOWN` and must not be assumed before P1-01.
+The passed thesis proposal is the highest research authority. Code and direct repository evidence determine what is actually complete.
+
+## Legacy Boundary
+
+Old P1 tasks, gates, reviewers, exec plans, evidence bundles and top-level governance Markdown are `LEGACY`. Preserve them, but do not continue, repair or close them unless the current thesis task explicitly needs a reusable technical asset.
+
+## Working Rules
+
+- Use minimum sufficient verification: enough to trust the next step and the thesis result, not an industrial assurance programme.
+- Keep only one main Active Task.
+- A blocker must prevent the next technical step, invalidate the experiment, create a clear real-robot safety risk, or deviate from the passed proposal.
+- Do not require nonessential hashes, manifests, validators, clean worktrees, historical provenance recovery or legacy P1 closure.
+- Before formal experiments, verify only the interfaces and semantics that can change the result: dimensions, orders, units, frequency, thresholds, hold time, RA/Recovery behavior and key metrics.
+- Record Git/model/config versions once when freezing the formal experiment; hash only critical models when useful.
+- Simulation precedes real-robot testing. Real testing stays low-speed, monitored and `NO-GO` until basic safety readiness passes.
+- Never present PLANNED or UNKNOWN work as completed fact.
+- Do not train models, start formal experiments or perform real RL unless the active thesis stage authorizes it.
+

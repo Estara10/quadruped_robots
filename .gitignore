@@ -28,6 +28,9 @@ ABS/.git_backup/
 quadruped_ros2_control_humble/.git_backup/
 rl_sar/.git_backup/
 
+# Local restored repository copies (large, not part of this repository)
+/ABS_fuwuqi/
+
 # IDE
 .idea/
 .vscode/
@@ -66,6 +69,10 @@ logs/
 *.bag
 *.db3
 *.mcap
+MUJOCO_LOG.TXT
+
+# Generated presentation screenshots
+/tools/ppt_scene_demo/screenshots/
 
 # Locally restored external artifacts. Track only their manifests.
 artifacts/local/
@@ -75,6 +82,11 @@ artifacts/local/
 
 # Generated office docs
 *.docx
+
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
 
 # Other generated
 /skill

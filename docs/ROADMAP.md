@@ -1,4 +1,7 @@
-# 12-Week Roadmap
+# 12-Week Roadmap（LEGACY / SUPERSEDED）
+
+> Frozen historical P1 roadmap. The current thesis route is [`thesis_project/ROADMAP.md`](thesis_project/ROADMAP.md).
+
 
 This is the project-level plan. Only the current task receives a detailed file under `docs/exec-plans/`.
 

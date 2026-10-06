@@ -1,4 +1,7 @@
-# ABS Paper-to-Code Gap Matrix
+# ABS Paper-to-Code Gap Matrix（LEGACY / SUPERSEDED）
+
+> Frozen historical P1 gap analysis. Current facts and blockers are maintained in [`thesis_project/CURRENT_STATE.md`](thesis_project/CURRENT_STATE.md).
+
 
 Baseline: Day 0 audit. A function or model file is not completion evidence by itself. `UNKNOWN` means the evidence does not currently exist or was not recoverable; it must not be guessed.
 

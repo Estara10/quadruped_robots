@@ -1,6 +1,6 @@
-# Go2 Quadruped Robot — ABS Reproduction & Deployment
+# Go2 四足机器人风险驱动安全策略切换研究
 
-本仓库用于复现 **ABS (Agile But Safe)** 论文，并将双策略避障框架迁移到 Unitree Go2：
+本仓库服务于毕业设计《面向复杂障碍环境的四足机器人风险驱动安全策略切换方法研究》。ABS 复现和 Go2 部署是研究基础，当前核心是比较原始单阈值、仅滞回、仅 Recovery 保持、滞回+保持四种切换机制：
 
 ```text
 MuJoCo 仿真 + 几何 ray2d → ROS2 Humble + LibTorch → Go2 实机 LowCmd
@@ -11,13 +11,17 @@ Reference code: https://github.com/LeCAR-Lab/ABS
 
 ---
 
-## 当前状态
+## 当前状态与入口
 
-项目状态、Acceptance和当前任务只以 [`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md) 为准。
+开题报告是“应该做什么”的最高依据；代码、配置和证据决定“实际做到哪里”。旧 Phase/Gate/P1 计划已降级为历史资料。
 
-当前处于 **Phase 1 — MuJoCo Simulation Validation**，正式任务为 **P1-01（尚未开始）**。历史仿真结果均按新实验协议标记为 `LEGACY / NON-ACCEPTANCE`。
+- 项目目标：[`docs/thesis_project/OVERVIEW.md`](docs/thesis_project/OVERVIEW.md)
+- 当前状态与 Active Task：[`docs/thesis_project/CURRENT_STATE.md`](docs/thesis_project/CURRENT_STATE.md)
+- 新路线：[`docs/thesis_project/ROADMAP.md`](docs/thesis_project/ROADMAP.md)
+- 实验设计：[`docs/thesis_project/EXPERIMENT_PLAN.md`](docs/thesis_project/EXPERIMENT_PLAN.md)
+- 当前任务：[`docs/thesis_project/tasks/S1-01.md`](docs/thesis_project/tasks/S1-01.md)
 
-真机当前只允许 `PASSIVE`、`FIXEDDOWN`、`FIXEDSTAND` 和 software dry-run；ABS/RL real test 为 **NO-GO**。
+当前主要任务是 **S1-01：统一 A/B/C/D 切换合同与时间语义**。正式实验、模型重训和实机 RL 均未获准；实机状态为 **NO-GO**。
 
 ---
 

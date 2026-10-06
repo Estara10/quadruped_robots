@@ -1,4 +1,7 @@
-# Formal Experiment Protocol
+# Formal Experiment Protocol（LEGACY TECHNICAL REFERENCE）
+
+> Retained for optional technical reuse. Current experiment requirements are in [`thesis_project/EXPERIMENT_PLAN.md`](thesis_project/EXPERIMENT_PLAN.md).
+
 
 This protocol defines what may enter project Acceptance statistics. Visual behavior, interactive smoke tests and historical logs remain useful diagnostics but are not formal evidence unless they satisfy this document.
 

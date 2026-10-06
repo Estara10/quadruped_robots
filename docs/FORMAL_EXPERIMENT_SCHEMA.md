@@ -1,4 +1,7 @@
-# Formal Experiment Schema
+# Formal Experiment Schema（LEGACY TECHNICAL REFERENCE）
+
+> Retained for optional reuse; it does not define the current thesis plan or acceptance criteria.
+
 
 Schema version: `abs-go2-formal-run/v1`  
 Normative machine-readable schema: [`../schemas/formal_experiment_run_v1.json`](../schemas/formal_experiment_run_v1.json)  

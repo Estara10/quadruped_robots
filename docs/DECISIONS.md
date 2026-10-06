@@ -1,4 +1,7 @@
-# Architecture Decisions
+# Architecture Decisions（LEGACY RECORD）
+
+> Frozen historical decision record. It remains useful context but does not override [`thesis_project/`](thesis_project/).
+
 
 Only accepted decisions belong here. Open questions remain in `GAP_MATRIX.md`.
 

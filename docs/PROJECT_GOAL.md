@@ -1,4 +1,7 @@
-# Project Goal
+# Project Goal（LEGACY / SUPERSEDED）
+
+> Frozen historical goal statement. The passed-proposal project definition is [`thesis_project/OVERVIEW.md`](thesis_project/OVERVIEW.md).
+
 
 ## Graduation Project Goal
 

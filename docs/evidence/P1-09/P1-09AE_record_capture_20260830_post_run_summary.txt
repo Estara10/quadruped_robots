@@ -1,0 +1,15 @@
+record: /tmp/p1_09ae_capture_v2/record.jsonl
+  validity            : VALID  []
+  authoritative source: True
+  frames / live       : 482 / 306
+  outcome             : UNKNOWN  ['no_reached_goal_source', 'no_timeout_source', 'no_collision_source', 'no_fall_source']
+  termination reason  : FRAMES_ENDED_RC0
+  normal shutdown     : True
+  duration_ns         : 15524508836
+  simulation_time_s   : UNKNOWN
+  velocity            : {'horizontal_speed_avg_m_s': 0.5951239297943896, 'horizontal_speed_peak_m_s': 2.576634130075123, 'lin_vel_samples': 306, 'vx_avg_m_s': 0.5733628339017337, 'vx_peak_m_s': 2.4845988750457764, 'vy_avg_m_s': 0.11405759393471503, 'vy_peak_m_s': 0.7545766234397888, 'vz_avg_m_s': -0.010569884063321308, 'vz_peak_m_s': 1.2887907028198242}
+  attitude yaw        : {'count': 306, 'mean': -14.500605180866836, 'min': -23.272483068416935, 'max': 4.689883653018494, 'last': -19.05096512358008}
+  collision           : {'available': False, 'reason': 'collision_origin is always UNAVAILABLE today (bridge-side only; no authoritative collision event source)', 'event_count': None}
+  recovery usage      : {'recovery_steps': 0, 'total_live_steps': 306, 'recovery_fraction': 0.0, 'transitions': 0}
+  RA statistics       : {'count': 306, 'mean': -0.9560571270051346, 'min': -0.999583899974823, 'max': -0.7238982915878296, 'last': -0.9988811612129211, 'samples': 306}
+  safety faults       : {'faulted_steps': 0, 'first_fault_rl_step': None, 'faulted': False}

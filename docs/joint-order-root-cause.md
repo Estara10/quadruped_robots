@@ -162,3 +162,5 @@ C++ 中 `stand_pos_` / `down_pos_` 默认值注释更新为 FR-first。
 2. **不要依赖名称匹配做隐式重排**：ROS2 controller_interface 按名称匹配，但 C++ 代码用索引直接读取，名称顺序（YAML）决定实际数据排列
 3. **对称性不能掩盖错误**：FR↔FL 互换因对称性不会导致翻车，但会产生微妙的不对称行为
 4. **不要轻易加 hack**：contact_map 这种临时的索引重排，掩盖了真正的系统性错误
+5. **ros2_control loaned interfaces 顺序不可假设**：即使 YAML joints 顺序正确，ros2_control 返回的接口向量可能是任意顺序。解决方案：在 `on_activate()` 中按 YAML `joints` 显式排序所有 joint command/state interface（`RlQuadrupedController.cpp`, 2026-07-09 新增）
+6. **真机 DDS motor index 应与 controller index 显式对应**：`HardwareUnitree` 现在使用 `motor_index_map_`（默认 `FR,FL,RR,RL → motor[0..11]`），启动时打印 `[MOTOR-MAP]`。若真机 LowState/LowCmd 顺序不同，只改这个数组，不要动 YAML 或策略数据顺序

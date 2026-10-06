@@ -1,57 +1,133 @@
 # Hardware Unitree Mujoco
 
-This package contains the hardware interface based on [unitree_sdk2](https://github.com/unitreerobotics/unitree_sdk2) to control the Unitree robot in Mujoco simulator. 
+ROS2 hardware interface for Unitree Go2 LowCmd/LowState over `unitree_sdk2` DDS.
 
-In theory, it also can communicate with real robot, but it is not tested yet. You can use go2 simulation in [unitree_mujoco](https://github.com/legubiao/unitree_mujoco). In this simulation, I add foot force sensor support.
+Despite the historical package name, this interface is used for both:
 
-*[x] **[2025-01-16]** Add odometer states for simulation. 
+- MuJoCo simulation (`domain=1`, `network_interface=lo`)
+- Real Go2 low-level tests (`domain=0`, `network_interface=enp7s0`)
 
-## 1. Interfaces
+---
 
-Required hardware interfaces:
+## Interfaces
 
-* command:
-  * joint position
-  * joint velocity
-  * joint effort
-  * KP
-  * KD
-* state:
-  * joint effort
-  * joint position
-  * joint velocity
-  * imu sensor
-    * linear acceleration
-    * angular velocity
-    * orientation
-  * foot force sensor
+Command interfaces per joint:
 
-## 2. Build
+- `position`
+- `velocity`
+- `effort`
+- `kp`
+- `kd`
 
-Tested environment:
-* Ubuntu 24.04
-    * ROS2 Jazzy
-* Ubuntu 22.04
-    * ROS2 Humble
+State interfaces per joint:
 
-Build Command:
-```bash
-cd ~/ros2_ws
-colcon build --packages-up-to hardware_unitree_mujoco --symlink-install
+- `position`
+- `velocity`
+- `effort`
+
+Sensors:
+
+- IMU: orientation, angular velocity, linear acceleration
+- Foot force: FR, FL, RR, RL
+- Odometer: position(x,y,z), velocity(x,y,z)
+
+---
+
+## Joint / Motor Order
+
+Controller joint order is fixed:
+
+```text
+FR_hip, FR_thigh, FR_calf,
+FL_hip, FL_thigh, FL_calf,
+RR_hip, RR_thigh, RR_calf,
+RL_hip, RL_thigh, RL_calf
 ```
 
-## 3. Config network and domain
-Since the real unitree robot has different network and domain name, you need to set the network and domain name in the xacro file.
+`HardwareUnitree` now uses an explicit mapping:
+
+```cpp
+motor_index_map_ = {0,1,2, 3,4,5, 6,7,8, 9,10,11};
+```
+
+This means:
+
+```text
+controller[0] FR_hip_joint   -> Unitree motor[0]
+controller[1] FR_thigh_joint -> Unitree motor[1]
+...
+controller[11] RL_calf_joint -> Unitree motor[11]
+```
+
+Startup prints `[MOTOR-MAP]` lines. If real Go2 mapping proves different, change `motor_index_map_` rather than reordering YAML or policy data.
+
+---
+
+## Stop Sentinel / PASSIVE
+
+Unitree low-level stop uses sentinel values:
+
+```cpp
+PosStopF = 2.146E+9f;
+VelStopF = 16000.0f;
+```
+
+PASSIVE command semantics:
+
+```text
+kp=0, kd=0, tau=0
+-> q=PosStopF, dq=VelStopF
+```
+
+`write()` starts each cycle by setting all 20 motor slots to stop sentinel, then overwrites the 12 controlled joints. This avoids stale commands on unused motor slots.
+
+---
+
+## Real Go2 sport_mode Release
+
+In real mode (`network_interface != lo`), the hardware interface initializes `MotionSwitcherClient` after `ChannelFactory::Init()` and releases native motion service:
+
+```text
+sport_mode / ai_sport / advanced_sport -> ReleaseMode()
+```
+
+This prevents Go2 native controller from fighting ROS2 LowCmd.
+
+Expected log:
+
+```text
+Motion service 'sport_mode' is active; releasing before LowCmd control
+Motion service is already deactivated
+```
+
+If release fails or service remains active, stop and do not press keyboard commands.
+
+---
+
+## Network Modes
+
+Simulation mode in `ros2_control.xacro`:
+
 ```xml
-<hardware>
-    <plugin>hardware_unitree_mujoco/HardwareUnitree</plugin>
-    <param name="domain">1</param>
-    <param name="network_interface">lo</param>
-</hardware>
+<!--<param name="domain">0</param>-->
+<!--<param name="network_interface">enp7s0</param>-->
 ```
 
-After modified the config, you can tried to visualize the robot info from real robot by following command:
+Real Go2 mode:
+
+```xml
+<param name="domain">0</param>
+<param name="network_interface">enp7s0</param>
+```
+
+Rebuild `go2_description` after switching.
+
+---
+
+## Build
+
 ```bash
-source ~/ros2_ws/install/setup.bash
-ros2 launch hardware_unitree_mujoco visualize.launch.py
+cd ~/quadruped_robots/quadruped_ros2_control_humble
+source /opt/ros/humble/setup.bash
+colcon build --packages-select hardware_unitree_mujoco --symlink-install
 ```

@@ -1,0 +1,63 @@
+{
+  "schema": "abs-go2-p1-10-same-seed-replay-result/v1",
+  "pair_id": "P1-10-REPLAY-20260902-flat_goal_forward-stabilized",
+  "pair_manifest": {
+    "path": "docs/evidence/P1-10/replay_pair_20260902/pair_manifest.json",
+    "sha256": "a5d5de6c58629121a4316719f1fb9ed10d1a3e2e221c40ce57b1236af89fb080",
+    "status": "FROZEN_BEFORE_RUN_A"
+  },
+  "pair_status": "FAILED_FOR_THIS_PAIR",
+  "execution": {
+    "ordering_observed": "Run A attempted once; Run B not attempted",
+    "run_a": {
+      "attempt_count": 1,
+      "status": "PREFLIGHT_FAIL",
+      "preflight_path": "docs/evidence/P1-10/replay_pair_20260902/run_A_preflight_fail.json",
+      "preflight_sha256": "8e131fce2b1d25a598caec0b412713ee39e4ef67876c5c620d963211844bde0f",
+      "preflight_bytes": 14485,
+      "failure_stage": "residual_processes",
+      "failure_reason": "broad pgrep matched the current Codex sandbox command line because the invocation contained the MuJoCo path; this was a harness false positive before any child launch",
+      "scenario_context_check": "PASS",
+      "runtime_prerequisites_reached": false,
+      "mujoco_started": false,
+      "ros2_started": false,
+      "record_created": false,
+      "pid_pgid": null,
+      "signals": [],
+      "wait_rc": null,
+      "forced_termination": false,
+      "orphan_inventory": "no runtime process was launched; final external process check found no MuJoCo/ROS2 runtime"
+    },
+    "run_b": {
+      "attempt_count": 0,
+      "status": "NOT_RUN_BY_POLICY",
+      "reason": "Run A failed; authorization requires stopping without retry"
+    }
+  },
+  "comparison": {
+    "status": "NOT_RUN",
+    "reason": "both successful runtime records are required; no runtime records exist",
+    "canonical_replay_projection_sha256": null,
+    "diff_report_sha256": null
+  },
+  "binding_verification": {
+    "scenario_id": "flat_goal_forward",
+    "scenario_sha256": "beba99ed4e6f6c8f84eb1ac514f2da4b6e910c1587fdf91f5e95ac6bc639e092",
+    "suite_manifest_sha256": "eb81d60742864fe9c870e957ba3ab601e80da3e64bc48a42c26f849570f3152d",
+    "root_seed": 20260902,
+    "scenario_root_seed_key": "fc887e89ce542e5062ba6669611cb459c4ffe7de35198c59df29cedc9b2bed29",
+    "p1_02_pairing_key": "6ac5d17dd81862e91dbf8cdbaacf141ca4d0e7b553bf8717f0f722d58b073d96",
+    "variant": "stabilized",
+    "variant_binding_sha256": "2f0dfc4e8bf5237a578d99030facc38459fd5f899af49b508e48e29b7e8a4e1c",
+    "baseline_manifest_sha256": "2667ed37a854f85e5a7c493e7d4a8b1871a84ce95d3e3b0742801d383f8dc915",
+    "baseline_identity_sha256": "59dd13fed5ebd026ec519f2659643237502be8e4d8df5174a65b7d35ceb4f7e0",
+    "initial_state_binding_sha256": "f7907a927c31d3d6a5d497ab274b3d913bf4fc8ccb0e9713a9dbd1e182d0a9a0"
+  },
+  "known_unknowns": [
+    "No same-seed runtime replay was demonstrated.",
+    "No frame count, rl_step sequence, discrete event sequence, terminal semantics, or numeric deltas are available.",
+    "No runtime timing/record validity result is available.",
+    "The residual-process guard false positive is not resolved in this pair; a future authorized attempt requires Director review of the harness issue."
+  ],
+  "scope_statement": "This result is only a failed authorized replay-pair attempt. It is not benchmark, pilot, multi-seed evaluation, FormalRun acceptance, or Phase 1 acceptance."
+}

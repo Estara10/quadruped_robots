@@ -1,0 +1,161 @@
+# 常用命令速查
+
+## 1. 环境刷新
+
+每个新终端：
+
+```bash
+cd ~/quadruped_robots/quadruped_ros2_control_humble
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:$LD_LIBRARY_PATH
+```
+
+---
+
+## 2. 仿真模式切换
+
+```bash
+cd ~/quadruped_robots
+python3 - <<'PY'
+from pathlib import Path
+p = Path('quadruped_ros2_control_humble/descriptions/unitree/go2_description/xacro/ros2_control.xacro')
+s = p.read_text()
+s = s.replace('<param name="domain">0</param>', '<!--<param name="domain">0</param>-->')
+s = s.replace('<param name="network_interface">enp7s0</param>', '<!--<param name="network_interface">enp7s0</param>-->')
+p.write_text(s)
+PY
+cd quadruped_ros2_control_humble
+source /opt/ros/humble/setup.bash
+colcon build --packages-select go2_description --symlink-install
+```
+
+---
+
+## 3. 真机模式切换
+
+```bash
+cd ~/quadruped_robots
+python3 - <<'PY'
+from pathlib import Path
+p = Path('quadruped_ros2_control_humble/descriptions/unitree/go2_description/xacro/ros2_control.xacro')
+s = p.read_text()
+s = s.replace('<!--<param name="domain">0</param>-->', '<param name="domain">0</param>')
+s = s.replace('<!--<param name="network_interface">enp7s0</param>-->', '<param name="network_interface">enp7s0</param>')
+p.write_text(s)
+PY
+cd quadruped_ros2_control_humble
+source /opt/ros/humble/setup.bash
+colcon build --packages-select go2_description --symlink-install
+```
+
+---
+
+## 4. 编译常用包
+
+```bash
+cd ~/quadruped_robots/quadruped_ros2_control_humble
+source /opt/ros/humble/setup.bash
+colcon build --packages-select hardware_unitree_mujoco rl_quadruped_controller keyboard_input go2_description --symlink-install \
+  --cmake-args -DTorch_DIR=/home/lidio/Libraries/libtorch-cpu-2.0.1/share/cmake/Torch
+```
+
+---
+
+## 5. 仿真避障
+
+```bash
+cd ~/quadruped_robots
+source /opt/ros/humble/setup.bash
+source quadruped_ros2_control_humble/install/setup.bash
+export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:$LD_LIBRARY_PATH
+MUJOCO_SCENE=scene_obstacle.xml ./scripts/launch_abs_obstacle.sh
+```
+
+平地直线：
+
+```bash
+MUJOCO_SCENE=scene_flat.xml ./scripts/launch_abs_obstacle.sh
+```
+
+手动模式：
+
+```bash
+AUTO_RL=false MUJOCO_SCENE=scene_flat.xml ./scripts/launch_abs_obstacle.sh
+```
+
+键盘：
+
+```bash
+cd ~/quadruped_robots/quadruped_ros2_control_humble
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+ros2 run keyboard_input keyboard_input
+```
+
+按键：
+
+```text
+2 FIXEDDOWN/FIXEDSTAND
+3 RL（仿真）
+4 RL_REC
+1 PASSIVE
+9 HARD STOP
+```
+
+---
+
+## 6. 真机连接
+
+```bash
+sudo ip addr add 192.168.123.100/24 dev enp7s0
+ping -c 3 192.168.123.161
+```
+
+真机控制器：
+
+```bash
+cd ~/quadruped_robots/quadruped_ros2_control_humble
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:$LD_LIBRARY_PATH
+ros2 launch rl_quadruped_controller mujoco.launch.py
+```
+
+必须确认日志：
+
+```text
+network_interface: enp7s0, domain: 0
+Motion service ... deactivated
+[MOTOR-MAP] ...
+[VERIFY] joint interface order ...
+```
+
+真机当前只测：
+
+```text
+9 -> HARD STOP，确认无异常
+2 -> FIXEDDOWN
+2 -> FIXEDSTAND
+9 -> HARD STOP
+```
+
+**真机暂不按 3，未接入真实 ray2d 前不跑 ABS/RL。**
+
+---
+
+## 7. 监控
+
+```bash
+ros2 control list_controllers
+ros2 topic echo /joint_states --once
+ros2 topic echo /imu_sensor_broadcaster/imu --once
+ros2 topic list
+```
+
+查看实时 EVAL：看控制器终端中的：
+
+```text
+[EVAL] robot=(x,y) yaw=... lin_vel=...
+[GOAL] ... path_err=... path_on=...
+```

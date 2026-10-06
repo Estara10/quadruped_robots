@@ -1,0 +1,29 @@
+{
+  "schema_version": "abs-go2-deterministic-seed-evidence/v1",
+  "derivation_contract": "P1-02 scripts/formal_experiment_contract.py remains the available derivation contract; no current flat source consumes a derived seed",
+  "derivation": "root seed is pairing/provenance identity only for current fixed flat scenarios",
+  "fixture_root_seed": 20260902,
+  "derived_seeds": {},
+  "actual_injection_point": "none; root seed is not injected into a runtime random consumer",
+  "declared_not_consumed_sources": ["python_orchestrator"],
+  "not_used_sources": [
+    "scenario_initial_condition_sampling",
+    "mujoco_model_randomization",
+    "controller_goal_resampling",
+    "cpp_rand",
+    "torch_python_numpy",
+    "obstacle_placement"
+  ],
+  "flat_goal_forward": {
+    "scenario_sha256": "beba99ed4e6f6c8f84eb1ac514f2da4b6e910c1587fdf91f5e95ac6bc639e092",
+    "scenario_root_seed_key": "fc887e89ce542e5062ba6669611cb459c4ffe7de35198c59df29cedc9b2bed29",
+    "p1_02_pairing_key": "6ac5d17dd81862e91dbf8cdbaacf141ca4d0e7b553bf8717f0f722d58b073d96"
+  },
+  "flat_goal_lateral": {
+    "scenario_sha256": "c95f83c345797ce31a449e27df16cffe84f3650ed2be498ac79cef51f6e09ff5",
+    "scenario_root_seed_key": "72297c4684b5c7d27cb35d038f7df07c3fcf3e7019b47fde41cebcab6f8e6723",
+    "p1_02_pairing_key": "42f69a15b395a1595cf6df147ef3bdb7c13b20b4b646584124cb4a6c13e9c2e6"
+  },
+  "variant_binding_sha256": "2f0dfc4e8bf5237a578d99030facc38459fd5f899af49b508e48e29b7e8a4e1c",
+  "offline_result": "PASS; same root seed is stable, different root seed changes pairing identity; no runtime random consumer is claimed"
+}

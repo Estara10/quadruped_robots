@@ -1,0 +1,55 @@
+{
+  "schema": "abs-go2-p1-10-residual-process-preflight-closure/v1",
+  "status": "IMPLEMENTED / AWAITING INDEPENDENT REVIEW",
+  "runtime_replay_performed": false,
+  "failed_pair": "P1-10-REPLAY-20260902-flat_goal_forward-stabilized",
+  "failed_pair_status": "FAILED_FOR_THIS_PAIR",
+  "root_cause": {
+    "before": "pgrep -af over broad command-line substrings: unitree_mujoco|ros2 launch|ros2_control_node",
+    "observed": "the active Codex sandbox command line contained the MuJoCo path and was classified as residual",
+    "launch_reached": false
+  },
+  "detection_rule": {
+    "source": "scripts/p1_08_baseline_capture.py:inspect_residual_processes",
+    "snapshot": ["/proc/<pid>/exe", "/proc/<pid>/cmdline", "/proc/<pid>/stat (state, PPID)"],
+    "excluded": "self PID and complete ancestor PID chain",
+    "mujoco_match": "exact expected executable path, including a deleted-instance suffix",
+    "ros_launch_match": "ros2 launcher executable with exact argv sequence: launch rl_quadruped_controller mujoco.launch.py",
+    "controller_match": "ros2_control_node executable with exact source or installed Go2 robot_control.yaml path",
+    "shell_path_only": "not a match when inspected executable is unrelated",
+    "zombie": "relevant zombie identity is uncertain and rejected",
+    "uncertain": "process table read failure, malformed identity, or ambiguous controller attribution",
+    "uncertain_action": "preflight reject"
+  },
+  "tests": {
+    "command": "python3 scripts/test_p1_08_harness.py",
+    "result": "PASS",
+    "checks": 93,
+    "focused_cases": {
+      "real_mujoco_residual_rejected": "PASS",
+      "real_controller_residual_rejected": "PASS",
+      "real_ros_launch_residual_rejected": "PASS",
+      "shell_path_only_not_rejected": "PASS",
+      "self_ancestor_excluded": "PASS",
+      "inspection_failure_rejected": "PASS",
+      "controller_identity_ambiguity_rejected": "PASS",
+      "no_unrelated_process_accepted": "PASS",
+      "relevant_zombie_rejected": "PASS"
+    },
+    "py_compile": "PASS",
+    "git_diff_check": "PASS",
+    "live_process_table_identity_scan": "none; no runtime process started"
+  },
+  "source_sha256": {
+    "scripts/p1_08_baseline_capture.py": "7d1783db2945234cf10c514900e0654c80f396e6839bce56a59752ba1f51772c",
+    "scripts/test_p1_08_harness.py": "20a0341dbc07ca205c1ea1b59959cb096d5aeb131a5711ab6d00a01fb267b29c"
+  },
+  "governance": {
+    "run_b_started": false,
+    "failed_pair_retried": false,
+    "p1_11_p1_12_p1_13_started": false,
+    "new_director_authorization_required": true,
+    "commit_or_push": false,
+    "phase_1": "NOT ACCEPTED"
+  }
+}

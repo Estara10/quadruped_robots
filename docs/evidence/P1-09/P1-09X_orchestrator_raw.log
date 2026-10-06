@@ -1,0 +1,24 @@
+ORCH_START_NS=1787985364114332671
+ORCH_START_ISO=2026-08-29T14:36:04,117115665+08:00
+COMMAND=/home/lidio/quadruped_robots/unitree_mujoco/simulate/build2/unitree_mujoco -s scene_flat.xml
+WORKDIR=/home/lidio/quadruped_robots/unitree_mujoco/simulate/build2
+MUJOCO_PID=6
+MUJOCO_PPID=3
+MUJOCO_PGID=6
+MuJoCo version 3.3.3
+ERROR: could not initialize GLFW
+
+START_PROCESS_NS=1787985364137964608
+PROC_STATUS_UNAVAILABLE=1
+BRIDGE_PHYSICS_EVIDENCE=not_applicable_mujo_only_no_ros2_or_bridge
+SIGINT_NS=1787985365146922339
+SIGINT_TARGET=process_group:6
+SIGINT_KILL_RC=1
+/usr/bin/bash: 第 32 行： kill: (-6) - 没有那个进程
+WAIT_END_NS=1787985365163571089
+WAIT_MS=12
+SELF_EXITED=1
+MUJOCO_RC=1
+TERM_ESCALATION=none
+KILL_ESCALATION=none
+ORPHAN_AFTER_WAIT=0

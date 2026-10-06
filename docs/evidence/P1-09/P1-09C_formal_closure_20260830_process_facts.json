@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "forced_termination": false,
+  "mujoco_rc": 0,
+  "ros_launch_rc": 0,
+  "shutdown_complete": true,
+  "shutdown_monotonic_ns": 15834904293179,
+  "shutdown_request_source": "recorder_stop;SIGINT_ros_launch;SIGINT_mujoco"
+}

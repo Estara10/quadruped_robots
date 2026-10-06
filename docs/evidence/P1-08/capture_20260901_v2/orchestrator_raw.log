@@ -1,0 +1,14 @@
+[13:07:28] launch MuJoCo: /home/lidio/quadruped_robots/unitree_mujoco/simulate/build2/unitree_mujoco -s scene_flat.xml
+[13:07:28] MuJoCo pid=19077 pgid=19077
+[13:07:29] v2 sim clock advancing
+[13:07:29] launch ros2: mujoco.launch.py simulation_test:=0
+[13:07:29] ros2 launch pid=19141 pgid=19141
+[13:07:33] controller active
+[13:07:33] auto-RL: pub 2 -> 2 -> 3
+[13:07:43] RL active
+[13:07:43] runtime record started run_id=4f14416672244cbfb4af93573bd9d86c
+[13:07:43] sampling for 25.0s (fixed)
+[13:08:08] captured sim_clock=753069 rt_frame=753069 record_statuses={'LIVE': 1250}
+[13:08:08] cleanup: ros2_launch wait_rc=0 escalated=False
+[13:08:09] cleanup: mujoco wait_rc=0 escalated=False
+[13:08:09] cleanup: recorder finalized run_id=4f14416672244cbfb4af93573bd9d86c

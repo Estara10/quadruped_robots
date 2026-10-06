@@ -1,0 +1,4 @@
+2026-08-28T10:20:36Z P1-09G_BEGIN scene=scene_flat.xml interface=lo launch=mujoco.launch.py simulation_test=0
+2026-08-28T10:20:36Z PROCESS_PRECHECK
+2026-08-28T10:20:36Z PROCESS_START mujoco pid=31
+2026-08-28T10:20:39Z MUJOCO_START_FAIL

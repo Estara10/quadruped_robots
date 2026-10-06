@@ -1,0 +1,102 @@
+{
+  "attitude_yaw": {
+    "note": "only yaw (world_pose[2]) is in the frame; roll/pitch have no source",
+    "recorded": true,
+    "yaw_deg": {
+      "count": 306,
+      "last": -19.05096512358008,
+      "max": 4.689883653018494,
+      "mean": -14.500605180866836,
+      "min": -23.272483068416935
+    }
+  },
+  "authoritative_reason": null,
+  "authoritative_runtime_source": true,
+  "collision": {
+    "available": false,
+    "event_count": null,
+    "reason": "collision_origin is always UNAVAILABLE today (bridge-side only; no authoritative collision event source)"
+  },
+  "duration_ns": 15524508836,
+  "frame_count": 482,
+  "live_frame_count": 306,
+  "meta": {
+    "created_at_ns": 8040678948015,
+    "kind": "meta",
+    "record_format_version": 2,
+    "run_id": "d9c988223cec4b1385a8fd031abc385f",
+    "source": "/dev/shm/mujoco_rt_frame"
+  },
+  "normal_shutdown": true,
+  "outcome": "UNKNOWN",
+  "outcome_reasons": [
+    "no_reached_goal_source",
+    "no_timeout_source",
+    "no_collision_source",
+    "no_fall_source"
+  ],
+  "ra_statistics": {
+    "count": 306,
+    "last": -0.9988811612129211,
+    "max": -0.7238982915878296,
+    "mean": -0.9560571270051346,
+    "min": -0.999583899974823,
+    "samples": 306
+  },
+  "record_validity": "VALID",
+  "record_validity_reasons": [],
+  "recovery_usage": {
+    "recovery_fraction": 0.0,
+    "recovery_steps": 0,
+    "total_live_steps": 306,
+    "transitions": 0
+  },
+  "safety_faults": {
+    "faulted": false,
+    "faulted_steps": 0,
+    "first_fault_rl_step": null
+  },
+  "simulation_time_s": "UNKNOWN",
+  "terminal": {
+    "collision_events": "UNKNOWN",
+    "collision_events_reason": "collision_origin is always UNAVAILABLE today (bridge-side only; no authoritative collision event source)",
+    "duration_ns": 15524508836,
+    "fact_validation_errors": [],
+    "fall_events": "UNKNOWN",
+    "fall_events_reason": "no authoritative fall detection exists in the current runtime frame",
+    "first_frame_time_ns": 8049520982493,
+    "forced_termination": false,
+    "frames_observed": 306,
+    "kind": "terminal",
+    "last_frame_time_ns": 8065045491329,
+    "last_policy_state": "AGILE",
+    "last_ra_value": -0.9988811612129211,
+    "last_session_id": 8049381969251,
+    "normal_shutdown": true,
+    "process_exit_code": 0,
+    "reached_goal": "UNKNOWN",
+    "reached_goal_reason": "no authoritative reached-goal computation exists in the current runtime frame",
+    "run_id": "d9c988223cec4b1385a8fd031abc385f",
+    "safety_fault_last": false,
+    "safety_fault_seen": false,
+    "shutdown_complete": true,
+    "shutdown_request_source": "recorder_stop;SIGINT_ros_launch;SIGINT_mujoco",
+    "simulation_time_s": "UNKNOWN",
+    "simulation_time_s_reason": "simulation_time_s is not present in the runtime frame; only steady-clock monotonic_ns is available",
+    "termination_reason": "FRAMES_ENDED_RC0",
+    "timeout": "UNKNOWN",
+    "timeout_reason": "no authoritative timeout marker exists in the current runtime frame"
+  },
+  "termination_reason": "FRAMES_ENDED_RC0",
+  "velocity": {
+    "horizontal_speed_avg_m_s": 0.5951239297943896,
+    "horizontal_speed_peak_m_s": 2.576634130075123,
+    "lin_vel_samples": 306,
+    "vx_avg_m_s": 0.5733628339017337,
+    "vx_peak_m_s": 2.4845988750457764,
+    "vy_avg_m_s": 0.11405759393471503,
+    "vy_peak_m_s": 0.7545766234397888,
+    "vz_avg_m_s": -0.010569884063321308,
+    "vz_peak_m_s": 1.2887907028198242
+  }
+}

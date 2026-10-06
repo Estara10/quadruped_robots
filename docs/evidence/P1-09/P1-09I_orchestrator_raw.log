@@ -1,0 +1,49 @@
+2026-08-28T11:08:35.065Z P1-09I_BEGIN scene=scene_flat.xml interface=lo launch=mujoco.launch.py simulation_test=0
+2026-08-28T11:08:35.067Z COMMAND mujoco setsid /home/lidio/quadruped_robots/unitree_mujoco/simulate/build2/unitree_mujoco -s scene_flat.xml
+2026-08-28T11:08:35.069Z COMMAND ros2 setsid bash -lc 'source /opt/ros/humble/setup.bash && source /home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/setup.bash && ros2 launch rl_quadruped_controller mujoco.launch.py simulation_test:=0'
+2026-08-28T11:08:35.071Z DISPLAY_ENV DISPLAY=:0 WAYLAND_DISPLAY=UNSET XDG_RUNTIME_DIR=/run/user/1000
+2026-08-28T11:08:35.072Z PROCESS_PRECHECK
+2026-08-28T11:08:35.137Z PROCESS_META label=mujoco pid=116590 ppid=116542 pgid=116590 sid=116590 stat=Rs command=/home/lidio/quadruped_robots/unitree_mujoco/simulate/build2/unitree_mujoco -s scene_flat.xml
+2026-08-28T11:08:38.221Z PROCESS_META label=ros2_launch pid=116705 ppid=116542 pgid=116705 sid=116705 stat=Ss command=bash -lc source /opt/ros/humble/setup.bash && source /home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/setup.bash && ros2 launch rl_quadruped_controller mujoco.launch.py simulation_test:=0
+2026-08-28T11:08:45.914Z CONTROLLER_READY=1
+2026-08-28T11:08:45.921Z CONTROL_COMMAND command=2 lx=0.0 ly=0.0 rx=0.0 ry=0.0
+Waiting for at least 1 matching subscription(s)...
+publisher: beginning loop
+publishing #1: control_input_msgs.msg.Inputs(command=2, lx=0.0, ly=0.0, rx=0.0, ry=0.0)
+
+2026-08-28T11:08:48.325Z CONTROL_COMMAND command=2 lx=0.0 ly=0.0 rx=0.0 ry=0.0
+publisher: beginning loop
+publishing #1: control_input_msgs.msg.Inputs(command=2, lx=0.0, ly=0.0, rx=0.0, ry=0.0)
+
+2026-08-28T11:08:53.660Z CONTROL_COMMAND command=3 lx=0.0 ly=1.0 rx=0.0 ry=0.0
+publisher: beginning loop
+publishing #1: control_input_msgs.msg.Inputs(command=3, lx=0.0, ly=1.0, rx=0.0, ry=0.0)
+
+2026-08-28T11:08:55.467Z CONTROL_COMMAND command=3 lx=0.0 ly=1.0 rx=0.0 ry=0.0
+publisher: beginning loop
+publishing #1: control_input_msgs.msg.Inputs(command=3, lx=0.0, ly=1.0, rx=0.0, ry=0.0)
+
+2026-08-28T11:08:56.736Z RL_ENTER_CONFIRMED
+2026-08-28T11:08:56.739Z CONTROL_COMMAND command=4 lx=0.0 ly=0.0 rx=0.0 ry=0.0
+publisher: beginning loop
+publishing #1: control_input_msgs.msg.Inputs(command=4, lx=0.0, ly=0.0, rx=0.0, ry=0.0)
+
+2026-08-28T11:08:57.927Z RECOVERY_ENTER_CONFIRMED
+2026-08-28T11:08:57.932Z CONTROL_COMMAND command=3 lx=0.0 ly=0.0 rx=0.0 ry=0.0
+publisher: beginning loop
+publishing #1: control_input_msgs.msg.Inputs(command=3, lx=0.0, ly=0.0, rx=0.0, ry=0.0)
+
+2026-08-28T11:08:59.252Z RECOVERY_EXIT_CONFIRMED
+2026-08-28T11:08:59.254Z STATUS_BEFORE_SHUTDOWN rec_enter=1 rec_exit=1
+2026-08-28T11:08:59.270Z SIGNAL label=ros2_launch signal=SIGINT target_pid=116705 target_pgid=116705
+2026-08-28T11:08:59.691Z SIGINT_RESULT label=ros2_launch result=EXITED wait_s<=5
+2026-08-28T11:08:59.697Z PROCESS_EXIT label=ros2_launch pid=116705 rc=0
+2026-08-28T11:08:59.729Z SIGNAL label=mujoco signal=SIGINT target_pid=116590 target_pgid=116590
+2026-08-28T11:09:04.972Z SIGINT_RESULT label=mujoco result=TIMEOUT wait_s=5
+2026-08-28T11:09:04.978Z SIGNAL label=mujoco signal=SIGTERM reason=SIGINT_TIMEOUT target_pid=116590 target_pgid=116590
+2026-08-28T11:09:05.094Z SIGTERM_RESULT label=mujoco result=EXITED wait_s<=5
+2026-08-28T11:09:05.099Z PROCESS_EXIT label=mujoco pid=116590 rc=143
+2026-08-28T11:09:05.102Z PROCESS_POSTCHECK
+2026-08-28T11:09:05.140Z STATUS rec_enter=1 rec_exit=1 ros_rc=0 mujoco_rc=143
+2026-08-28T11:09:05.144Z ERROR_SCAN_BEGIN
+2026-08-28T11:09:05.157Z ERROR_SCAN_END

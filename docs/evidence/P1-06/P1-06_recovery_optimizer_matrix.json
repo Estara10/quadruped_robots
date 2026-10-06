@@ -1,0 +1,60 @@
+{
+  "schema_version": 2,
+  "task": "P1-06",
+  "audit_on": "2026-08-30",
+  "corrected_2026-08-31": "REJECT-corrected: every Eq.21 verdict is two-dimensional (paper_relationship / testbed_vs_deployment); paper-undefined items are never paper MATCH",
+  "mode": "offline_source_trace_deterministic_numeric",
+  "evidence_roots": ["ABS/", "ABS_fuwuqi/ABS/ (audited testbed.py lines 55-72,337-348 match; source integrity PARTIAL, not whole-file identity)", "quadruped_ros2_control_humble/.../FSM/StateRL.cpp:577-659", "abs/config.yaml:70-79"],
+  "eq21_optimizer": {
+    "variables": {"paper": "MATCH (twist vx/vy/wz per Eq.21)", "testbed": "[vx,vy,wz] from base_lin_vel[0:2]+base_ang_vel[2:3]", "deployment": "{lin_vel[0:2], ang_vel[2]}", "testbed_vs_deployment": "MATCH"},
+    "objective_structure": {"paper": "MATCH (minimize predicted goal deviation subject to RA below threshold)", "testbed": "10*max(ra+0.10,0)+0.02*((x-gx)^2+(y-gy)^2)", "deployment": "10*clamp(ra+0.10,0)+0.02*((pos-cmd)^2+(pos-cmd)^2)", "testbed_vs_deployment": "MATCH (structure)"},
+    "objective_constants": {"paper": "UNKNOWN (paper does not specify lam/eps/coeff)", "testbed": "lam=10, eps=0.05, coeff=0.02", "deployment": "same (config)", "testbed_vs_deployment": "MATCH"},
+    "ra_penalty": {"paper": "UNKNOWN for lambda/epsilon", "testbed": "10*max(ra+0.10,0)", "deployment": "10*clamp(ra+0.10,0)", "testbed_vs_deployment": "MATCH"},
+    "goal_deviation_term": {"paper": "MATCH (predicted goal deviation)", "testbed": "0.02*((x-gx)^2+(y-gy)^2) yaw-coupled", "deployment": "0.02*((pos-cmd)^2+...) first-order", "testbed_vs_deployment": "MISMATCH (Eq.22 term feeds this)"},
+    "gradient_algorithm": {"paper": "MATCH (gradient descent)", "testbed": "SGD twist-=lr*clip_grad(grad,1)", "deployment": "SGD twist-=lr*clamp(grad,-1,1)", "testbed_vs_deployment": "MATCH (both SGD)"},
+    "gradient_clip": {"paper": "UNKNOWN (paper unspecified)", "testbed": "L2-norm clip (testbed.py:70-72)", "deployment": "per-element clamp [-1,1] (StateRL.cpp:633)", "testbed_vs_deployment": "MISMATCH (L2 vs per-element; not an approved stabilized variant - no decision record)"},
+    "initialization": {"paper": "MATCH (from current twist)", "testbed": "current lin_vel[0:2]+ang_vel[2]", "deployment": "current lin_vel[0:2]+ang_vel[2]", "testbed_vs_deployment": "MATCH"},
+    "learning_rate": {"paper": "UNKNOWN (paper unspecified)", "testbed": 0.5, "deployment": 0.5, "testbed_vs_deployment": "MATCH"},
+    "iterations": {"paper": "within/at most 5 (ABS_PAPER_NOTES:121); testbed 10 not MATCH; deployment 3 upper-bound MATCH only", "testbed": 10, "deployment": 3, "testbed_vs_deployment": "MISMATCH"},
+    "twist_bounds": {"paper": "MATCH: vx +-1.5, vy +-0.3, wz +-3 (ABS_PAPER_NOTES:110-114)", "testbed": "+- [1.5,0.3,3.0] (testbed.py:67-68)", "deployment": "+- [vx_m,vy_m,wz_m] = +- [1.5,0.3,3.0] (config:75-79)", "testbed_vs_deployment": "MATCH"},
+    "output_clamp_type": {"paper": "UNKNOWN (paper does not specify component-wise)", "testbed": "component-wise clip", "deployment": "component-wise clamp", "testbed_vs_deployment": "MATCH"},
+    "final_feasibility_check": {"paper": "UNKNOWN (paper unspecified)", "testbed": "none", "deployment": "none", "testbed_vs_deployment": "MATCH (both absent; NOT paper MATCH)"},
+    "infeasible_fallback": {"paper": "UNKNOWN (paper unspecified)", "testbed": "none", "deployment": "none", "testbed_vs_deployment": "MATCH (both absent; NOT paper MATCH)"},
+    "ra_input_from_twist": {"paper": "UNKNOWN (paper lacks full concatenation)", "testbed": "cat([vx,vy,vz,wx,wy,wz,goal_x,goal_y,rays]) 19-D", "deployment": "cat([twist vx,vy, lin_vel_z, ang_vel x,y, twist wz, cmd x,y, rays]) 19-D", "testbed_vs_deployment": "MATCH"},
+    "overall": {"paper": "MATCH on variables/goal-dev concept/SGD/current-twist init/<=5 iter (deployment only)/twist bounds; UNKNOWN on constants/lambda-eps/lr/clip/feasibility/fallback/RA-input", "testbed_vs_deployment": "MISMATCH on iteration count, gradient clip, Eq.22-fed goal term; MATCH on objective/RA penalty/bounds/init/lr/clamp type/feasibility absence/RA-input"}
+  },
+  "eq22_displacement": {
+    "dt": {"paper": "0.05 s", "testbed": "tau=0.05", "deployment": "tau=0.05", "testbed_vs_deployment": "MATCH"},
+    "delta_x": {"paper": "vx*dt-0.5*vy*wz*dt^2", "testbed": "vx*tau-0.5*vy*wz*tau^2 (testbed.py:59)", "deployment": "vx*tau (StateRL.cpp:623, second-order term omitted)", "testbed_vs_deployment": "MISMATCH"},
+    "delta_y": {"paper": "vy*dt+0.5*vx*wz*dt^2", "testbed": "vy*tau+0.5*vx*wz*tau^2 (testbed.py:60)", "deployment": "vy*tau (StateRL.cpp:624, second-order term omitted)", "testbed_vs_deployment": "MISMATCH"},
+    "theta": {"paper": "yaw rotation implied", "testbed": "theta=wz*tau", "deployment": "not used in position penalty", "testbed_vs_deployment": "INTENTIONAL_VARIANT / UNKNOWN"},
+    "coordinate_frame": {"paper": "planar x/y", "testbed": "planar body-frame", "deployment": "planar body-frame", "testbed_vs_deployment": "MATCH"},
+    "overall": {"paper_vs_reference": "MATCH", "deployment": "MISMATCH (yaw-coupled terms omitted; ABS_PAPER_NOTES:131 gap; first-order goal-penalty consequence preserved as MISMATCH)"}
+  },
+  "numeric_fixture": {
+    "script": "scripts/test_p1_06_recovery_optimizer.py",
+    "result": "PASS 14/14, exit 0",
+    "scope": "independent arithmetic only; NOT runtime parity",
+    "eq22_nonzero_yaw": {"vx": 1.2, "vy": -0.4, "wz": 2.0, "tau": 0.05, "reference_dx": 0.061, "reference_dy": -0.017, "deployment_dx": 0.060, "deployment_dy": -0.020, "difference_proven": true},
+    "eq22_zero_yaw": {"reference_dx": 0.06, "reference_dy": -0.02, "equals_first_order": true},
+    "eq21_objective": {"ra": -0.03, "goal": [0.5, -0.2], "est": [0.06, -0.017], "ra_pen": 0.7, "pos_pen": 0.004542, "loss": 0.704542},
+    "clamp_boundary": {"input": [5.0, -5.0, 0.1], "output": [1.5, -0.3, 0.1]},
+    "grad_clip_difference": {"gradient": [3.0, 4.0], "l2_norm_clip": [0.6, 0.8], "per_element_clamp": [1.0, 1.0], "differ": true}
+  },
+  "classifications_corrected": {
+    "eq22_yaw_terms_omitted": "MISMATCH (paper + reference) and MISMATCH (testbed_vs_deployment)",
+    "first_order_goal_penalty": "MISMATCH (deployment omits yaw-coupled displacement)",
+    "iteration_count": "testbed 10 not paper MATCH; deployment 3 upper-bound MATCH only; testbed_vs_deployment MISMATCH",
+    "gradient_clip": "paper UNKNOWN; testbed_vs_deployment MISMATCH",
+    "objective_constants_and_ra_lambda_eps": "paper UNKNOWN; testbed_vs_deployment MATCH",
+    "twist_bounds": "paper MATCH (documented ABS_PAPER_NOTES:110-114); testbed_vs_deployment MATCH",
+    "output_clamp_feasibility_fallback": "paper UNKNOWN; testbed_vs_deployment MATCH (both absent/component-wise, NOT paper MATCH)",
+    "ra_input_concatenation": "paper UNKNOWN; testbed_vs_deployment MATCH",
+    "init_lr_sgd": "init+SGD paper MATCH; lr paper UNKNOWN; testbed_vs_deployment MATCH"
+  },
+  "unknowns": [
+    "paper exact lam/eps/coeff, learning rate, gradient-clip method, output-clamp type, feasibility/fallback, full candidate-twist RA concatenation",
+    "whether deployment 3-iteration / simplified-displacement / per-element clip is an approved stabilized variant (no decision record)"
+  ],
+  "rejection_reason": "classification overclaim (conflated paper parity, testbed<->deployment parity, and paper-unspecified items); NOT a discovery of an algorithm mismatch"
+}

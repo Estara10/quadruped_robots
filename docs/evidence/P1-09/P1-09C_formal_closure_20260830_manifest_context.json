@@ -1,0 +1,82 @@
+{
+  "created_at": "2026-08-30T05:51:12.983478+00:00",
+  "effective_config": {
+    "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml",
+    "sha256": "40bcb2919fc64d78d15f7bdcfc874d5307b37fa7b4e6ccd0bc253af56fd7af98"
+  },
+  "environment": {
+    "go2_assets_sha256": "2a3570f0d99aab37067a21494fd09a0cdb97c606790e2f35a6330afbd2719b6e",
+    "go2_mjcf_path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/go2.xml",
+    "go2_mjcf_sha256": "f8d2c3e8e23c7405a2034f9025dedc656b5bfc4ca0971ca83d734c6071cbdb29",
+    "hardware_mode": "simulation",
+    "mujoco_binary_path": "/home/lidio/quadruped_robots/unitree_mujoco/simulate/build2/unitree_mujoco",
+    "mujoco_binary_sha256": "71c33c9b26721f4f992f2e0542fb0d74281c7d33c9620d8fc9305bee6df61ab1",
+    "mujoco_version": "3.3.3",
+    "solver": "Newton",
+    "timestep_s": 0.002
+  },
+  "git": {
+    "branch": "feat/ray-pred-source-switch",
+    "commit": "c7d0e94b83aaddb8588940fa3ef1dd87fc81b8c62ab1ae8ce18992986a1fc890",
+    "dirty_patch_sha256": "d0bce8eb8f3891f0a8ebd7c413c67b90d699a192744e2b47bccee9f63ae95a0a",
+    "dirty_state": "dirty"
+  },
+  "models": {
+    "agile_policy": {
+      "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/policy.pt",
+      "sha256": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf",
+      "source_provenance": "UNKNOWN"
+    },
+    "ra_value": {
+      "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/ra_value.pt",
+      "sha256": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7",
+      "source_provenance": "UNKNOWN"
+    },
+    "recovery_policy": {
+      "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/rec/policy.pt",
+      "sha256": "e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171",
+      "source_provenance": "UNKNOWN"
+    }
+  },
+  "perception": {
+    "frame_contract_version": "1",
+    "sha256": "92842f8b61b86e56c1ac45254af6e5d82cedbf01bfb722ac0dcc3cb9d4b2ab05",
+    "source": "mujoco_ray2d",
+    "version": "1"
+  },
+  "rates_hz": {
+    "controller": 200.0,
+    "pd": 500.0,
+    "perception": 50.0,
+    "policy": 500.0,
+    "ra": 500.0
+  },
+  "scenario": {
+    "id": "scene_flat",
+    "metadata": {
+      "obstacle_count": 0,
+      "schema": "scene_flat/v1"
+    },
+    "path": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/scene_flat.xml",
+    "sha256": "9ce83b3e61c722a523d0359536cee803f17610f95d2275fc32e96801ec3c1908"
+  },
+  "seeds": {
+    "root_seed": 20260830,
+    "sources": {
+      "controller_goal": 250413411,
+      "evaluator": 1401263240,
+      "perception": 1087802725,
+      "scene_generator": 887242079
+    }
+  },
+  "thresholds": {
+    "arrival_hold_s": 0.5,
+    "arrival_region_m": 1.0,
+    "collision_definition_id": "abs_contact_threshold_1.0",
+    "fall_angle_rad": 1.309,
+    "fall_height_m": 0.35,
+    "ra_entry_threshold": -0.05,
+    "ra_exit_threshold": -0.05
+  },
+  "variant": "stabilized"
+}

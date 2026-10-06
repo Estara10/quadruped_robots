@@ -1,0 +1,51 @@
+2026-08-28T11:35:14.103Z P1-09K_BEGIN no_ros2 no_controller scene=scene_flat.xml interface=lo
+2026-08-28T11:35:14.105Z CASE=SIGINT_BEGIN
+2026-08-28T11:35:14.171Z PROCESS_META label=sigint pid=128079 ppid=128074 pgid=128079 sid=128079 stat=Rsl command=/home/lidio/quadruped_robots/unitree_mujoco/simulate/build2/unitree_mujoco -s scene_flat.xml
+2026-08-28T11:35:17.177Z SIGNAL_STATUS label=sigint_before pid=128079
+Name:	unitree_mujoco
+State:	S (sleeping)
+Pid:	128079
+PPid:	128074
+SigBlk:	0000000000000000
+SigIgn:	0000000000000006
+SigCgt:	0000000100000000
+2026-08-28T11:35:17.230Z SIGNAL label=sigint signal=SIGINT epoch_ns=1787916917225057355 target_pid=128079 target_pgid=128079
+2026-08-28T11:35:22.446Z SIGINT_RESULT label=sigint result=TIMEOUT wait_s=5
+2026-08-28T11:35:22.451Z SIGNAL_STATUS label=sigint_after_timeout pid=128079
+Name:	unitree_mujoco
+State:	S (sleeping)
+Pid:	128079
+PPid:	128074
+SigBlk:	0000000000000000
+SigIgn:	0000000000000006
+SigCgt:	0000000100000000
+2026-08-28T11:35:22.461Z SIGNAL label=sigint signal=SIGTERM reason=diagnostic_cleanup target_pid=128079 target_pgid=128079
+2026-08-28T11:35:22.575Z PROCESS_EXIT label=sigint pid=128079 rc=143
+2026-08-28T11:35:22.578Z CASE=SIGINT_END
+2026-08-28T11:35:22.581Z CASE=UI_CLOSE_BEGIN
+2026-08-28T11:35:22.655Z PROCESS_META label=ui_close pid=128319 ppid=128074 pgid=128319 sid=128319 stat=Rsl command=/home/lidio/quadruped_robots/unitree_mujoco/simulate/build2/unitree_mujoco -s scene_flat.xml
+2026-08-28T11:35:25.663Z SIGNAL_STATUS label=ui_close_before pid=128319
+Name:	unitree_mujoco
+State:	R (running)
+Pid:	128319
+PPid:	128074
+SigBlk:	0000000000000000
+SigIgn:	0000000000000006
+SigCgt:	0000000100000000
+2026-08-28T11:35:25.678Z UI_CLOSE_TRIGGER epoch_ns=1787916925673168233 method=WM_DELETE_WINDOW
+UI_CLOSE_RESULT=NO_MUJOCO_WINDOW
+2026-08-28T11:35:25.727Z UI_CLOSE_HELPER_RC=2
+2026-08-28T11:35:30.926Z UI_CLOSE_RESULT result=TIMEOUT wait_s=5
+2026-08-28T11:35:30.931Z SIGNAL_STATUS label=ui_close_after_timeout pid=128319
+Name:	unitree_mujoco
+State:	S (sleeping)
+Pid:	128319
+PPid:	128074
+SigBlk:	0000000000000000
+SigIgn:	0000000000000006
+SigCgt:	0000000100000000
+2026-08-28T11:35:30.962Z SIGNAL label=ui_close signal=SIGTERM reason=diagnostic_cleanup target_pid=128319 target_pgid=128319
+2026-08-28T11:35:31.076Z PROCESS_EXIT label=ui_close pid=128319 rc=143
+2026-08-28T11:35:31.081Z CASE=UI_CLOSE_END
+2026-08-28T11:35:31.085Z PROCESS_POSTCHECK
+2026-08-28T11:35:31.105Z P1-09K_END

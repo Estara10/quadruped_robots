@@ -1,0 +1,6 @@
+[13:17:21] == P1-08 baseline capture: preflight ==
+[13:17:21] DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority
+[13:17:21] preflight PASS
+[13:17:21] launch MuJoCo: /home/lidio/quadruped_robots/unitree_mujoco/simulate/build2/unitree_mujoco -s scene_flat.xml (scene_flat.xml; interface lo default)
+[13:17:21] MuJoCo pid=39319 pgid=39319
+[13:17:36] FAIL: MuJoCo physics clock never advanced (instrumentation not live)

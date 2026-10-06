@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "task": "P1-01",
+  "status": "partial_unknown_artifact_provenance",
+  "models": {
+    "agile_policy": {
+      "input_dim": 61,
+      "output_dim": 12,
+      "architecture": [61, 512, 256, 128, 12],
+      "golden_input": "arange(1, 62) / 100, float32, shape [1,61]",
+      "golden_output": [
+        0.04477670043706894,
+        0.3867877125740051,
+        -0.8713864684104919,
+        1.081969141960144,
+        1.0866631269454956,
+        2.047642230987549,
+        1.806044101715088,
+        0.4065757989883423,
+        0.5424377918243408,
+        -1.5181643962860107,
+        -0.13617739081382751,
+        -0.11560335755348206
+      ]
+    },
+    "ra_value": {
+      "input_dim": 19,
+      "output_dim": 1,
+      "architecture": [19, 64, 64, 1],
+      "golden_input": "arange(1, 20) / 100, float32, shape [1,19]",
+      "golden_output": [-0.9960095286369324]
+    },
+    "recovery_policy": {
+      "input_dim": 49,
+      "output_dim": 12,
+      "architecture": [49, 512, 256, 128, 12],
+      "golden_input": "arange(1, 50) / 100, float32, shape [1,49]",
+      "golden_output": [
+        0.41468170285224915,
+        0.3715426027774811,
+        -0.9695776700973511,
+        0.3567328155040741,
+        0.2724955081939697,
+        -2.172720193862915,
+        0.26759839057922363,
+        1.039819598197937,
+        -0.39766794443130493,
+        -0.4917111098766327,
+        0.1602323353290558,
+        -1.2961115837097168
+      ]
+    }
+  },
+  "orders": {
+    "isaac_gym_training_dofs": {
+      "status": "runtime_captured",
+      "names": [
+        "FL_hip_joint",
+        "FL_thigh_joint",
+        "FL_calf_joint",
+        "FR_hip_joint",
+        "FR_thigh_joint",
+        "FR_calf_joint",
+        "RL_hip_joint",
+        "RL_thigh_joint",
+        "RL_calf_joint",
+        "RR_hip_joint",
+        "RR_thigh_joint",
+        "RR_calf_joint"
+      ]
+    },
+    "deployed_policy_dofs": {
+      "status": "UNKNOWN",
+      "candidate_if_current_training_lineage_is_proven": "isaac_gym_training_dofs"
+    },
+    "ros2_controller_dofs": {
+      "status": "runtime_logged_and_source_verified",
+      "names": [
+        "FR_hip_joint",
+        "FR_thigh_joint",
+        "FR_calf_joint",
+        "FL_hip_joint",
+        "FL_thigh_joint",
+        "FL_calf_joint",
+        "RR_hip_joint",
+        "RR_thigh_joint",
+        "RR_calf_joint",
+        "RL_hip_joint",
+        "RL_thigh_joint",
+        "RL_calf_joint"
+      ]
+    },
+    "controller_to_candidate_policy_indices": [3, 4, 5, 0, 1, 2, 9, 10, 11, 6, 7, 8],
+    "candidate_policy_to_controller_indices": [3, 4, 5, 0, 1, 2, 9, 10, 11, 6, 7, 8],
+    "unitree_motor_indices_by_controller_index": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    "isaac_gym_training_feet": {
+      "status": "runtime_captured",
+      "names": ["FL_foot", "FR_foot", "RL_foot", "RR_foot"]
+    },
+    "deployed_policy_feet": {
+      "status": "UNKNOWN",
+      "candidate_if_current_training_lineage_is_proven": "isaac_gym_training_feet"
+    },
+    "mujoco_controller_feet": {
+      "status": "source_verified",
+      "names": ["FR_foot", "FL_foot", "RR_foot", "RL_foot"]
+    },
+    "controller_to_candidate_policy_contact_indices": [1, 0, 3, 2],
+    "real_go2_foot_force_slot_order": {
+      "status": "UNKNOWN"
+    }
+  },
+  "observations": {
+    "agile": {
+      "total": 61,
+      "fields": [
+        {"name": "contact", "start": 0, "end": 4},
+        {"name": "ang_vel", "start": 4, "end": 7},
+        {"name": "gravity_vec", "start": 7, "end": 10},
+        {"name": "commands", "start": 10, "end": 13},
+        {"name": "timer", "start": 13, "end": 14},
+        {"name": "dof_pos", "start": 14, "end": 26},
+        {"name": "dof_vel", "start": 26, "end": 38},
+        {"name": "actions", "start": 38, "end": 50},
+        {"name": "ray2d", "start": 50, "end": 61}
+      ]
+    },
+    "ra": {
+      "total": 19,
+      "fields": [
+        {"name": "lin_vel", "start": 0, "end": 3},
+        {"name": "ang_vel", "start": 3, "end": 6},
+        {"name": "commands_xy", "start": 6, "end": 8},
+        {"name": "ray2d", "start": 8, "end": 19}
+      ]
+    },
+    "recovery": {
+      "total": 49,
+      "fields": [
+        {"name": "contact", "start": 0, "end": 4},
+        {"name": "ang_vel", "start": 4, "end": 7},
+        {"name": "gravity_vec", "start": 7, "end": 10},
+        {"name": "safe_twist", "start": 10, "end": 13},
+        {"name": "dof_pos", "start": 13, "end": 25},
+        {"name": "dof_vel", "start": 25, "end": 37},
+        {"name": "actions", "start": 37, "end": 49}
+      ]
+    }
+  }
+}

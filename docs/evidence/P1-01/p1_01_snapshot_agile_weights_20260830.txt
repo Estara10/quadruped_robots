@@ -1,0 +1,45 @@
+checkpoint top-level keys: ['model_state_dict', 'optimizer_state_dict', 'iter', 'infos']
+checkpoint iter: 4000 infos: None
+checkpoint model_state_dict keys: ['actor.0.bias', 'actor.0.weight', 'actor.2.bias', 'actor.2.weight', 'actor.4.bias', 'actor.4.weight', 'actor.6.bias', 'actor.6.weight', 'critic.0.bias', 'critic.0.weight', 'critic.2.bias', 'critic.2.weight', 'critic.4.bias', 'critic.4.weight', 'critic.6.bias', 'critic.6.weight', 'std']
+checkpoint actor keys (8): ['actor.0.bias', 'actor.0.weight', 'actor.2.bias', 'actor.2.weight', 'actor.4.bias', 'actor.4.weight', 'actor.6.bias', 'actor.6.weight']
+
+=== export (05_27_15-53-31_model_4000.pt) named_parameters ===
+  0.weight: (512, 61)
+  0.bias: (512,)
+  2.weight: (256, 512)
+  2.bias: (256,)
+  4.weight: (128, 256)
+  4.bias: (128,)
+  6.weight: (12, 128)
+  6.bias: (12,)
+  buffers: {}
+  actor->export map actor.0.bias == 0.bias: True shapes (512,)
+  actor->export map actor.0.weight == 0.weight: True shapes (512, 61)
+  actor->export map actor.2.bias == 2.bias: True shapes (256,)
+  actor->export map actor.2.weight == 2.weight: True shapes (256, 512)
+  actor->export map actor.4.bias == 4.bias: True shapes (128,)
+  actor->export map actor.4.weight == 4.weight: True shapes (128, 256)
+  actor->export map actor.6.bias == 6.bias: True shapes (12,)
+  actor->export map actor.6.weight == 6.weight: True shapes (12, 128)
+  => export weight match: ALL EQUAL
+
+=== deployed (policy.pt) named_parameters ===
+  0.weight: (512, 61)
+  0.bias: (512,)
+  2.weight: (256, 512)
+  2.bias: (256,)
+  4.weight: (128, 256)
+  4.bias: (128,)
+  6.weight: (12, 128)
+  6.bias: (12,)
+  buffers: {}
+  actor->export map actor.0.bias == 0.bias: True shapes (512,)
+  actor->export map actor.0.weight == 0.weight: True shapes (512, 61)
+  actor->export map actor.2.bias == 2.bias: True shapes (256,)
+  actor->export map actor.2.weight == 2.weight: True shapes (256, 512)
+  actor->export map actor.4.bias == 4.bias: True shapes (128,)
+  actor->export map actor.4.weight == 4.weight: True shapes (128, 256)
+  actor->export map actor.6.bias == 6.bias: True shapes (12,)
+  actor->export map actor.6.weight == 6.weight: True shapes (12, 128)
+  => deployed weight match: ALL EQUAL
+

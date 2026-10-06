@@ -1,0 +1,29 @@
+{
+  "baseline_identity_sha256": "99b995b056508aebac56969c47041190720d208f50735520729e5bb5dde82325",
+  "canonical_encoding": "json.dumps(input, sort_keys=True, separators=(',', ':')).encode('utf-8'); sha256",
+  "canonical_input": {
+    "abs_controller_config_sha256": "1cd42c4bb29baad1873bd55e7f2f1d82fb0c8ec8bf35fb8e4eff61338758c586",
+    "agile_policy_sha256": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf",
+    "capture_dir": "capture_20260901_rerun",
+    "controller_plugin_sha256": "2b31e558471227a385906239a4fd20d1f9cb759a4960c743b6f5065f13fe6d4e",
+    "generator": "scripts/build_p1_08_baseline_identity.py",
+    "generator_sha256": "595bbd078456a05a88767873d3012c18b58b018586fbb3fded9af83141b6011d",
+    "generator_version": "1.0",
+    "git_commit": "d27f34d97cc8e449d1e24497a5b11db4a07badec",
+    "git_dirty": true,
+    "hardware_plugin_sha256": "9c56d00d1cca1d396d760c21bce54bbb4dc0e9f7cd7453e4060940fb8c13918d",
+    "manifest_sha256": "fb349e642d29774af8430b3da368aa7164c449f062b4ee0cd90d919b0c20638c",
+    "model_closure_sha256": "8d9218de0dc02978fc0ef4ba1c790fa3b968fbdbfdb945e14522436a2574ea07",
+    "mujoco_binary_sha256": "f51ee4326f0099c48d39616b80290e9b3e5ac2dd0682651f4bfa2e7fd51fd07c",
+    "mujoco_simulate_config_sha256": "86fcfab9ecdf888901340697ef9c99fcc72bbd3d88c86f2178b4ce2ab2c88b95",
+    "process_facts_sha256": "61f99490e0056577a3945282ab09d35e7fe2f4579c05dbb9e7002faa25edda07",
+    "ra_model_sha256": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7",
+    "recovery_policy_sha256": "e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171",
+    "robot_control_config_sha256": "59c61ad4f29c2b37b3741236b35ce11c773fb6cfe16ed8d58b92757febf8bf7c",
+    "rt_frame_timing_sha256": "a0be67c98fefc484e2a96d8a0b1633661820e2b0d192633b59eb141e3aa01ca7",
+    "schema": "abs-go2-p1-08-baseline-identity/v1",
+    "sim_clock_timing_sha256": "8d8220129212c8ae30209033ae86fa8149c0444f8fd7131ac27c7773890011aa"
+  },
+  "generator_version": "1.0",
+  "schema": "abs-go2-p1-08-baseline-identity/v1"
+}

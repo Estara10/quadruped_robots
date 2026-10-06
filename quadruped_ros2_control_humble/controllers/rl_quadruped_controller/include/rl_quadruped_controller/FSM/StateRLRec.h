@@ -9,6 +9,10 @@
 #include <rl_quadruped_controller/control/CtrlComponent.h>
 #include <torch/script.h>
 
+#include <atomic>
+#include <thread>
+
+#include "rl_quadruped_controller/common/StoppableThread.h"
 #include "controller_common/FSM/FSMState.h"
 
 struct CtrlComponent;
@@ -104,6 +108,7 @@ struct ModelParamsRec
     torch::Tensor rl_kp;
     torch::Tensor commands_scale;
     torch::Tensor default_dof_pos;
+    torch::Tensor dof_bias;  // nominal deployment calibration, controller order
     double contact_threshold = 1.0;
     std::string policy_joint_order = "fr_first";
 };
@@ -127,6 +132,7 @@ public:
     explicit StateRLRec(CtrlInterfaces& ctrl_interfaces,
                         CtrlComponent& ctrl_component,
                         const std::vector<double>& target_pos);
+    ~StateRLRec() override;
 
     void enter() override;
     void run(const rclcpp::Time& time, const rclcpp::Duration& period) override;
@@ -142,6 +148,8 @@ private:
     void getState();
     void runModel();
     void setCommand() const;
+    void startRlThread();
+    void stopRlThread();
 
     std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_;
     CtrlComponent& ctrl_component_;
@@ -164,12 +172,16 @@ private:
 
     torch::jit::script::Module model_;
     bool use_rl_thread_ = true;
-    std::thread rl_thread_;
-    bool running_ = false;
+    // running_ gates model execution while the state is active. The owner
+    // starts one worker per enter() and always joins it in exit()/destruction.
+    rl_quadruped_controller::StoppableThread rl_thread_;
+    std::atomic<bool> running_{false};
     bool updated_ = false;
 
     torch::Tensor output_torques;
     torch::Tensor output_dof_pos_;
+    torch::Tensor last_contacts_;
+    bool safety_faulted_ = false;
 
     int rl_step_count_ = 0;
     int sync_decimation_counter_ = 0;
@@ -179,6 +191,8 @@ private:
     torch::Tensor ctrlToPolicyDofOrder(const torch::Tensor& ctrl_order) const;
     torch::Tensor policyToCtrlDofOrder(const torch::Tensor& policy_order) const;
     torch::Tensor ctrlToPolicyContactOrder(const torch::Tensor& ctrl_order) const;
+    void safetyVeto(const char* stage);
+    bool finiteMotorCommand() const;
 };
 
 #endif //STATERLREC_H

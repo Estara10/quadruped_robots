@@ -1,0 +1,181 @@
+# 常用命令速查
+
+## 1. 环境刷新
+
+每个新终端：
+
+```bash
+cd ~/quadruped_robots/quadruped_ros2_control_humble
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:$LD_LIBRARY_PATH
+```
+
+## 2. 仿真模式
+
+```bash
+cd ~/quadruped_robots
+python3 - <<'PY'
+from pathlib import Path
+p = Path('quadruped_ros2_control_humble/descriptions/unitree/go2_description/xacro/ros2_control.xacro')
+s = p.read_text()
+s = s.replace('<param name="domain">0</param>', '<!--<param name="domain">0</param>-->')
+s = s.replace('<param name="network_interface">enp7s0</param>', '<!--<param name="network_interface">enp7s0</param>-->')
+p.write_text(s)
+PY
+cd quadruped_ros2_control_humble && source /opt/ros/humble/setup.bash
+colcon build --packages-select go2_description --symlink-install
+```
+
+## 3. 真机模式
+
+```bash
+cd ~/quadruped_robots
+python3 - <<'PY'
+from pathlib import Path
+p = Path('quadruped_ros2_control_humble/descriptions/unitree/go2_description/xacro/ros2_control.xacro')
+s = p.read_text()
+s = s.replace('<!--<param name="domain">0</param>-->', '<param name="domain">0</param>')
+s = s.replace('<!--<param name="network_interface">enp7s0</param>-->', '<param name="network_interface">enp7s0</param>')
+p.write_text(s)
+PY
+cd quadruped_ros2_control_humble && source /opt/ros/humble/setup.bash
+colcon build --packages-select go2_description --symlink-install
+```
+
+## 4. 编译
+
+```bash
+cd ~/quadruped_robots/quadruped_ros2_control_humble
+source /opt/ros/humble/setup.bash
+export CMAKE_PREFIX_PATH="/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/control_input_msgs:/home/lidio/Libraries/unitree_sdk2:$CMAKE_PREFIX_PATH"
+colcon build --packages-select hardware_unitree_mujoco rl_quadruped_controller keyboard_input go2_description --symlink-install \
+  --cmake-args -DTorch_DIR=/home/lidio/Libraries/libtorch-cpu-2.0.1/share/cmake/Torch
+```
+
+## 5. 仿真
+
+避障场景：
+
+```bash
+cd ~/quadruped_robots
+source quadruped_ros2_control_humble/install/setup.bash
+export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:$LD_LIBRARY_PATH
+./scripts/launch_abs_obstacle.sh
+```
+
+指定场景：
+
+```bash
+MUJOCO_SCENE=scene_flat.xml   ./scripts/launch_abs_obstacle.sh
+MUJOCO_SCENE=scene_rand_03.xml ./scripts/launch_abs_obstacle.sh
+```
+
+手动模式：
+
+```bash
+AUTO_RL=false MUJOCO_SCENE=scene_flat.xml ./scripts/launch_abs_obstacle.sh
+```
+
+键盘：
+
+```bash
+cd ~/quadruped_robots/quadruped_ros2_control_humble
+source install/setup.bash
+ros2 run keyboard_input keyboard_input
+```
+
+按键：
+
+```text
+2 → FIXEDDOWN / FIXEDSTAND 切换
+3 → RL（仅仿真）
+4 → 手动 RL_REC（仅仿真）
+1 → PASSIVE 卸力
+9 → HARD STOP 急停卸力
+Space → 清零输入
+W/S/A/D/J/L → 速度/目标微调
+```
+
+## 6. 真机
+
+网线连接：
+
+```bash
+sudo ip addr add 192.168.123.100/24 dev enp7s0
+ping -c 3 192.168.123.161
+```
+
+机器人趴下，启动控制器：
+
+```bash
+cd ~/quadruped_robots/quadruped_ros2_control_humble
+source install/setup.bash
+export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:$LD_LIBRARY_PATH
+ros2 launch rl_quadruped_controller mujoco.launch.py
+```
+
+必须看到：
+
+```text
+network_interface: enp7s0, domain: 0
+[MOTOR-MAP] controller[0] FR_hip_joint -> Unitree motor[0]
+...
+[VERIFY] joint interface order: FR_hip_joint FR_thigh_joint FR_calf_joint ... RL_calf_joint
+Motion service is already deactivated
+Configured and activated rl_quadruped_controller
+```
+
+键盘：
+
+```bash
+cd ~/quadruped_robots/quadruped_ros2_control_humble
+source install/setup.bash
+ros2 run keyboard_input keyboard_input
+```
+
+真机操作：
+
+```text
+9 → 确认卸力正常
+2 → FIXEDDOWN（蹲）
+2 → FIXEDSTAND（站）
+9 → 急停卸力
+Ctrl+C → 退出（自动恢复遥控器 sport_mode）
+
+真机禁止按 3！RL/ABS 需要真实 ray2d 感知。
+```
+
+监控：
+
+```bash
+ros2 topic echo /joint_states --once
+ros2 control list_controllers
+```
+
+## 7. 路径跟踪参数调优
+
+只改 YAML，不重编 C++：
+
+```yaml
+# quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml
+path_lateral_gain: 3.0    # 当前值，越大约束越强
+path_heading_gain: 3.0
+```
+
+改后编译：
+
+```bash
+cd ~/quadruped_robots/quadruped_ros2_control_humble
+source /opt/ros/humble/setup.bash
+colcon build --packages-select go2_description --symlink-install
+```
+
+仿真验证日志看：
+
+```text
+[PATH] start=(...) goal=(...) tracking=1
+[GOAL] ... path_err=... path_on=...
+[RA-REC] 进入恢复 → path_on 自动切 0
+[RA-REC] 退出恢复 → path_on 自动切 1
+```

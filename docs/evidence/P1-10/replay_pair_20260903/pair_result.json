@@ -1,0 +1,65 @@
+{
+  "schema": "abs-go2-p1-10-same-seed-replay-result/v1",
+  "pair_id": "P1-10-REPLAY-20260903-flat_goal_forward-stabilized",
+  "pair_manifest": {
+    "path": "docs/evidence/P1-10/replay_pair_20260903/pair_manifest.json",
+    "sha256": "b86a19887dee8a441c7a5643eca698ea4a092a92bd549e972d41b1067c8f049e",
+    "status": "FROZEN_BEFORE_RUN_A"
+  },
+  "pair_status": "FAILED_FOR_THIS_PAIR",
+  "execution": {
+    "ordering_observed": "Run A attempted exactly once; Run B not attempted",
+    "run_a": {
+      "attempt_count": 1,
+      "status": "PREFLIGHT_FAIL",
+      "execution_facts_path": "docs/evidence/P1-10/replay_pair_20260903/run_A_execution_facts.json",
+      "preflight_path": "docs/evidence/P1-10/replay_pair_20260903/run_A_preflight_fail.json",
+      "preflight_sha256": "018d44f663731fbf911c681661f3ec151dbac9732f96cabbca600381977a3323",
+      "preflight_bytes": 14290,
+      "failure_stage": "x11",
+      "failure_reason": "xdpyinfo rc=1",
+      "runtime_prerequisites_reached": false,
+      "mujoco_started": false,
+      "ros2_started": false,
+      "record_created": false,
+      "pid_pgid": null,
+      "signals": [],
+      "wait_rc": null,
+      "forced_termination": false,
+      "orphan_inventory": "no child launched; residual identity scan state=none"
+    },
+    "run_b": {
+      "attempt_count": 0,
+      "status": "NOT_RUN_BY_POLICY",
+      "reason": "Run A failed at preflight; no retry or second run permitted"
+    }
+  },
+  "comparison": {
+    "status": "NOT_RUN",
+    "reason": "Run A did not produce a runtime record; Run B was prohibited",
+    "canonical_replay_projection_sha256": null,
+    "diff_report_sha256": null
+  },
+  "binding_verification": {
+    "scenario_id": "flat_goal_forward",
+    "scenario_sha256": "beba99ed4e6f6c8f84eb1ac514f2da4b6e910c1587fdf91f5e95ac6bc639e092",
+    "suite_manifest_sha256": "eb81d60742864fe9c870e957ba3ab601e80da3e64bc48a42c26f849570f3152d",
+    "resolved_manifest_sha256": "9b67bbd30dd363cc035a9dc3896e195027fb18ae8170f36b60648b47073cea42",
+    "root_seed": 20260902,
+    "scenario_root_seed_key": "fc887e89ce542e5062ba6669611cb459c4ffe7de35198c59df29cedc9b2bed29",
+    "p1_02_pairing_key": "6ac5d17dd81862e91dbf8cdbaacf141ca4d0e7b553bf8717f0f722d58b073d96",
+    "variant": "stabilized",
+    "variant_binding_sha256": "2f0dfc4e8bf5237a578d99030facc38459fd5f899af49b508e48e29b7e8a4e1c",
+    "baseline_manifest_sha256": "2667ed37a854f85e5a7c493e7d4a8b1871a84ce95d3e3b0742801d383f8dc915",
+    "baseline_identity_sha256": "59dd13fed5ebd026ec519f2659643237502be8e4d8df5174a65b7d35ceb4f7e0",
+    "initial_state_source": "scene_default / mj_makeData:qpos0",
+    "initial_state_binding_sha256": "f7907a927c31d3d6a5d497ab274b3d913bf4fc8ccb0e9713a9dbd1e182d0a9a0"
+  },
+  "known_unknowns": [
+    "No same-seed runtime replay was demonstrated.",
+    "No runtime record, frame count, rl_step sequence, event sequence, terminal classification, or numeric delta exists.",
+    "No runtime timing validity or process wait result exists because no child launched.",
+    "The X11 preflight failure prevented ldd, shm, and runtime capture checks from being reached."
+  ],
+  "scope_statement": "This is one failed newly authorized replay-pair attempt only; it is not benchmark, pilot, multi-seed evaluation, FormalRun acceptance, or Phase 1 acceptance."
+}

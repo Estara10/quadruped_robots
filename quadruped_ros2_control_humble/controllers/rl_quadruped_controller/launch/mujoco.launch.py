@@ -3,9 +3,9 @@ import os
 import xacro
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription, RegisterEventHandler
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription, RegisterEventHandler, SetEnvironmentVariable
 from launch.event_handlers import OnProcessExit
-from launch.substitutions import PathJoinSubstitution
+from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -108,5 +108,9 @@ def generate_launch_description():
 
     return LaunchDescription([
         pkg_description,
+        DeclareLaunchArgument(
+            'simulation_test', default_value='0',
+            description='Allow ABS_TEST_FAULT only for local MuJoCo fault-injection runs'),
+        SetEnvironmentVariable('ABS_SIMULATION_TEST', LaunchConfiguration('simulation_test')),
         OpaqueFunction(function=launch_setup),
     ])

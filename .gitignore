@@ -10,6 +10,11 @@ __pycache__/
 *.egg-info/
 .eggs/
 dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
 # Training logs and checkpoints (large, regeneratable)
 ABS/training/legged_gym/logs/
@@ -23,9 +28,13 @@ ABS/.git_backup/
 quadruped_ros2_control_humble/.git_backup/
 rl_sar/.git_backup/
 
+# Local restored repository copies (large, not part of this repository)
+/ABS_fuwuqi/
+
 # IDE
 .idea/
 .vscode/
+.vscodelogs/
 *.swp
 *.swo
 *~
@@ -46,3 +55,41 @@ anaconda3/
 rl_sar/src/rl_sar/library/thirdparty/robot_sdk/unitree/unitree_sdk2/.git_backup/
 build/qpoases_colcon/
 .mcp.json
+
+# MuJoCo generated/legacy
+unitree_mujoco/simulate/build2/
+unitree_mujoco/.git_backup/
+unitree_mujoco/doc/
+unitree_mujoco/example/
+unitree_mujoco/terrain_tool/
+unitree_mujoco/simulate_python/
+
+# Evaluation logs (large, regeneratable)
+logs/
+*.bag
+*.db3
+*.mcap
+MUJOCO_LOG.TXT
+
+# Generated presentation screenshots
+/tools/ppt_scene_demo/screenshots/
+
+# Locally restored external artifacts. Track only their manifests.
+artifacts/local/
+
+# Daily reports (kept locally, not in repo)
+日报/
+
+# Generated office docs
+*.docx
+
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
+
+# Other generated
+/skill
+/skill/
+*.tmp
+*.temp

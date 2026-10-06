@@ -1,0 +1,98 @@
+{
+  "capture_dir": "docs/evidence/P1-08/capture_20260901_rerun",
+  "controller_callback": {
+    "declared_source": "robot_control.yaml rl_quadruped_controller.update_rate",
+    "declared_update_rate_hz": 200,
+    "derived_period_ms": 4.999699552,
+    "derived_period_ns": 4999699.552,
+    "direct_per_callback_timestamps": "UNKNOWN - no authoritative runtime source exposes 200 Hz callbacks; derived under periodic-callback assumption"
+  },
+  "declared_decimation": 4,
+  "physics": {
+    "conclusion": "observed physics timestep == nominal opt.timestep 0.002 s",
+    "nominal_opt_timestep_s": 0.002,
+    "note": "dstep counts assume opt.timestep 0.002 s (probe-confirmed); sim_advance in seconds",
+    "observed_sim_advance_per_step_s": {
+      "max": 0.0020000000000024443,
+      "mean": 0.0020000000000000755,
+      "median": 0.0019999999999988916,
+      "min": 0.0019999999999988916,
+      "p95": 0.0020000000000024443,
+      "p99": 0.0020000000000024443,
+      "sample_count": 12499
+    },
+    "observed_wallclock_per_physics_step": {
+      "mean_hz": 500.011397521582,
+      "mean_ms": 1.9999544109528764,
+      "ns": {
+        "max": 5272889.0,
+        "mean": 1999954.4109528763,
+        "median": 2247450.0,
+        "min": 85489.0,
+        "p95": 2409136.6999999997,
+        "p99": 2550107.360000001,
+        "sample_count": 12499
+      }
+    },
+    "samples": 12500
+  },
+  "policy_tick": {
+    "name": "policy_rl_step",
+    "period_hz": {
+      "mean": 50.00300466054885,
+      "median": 49.99700267968935
+    },
+    "period_ms": {
+      "max": 47.836329,
+      "mean": 19.998798208,
+      "median": 20.001199,
+      "min": 3.341782,
+      "p95": 21.09938445,
+      "p99": 27.947193819999992
+    },
+    "period_ns": {
+      "max": 47836329,
+      "mean": 19998798.208,
+      "median": 20001199.0,
+      "min": 3341782,
+      "p95": 21099384.45,
+      "p99": 27947193.819999993
+    },
+    "sample_count": 1250
+  },
+  "ra_tick": {
+    "observed_period": {
+      "name": "policy_rl_step",
+      "period_hz": {
+        "mean": 50.00300466054885,
+        "median": 49.99700267968935
+      },
+      "period_ms": {
+        "max": 47.836329,
+        "mean": 19.998798208,
+        "median": 20.001199,
+        "min": 3.341782,
+        "p95": 21.09938445,
+        "p99": 27.947193819999992
+      },
+      "period_ns": {
+        "max": 47836329,
+        "mean": 19998798.208,
+        "median": 20001199.0,
+        "min": 3341782,
+        "p95": 21099384.45,
+        "p99": 27947193.819999993
+      },
+      "sample_count": 1250
+    },
+    "source": "runRAModel() invoked every RL step (StateRL.cpp)"
+  },
+  "recovery_active_samples": 0,
+  "recovery_tick": {
+    "name": "recovery_active",
+    "note": "insufficient samples",
+    "period_ns": null,
+    "sample_count": 0
+  },
+  "recovery_transitions": 0
+}

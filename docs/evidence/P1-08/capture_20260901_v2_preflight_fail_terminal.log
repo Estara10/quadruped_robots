@@ -1,0 +1,4 @@
+[20:03:16] == preflight ==
+[20:03:16] preflight: X11 reachable (DISPLAY=:0)
+[20:03:16] FAIL preflight: hardware plugin unresolved: ['\tlibddsc.so.0 => not found', '\tlibddscxx.so.0 => not found']
+[20:03:16] PRECHECK FAIL — not launching

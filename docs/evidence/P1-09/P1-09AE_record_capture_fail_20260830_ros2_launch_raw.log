@@ -1,0 +1,64 @@
+[INFO] [launch]: All log files can be found below /home/lidio/.ros/log/2026-08-30-11-28-09-498270-Estara-25115
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [rviz2-1]: process started with pid [25212]
+[INFO] [robot_state_publisher-2]: process started with pid [25214]
+[INFO] [ros2_control_node-3]: process started with pid [25216]
+[INFO] [spawner-4]: process started with pid [25218]
+[robot_state_publisher-2] [INFO] [1788060489.740010383] [robot_state_publisher]: got segment FL_calf
+[robot_state_publisher-2] [INFO] [1788060489.740197304] [robot_state_publisher]: got segment FL_foot
+[robot_state_publisher-2] [INFO] [1788060489.740204299] [robot_state_publisher]: got segment FL_hip
+[robot_state_publisher-2] [INFO] [1788060489.740207272] [robot_state_publisher]: got segment FL_thigh
+[robot_state_publisher-2] [INFO] [1788060489.740209876] [robot_state_publisher]: got segment FR_calf
+[robot_state_publisher-2] [INFO] [1788060489.740212632] [robot_state_publisher]: got segment FR_foot
+[robot_state_publisher-2] [INFO] [1788060489.740215154] [robot_state_publisher]: got segment FR_hip
+[robot_state_publisher-2] [INFO] [1788060489.740217731] [robot_state_publisher]: got segment FR_thigh
+[robot_state_publisher-2] [INFO] [1788060489.740220339] [robot_state_publisher]: got segment RL_calf
+[robot_state_publisher-2] [INFO] [1788060489.740222911] [robot_state_publisher]: got segment RL_foot
+[robot_state_publisher-2] [INFO] [1788060489.740225457] [robot_state_publisher]: got segment RL_hip
+[robot_state_publisher-2] [INFO] [1788060489.740228234] [robot_state_publisher]: got segment RL_thigh
+[robot_state_publisher-2] [INFO] [1788060489.740230634] [robot_state_publisher]: got segment RR_calf
+[robot_state_publisher-2] [INFO] [1788060489.740233092] [robot_state_publisher]: got segment RR_foot
+[robot_state_publisher-2] [INFO] [1788060489.740235530] [robot_state_publisher]: got segment RR_hip
+[robot_state_publisher-2] [INFO] [1788060489.740237908] [robot_state_publisher]: got segment RR_thigh
+[robot_state_publisher-2] [INFO] [1788060489.740240273] [robot_state_publisher]: got segment base
+[robot_state_publisher-2] [INFO] [1788060489.740242792] [robot_state_publisher]: got segment front_camera
+[robot_state_publisher-2] [INFO] [1788060489.740245359] [robot_state_publisher]: got segment imu_link
+[robot_state_publisher-2] [INFO] [1788060489.740247746] [robot_state_publisher]: got segment lidar
+[robot_state_publisher-2] [INFO] [1788060489.740250182] [robot_state_publisher]: got segment trunk
+[ros2_control_node-3] [INFO] [1788060489.752296163] [controller_manager]: Subscribing to '~/robot_description' topic for robot description file.
+[ros2_control_node-3] [INFO] [1788060489.753138159] [controller_manager]: update rate is 1000 Hz
+[ros2_control_node-3] [INFO] [1788060489.753157964] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-3] [WARN] [1788060489.753231871] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[ros2_control_node-3] [INFO] [1788060489.763491579] [controller_manager]: Received robot description file.
+[ros2_control_node-3] [INFO] [1788060489.763833714] [resource_manager]: Loading hardware 'UnitreeSystem' 
+[ros2_control_node-3] [ERROR] [1788060489.765409682] [controller_manager]: The published robot description file (urdf) seems not to be genuine. The following error was caught:Failed to load library /home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/hardware_unitree_mujoco/lib/libhardware_unitree_mujoco.so. Make sure that you are calling the PLUGINLIB_EXPORT_CLASS macro in the library code, and that names are consistent between this macro and your XML. Error string: Could not load library dlopen error: libddsc.so.0: cannot open shared object file: No such file or directory, at ./src/shared_library.c:99
+[spawner-4] [INFO] [1788060489.973703861] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[rviz2-1] [INFO] [1788060490.255497487] [rviz2]: Stereo is NOT SUPPORTED
+[rviz2-1] [INFO] [1788060490.255582030] [rviz2]: OpenGl version: 4.6 (GLSL 4.6)
+[rviz2-1] [INFO] [1788060490.273882559] [rviz2]: Stereo is NOT SUPPORTED
+[spawner-4] [WARN] [1788060499.989381651] [spawner_joint_state_broadcaster]: Could not contact service /controller_manager/list_controllers
+[spawner-4] [INFO] [1788060499.990276099] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[spawner-4] [WARN] [1788060510.005936966] [spawner_joint_state_broadcaster]: Could not contact service /controller_manager/list_controllers
+[spawner-4] [INFO] [1788060510.007684858] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[spawner-4] [WARN] [1788060520.024261045] [spawner_joint_state_broadcaster]: Could not contact service /controller_manager/list_controllers
+[spawner-4] [INFO] [1788060520.025251562] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[spawner-4] [WARN] [1788060530.041267949] [spawner_joint_state_broadcaster]: Could not contact service /controller_manager/list_controllers
+[spawner-4] [INFO] [1788060530.041587258] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[spawner-4] [WARN] [1788060540.057565510] [spawner_joint_state_broadcaster]: Could not contact service /controller_manager/list_controllers
+[spawner-4] [INFO] [1788060540.058572528] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[spawner-4] [WARN] [1788060550.074359824] [spawner_joint_state_broadcaster]: Could not contact service /controller_manager/list_controllers
+[spawner-4] [INFO] [1788060550.075386379] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[spawner-4] [WARN] [1788060560.092398514] [spawner_joint_state_broadcaster]: Could not contact service /controller_manager/list_controllers
+[spawner-4] [INFO] [1788060560.093349566] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[spawner-4] [WARN] [1788060570.109454847] [spawner_joint_state_broadcaster]: Could not contact service /controller_manager/list_controllers
+[spawner-4] [INFO] [1788060570.109689635] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [rviz2-1]: process has finished cleanly [pid 25212]
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [spawner-4]: sending signal 'SIGINT' to process[spawner-4]
+[INFO] [ros2_control_node-3]: sending signal 'SIGINT' to process[ros2_control_node-3]
+[INFO] [robot_state_publisher-2]: sending signal 'SIGINT' to process[robot_state_publisher-2]
+[ros2_control_node-3] [INFO] [1788060573.657243152] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[robot_state_publisher-2] [INFO] [1788060573.657794460] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[INFO] [robot_state_publisher-2]: process has finished cleanly [pid 25214]
+[INFO] [ros2_control_node-3]: process has finished cleanly [pid 25216]
+[INFO] [spawner-4]: process has finished cleanly [pid 25218]

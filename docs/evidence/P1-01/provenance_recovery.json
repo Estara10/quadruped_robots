@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "task": "P1-01 Provenance Closure",
+  "captured_on": "2026-08-25",
+  "last_investigated_on": "2026-08-26",
+  "scope": "Recovered training-artifact provenance plus targeted historical order/binding/metadata retrieval from the approved ABS_fuwuqi paths; no policy or controller code changed",
+  "evidence_root": "ABS_fuwuqi/ABS",
+  "method": {
+    "artifact_identity": "SHA-256 and byte size",
+    "lineage_test": "Exact equality of every actor/source-model state_dict tensor against the recovered export and installed deployment artifact",
+    "run_test": "Checkpoint iteration plus TensorBoard event step span",
+    "unknown_rule": "Names and co-location are not sufficient; unavailable invocation, seed, commit, or persisted dataset remains UNKNOWN"
+  },
+  "environment": {
+    "python": "3.8.20",
+    "torch": "2.0.1+cu118",
+    "recovered_repository_head": "9b95329ffb823c15dead02be620ff96938e4d0a3",
+    "repository_status": "Recovered ABS tree contains uncommitted and untracked Go2 training additions; this HEAD is not claimed as the historical training commit"
+  },
+  "artifacts": {
+    "agile_policy": {
+      "status": "WEIGHT_LINEAGE_VERIFIED",
+      "training_run": "go2_pos_rough/05_27_15-53-31_",
+      "checkpoint": {
+        "path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/05_27_15-53-31_/model_4000.pt",
+        "size_bytes": 4743147,
+        "sha256": "a21419d2636c5ad6782b4be87a2ad7335a2b671ce2d6463c08e19fe49ead912f",
+        "iter": 4000,
+        "actor_architecture": [61, 512, 256, 128, 12]
+      },
+      "run_log": {
+        "path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/05_27_15-53-31_/events.out.tfevents.1779868413.c1505-R5300-G5.1583700.0",
+        "size_bytes": 8287658,
+        "sha256": "caeb98ffeaec67fbe86542b789d31830e71c8b3594ba75783aaa35a7c9f6ae62",
+        "scalar_steps": [0, 3999],
+        "scalar_count": 4000,
+        "wall_time_utc": ["2026-05-27T07:53:40.582601+00:00", "2026-05-27T18:12:24.277428+00:00"]
+      },
+      "export": {
+        "path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/policies/05_27_15-53-31_model_4000.pt",
+        "size_bytes": 801726,
+        "sha256": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf",
+        "implementation": [
+          "ABS_fuwuqi/ABS/training/legged_gym/legged_gym/scripts/play.py:70-79",
+          "ABS_fuwuqi/ABS/training/legged_gym/legged_gym/utils/helpers.py:184-194"
+        ],
+        "implementation_sha256": {
+          "play.py": "cd585162365133a8be24b47e108b697ca7e27320ae34b29a1373df41f954ddb5",
+          "helpers.py": "3fd71dfb8b8164c3a2e2da0c2cf77082f470aaf5d7a54c1b3f48d8963b824c4d"
+        },
+        "exact_invocation": "UNKNOWN"
+      },
+      "deployment": {
+        "path": "quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/policy.pt",
+        "size_bytes": 801726,
+        "sha256": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf",
+        "byte_equal_to_recovered_export": true
+      },
+      "verification": {
+        "checkpoint_actor_tensor_count": 8,
+        "checkpoint_to_export_all_actor_tensors_exact": true,
+        "checkpoint_to_deployment_all_actor_tensors_exact": true,
+        "export_to_deployment_bytes_exact": true
+      },
+      "unknown": ["training seed", "historical training Git commit", "immutable exact-run config/source snapshot", "artifact joint/contact/action order", "exact export invocation and export-time environment"],
+      "historical_retrieval": {
+        "status": "UNKNOWN",
+        "run_directory_inventory": "Only model_0.pt through model_4000.pt at 200-iteration intervals plus one TensorBoard event file; no config snapshot, params/hparams file, command/launch record, or metadata file",
+        "checkpoint_embedded_metadata": "Only model_state_dict, optimizer_state_dict, iter=4000, infos=None; no config, order, seed, command, or Git identity",
+        "tensorboard_metadata": "No hparams, tensor tags, graph, run_metadata, seed, command, checkpoint path, config, joint names, or foot names",
+        "git_result": "The Go2 position config is untracked and absent from all recovered Git objects/history; run and exported paths are ignored by training/legged_gym/.gitignore and absent from Git history",
+        "impact": "No immutable evidence binds model_4000.pt to the current FL/FR/RL/RR candidate source snapshot, so deployed Agile joint/action/contact/foot order remains UNKNOWN"
+      }
+    },
+    "ra_value": {
+      "status": "SOURCE_MODEL_AND_DEPLOYED_WEIGHT_LINEAGE_VERIFIED; DATASET_NOT_PERSISTED",
+      "source_model": {
+        "path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/RA/05_27_15-53-31_model_4000_ra.pt",
+        "size_bytes": 26047,
+        "sha256": "ed3c75f41ada130c150ba3c1101ebc72e85f7d25732314a582ef8303f02aaa92",
+        "architecture": [19, 64, 64, 1]
+      },
+      "agile_binding": {
+        "status": "SOURCE_CODE_SUPPORTED CANDIDATE; EXACT EXECUTED AGILE BINDING UNKNOWN",
+        "candidate_agile_checkpoint": "go2_pos_rough/05_27_15-53-31_/model_4000.pt",
+        "candidate_agile_checkpoint_sha256": "a21419d2636c5ad6782b4be87a2ad7335a2b671ce2d6463c08e19fe49ead912f",
+        "evidence": [
+          "testbed.py loads task_registry.loaded_policy_path and derives policy_name from that path at lines 193-198",
+          "testbed.py trains RA while executing that loaded policy at lines 316 and 498-570",
+          "testbed.py derives and saves RA_name from policy_name at lines 563-570",
+          "the recovered RA source filename is 05_27_15-53-31_model_4000_ra.pt"
+        ],
+        "limitation": "No RA execution log, command record, dataset manifest, or embedded model metadata independently records the loaded Agile checkpoint; under the no-filename-inference rule, exact binding remains UNKNOWN"
+      },
+      "dataset": {
+        "status": "EPHEMERAL_ONLINE_GENERATION; NO PERSISTED DATASET ARTIFACT FOUND",
+        "generator": "ABS_fuwuqi/ABS/training/legged_gym/legged_gym/scripts/testbed.py:227-242,289-316,360-371,498-570",
+        "generator_sha256": "1ac0fd4a942a58d34aa7f6e26ddf995355439a38265970bef2acca33ffd777f3",
+        "state": "19-D [base_lin_vel(3), base_ang_vel(3), Agile goal x/y(2), Agile rays(11)]",
+        "buffers": "1001-step in-memory queues s_queue, g_queue, g_hs_queue, l_queue and done_queue",
+        "persistence": "No dataset file is written by the recovered generator and no dataset artifact was found",
+        "exact_samples_hash": "UNKNOWN",
+        "episode_count": "UNKNOWN"
+      },
+      "conversion": {
+        "script": "scripts/convert_ra_to_jit.py",
+        "script_sha256": "937dd4453d0fecc0d2bc48cb3a7683fadde0772ab3775a287703d8d9baeebdaa",
+        "source": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/RA/05_27_15-53-31_model_4000_ra.pt",
+        "source_sha256": "ed3c75f41ada130c150ba3c1101ebc72e85f7d25732314a582ef8303f02aaa92",
+        "export": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/RA/ra_value_jit.pt",
+        "export_sha256": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7",
+        "exact_invocation": "UNKNOWN"
+      },
+      "deployment": {
+        "path": "quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/ra_value.pt",
+        "size_bytes": 32011,
+        "sha256": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7",
+        "byte_equal_to_recovered_export": true
+      },
+      "verification": {
+        "source_tensor_count": 6,
+        "source_to_export_all_tensors_exact": true,
+        "source_to_deployment_all_tensors_exact": true,
+        "export_to_deployment_bytes_exact": true
+      },
+      "unknown": ["persisted dataset/sample hash", "dataset episode count", "exact executed Agile checkpoint binding", "RA training seed", "RA training invocation/environment", "historical training Git commit", "exact conversion invocation"],
+      "historical_retrieval": {
+        "status": "UNKNOWN",
+        "ra_directory_inventory": "Only 05_27_15-53-31_model_4000_ra.pt and ra_value_jit.pt; no execution log, command record, dataset manifest, params/hparams, or metadata sidecar",
+        "source_model_embedded_metadata": "Archive names contain the candidate filename but no loaded checkpoint path, checkpoint hash, dataset identity, seed, command, or Git identity",
+        "tensorboard_metadata": "The Agile PPO TensorBoard event has no RA hparams, loaded-policy record, command, or dataset manifest",
+        "git_result": "No recovered Git history contains either run identifier; logs/ is ignored and the current modified testbed.py does not constitute an immutable RA execution record",
+        "impact": "The code-derived filename candidate remains insufficient under the binding standard; exact executed Agile checkpoint binding remains UNKNOWN"
+      }
+    },
+    "recovery_policy": {
+      "status": "WEIGHT_LINEAGE_VERIFIED",
+      "training_run": "go2_rec_rough/06_04_22-43-20_",
+      "checkpoint": {
+        "path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_rec_rough/06_04_22-43-20_/model_15000.pt",
+        "size_bytes": 4595761,
+        "sha256": "51ee8e6545871f32feb6b40d00e82ddafd255acf74aad61a79c6cf37053eeec5",
+        "iter": 15000,
+        "actor_architecture": [49, 512, 256, 128, 12]
+      },
+      "run_log": {
+        "path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_rec_rough/06_04_22-43-20_/events.out.tfevents.1780584201.c1505-R5300-G5.1355698.0",
+        "size_bytes": 25917464,
+        "sha256": "8d56965dee3d28fce057253d00ff549a359646de495990465f1c7ec5741466fe",
+        "scalar_steps": [0, 14999],
+        "scalar_count": 15000,
+        "wall_time_utc": ["2026-06-04T14:43:28.617307+00:00", "2026-06-05T03:15:09.115994+00:00"]
+      },
+      "export": {
+        "path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_rec_rough/exported/policies/policy.pt",
+        "size_bytes": 775715,
+        "sha256": "e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171",
+        "script": "ABS_fuwuqi/ABS/training/legged_gym/legged_gym/export_rec_policy.py",
+        "script_sha256": "d2539d255fb068686f6a6323e063d834c2373ccd22968c7f0247bc094cf83c3f",
+        "documented_invocation": "python export_rec_policy.py /data/sxq/ABS/training/legged_gym/logs/go2_rec_rough/06_04_22-43-20_/model_15000.pt /data/sxq/ABS/training/legged_gym/logs/go2_rec_rough/exported/policies/",
+        "execution_log": "UNKNOWN"
+      },
+      "deployment": {
+        "path": "quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/rec/policy.pt",
+        "size_bytes": 775715,
+        "sha256": "e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171",
+        "byte_equal_to_recovered_export": true
+      },
+      "verification": {
+        "checkpoint_actor_tensor_count": 8,
+        "checkpoint_to_export_all_actor_tensors_exact": true,
+        "checkpoint_to_deployment_all_actor_tensors_exact": true,
+        "export_to_deployment_bytes_exact": true
+      },
+      "unknown": ["training seed", "historical training Git commit", "immutable exact-run config/source snapshot", "artifact joint/contact/action order", "export execution log and export-time environment"],
+      "historical_retrieval": {
+        "status": "UNKNOWN",
+        "run_directory_inventory": "Only model_0.pt through model_15000.pt at 200-iteration intervals plus one TensorBoard event file; no config snapshot, params/hparams file, command/launch record, or metadata file",
+        "checkpoint_embedded_metadata": "Only model_state_dict, optimizer_state_dict, iter=15000, infos=None; no config, order, seed, command, or Git identity",
+        "tensorboard_metadata": "No hparams, tensor tags, graph, run_metadata, seed, command, checkpoint path, config, joint names, or foot names",
+        "git_result": "The Go2 recovery config and export_rec_policy.py are untracked and absent from all recovered Git objects/history; run and exported paths are ignored by training/legged_gym/.gitignore and absent from Git history",
+        "impact": "No immutable evidence binds model_15000.pt to the current FL/FR/RL/RR candidate source snapshot, so deployed Recovery joint/action/contact/foot order remains UNKNOWN"
+      }
+    }
+  },
+  "historical_retrieval_2026_08_26": {
+    "targets": {
+      "agile_and_recovery_training_order": "UNKNOWN",
+      "ra_exact_agile_binding": "UNKNOWN",
+      "historical_training_git_commit": "UNKNOWN",
+      "immutable_config_snapshot": "UNKNOWN",
+      "training_seed": "UNKNOWN",
+      "agile_export_invocation": "UNKNOWN",
+      "recovery_export_execution_record": "UNKNOWN",
+      "ra_conversion_invocation": "UNKNOWN"
+    },
+    "scoped_locations_checked": [
+      "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/05_27_15-53-31_/",
+      "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_rec_rough/06_04_22-43-20_/",
+      "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/",
+      "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_rec_rough/exported/",
+      "the training/export files already cited by this evidence",
+      "ABS_fuwuqi/ABS/.git through targeted status, log, rev-list, ls-files, check-ignore, and pickaxe queries"
+    ],
+    "git_queries": [
+      {
+        "command": "git -C ABS_fuwuqi/ABS status --short -- <cited Go2 configs/training/export files>",
+        "result": "go2_pos_config.py, go2_rec_config.py, and export_rec_policy.py are untracked; envs/__init__.py and testbed.py are modified"
+      },
+      {
+        "command": "git -C ABS_fuwuqi/ABS log --all --date=iso --format=<hash,date,subject> -- <cited Go2 configs/training/export files>",
+        "result": "No commit for the untracked Go2 config/export files; only upstream commit 713c3cc... for pre-existing tracked training files"
+      },
+      {
+        "command": "git -C ABS_fuwuqi/ABS rev-list --all --objects | grep <Go2 config/export paths>",
+        "result": "No matching Git object"
+      },
+      {
+        "command": "git -C ABS_fuwuqi/ABS log --all -S<go2_pos_rough|go2_rec_rough|05_27_15-53-31_|06_04_22-43-20_> -- training/legged_gym",
+        "result": "No matching commit"
+      },
+      {
+        "command": "git -C ABS_fuwuqi/ABS log --all -- <two run directories and exported directories>",
+        "result": "No history; training/legged_gym/.gitignore:54 ignores logs/",
+        "supporting_file": "ABS_fuwuqi/ABS/training/legged_gym/.gitignore",
+        "supporting_file_sha256": "17d4220b99a4bc6b3169ea0cdc2bb0a8d1424e34c7cc1d827705505e7fbf5cef"
+      }
+    ],
+    "conclusion": "The additional targeted retrieval produced negative evidence only. It does not close historical order, RA exact binding, commit/config/seed, or exact invocation. UNKNOWN is preserved."
+  },
+  "conflicts_and_limits": [
+    "The recovered ABS Git checkout is at upstream HEAD 9b95329... but the Go2 configs, export_rec_policy.py, and run outputs are untracked; 9b95329... is not evidence of the historical training commit.",
+    "Fresh re-exports under the available Torch 2.0.1 environment preserve all model weights and tested outputs but are not byte-identical to the archived exports; exact export-time environment remains UNKNOWN.",
+    "RA training uses an online in-memory queue. The recovered tree contains the trained RA source model but no persisted episode dataset, seed record, command log, or exact sample manifest.",
+    "TensorBoard logs prove run spans but contain no hparams, graph, run metadata, seed, command line, loaded checkpoint, Git commit, saved configuration, joint names, or foot names.",
+    "Targeted recovered Git history contains no Go2 config/export object and no run-identifier commit; the current Go2 configs/export script are untracked, testbed.py is modified, and logs/ is ignored.",
+    "The 2026-08-26 retrieval found no new immutable positive artifact; it records search coverage and preserves all affected facts as UNKNOWN.",
+    "This evidence closes model weight lineage, not immutable historical training configuration, artifact joint/contact/action order, real Go2 foot-force semantics, or independent Reviewer acceptance."
+  ]
+}

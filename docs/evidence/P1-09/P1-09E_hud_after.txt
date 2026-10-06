@@ -1,0 +1,4 @@
+P1-09D read-only terminal HUD — source: only /mujoco_rt_frame (no benchmark, no success/arrival/collision conclusions)
+[ INVALID ] no live simulation data
+  reason: frame is corrupt (size/magic/version/sequence/flags/non-finite)
+  previous frame values are NOT shown (no residual data).

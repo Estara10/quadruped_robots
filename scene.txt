@@ -1,0 +1,112 @@
+# MuJoCo Go2 场景说明
+
+坐标约定：
+
+```text
+机器人朝 +x 前进
+y > 0 = 左侧障碍
+y < 0 = 右侧障碍
+中线 = 靠近机器人正前方路径，最容易触发避障
+```
+
+运行格式：
+
+```bash
+cd ~/quadruped_robots
+MUJOCO_SCENE=场景名.xml ./scripts/launch_abs_obstacle.sh
+```
+
+---
+
+## 场景列表
+
+| 场景 | 左/右/中线分布 | 难度/适合度 | 说明 |
+|---|---:|---|---|
+| `scene.xml` | 无障碍 | 低 | 默认空场景，不适合测避障，只测基础行走 |
+| `scene_flat.xml` | 无障碍 | 低 | 平地基线，适合测速度、偏航、直线性 |
+| `scene_obstacle.xml` | 左3 / 右4 / 中1 | 高 | 标准避障场景，最推荐 |
+| `scene_test1.xml` | 左3 / 右4 / 中1 | 高 | 基本等同 `scene_obstacle.xml` |
+| `scene_test2.xml` | 左4 / 右4 / 中1 | 高 | 左右均衡，适合看策略是否偏向某一边 |
+| `scene_test3.xml` | 左3 / 右7 / 中2 | 高 | 右侧障碍偏多，适合测右侧绕行/避障 |
+| `scene_test4.xml` | 左2 / 右3 / 中2 | 中-高 | 障碍较少但靠中线，适合调试 recovery 触发 |
+| `scene_test5.xml` | 左2 / 右6 / 中2 | 高 | 右侧偏多，中等难度 |
+| `scene_rand_01.xml` | 左3 / 右6 / 中1 | 中-高 | 右侧偏多，障碍分散 |
+| `scene_rand_02.xml` | 左5 / 右7 / 中3 | 高 | 障碍多，中线障碍多，较难 |
+| `scene_rand_03.xml` | 左3 / 右6 / 中4 | 很高 | 中线障碍最多之一，容易触发 recovery |
+| `scene_rand_04.xml` | 左7 / 右4 / 中2 | 高 | 左侧偏多，适合测左侧绕行 |
+| `scene_rand_05.xml` | 左3 / 右7 / 中3 | 高 | 右侧偏多，中线也多 |
+| `scene_rand_06.xml` | 左4 / 右8 / 中2 | 高 | 右侧障碍最多，偏难 |
+| `scene_rand_07.xml` | 左5 / 右2 / 中2 | 中-高 | 左侧偏多，障碍相对靠后 |
+| `scene_rand_08.xml` | 左5 / 右2 / 中4 | 很高 | 左侧偏多且中线障碍多，难 |
+| `scene_rand_09.xml` | 左4 / 右7 / 中2 | 高 | 右侧偏多，适合随机鲁棒性测试 |
+| `scene_rand_10.xml` | 左4 / 右5 / 中1 | 中-高 | 比较均衡，适合普通测试 |
+| `scene_slope.xml` | 无障碍 | 中 | 坡地，不是避障，适合测坡地稳定性 |
+| `scene_side_slope.xml` | 无障碍 | 中-高 | 侧坡，适合测横向稳定，不适合测避障 |
+| `scene_slope_obstacle.xml` | 左1 / 右1 / 中2 | 高 | 坡地 + 障碍，难度高，后面再测 |
+| `scene_terrain.xml` | 地形块很多 | 很高/不建议当前基础验证 | 更像复杂地形，不适合当前 ABS 基础调试 |
+
+---
+
+## 推荐测试顺序
+
+### 1. 平地直线
+
+```bash
+MUJOCO_SCENE=scene_flat.xml ./scripts/launch_abs_obstacle.sh
+```
+
+看：
+
+```text
+[EVAL] robot=(x,y) yaw=...
+[GOAL] ... path_err=... path_on=1
+```
+
+目标：中途横向偏移尽量小；无 recovery。
+
+### 2. 标准避障
+
+```bash
+MUJOCO_SCENE=scene_obstacle.xml ./scripts/launch_abs_obstacle.sh
+```
+
+看：
+
+```text
+[RA-REC] 进入恢复
+path_on=0
+[RA-REC] 退出恢复
+path_on=1
+```
+
+### 3. 左右均衡测试
+
+```bash
+MUJOCO_SCENE=scene_test2.xml ./scripts/launch_abs_obstacle.sh
+```
+
+看有没有明显只向某一边绕。
+
+### 4. 难一点的中线障碍
+
+```bash
+MUJOCO_SCENE=scene_rand_03.xml ./scripts/launch_abs_obstacle.sh
+```
+
+或：
+
+```bash
+MUJOCO_SCENE=scene_rand_08.xml ./scripts/launch_abs_obstacle.sh
+```
+
+这两个更容易触发 recovery。
+
+### 5. 暂时不建议作为基础验证
+
+```text
+scene_terrain.xml
+scene_slope_obstacle.xml
+scene_side_slope.xml
+```
+
+这些用于后续鲁棒性评估，不适合当前真机迁移前基础验证。

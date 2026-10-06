@@ -7,9 +7,15 @@
 
 #include <common/ObservationBuffer.h>
 #include <rl_quadruped_controller/control/CtrlComponent.h>
+#include <rl_quadruped_controller/FSM/RASwitchingLogic.hpp>
 #include <torch/script.h>
 
+#include <array>
+
 #include "controller_common/FSM/FSMState.h"
+
+namespace abs_ray2d_shm { struct FrameHeader; }
+namespace abs_rt_frame { struct RuntimeFrame; }
 
 struct CtrlComponent;
 
@@ -114,12 +120,15 @@ struct ModelParams
     torch::Tensor rl_kp;
     torch::Tensor commands_scale;
     torch::Tensor default_dof_pos;
+    torch::Tensor dof_bias;  // controller order; nominal deployment calibration only
     std::string policy_joint_order = "fr_first";
     // ABS-specific params
     double abs_max_episode_length_s = 9.0;
     double abs_contact_threshold = 1.0;
     int abs_ray2d_count = 11;
     double abs_ray2d_max_range = 6.0;
+    int abs_ray2d_timeout_ms = 200;
+    std::string abs_timer_mode = "paper_faithful_rolling";
     std::string ra_model_name = "ra_value.pt";
     double ra_threshold = -0.05;
     // Recovery twist optimization params
@@ -131,6 +140,15 @@ struct ModelParams
     double twist_vy_min = -0.3, twist_vy_max = 0.3;
     double twist_wz_min = -3.0, twist_wz_max = 3.0;
     int recovery_steps = 250;
+    bool eval_telemetry_enabled = true;
+    int eval_telemetry_interval_steps = 25;
+    bool symmetry_debug_enabled = true;
+    // Safety thresholds
+    double body_tilt_limit_deg = 75.0;   // roll/pitch > this → force PASSIVE
+    double action_output_clip = 4.0;     // clamp RL action output to ±this
+    bool path_tracking_enabled = true;   // normal agile follows start→goal line
+    double path_lateral_gain = 1.5;      // extra lateral command when not in recovery
+    double path_heading_gain = 1.5;      // extra heading correction when not in recovery
 };
 
 struct Observations
@@ -171,6 +189,21 @@ private:
     // ROS1: gradient descent twist optimization + recovery action (lines 498-538)
     void computeRecoveryTwist();
     torch::Tensor computeRecoveryObservation(const torch::Tensor& twist);  // 49-dim for recovery policy
+    void logEvalTelemetry(double robot_wx, double robot_wy, double robot_yaw,
+                          double goal_wx, double goal_wy, double dist_to_goal,
+                          double body_x, double body_y, double heading_cmd,
+                          bool arrived, bool in_recovery, int recovery_hold_left,
+                          double recovery_vx, double recovery_vy, double recovery_wz) const;
+    void logSymmetryDebug(double robot_wx, double robot_wy, double robot_yaw,
+                          double body_y, double heading_cmd, bool in_recovery,
+                          const torch::Tensor& policy_actions,
+                          const torch::Tensor& ctrl_actions) const;
+
+    /** Check body attitude safety from IMU quaternion. Returns false if tilt exceeds limit. */
+    bool checkBodySafety() const;
+
+    /** Check joint torque against configured limits. Returns false if any joint exceeds limit. */
+    bool checkTorqueSafety() const;
 
     void loadYaml(const std::string& config_path);
 
@@ -228,6 +261,22 @@ private:
     // Ray2d shared memory
     float* ray2d_shm_ptr_ = nullptr;
     int ray2d_shm_fd_ = -1;
+    abs_ray2d_shm::FrameHeader* ray2d_stamp_shm_ptr_ = nullptr;
+    int ray2d_stamp_shm_fd_ = -1;
+    bool ray2d_valid_ = false;
+    uint64_t last_ray_stamp_ns_ = 0;
+    uint64_t last_ray_age_ns_ = 0;
+    std::string last_ray_reason_ = "not_checked";
+    uint64_t ray_check_count_ = 0;
+    uint64_t ray_last_check_telemetry_ns_ = 0;
+    torch::Tensor last_contacts_;
+    bool safety_faulted_ = false;
+
+    // Real-time observation frame shared memory (single data link to HUD/recorder).
+    // Written only by StateRL; source = AUTHORITATIVE_RUNTIME.
+    int rt_frame_shm_fd_ = -1;
+    abs_rt_frame::RuntimeFrame* rt_frame_shm_ptr_ = nullptr;
+    uint64_t rt_session_id_ = 0;
 
     // ABS episode timer
     double episode_timer_ = 0.0;
@@ -237,6 +286,18 @@ private:
     // World-frame goal position (from YAML config, matches paper GOAL_XYZ)
     double goal_x_ = 7.0;
     double goal_y_ = 0.0;
+    bool resample_goal_on_arrival_ = false;
+
+    // Recovery-aware straight-line tracking: constrain normal agile to the
+    // start→goal line, but relax this while recovery is active.
+    bool path_start_initialized_ = false;
+    double path_start_x_ = 0.0;
+    double path_start_y_ = 0.0;
+    bool in_recovery_ = false;
+    int rec_hold_left_ = 0;
+    double cached_rec_vx_ = 0.0;
+    double cached_rec_vy_ = 0.0;
+    double cached_rec_wz_ = 0.0;
 
     // Soft start: ramp Kp/Kd from 0 to target over first N steps
     mutable int soft_start_step_ = 0;
@@ -245,10 +306,53 @@ private:
     // Recovery hold: minimum RL steps before allowing exit (frequency-adapted)
     int recovery_hold_steps_ = 30;
 
+    // P1-07: RA-to-Recovery switching mode. Default is stabilized_switch so
+    // existing launch/config behavior is unchanged.  An invalid configured value
+    // is rejected in loadYaml() (never silently downgraded to a default).
+    abs_switching::SwitchMode switching_mode_ = abs_switching::SwitchMode::stabilized_switch;
+
+    // Safety: body tilt limit and action output clip (from YAML)
+    double body_tilt_limit_deg_ = 75.0;
+    double action_output_clip_ = 4.0;
+
+    // Torque safety: matches original ABS safe.PowerProtect(cmd, low_state, 8)
+    bool torque_monitor_enabled_ = true;
+    double torque_limit_ratio_ = 2.5;  // multiplier over nominal torque_limit
+
+    // Emergency stop: matches original ABS wireless remote B-button
+    bool emergency_stop_enabled_ = true;
+    bool emergency_stop_triggered_ = false;
+
+    // Explicitly opt-in simulation-only fault injection and structured command evidence.
+    bool live_telemetry_enabled_ = false;
+    std::string test_fault_id_;
+    bool test_fault_consumed_ = false;
+    bool test_fault_blocked_ = false;
+    mutable uint64_t telemetry_sequence_ = 0;
+    mutable double applied_gain_ratio_ = 1.0;
+
     bool useRos1PolicyOrder() const;
     torch::Tensor ctrlToPolicyDofOrder(const torch::Tensor& ctrl_order) const;
     torch::Tensor policyToCtrlDofOrder(const torch::Tensor& policy_order) const;
     torch::Tensor ctrlToPolicyContactOrder(const torch::Tensor& ctrl_order) const;
+    double normalizedTimer() const;
+    bool updateRay2d();
+    void safetyVeto(const char* stage);
+    bool finiteMotorCommand() const;
+    bool injectTestFault(const char* id, torch::Tensor* value = nullptr);
+    void emitCommandTelemetry(const char* event, const char* reason = "") const;
+    void writeRtFrame(uint32_t policy_state,
+                      double robot_wx, double robot_wy, double robot_yaw,
+                      double body_x, double body_y, double heading_cmd,
+                      const torch::Tensor& action_raw,
+                      const torch::Tensor& action_clipped,
+                      const torch::Tensor& joint_target_rad,
+                      const torch::Tensor& torque_nm);
+    void writeRtFaultedFrame();
+    // Seqlock-safe invalidation of /mujoco_rt_frame (magic/version/sequence set
+    // to an unacceptable state) so a reader classifies INVALID immediately.
+    // Called on controller exit/destruction and on pre-publish validation failure.
+    void invalidateRtFrame();
 };
 
 

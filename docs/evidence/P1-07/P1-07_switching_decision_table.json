@@ -1,0 +1,63 @@
+{
+  "schema": "abs-go2-p1-07-switching-decision-table/v1",
+  "task": "P1-07",
+  "status": "IMPLEMENTED / AWAITING INDEPENDENT REVIEW",
+  "date": "2026-09-01",
+  "scope": "switching semantics only; NOT full paper-faithful ABS; P1-06 optimizer/Eq.22 differences remain outside this task",
+  "entry_threshold": -0.05,
+  "exit_threshold": -0.08,
+  "hold_steps": 30,
+  "modes": [
+    {
+      "name": "paper_faithful_switch",
+      "enter": "RA >= -0.05 (equality enters)",
+      "exit": "RA < -0.05 (immediate)",
+      "hysteresis": false,
+      "forced_hold": 0,
+      "stateful": false,
+      "config_key": "abs.switching_mode"
+    },
+    {
+      "name": "stabilized_switch",
+      "enter": "RA > -0.05 (strict, equality does not enter)",
+      "exit": "RA < -0.08 AND recovery_hold_steps (30) hold expired",
+      "hysteresis": true,
+      "forced_hold": 30,
+      "stateful": true,
+      "config_key": "abs.switching_mode",
+      "default": true,
+      "default_behavior": "byte-for-byte same as pre-P1-07 deployed ENTER/EXIT"
+    }
+  ],
+  "decision_table": [
+    {"condition": "RA == -0.05, from Agile", "paper_faithful_switch": "Recovery", "stabilized_switch": "Agile"},
+    {"condition": "RA > -0.05, from Agile", "paper_faithful_switch": "Recovery", "stabilized_switch": "Recovery (hold:=30)"},
+    {"condition": "RA < -0.05, from Agile", "paper_faithful_switch": "Agile", "stabilized_switch": "Agile"},
+    {"condition": "RA < -0.05, in Recovery, hold active", "paper_faithful_switch": "Agile immediately (no hold delay)", "stabilized_switch": "Recovery (hold governs)"},
+    {"condition": "-0.05 < RA < -0.08, in Recovery, hold expired", "paper_faithful_switch": "Agile (below -0.05)", "stabilized_switch": "Recovery (not < -0.08)"},
+    {"condition": "RA == -0.08, in Recovery, hold expired", "paper_faithful_switch": "Agile (below -0.05)", "stabilized_switch": "Recovery (strict < fails)"},
+    {"condition": "RA < -0.08, in Recovery, hold expired", "paper_faithful_switch": "Agile", "stabilized_switch": "Agile (exit)"},
+    {"condition": "RA non-finite (NaN/+Inf/-Inf)", "paper_faithful_switch": "invalid=true, no transition (fail-closed path authoritative)", "stabilized_switch": "invalid=true, no transition (fail-closed path authoritative)"}
+  ],
+  "config_validation": {
+    "valid_values": ["paper_faithful_switch", "stabilized_switch"],
+    "invalid_value_behavior": "RCLCPP_FATAL + std::invalid_argument at loadYaml/initialization; no silent fallback",
+    "default": "stabilized_switch",
+    "key_absent_behavior": "default stabilized_switch retained"
+  },
+  "non_finite_handling": "runRAModel() fail-closed upstream (unchanged) + helper invalid=true: NaN/Inf can never become an Agile/Recovery transition",
+  "tests": {
+    "source": "quadruped_ros2_control_humble/controllers/rl_quadruped_controller/test/p1_07_switching.cpp",
+    "kind": "offline deterministic, no libtorch/ROS/MuJoCo",
+    "result": "PASS (292 checks), exit 0",
+    "build": "colcon build --packages-select rl_quadruped_controller exit 0",
+    "regression": "stabilized default reproduces literal pre-P1-07 reference state sequence over 32-sample RA series"
+  },
+  "outside_scope_p1_06": [
+    "Eq.22 yaw-coupled second-order terms omitted in deployment (MISMATCH)",
+    "first-order displacement goal-penalty consequence (MISMATCH)",
+    "gradient clip per-element vs reference L2-norm (MISMATCH)",
+    "iteration count deployment 3 vs testbed 10, paper <=5 (testbed<->deployment MISMATCH)",
+    "safe-twist re-optimization cadence unchanged: entry-edge optimize + cache; no per-tick re-optimization"
+  ]
+}

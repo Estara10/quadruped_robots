@@ -1,0 +1,231 @@
+{
+  "schema": "abs-go2-p1-10-same-seed-replay-pair/v3",
+  "pair_id": "P1-10-REPLAY-20260903-saved-record-closure-flat_goal_forward-stabilized",
+  "status_at_freeze": "FROZEN_OFFLINE_PENDING_INDEPENDENT_REVIEW",
+  "evidence_dir": "docs/evidence/P1-10/replay_pair_20260903_saved_record_closure",
+  "baseline": {
+    "manifest_path": "docs/evidence/P1-08/P1-08_baseline_manifest.json",
+    "manifest_sha256": "2667ed37a854f85e5a7c493e7d4a8b1871a84ce95d3e3b0742801d383f8dc915",
+    "identity_path": "docs/evidence/P1-08/P1-08_simulation_baseline_identity.json",
+    "identity_file_sha256": "6c3563c25d45cc275db6b083f9f0fc0cc2067b48bc8f4a93dcace9f6d42817ea",
+    "identity_sha256": "59dd13fed5ebd026ec519f2659643237502be8e4d8df5174a65b7d35ceb4f7e0"
+  },
+  "scenario": {
+    "scenario_id": "flat_goal_forward",
+    "scenario_path": "scenarios/p1_10/flat_goal_forward.json",
+    "scenario_sha256": "beba99ed4e6f6c8f84eb1ac514f2da4b6e910c1587fdf91f5e95ac6bc639e092",
+    "suite_path": "scenarios/p1_10/scenario_suite_manifest.json",
+    "suite_manifest_sha256": "eb81d60742864fe9c870e957ba3ab601e80da3e64bc48a42c26f849570f3152d"
+  },
+  "seed": {
+    "root_seed": 20260902,
+    "role": "pairing/provenance_only",
+    "scenario_root_seed_key": "fc887e89ce542e5062ba6669611cb459c4ffe7de35198c59df29cedc9b2bed29",
+    "p1_02_pairing_key": "6ac5d17dd81862e91dbf8cdbaacf141ca4d0e7b553bf8717f0f722d58b073d96",
+    "derived_seed_registry": {},
+    "random_producers": "none used in this fixed scene/default-initial-state/fixed-goal path"
+  },
+  "variant": {
+    "label": "stabilized",
+    "status": "SUPPORTED",
+    "switching_mode": "stabilized_switch",
+    "binding_sha256": "2f0dfc4e8bf5237a578d99030facc38459fd5f899af49b508e48e29b7e8a4e1c"
+  },
+  "scenario_contract": {
+    "scene": "scene_flat.xml",
+    "scene_root_sha256": "9ce83b3e61c722a523d0359536cee803f17610f95d2275fc32e96801ec3c1908",
+    "model_closure_sha256": "8d9218de0dc02978fc0ef4ba1c790fa3b968fbdbfdb945e14522436a2574ea07",
+    "goal_world_xy_m": [7.0, 0.0],
+    "resample_goal_on_arrival": false,
+    "obstacle_layout": {"status": "EMPTY", "objects": []},
+    "config_overrides": {},
+    "run_window_s": 25.0,
+    "initial_state_source": "scene_default",
+    "initial_state_reset_source": "mj_makeData:qpos0; no keyframe reset",
+    "initial_state_startup_path": "main.cc:PhysicsThread: mj_loadXML -> mj_makeData -> sim.Load -> mj_forward",
+    "initial_state_qpos_sha256": "a604dd11dc57ea655bf6d746dcf068a91e80a0a1eddc73d20c1a3800468f59d8",
+    "initial_state_binding_sha256": "f7907a927c31d3d6a5d497ab274b3d913bf4fc8ccb0e9713a9dbd1e182d0a9a0"
+  },
+  "runtime_identity": {
+    "mujoco_executable": {
+      "path": "unitree_mujoco/simulate/build2/unitree_mujoco",
+      "sha256": "1e9b330f2b6c39dabaaa8424ee53c41d3be08ea00eb3e69ba71f332de50654e2"
+    },
+    "libmujoco": {
+      "path": "/home/lidio/Libraries/mujoco-3.3.3/lib/libmujoco.so.3.3.3",
+      "sha256": "e35ba7f65d2eeccfeda2c5f251d49e26de6fbbc1067170a889fefaa4a35aa24e"
+    },
+    "simulate_config_sha256": "86fcfab9ecdf888901340697ef9c99fcc72bbd3d88c86f2178b4ce2ab2c88b95",
+    "robot_control_config_sha256": "59c61ad4f29c2b37b3741236b35ce11c773fb6cfe16ed8d58b92757febf8bf7c",
+    "abs_controller_config_sha256": "1cd42c4bb29baad1873bd55e7f2f1d82fb0c8ec8bf35fb8e4eff61338758c586",
+    "launch_file_sha256": "ed87b9204cf9d5dde83e4ff54bcafac16aae5e1407ecd8b394d2c5e777a17fb9",
+    "controller_plugin": {
+      "path": "quadruped_ros2_control_humble/install/rl_quadruped_controller/lib/rl_quadruped_controller/librl_quadruped_controller.so",
+      "sha256": "2b31e558471227a385906239a4fd20d1f9cb759a4960c743b6f5065f13fe6d4e"
+    },
+    "hardware_plugin": {
+      "path": "quadruped_ros2_control_humble/install/hardware_unitree_mujoco/lib/libhardware_unitree_mujoco.so",
+      "sha256": "9c56d00d1cca1d396d760c21bce54bbb4dc0e9f7cd7453e4060940fb8c13918d"
+    }
+  },
+  "comparison": {
+    "schema": "p1-10-saved-record-canonical-projection/v2",
+    "record_source": "saved runtime_record.jsonl only; never live shared memory",
+    "context_binding_policy": "scenario_resolved_manifest.json and p1_10_context.json in every run must each explicitly contain every pair-required binding field; no fallback from pair manifest, the other context, process facts, defaults, or None",
+    "exact_frame_fields": [
+      "source",
+      "controller_active",
+      "rl_entered",
+      "rl_active",
+      "safety_faulted",
+      "policy_state",
+      "ray_origin",
+      "ray_valid",
+      "collision_origin",
+      "torque_saturated_computed"
+    ],
+    "numeric_frame_fields": [
+      "world_pose",
+      "command",
+      "ra_value",
+      "action_raw",
+      "action_clipped",
+      "joint_target_rad",
+      "torque_nm",
+      "ray2d"
+    ],
+    "exact_terminal_fields": [
+      "termination_reason",
+      "normal_shutdown",
+      "process_exit_code",
+      "forced_termination",
+      "shutdown_complete",
+      "shutdown_request_source",
+      "safety_fault_last",
+      "safety_fault_seen",
+      "reached_goal",
+      "timeout",
+      "collision_events",
+      "fall_events"
+    ],
+    "terminal_value_domains": {
+      "termination_reason": [
+        "SAFETY_FAULT",
+        "FORCED_TERMINATION",
+        "NONZERO_EXIT",
+        "FRAMES_ENDED_RC0",
+        "UNKNOWN"
+      ],
+      "normal_shutdown": "bool",
+      "process_exit_code": "int",
+      "forced_termination": "bool",
+      "shutdown_complete": "bool",
+      "shutdown_request_source": ["SIGINT", "UNKNOWN"],
+      "safety_fault_last": "bool",
+      "safety_fault_seen": "bool",
+      "reached_goal": ["UNKNOWN"],
+      "timeout": ["UNKNOWN"],
+      "collision_events": ["UNKNOWN"],
+      "fall_events": ["UNKNOWN"]
+    },
+    "exact_sequence_rules": [
+      "frame count must match",
+      "strict rl_step sequence must match",
+      "policy_state sequence and derived Recovery entry/exit sequence must match",
+      "forced_termination must be false in both terminals"
+    ],
+    "excluded_fields": [
+      "run_id",
+      "session_id",
+      "source_sequence",
+      "monotonic_ns",
+      "recorded_at_ns",
+      "wall_clock_timestamps",
+      "PID/PGID",
+      "reader_polling_cadence",
+      "ray_age_ns",
+      "lin_vel",
+      "torque_saturated",
+      "duration_ns",
+      "first_frame_time_ns",
+      "last_frame_time_ns"
+    ],
+    "numeric_rule": "exact canonical JSON equality; any nonzero delta fails; report max/mean delta diagnostically",
+    "canonical_encoding": "json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False); sha256"
+  },
+  "execution_policy": {
+    "operator_launch_status": "PROHIBITED_UNTIL_INDEPENDENT_REVIEW_ACCEPTS_OFFLINE_CLOSURE",
+    "ordering": "Run A exactly once; Run B exactly once only after clean Run A; any failure is terminal and not retried",
+    "not_authorized": [
+      "benchmark",
+      "pilot",
+      "multi-seed",
+      "FormalRun acceptance",
+      "obstacle scenario",
+      "paper-faithful",
+      "agile-only",
+      "P1-11",
+      "P1-12",
+      "P1-13"
+    ],
+    "historical_pairs_not_reusable": [
+      "docs/evidence/P1-10/replay_pair_20260902",
+      "docs/evidence/P1-10/replay_pair_20260903"
+    ]
+  },
+  "planned_runs": {
+    "run_a": {
+      "directory": "run_A",
+      "required_files": [
+        "process_facts.json",
+        "runtime_record.jsonl",
+        "scenario_resolved_manifest.json",
+        "p1_10_context.json"
+      ]
+    },
+    "run_b": {
+      "directory": "run_B",
+      "required_files": [
+        "process_facts.json",
+        "runtime_record.jsonl",
+        "scenario_resolved_manifest.json",
+        "p1_10_context.json"
+      ]
+    },
+    "both_must_be_successful_before_comparison": true,
+    "comparison_input": [
+      "run_A/runtime_record.jsonl",
+      "run_B/runtime_record.jsonl"
+    ]
+  },
+  "required_run_artifacts": [
+    "scenario_resolved_manifest.json",
+    "p1_10_context.json",
+    "preflight_evidence.json",
+    "runtime_record.jsonl",
+    "sim_clock_timing.jsonl",
+    "rt_frame_timing.jsonl",
+    "reader_stats.json",
+    "process_facts.json",
+    "orphan_inventory.json",
+    "mujoco_raw.log",
+    "ros2_launch_raw.log",
+    "orchestrator_raw.log"
+  ],
+  "comparison_artifacts": [
+    "canonical_identity_input.json",
+    "canonical_identity_output.json",
+    "diff_report.json",
+    "saved_record_comparison_report.md"
+  ],
+  "tooling": {
+    "comparison_cli": "scripts/p1_10_saved_record_compare.py",
+    "comparison_cli_sha256": "09a736e420531179f79e0f947307ff36b33bd748df1a354de57b2d24a2ffc9c9",
+    "comparison_cli_behavior": "accepts only --pair-dir; derives run_A/run_B from pair_manifest.json; requires process_facts.json, runtime_record.jsonl, scenario_resolved_manifest.json, and p1_10_context.json in each run; refuses overwrite; no live shared-memory access",
+    "operator_runbook": "docs/evidence/P1-10/replay_pair_20260903_saved_record_closure/operator_replay_runbook.md",
+    "operator_runbook_sha256": "b6a8ce0f433b8e9a81e7b5dc72cbe330ccb1667bcd2cec4df318d8236d6b4dc8",
+    "context_writer": "scripts/p1_08_baseline_capture.py::write_p1_10_context",
+    "context_writer_behavior": "copies complete P1-10 context fields explicitly from validated resolved scenario context; no comparator/pair/default/other-run fallback",
+    "context_writer_sha256": "97e4fe7190148cccd70e41832b1f2c8668fbd0badb3b405d0726db6d0d7bf9ec"
+  }
+}

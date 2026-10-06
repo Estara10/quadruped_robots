@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "task": "P1-01",
+  "audit_on": "2026-08-30",
+  "kind": "server_snapshot_provenance_recovery_read_only",
+  "snapshot_root": "ABS_fuwuqi/ABS",
+  "snapshot_git": {"head": "9b95329ffb823c15dead02be620ff96938e4d0a3", "head_message": "Updated required numpy version", "commits_sampled": 15, "tracks_go2_configs": false, "tracks_export_code": ["training/legged_gym/legged_gym/scripts/play.py", "training/legged_gym/legged_gym/scripts/testbed.py", "training/legged_gym/legged_gym/utils/helpers.py"]},
+  "agile_chain": {
+    "checkpoint": {"path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/05_27_15-53-31_/model_4000.pt", "size_bytes": 4743147, "sha256": "a21419d2636c5ad6782b4be87a2ad7335a2b671ce2d6463c08e19fe49ead912f", "iter": 4000, "payload_keys": ["model_state_dict", "optimizer_state_dict", "iter", "infos"], "infos": null},
+    "export": {"path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/policies/05_27_15-53-31_model_4000.pt", "size_bytes": 801726, "sha256": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf"},
+    "deployed": {"path": "quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/policy.pt", "size_bytes": 801726, "sha256": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf"},
+    "checkpoint_to_export": {"verdict": "CONFIRMED", "method": "weight equality 8/8 actor tensors == exported TorchScript params (formats differ; not byte equality)", "evidence": "p1_01_snapshot_agile_weights_20260830.txt"},
+    "export_to_deployed": {"verdict": "CONFIRMED", "method": "byte equality (identical SHA256)"}
+  },
+  "ra_chain": {
+    "named_ra": {"path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/RA/05_27_15-53-31_model_4000_ra.pt", "size_bytes": 26047, "sha256": "ed3c75f41ada130c150ba3c1101ebc72e85f7d25732314a582ef8303f02aaa92", "tensors": 6},
+    "jit": {"path": "ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/RA/ra_value_jit.pt", "size_bytes": 32011, "sha256": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7"},
+    "deployed": {"path": "quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/ra_value.pt", "size_bytes": 32011, "sha256": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7"},
+    "named_to_jit": {"verdict": "CONFIRMED", "method": "weight equality 6/6 tensors + convert_ra_to_jit.py default input path == named_ra filename; conversion architecture matches", "evidence": "p1_01_snapshot_ra_weights_20260830.txt + scripts/convert_ra_to_jit.py"},
+    "jit_to_deployed": {"verdict": "CONFIRMED", "method": "byte equality (identical SHA256)"},
+    "naming_mechanism": {"source": "ABS_fuwuqi/ABS/training/legged_gym/legged_gym/scripts/testbed.py:197,211,219,568", "logic": "policy_name = <run_dir>+<model>; RA_name = policy_name[:-3]+'_ra.pt'", "observed_match": "05_27_15-53-31_model_4000_ra.pt == mechanism applied to 05_27_15-53-31_/model_4000.pt"}
+  },
+  "ra_agile_binding": {
+    "naming_link": {"verdict": "PARTIAL", "reason": "source-verified mechanism deterministically produces the observed named-RA filename from the Agile checkpoint path; no execution/shell/job log proves it was run with that exact path"},
+    "training_data_link": {"verdict": "UNKNOWN", "reason": "ephemeral online queues; no persisted dataset manifest / episode count / seed"}
+  },
+  "training_run_inventory": {
+    "agile_run": {"path": "training/legged_gym/logs/go2_pos_rough/05_27_15-53-31_", "checkpoints": 21, "selected_iter": 4000, "tfevents": 1, "hparams": "NONE", "config_command_seed_commit": "ABSENT"},
+    "recovery_run": {"path": "training/legged_gym/logs/go2_rec_rough/06_04_22-43-20_", "checkpoints": 76, "selected_iter": 15000, "tfevents": 1, "hparams": "NONE", "config_command_seed_commit": "ABSENT"},
+    "go2_configs_git_status": "UNTRACKED (?? …/envs/go2/)",
+    "shell_job_command_logs": "NONE found in declared boundaries"
+  },
+  "deployed_order": {
+    "training_candidate_order": "FL,FR,RL,RR (candidate, config untracked / not run-bound)",
+    "deployed_agile_order": "UNKNOWN (probe inconclusive 7/12)",
+    "deployed_recovery_order": "PARTIAL (prev_action block 37:49, 11/12 diagonal, artifact-side only)",
+    "config_commit_binding_for_order": "UNKNOWN (no immutable config/commit association in snapshot)"
+  },
+  "non_goals_honored": true
+}

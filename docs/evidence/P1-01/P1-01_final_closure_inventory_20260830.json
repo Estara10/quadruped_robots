@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "task": "P1-01",
+  "audit_on": "2026-08-30",
+  "kind": "final_evidence_closure_read_only",
+  "evidence_roots_searched": [
+    "ABS/",
+    "ABS_fuwuqi/ABS/ (server snapshot, prioritized)",
+    "quadruped_ros2_control_humble/",
+    "unitree_mujoco/",
+    "docs/evidence/P1-01/",
+    "artifacts/",
+    "repository + nested Git history"
+  ],
+  "agile_semantic_order": {
+    "verdict": "UNKNOWN",
+    "static_trace": "deployed policy.pt -> legged_robot_pos.py candidate 61-D layout -> go2_pos_config.py (untracked, not run-bound) -> export (weight-equal checkpoint) -> controller remap [3,4,5,0,1,2,9,10,11,6,7,8]/contact[1,0,3,2] (policy_joint_order=ros1_fl_fr_rl_rr) -> ROS order FR,FL,RR,RL -> MuJoCo order FR,FL,RR,RL",
+    "immutable_run_binding": "NONE found in any evidence root",
+    "artifact_probe": "inconclusive (Agile prev_action diagonal 7/12)",
+    "remap_change": "NOT JUSTIFIED (no direct evidence of incorrectness)"
+  },
+  "ra_actual_binding": {
+    "weight_chain": "CONFIRMED (named RA -> JIT -> deployed, 6/6 tensors + byte equality + convert_ra_to_jit.py default path)",
+    "naming_mechanism": "source-causal/operational (get_load_path defaults load_run=-1/checkpoint=-1; observed name consistent with 05_27_15-53-31_/model_4000.pt)",
+    "historical_execution_proof": "NOT RECOVERABLE (no serialized args / command/job log / hparams / event metadata / dataset manifest / immutable run-local record)"
+  },
+  "real_foot_force": {
+    "verdict": "Phase 2 hardware-only UNKNOWN",
+    "local_sdk": "unitree_sdk2 2.0.0 LowState foot_force = array<int16_t,4>, NO slot semantics",
+    "official_github_sdk": "same, NO slot semantics (fetched)",
+    "mujoco_bridge": "foot_force[i] = sensordata[dim+16+i] following MJCF touch order FR,FL,RR,RL (simulation convention only)",
+    "unitree_ros2": "DeepWiki third-party summary claims [0]=FL,[1]=FR,[2]=RL,[3]=RR citing read_low_state.cpp; primary file not retrievable — not accepted as official",
+    "hardware_capture": "NONE"
+  },
+  "code_changes": "NONE",
+  "p1_01_status": "BLOCKED / PARTIALLY COMPLETE",
+  "acceptance_criteria": {
+    "1_hashes_dims_provenance": "PASS",
+    "2_isaac_gym_order_capture": "PASS",
+    "3_61_19_49_fields_defined": "FAIL/UNKNOWN",
+    "4_outputs_trace_to_motor": "UNKNOWN",
+    "5_contact_indices_unambiguous": "UNKNOWN",
+    "6_asymmetric_golden_tests": "PASS",
+    "7_remap_necessity_evidence_backed": "UNKNOWN",
+    "8_no_visual_only_conclusion": "PASS",
+    "9_reviewer_acceptance": "FAIL/REJECTED",
+    "10_unknowns_explicit": "PASS"
+  }
+}

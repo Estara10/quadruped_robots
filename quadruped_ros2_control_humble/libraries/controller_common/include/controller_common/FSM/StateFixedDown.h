@@ -35,6 +35,9 @@ private:
     double duration_ = 600; // steps
     double percent_ = 0; //%
     double phase = 0.0;
+
+    int soft_start_step_ = 0;
+    int soft_start_steps_ = 250;  // match RL soft start
 };
 
 

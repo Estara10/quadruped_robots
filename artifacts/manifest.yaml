@@ -1,0 +1,154 @@
+schema_version: 2
+baseline_date: "2026-08-23"
+last_verified: "2026-08-26"
+
+artifacts:
+  agile_policy:
+    path: quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/policy.pt
+    management: normal_git
+    size_bytes: 801726
+    sha256: 5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf
+    source: "Recovered checkpoint model_4000.pt; all 8 actor tensors exactly equal the recovered export and deployed artifact"
+    purpose: "Deployed 61-observation Agile Policy"
+    format: torchscript
+    archive_root: 05_27_15-53-31_model_4000
+    architecture: [61, 512, 256, 128, 12]
+    input_dim: 61
+    output_dim: 12
+    provenance:
+      status: weight_lineage_verified
+      evidence: docs/evidence/P1-01/provenance_recovery.json
+      training_run: go2_pos_rough/05_27_15-53-31_
+      checkpoint: ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/05_27_15-53-31_/model_4000.pt
+      checkpoint_size_bytes: 4743147
+      checkpoint_sha256: a21419d2636c5ad6782b4be87a2ad7335a2b671ce2d6463c08e19fe49ead912f
+      checkpoint_iteration: 4000
+      run_log: ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/05_27_15-53-31_/events.out.tfevents.1779868413.c1505-R5300-G5.1583700.0
+      run_log_sha256: caeb98ffeaec67fbe86542b789d31830e71c8b3594ba75783aaa35a7c9f6ae62
+      export_artifact: ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/policies/05_27_15-53-31_model_4000.pt
+      export_sha256: 5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf
+      export_code:
+        - ABS_fuwuqi/ABS/training/legged_gym/legged_gym/scripts/play.py:70-79
+        - ABS_fuwuqi/ABS/training/legged_gym/legged_gym/utils/helpers.py:184-194
+      exact_export_invocation: UNKNOWN
+      actor_weight_equivalence: PASS
+      export_deployment_byte_equivalence: PASS
+      training_task: go2_pos_rough
+      recovered_config_candidate: ABS_fuwuqi/ABS/training/legged_gym/legged_gym/envs/go2/go2_pos_config.py
+      recovered_config_candidate_sha256: ef13f1808fb2d1468afa37442610748121cc7ba5b807bfea4443c58804877cf5
+      exact_run_config_snapshot: UNKNOWN
+      historical_retrieval: "2026-08-26 targeted search found no config/hparams/command/metadata sidecar; checkpoint has infos=None and no order/seed/commit; TensorBoard has no hparams/run metadata; Go2 config is untracked and absent from recovered Git objects/history"
+      training_seed: UNKNOWN
+      training_git_commit: UNKNOWN
+      repository_introduced_commit: c949892e871886a9377ee6d5f352927eef8d048a
+    expected_joint_order: "UNKNOWN — checkpoint/deployment weights are linked, but no immutable historical config/source snapshot binds this run to the captured Isaac Gym order"
+
+  ra_value:
+    path: quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/ra_value.pt
+    management: normal_git
+    size_bytes: 32011
+    sha256: 05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7
+    source: "Recovered source RA model; all 6 tensors exactly equal the recovered JIT export and deployed artifact; online training dataset was not persisted"
+    purpose: "Deployed 19-observation RA Value model"
+    format: torchscript
+    archive_root: ra_value_jit
+    architecture: [19, 64, 64, 1]
+    input_dim: 19
+    output_dim: 1
+    provenance:
+      status: source_and_weight_lineage_verified_dataset_unavailable
+      evidence: docs/evidence/P1-01/provenance_recovery.json
+      source_model: ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/RA/05_27_15-53-31_model_4000_ra.pt
+      source_model_size_bytes: 26047
+      source_model_sha256: ed3c75f41ada130c150ba3c1101ebc72e85f7d25732314a582ef8303f02aaa92
+      conversion_script: scripts/convert_ra_to_jit.py
+      conversion_script_sha256: 937dd4453d0fecc0d2bc48cb3a7683fadde0772ab3775a287703d8d9baeebdaa
+      export_artifact: ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/exported/RA/ra_value_jit.pt
+      export_sha256: 05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7
+      exact_conversion_invocation: UNKNOWN
+      source_weight_equivalence: PASS
+      export_deployment_byte_equivalence: PASS
+      dataset_generator: ABS_fuwuqi/ABS/training/legged_gym/legged_gym/scripts/testbed.py:227-242,289-316,360-371,498-570
+      dataset: "EPHEMERAL ONLINE QUEUES — no persisted sample artifact found"
+      dataset_sha256: UNKNOWN
+      dataset_episode_count: UNKNOWN
+      historical_retrieval: "2026-08-26 targeted RA/export/TensorBoard/Git search found no execution log, command record, dataset manifest, loaded-checkpoint metadata, seed, commit, or conversion invocation"
+      training_seed: UNKNOWN
+      training_git_commit: UNKNOWN
+      repository_introduced_commit: 72dc79b1a2389e50efbf08b0295deede38b0bc00
+    agile_binding:
+      status: source_code_supported_candidate_exact_binding_unknown
+      candidate_agile_checkpoint: ABS_fuwuqi/ABS/training/legged_gym/logs/go2_pos_rough/05_27_15-53-31_/model_4000.pt
+      candidate_agile_checkpoint_sha256: a21419d2636c5ad6782b4be87a2ad7335a2b671ce2d6463c08e19fe49ead912f
+      evidence: "testbed.py executes task_registry.loaded_policy_path and derives the RA output name from that path; the recovered RA source occupies the derived path/name, but no execution log or embedded model metadata proves which Agile checkpoint generated its samples"
+      retrieval_result: "2026-08-26: RA directory contains only source/JIT artifacts; their embedded metadata, the PPO TensorBoard event, and recovered Git history contain no independent loaded-checkpoint record"
+      exact_artifact_binding: UNKNOWN
+
+  recovery_policy:
+    path: quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/rec/policy.pt
+    management: normal_git
+    size_bytes: 775715
+    sha256: e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171
+    source: "Recovered checkpoint model_15000.pt; all 8 actor tensors exactly equal the recovered export and deployed artifact"
+    purpose: "Deployed 49-observation Recovery Policy"
+    format: torchscript
+    archive_root: policy
+    architecture: [49, 512, 256, 128, 12]
+    input_dim: 49
+    output_dim: 12
+    provenance:
+      status: weight_lineage_verified
+      evidence: docs/evidence/P1-01/provenance_recovery.json
+      training_run: go2_rec_rough/06_04_22-43-20_
+      checkpoint: ABS_fuwuqi/ABS/training/legged_gym/logs/go2_rec_rough/06_04_22-43-20_/model_15000.pt
+      checkpoint_size_bytes: 4595761
+      checkpoint_sha256: 51ee8e6545871f32feb6b40d00e82ddafd255acf74aad61a79c6cf37053eeec5
+      checkpoint_iteration: 15000
+      run_log: ABS_fuwuqi/ABS/training/legged_gym/logs/go2_rec_rough/06_04_22-43-20_/events.out.tfevents.1780584201.c1505-R5300-G5.1355698.0
+      run_log_sha256: 8d56965dee3d28fce057253d00ff549a359646de495990465f1c7ec5741466fe
+      export_artifact: ABS_fuwuqi/ABS/training/legged_gym/logs/go2_rec_rough/exported/policies/policy.pt
+      export_sha256: e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171
+      export_script: ABS_fuwuqi/ABS/training/legged_gym/legged_gym/export_rec_policy.py
+      export_script_sha256: d2539d255fb068686f6a6323e063d834c2373ccd22968c7f0247bc094cf83c3f
+      documented_export_invocation: "python export_rec_policy.py /data/sxq/ABS/training/legged_gym/logs/go2_rec_rough/06_04_22-43-20_/model_15000.pt /data/sxq/ABS/training/legged_gym/logs/go2_rec_rough/exported/policies/"
+      export_execution_log: UNKNOWN
+      actor_weight_equivalence: PASS
+      export_deployment_byte_equivalence: PASS
+      training_task: go2_rec_rough
+      recovered_config_candidate: ABS_fuwuqi/ABS/training/legged_gym/legged_gym/envs/go2/go2_rec_config.py
+      recovered_config_candidate_sha256: 6dfb91bb60fccdae4b90f8936acffdf13d5e398dd6850df9f7c07f0340066117
+      exact_run_config_snapshot: UNKNOWN
+      historical_retrieval: "2026-08-26 targeted search found no config/hparams/command/metadata sidecar; checkpoint has infos=None and no order/seed/commit; TensorBoard has no hparams/run metadata; Go2 config/export script are untracked and absent from recovered Git objects/history"
+      training_seed: UNKNOWN
+      training_git_commit: UNKNOWN
+      repository_replaced_commit: 84beae23255a147b9caded2237db6a5ff94f160e
+    expected_joint_order: "UNKNOWN — checkpoint/deployment weights are linked, but no immutable historical config/source snapshot binds this run to the captured Isaac Gym order"
+    tracked_candidate_comparison:
+      recover_v4_twist_original_sha256: ce9aab3205045948d22880f5f7039d8919ba0a3d99ba9eb8c6cfa2877fd7e0a4
+      recover_v3_twist_sha256: c0e7414940760e90bc0dfea6add2165ede3b1b37426d3ab0192541b85fc215ce
+      model_05_27_19_34_13_6000_sha256: 798afbf7a3273e06878dd0074908e0a07a0cbd40165f6a3219fa73b8f5cfb01f
+      any_matches_deployed: false
+
+  depth_ray_base_model:
+    local_path: ABS/training/legged_gym/legged_gym/depth_logs/20260528-143154-resnet18-go2_depth/depth_lidar_model_20260528-143154_250.pt
+    management: external
+    size_bytes: 44865188
+    sha256: 0e9326c852ae97b56740d8d19823760aa2c39aadfed6c9ad8af521881e18c4b4
+    source: "Local training run 20260528-143154-resnet18-go2_depth; external retrieval URI UNKNOWN"
+    purpose: "Base depth-to-11-ray predictor"
+
+  mujoco_ray_pred_finetune:
+    local_path: logs/ray_pred_finetune/mujoco_finetune_soft_safety_20260611/ray_pred_mujoco_finetuned_best.pt
+    management: external
+    size_bytes: 44862301
+    sha256: 1a0e92d05d47851f46742c308c20f17941077e8de02ba209768f09ef7f765e99
+    source: "Local run mujoco_finetune_soft_safety_20260611; external retrieval URI UNKNOWN"
+    purpose: "MuJoCo-finetuned depth-to-11-ray predictor"
+
+  abs_paper_pdf:
+    local_path: "agile but safe(1).pdf"
+    management: external
+    size_bytes: 10147484
+    sha256: c7991f37edb30cde6433eef0a767755f1cf577e282471c2d1010955c0253b840
+    source: "ABS paper local copy; canonical project URL is recorded in README.md"
+    purpose: "Paper specification reference"

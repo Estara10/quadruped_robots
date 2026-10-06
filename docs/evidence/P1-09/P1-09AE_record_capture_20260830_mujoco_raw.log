@@ -1,0 +1,101 @@
+1788061266.321470 [1] unitree_mu: selected interface "lo" is not multicast-capable: disabling multicast
+MuJoCo version 3.3.3
+<<------------- Link ------------->> 
+Link_index: 0, name: world
+Link_index: 1, name: base_link
+Link_index: 2, name: FL_hip
+Link_index: 3, name: FL_thigh
+Link_index: 4, name: FL_calf
+Link_index: 5, name: FL_foot
+Link_index: 6, name: FR_hip
+Link_index: 7, name: FR_thigh
+Link_index: 8, name: FR_calf
+Link_index: 9, name: FR_foot
+Link_index: 10, name: RL_hip
+Link_index: 11, name: RL_thigh
+Link_index: 12, name: RL_calf
+Link_index: 13, name: RL_foot
+Link_index: 14, name: RR_hip
+Link_index: 15, name: RR_thigh
+Link_index: 16, name: RR_calf
+Link_index: 17, name: RR_foot
+
+<<------------- Joint ------------->> 
+Joint_index: 1, name: FL_hip_joint
+Joint_index: 2, name: FL_thigh_joint
+Joint_index: 3, name: FL_calf_joint
+Joint_index: 4, name: FR_hip_joint
+Joint_index: 5, name: FR_thigh_joint
+Joint_index: 6, name: FR_calf_joint
+Joint_index: 7, name: RL_hip_joint
+Joint_index: 8, name: RL_thigh_joint
+Joint_index: 9, name: RL_calf_joint
+Joint_index: 10, name: RR_hip_joint
+Joint_index: 11, name: RR_thigh_joint
+Joint_index: 12, name: RR_calf_joint
+
+<<------------- Actuator ------------->> 
+Actuator_index: 0, name: FR_hip
+Actuator_index: 1, name: FR_thigh
+Actuator_index: 2, name: FR_calf
+Actuator_index: 3, name: FL_hip
+Actuator_index: 4, name: FL_thigh
+Actuator_index: 5, name: FL_calf
+Actuator_index: 6, name: RR_hip
+Actuator_index: 7, name: RR_thigh
+Actuator_index: 8, name: RR_calf
+Actuator_index: 9, name: RL_hip
+Actuator_index: 10, name: RL_thigh
+Actuator_index: 11, name: RL_calf
+
+<<------------- Sensor ------------->> 
+Sensor_index: 0, name: FR_hip_pos, dim: 1
+Sensor_index: 1, name: FR_thigh_pos, dim: 1
+Sensor_index: 2, name: FR_calf_pos, dim: 1
+Sensor_index: 3, name: FL_hip_pos, dim: 1
+Sensor_index: 4, name: FL_thigh_pos, dim: 1
+Sensor_index: 5, name: FL_calf_pos, dim: 1
+Sensor_index: 6, name: RR_hip_pos, dim: 1
+Sensor_index: 7, name: RR_thigh_pos, dim: 1
+Sensor_index: 8, name: RR_calf_pos, dim: 1
+Sensor_index: 9, name: RL_hip_pos, dim: 1
+Sensor_index: 10, name: RL_thigh_pos, dim: 1
+Sensor_index: 11, name: RL_calf_pos, dim: 1
+Sensor_index: 12, name: FR_hip_vel, dim: 1
+Sensor_index: 13, name: FR_thigh_vel, dim: 1
+Sensor_index: 14, name: FR_calf_vel, dim: 1
+Sensor_index: 15, name: FL_hip_vel, dim: 1
+Sensor_index: 16, name: FL_thigh_vel, dim: 1
+Sensor_index: 17, name: FL_calf_vel, dim: 1
+Sensor_index: 18, name: RR_hip_vel, dim: 1
+Sensor_index: 19, name: RR_thigh_vel, dim: 1
+Sensor_index: 20, name: RR_calf_vel, dim: 1
+Sensor_index: 21, name: RL_hip_vel, dim: 1
+Sensor_index: 22, name: RL_thigh_vel, dim: 1
+Sensor_index: 23, name: RL_calf_vel, dim: 1
+Sensor_index: 24, name: FR_hip_torque, dim: 1
+Sensor_index: 25, name: FR_thigh_torque, dim: 1
+Sensor_index: 26, name: FR_calf_torque, dim: 1
+Sensor_index: 27, name: FL_hip_torque, dim: 1
+Sensor_index: 28, name: FL_thigh_torque, dim: 1
+Sensor_index: 29, name: FL_calf_torque, dim: 1
+Sensor_index: 30, name: RR_hip_torque, dim: 1
+Sensor_index: 31, name: RR_thigh_torque, dim: 1
+Sensor_index: 32, name: RR_calf_torque, dim: 1
+Sensor_index: 33, name: RL_hip_torque, dim: 1
+Sensor_index: 34, name: RL_thigh_torque, dim: 1
+Sensor_index: 35, name: RL_calf_torque, dim: 1
+Sensor_index: 36, name: imu_quat, dim: 4
+Sensor_index: 40, name: imu_gyro, dim: 3
+Sensor_index: 43, name: imu_acc, dim: 3
+Sensor_index: 46, name: frame_pos, dim: 3
+Sensor_index: 49, name: frame_vel, dim: 3
+Sensor_index: 52, name: FR_touch, dim: 1
+Sensor_index: 53, name: FL_touch, dim: 1
+Sensor_index: 54, name: RR_touch, dim: 1
+Sensor_index: 55, name: RL_touch, dim: 1
+
+[Ray2D] Shared memory initialized: /mujoco_ray2d (11 floats)
+[QposShm] Shared memory initialized: /mujoco_qpos (19 doubles)
+[CollisionShm] Shared memory initialized: /mujoco_collision (5 int32)
+[Ray2D] Source: geometric

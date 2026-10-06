@@ -9,9 +9,9 @@ set -e
 # Config
 MUJOCO_DIR="${HOME}/quadruped_robots/unitree_mujoco"
 MUJOCO_BIN="${MUJOCO_DIR}/simulate/build2/unitree_mujoco"
-# Default scene from simulate/config.yaml (currently scene_terrain.xml)
-# Override with: MUJOCO_SCENE_OVERRIDE=scene.xml ./scripts/launch_abs_terrain.sh
-MUJOCO_SCENE_OVERRIDE="${MUJOCO_SCENE_OVERRIDE:-}"
+# Default scene: scene_terrain.xml (terrain + obstacles)
+# Override with: MUJOCO_SCENE=scene_flat.xml ./scripts/launch_abs_terrain.sh
+MUJOCO_SCENE="${MUJOCO_SCENE:-scene_terrain.xml}"
 ROS2_WS="${HOME}/quadruped_robots/quadruped_ros2_control_humble"
 UNITREE_SDK2_LIB="${HOME}/Libraries/unitree_sdk2/lib"
 LIBTORCH_LIB="${HOME}/Libraries/libtorch-cpu-2.0.1/lib"
@@ -43,15 +43,9 @@ trap cleanup SIGINT SIGTERM
 # -------------------------------------------------------
 # Step 1: MuJoCo Simulator (terrain scene)
 # -------------------------------------------------------
-echo -e "${GREEN}[1/3] Starting MuJoCo simulator (terrain)...${NC}"
+echo -e "${GREEN}[1/3] Starting MuJoCo simulator (scene: ${MUJOCO_SCENE})...${NC}"
 cd "${MUJOCO_DIR}"
-if [ -n "${MUJOCO_SCENE_OVERRIDE}" ]; then
-    echo -e "  Scene: ${MUJOCO_SCENE_OVERRIDE}"
-    ${MUJOCO_BIN} -s "${MUJOCO_SCENE_OVERRIDE}" &
-else
-    echo -e "  Scene: scene_terrain.xml"
-    ${MUJOCO_BIN} -s scene_terrain.xml &
-fi
+${MUJOCO_BIN} -s "${MUJOCO_SCENE}" &
 MUJOCO_PID=$!
 sleep 3
 

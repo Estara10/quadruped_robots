@@ -1,0 +1,17 @@
+{
+  "version": 5,
+  "length_bytes": 14472,
+  "reader": "LIVE",
+  "serializer_validation": "PASS",
+  "analyzer": "PASS",
+  "floor_collision_terminal": false,
+  "foot_contact_nonterminal": true,
+  "nonfoot_terminal": true,
+  "nonfoot_body": "FL_thigh",
+  "nonfoot_body_id": 3,
+  "nonfoot_geom_id": 18,
+  "truncated_mismatched_and_unknown_versions_rejected": true,
+  "v3_layout": "ACCEPTED_3864",
+  "v4_layout": "ACCEPTED_5760",
+  "historical_v4_payload": "ACCEPTED"
+}

@@ -1,0 +1,47 @@
+{
+  "attempted_at_local": "2026-10-08T14:09:14+08:00",
+  "diagnostic_started": false,
+  "reason": "GLFW hidden-window creation failed in the available execution environment; no simulation was started.",
+  "process_preflight": {
+    "related_processes": [],
+    "checked_names": [
+      "unitree_mujoco",
+      "rviz2",
+      "ros2_control_node",
+      "ros2_control_no",
+      "controller_manager"
+    ]
+  },
+  "display": {
+    "uid": 1000,
+    "DISPLAY": ":0",
+    "XAUTHORITY": "/run/user/1000/gdm/Xauthority",
+    "xdpyinfo_exit_code": 0,
+    "x_socket_connection": "passed"
+  },
+  "glfw": {
+    "library": "libglfw.so.3",
+    "glfwInit": 1,
+    "hidden_window_size": [
+      16,
+      16
+    ],
+    "window_created": false,
+    "mesa_errors": [
+      "failed to open iris: /usr/lib/dri/iris_dri.so: No such file or directory",
+      "failed to load driver: iris",
+      "failed to open swrast: /usr/lib/dri/swrast_dri.so: No such file or directory",
+      "failed to load driver: swrast"
+    ],
+    "retry_with_diagnostic_LD_LIBRARY_PATH": "same result"
+  },
+  "read_only_environment_findings": {
+    "x86_64_dri_directory_exists": true,
+    "iris_and_swrast_files_exist_under_x86_64_dri_directory": true,
+    "dev_dri_directory_exists": false,
+    "system_settings_changed": false,
+    "authorization_changed": false,
+    "components_installed": false
+  },
+  "decision": "Stopped before recorder, MuJoCo, ROS/controller and RViz launch. The current environment could connect to X but could not create a GLFW/OpenGL context. No simulation attempt or retry was made."
+}

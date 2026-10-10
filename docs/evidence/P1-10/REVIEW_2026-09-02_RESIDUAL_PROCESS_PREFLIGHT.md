@@ -38,4 +38,4 @@ recorded Director authorization.
 
 - [`residual_process_preflight_closure_20260902.md`](residual_process_preflight_closure_20260902.md)
 - [`residual_process_preflight_closure_20260902.json`](residual_process_preflight_closure_20260902.json)
-- [`P1-10.md`](../../exec-plans/P1-10.md)
+- [`P1-10.md`](../../legacy/exec-plans/P1-10.md)

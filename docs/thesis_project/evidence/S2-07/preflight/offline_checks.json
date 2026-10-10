@@ -1,0 +1,212 @@
+{
+  "task": "S2-07",
+  "results": {
+    "production_cpp_contract_helper": {
+      "source": "quadruped_ros2_control_humble/controllers/rl_quadruped_controller/test/s2_07_normal_shutdown_contract.cpp",
+      "compile": "PASS with /usr/bin/c++ -std=c++17 -Wall -Wextra -Werror",
+      "cases": [
+        "deceleration/standing/down predicates accept only expected valid samples",
+        "stable dwell confirms after 400 ms",
+        "stage timeout rejects progression",
+        "hard stop returns ABORT before confirmation",
+        "abnormal or invalid feedback rejects progression",
+        "insufficient support, excessive joint speed and excessive tilt reject DOWN"
+      ],
+      "result": "PASS"
+    },
+    "python_supervisor_closeout_gate": {
+      "source": "scripts/s1_run_diagnostic.py:normal_closeout_gate",
+      "cases": [
+        "healthy ARRIVED/LIVE snapshot is eligible",
+        "non-arrival terminal, safety event, collision, confirmed fall, stale authority and unknown contacts are rejected"
+      ],
+      "result": "PASS"
+    },
+    "motion_terminal_and_cleanup_analysis": {
+      "source": "scripts/test_s1_04_contract.py:test_exit_cycle_closes_recovery_and_cleanup_tail_is_excluded and test_production_closeout_end_to_end_and_failure_keeps_cleanup",
+      "result": "PASS after adapting the legacy test invocation to provide the now-required scene authority argument",
+      "checked": "terminal cycle is included; cleanup tail is excluded; write failure preserves process cleanup and analyzer rejects incomplete closeout"
+    },
+    "python_syntax": "PASS for s1_run_diagnostic.py and s1_analyze_run.py",
+    "incremental_build": {
+      "packages": [
+        "controller_common",
+        "rl_quadruped_controller"
+      ],
+      "result": "PASS",
+      "note": "one existing CMake minimum-version deprecation warning in controller_common; no build errors"
+    }
+  },
+  "latest_revision_20261010": {
+    "scope": "arrival, measured deceleration, continuous fixed-stand hold and bounded simulator-first cleanup",
+    "cpp_contract_helper": {
+      "result": "PASS",
+      "cases": [
+        "nonzero-to-zero 600 ms scale: 1.0 at start, 0.5 at midpoint, 0 at endpoint and after endpoint",
+        "support kp/kd readback must remain positive in standing hold",
+        "stage timeout and invalid feedback reject progression",
+        "hard stop returns ABORT before normal progression"
+      ]
+    },
+    "python_targeted_checks": {
+      "result": "PASS",
+      "passed": 5,
+      "cases": [
+        "standing physics samples require finite simulation time, complete publisher coverage, known contacts, no fall/contact, upright base and support",
+        "hold reaches deadline using simulation time and rejects time reversal",
+        "safety terminal priority",
+        "arrival motion boundary includes terminal cycle and excludes cleanup tail",
+        "production closeout persists terminal and still cleans up on artifact failure"
+      ]
+    },
+    "python_syntax": "PASS for s1_run_diagnostic.py, s1_analyze_run.py and targeted checks",
+    "incremental_builds": {
+      "controller_common": "PASS",
+      "rl_quadruped_controller": "PASS",
+      "unitree_mujoco": "PASS"
+    },
+    "analyzer_runtime": {
+      "system_usr_bin_python": "matplotlib import incompatible with installed NumPy 2.2.6; no packages changed",
+      "existing_anaconda_python": "PASS, Matplotlib 3.10.0; produced metrics and timelines"
+    },
+    "runs": [
+      {
+        "run_id": "da53e788be7044868df34758895ec61f",
+        "scene": "scene_flat.xml",
+        "source_path": "derived_hold_window_from_closeout_samples",
+        "sim_time_window_s": [
+          30.43399999999401,
+          35.43599999999734
+        ],
+        "elapsed_sim_s": 5.002000000003331,
+        "requested_sim_s": 5.0,
+        "sample_count": 418,
+        "first_sample": {
+          "sequence": 30436,
+          "physics_step": 15217,
+          "sim_time_s": 30.43399999999401
+        },
+        "last_sample": {
+          "sequence": 35438,
+          "physics_step": 17718,
+          "sim_time_s": 35.43599999999734
+        },
+        "minimum_base_height_m": 0.32254512959327736,
+        "maximum_abs_roll_rad": 0.013200654958984514,
+        "maximum_abs_pitch_rad": 0.018668486562177924,
+        "minimum_foot_ground_contacts": 4,
+        "physics_coverage_complete_all_samples": true,
+        "fall_candidate_or_confirmed_any_sample": false,
+        "robot_obstacle_contacts_any_sample": false,
+        "controller_standing_feedback_and_gain_readback": {
+          "angular_speed": "0.00194",
+          "base_z": "0.36530",
+          "dq": "[-0.0038,-0.0072,0.0189,-0.0009,-0.0172,0.0149,0.0001,-0.0145,0.0115,0.0006,-0.0173,0.0101]",
+          "max_kd": "3.00000",
+          "max_kp": "80.00000",
+          "max_q_error": "0.10964",
+          "max_qdot": "0.01893",
+          "phase": "STANDING_CONFIRMED",
+          "pitch": "0.01869",
+          "q": "[-0.0134,0.7414,-1.6096,0.0062,0.8159,-1.5862,-0.0020,0.8349,-1.5630,0.0152,0.8633,-1.5211]",
+          "roll": "0.01320",
+          "speed_xy": "0.00330",
+          "stable_ms": "400",
+          "stable_since_ns": "39277313404556",
+          "steady_ns": "39277718396508",
+          "supported_feet": "4"
+        },
+        "lowering_requested": false,
+        "passive_requested": false,
+        "motion_analysis": {
+          "record_validity": "VALID",
+          "navigation_terminal_result": "ARRIVED",
+          "valid_motion_duration_s": 3.3799999999981267,
+          "path_length_m": 6.410976280423781,
+          "mean_path_speed_mps": 1.8967385445051284,
+          "target_distance_final_m": 0.4999969003342636,
+          "frame_count": 208,
+          "invalid_clock_frames": 1,
+          "rl_step_gaps": 0,
+          "policy_frequency_hz_overall": 50.04112562220782,
+          "mode_transitions": 0,
+          "recovery_share_valid_motion_time": 0.0,
+          "nonfoot_collision_failure": false,
+          "foot_contact_count": 0,
+          "foot_impact_count": 0
+        },
+        "framebuffer_screenshot": null
+      },
+      {
+        "run_id": "19b4b20771ec4b3baed9ef02c23b23f1",
+        "scene": "scene_random_04.xml",
+        "source_path": "saved_standing_observation_samples",
+        "sim_time_window_s": [
+          35.00199999999681,
+          40.00600000000293
+        ],
+        "elapsed_sim_s": 5.004000000006116,
+        "requested_sim_s": 5.0,
+        "sample_count": 372,
+        "first_sample": {
+          "sequence": 35004,
+          "physics_step": 17501,
+          "sim_time_s": 35.00199999999681
+        },
+        "last_sample": {
+          "sequence": 40008,
+          "physics_step": 20003,
+          "sim_time_s": 40.00600000000293
+        },
+        "minimum_base_height_m": 0.32130291076280126,
+        "maximum_abs_roll_rad": 0.005674139115425809,
+        "maximum_abs_pitch_rad": 0.028806778872868567,
+        "minimum_foot_ground_contacts": 4,
+        "physics_coverage_complete_all_samples": true,
+        "fall_candidate_or_confirmed_any_sample": false,
+        "robot_obstacle_contacts_any_sample": false,
+        "controller_standing_feedback_and_gain_readback": {
+          "angular_speed": "0.00284",
+          "base_z": "0.36432",
+          "dq": "[-0.0001,-0.0052,0.0140,0.0002,-0.0063,0.0102,0.0001,-0.0064,0.0083,0.0018,-0.0118,0.0034]",
+          "max_kd": "3.00000",
+          "max_kp": "80.00000",
+          "max_q_error": "0.11294",
+          "max_qdot": "0.01403",
+          "phase": "STANDING_CONFIRMED",
+          "pitch": "0.02883",
+          "q": "[-0.0284,0.7339,-1.6129,0.0261,0.7604,-1.6041,-0.0118,0.8700,-1.5317,0.0147,0.8717,-1.5174]",
+          "roll": "0.00570",
+          "speed_xy": "0.00128",
+          "stable_ms": "400",
+          "stable_since_ns": "39469522047556",
+          "steady_ns": "39469927093226",
+          "supported_feet": "4"
+        },
+        "lowering_requested": false,
+        "passive_requested": false,
+        "motion_analysis": {
+          "record_validity": "VALID",
+          "navigation_terminal_result": "ARRIVED",
+          "valid_motion_duration_s": 9.36599999999481,
+          "path_length_m": 7.7389084089248765,
+          "mean_path_speed_mps": 0.8262767893368744,
+          "target_distance_final_m": 0.4775463883826311,
+          "frame_count": 552,
+          "invalid_clock_frames": 17,
+          "rl_step_gaps": 1,
+          "policy_frequency_hz_overall": 50.20913924522925,
+          "mode_transitions": 115,
+          "recovery_share_valid_motion_time": 0.3226564168268204,
+          "nonfoot_collision_failure": false,
+          "foot_contact_count": 0,
+          "foot_impact_count": 0
+        },
+        "framebuffer_screenshot": "docs/thesis_project/evidence/S2-07/diagnostic_runs_20261010_standing/scene_random_04/19b4b20771ec4b3baed9ef02c23b23f1/standing_hold.png"
+      }
+    ],
+    "flat_screenshot_note": "The first flat run met ARRIVED and the full standing hold, but its screenshot path was relative to the MuJoCo working directory and no image was written. This was diagnosed and fixed before the random_04 run. Raw run data were not changed; no third run was started.",
+    "desktop_preflight": "PASS using the previously authorized DISPLAY=:0 and XAUTHORITY=/run/user/1000/gdm/Xauthority; GLFW window creation passed; Intel Mesa renderer; no system changes",
+    "cleanup": "Both run records report shutdown_complete=true and forced_termination=false; direct post-run process inventory found no task-owned MuJoCo/controller/ROS/RViz/recorder/stop-publisher processes."
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "run_id": "60f5f44663104b6c883b4668ba1473e4",
+  "recorded_process_facts": {
+    "mujoco_started": true,
+    "mujoco_exit_code": 0,
+    "forced_termination": false,
+    "shutdown_complete": true,
+    "closeout_complete": true,
+    "ros_launch_started": false,
+    "controller_started": false,
+    "rviz_started": false
+  },
+  "post_run_process_check": {
+    "matching_project_processes": [],
+    "checked_names": ["unitree_mujoco", "ros2_control_node", "controller_manager", "rviz2", "robot_state_publisher", "s1_run_diagnostic"],
+    "result": "no matching active process observed"
+  },
+  "persistent_shared_memory": "A named collision shared-memory object was readable under the escalated desktop execution after process exit. Its recorded creation time predates this run. No writer remains; it was not removed because ownership is not established.",
+  "display_probe": "hidden GLFW window destroyed and probe process exited; this task's temporary probe files removed"
+}

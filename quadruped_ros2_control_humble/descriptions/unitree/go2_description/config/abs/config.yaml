@@ -64,7 +64,9 @@ abs:
   ray2d_max_range: 6.0             # max range (log2 transformed, ~2.58)
   ray2d_timeout_ms: 200             # no fresh stamped frame -> fail closed to PASSIVE
   ra_model_name: "ra_value.pt"     # RA value network (TorchScript)
-  ra_threshold: -0.05              # RA > this → trigger recovery (ROS1 convention)
+  switching:
+    group: "A"
+    entry_threshold: -0.05          # A: RA >= E enters; RA < E exits.
 
   # Recovery twist optimization (ROS1 lines 297-302)
   twist_lam: 10.0                  # twist_lam = 10.
@@ -78,15 +80,6 @@ abs:
   twist_wz_min: -3.0               # twist_min[2] = -3.0
   twist_wz_max: 3.0                # twist_max[2] = 3.0
   recovery_steps: 250              # for manual RL_REC mode only (FSM switch, not inline RA)
-  recovery_hold_steps: 30           # min RL steps in recovery (30*8ms=240ms ≈ ROS1 3*80ms)
-  # P1-07: RA-to-Recovery switching mode. Exactly two valid values (any other
-  # value is rejected at initialization):
-  #   stabilized_switch      (default) current deployed behavior:
-  #                          ENTER RA > -0.05 (strict), EXIT RA < -0.08 after
-  #                          recovery_hold_steps forced hold.
-  #   paper_faithful_switch  paper rule only: RA >= -0.05 -> Recovery,
-  #                          RA < -0.05 -> Agile; no hysteresis, no forced hold.
-  switching_mode: "stabilized_switch"
   soft_start_steps: 250            # Kp/Kd ramp steps (~0.5s at 500Hz controller rate)
   goal_x: 7.0                      # world-frame goal X (forward, matches paper GOAL_XYZ)
   goal_y: 0.0                      # world-frame goal Y (left = positive)
@@ -95,8 +88,8 @@ abs:
   # Recovery-aware straight-line tracking:
   # normal agile follows the start→goal line; recovery can deviate to avoid obstacles.
   path_tracking_enabled: true
-  path_lateral_gain: 3.0
-  path_heading_gain: 3.0
+  path_lateral_gain: 2.5
+  path_heading_gain: 2.5
 
   # Evaluation telemetry logs [EVAL] lines for multi-scene simulation metrics.
   # This does not affect policy/RA/recovery behavior.

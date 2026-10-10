@@ -1,0 +1,13 @@
+controllerToPolicyDof q PASS
+controllerToPolicyDof default PASS
+controllerToPolicyDof bias PASS
+controllerToPolicyDof dq PASS
+controllerToPolicyDof previous action PASS
+controllerToPolicyContact PASS
+policyToControllerDof Agile output PASS
+policyToControllerDof Recovery output PASS
+previous action round trip PASS
+Agile observation field layout PASS
+inline Recovery observation field layout PASS
+policy FL/FR/RL/RR channel i -> controller slot 3/4/5,0/1/2,9/10/11,6/7/8 PASS
+foot contact controller FR/FL/RR/RL -> policy FL/FR/RL/RR = 1/0/3/2 PASS

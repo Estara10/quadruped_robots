@@ -1,0 +1,147 @@
+{
+  "run_id": "68447ad2375a4b28b3abbe10d4a1977d",
+  "scene": "scene_random_03.xml",
+  "scene_id": "random_03",
+  "record_validity": "VALID",
+  "record_validity_reasons": [],
+  "terminal_result": "ARRIVED",
+  "navigation_terminal_result": "ARRIVED",
+  "run_terminal_result_context": "ARRIVED",
+  "run_terminal_result_record": "ARRIVED",
+  "cleanup_events": [
+    {
+      "command": 1,
+      "event": "PASSIVE_STOP_REQUESTED",
+      "monotonic_ns": 34709561684293,
+      "phase": "cleanup",
+      "publish_return_monotonic_ns": 34709561784854,
+      "publisher_invoked_monotonic_ns": 34709561600869
+    },
+    {
+      "confirmed": true,
+      "event": "STRATEGY_STOP_CONFIRMATION",
+      "evidence": {
+        "command": 1,
+        "controller_steady_monotonic_ns": 34709565647838,
+        "event": "hard_stop_transition_complete",
+        "message": "[ros2_control_node-3] [INFO] [1791627207.244031522] [rl_quadruped_controller]: [HARD-STOP-CONFIRMED] command=1 state=PASSIVE steady_ns=34709565647838 changed=1",
+        "state": "PASSIVE"
+      },
+      "monotonic_ns": 34709565647838,
+      "observation_window_monotonic_ns": [
+        34709561909465,
+        34709567579635
+      ],
+      "phase": "cleanup"
+    },
+    {
+      "event": "GLOBAL_HARD_STOP",
+      "event_monotonic_ns": null,
+      "event_time_interval_monotonic_ns": [
+        34709561684293,
+        34709565647838
+      ],
+      "event_time_source": "not embedded in source line",
+      "message": "[ros2_control_node-3] [ERROR] [1791627207.243938925] [rl_quadruped_controller]: [HARD-STOP] command=1 -> forcing PASSIVE",
+      "observer_received_monotonic_ns": 34710196741537,
+      "phase": "cleanup",
+      "source": "RlQuadrupedController/StateRL ROS log"
+    }
+  ],
+  "motion_metric_time_boundary": {
+    "start_sim_time_s": 25.283999999996865,
+    "end_sim_time_s": 28.707999999994968,
+    "start_cycle": 49,
+    "end_cycle": 220,
+    "terminal_frame_payload_complete": true
+  },
+  "session_id": 34705136368741,
+  "frame_count": 184,
+  "rl_step_gaps": 0,
+  "invalid_clock_frames": 0,
+  "clock_valid_fraction": 1.0,
+  "first_valid_sim_time_s": 25.043999999997,
+  "last_valid_sim_time_s": 28.707999999994968,
+  "policy_interval_ms_median": 19.986578,
+  "policy_interval_ms_p95": 26.04384380000001,
+  "policy_interval_ms_min": 6.538127,
+  "policy_interval_ms_max": 40.476983000000004,
+  "policy_frequency_hz_overall": 49.964801462862795,
+  "mode_transitions": 0,
+  "agile_to_recovery": 0,
+  "recovery_to_agile": 0,
+  "transitions_with_valid_sim_time": 0,
+  "transitions": [],
+  "recovery_intervals": [],
+  "recovery_sim_duration_s": 0.0,
+  "valid_motion_duration_s": 3.4239999999981023,
+  "recovery_share_valid_motion_time": 0.0,
+  "movement_start_sim_time_s": 25.283999999996865,
+  "target_distance_start_m": 6.923260775649191,
+  "target_distance_final_m": 0.4908418271439027,
+  "path_length_m": 6.610350764303344,
+  "mean_path_speed_mps": 1.9305930970522802,
+  "short_reverse_switch_count": 0,
+  "short_reverse_window_s": 0.5,
+  "period_statistics_scope": "all captured LIVE frames including preparation and cleanup tail, if present",
+  "motion_metrics_scope": "valid continuous cycles from observed 0.10m motion-start cycle through terminal frame; cleanup tail excluded",
+  "collision_coverage": {
+    "available": false,
+    "reason": "authoritative samples contain no contact, but capture has no complete episode coverage boundary",
+    "event_count": 0,
+    "coverage": {
+      "samples": 184,
+      "live_samples": 184,
+      "unknown_contacts": 0,
+      "physics_step_gaps": 1646,
+      "sampled_steps_contiguous": true,
+      "producer_physics_coverage_complete": true,
+      "complete_for_no_collision_claim": false,
+      "scope": "whole captured interval; motion boundary is evaluated by S1 analyzer"
+    }
+  },
+  "motion_safety": {
+    "motion_interval_sim_s_inclusive": [
+      25.283999999996865,
+      28.707999999994968
+    ],
+    "collision": false,
+    "collision_events": [],
+    "nonfoot_collision_failure": false,
+    "foot_contact_count": 0,
+    "foot_contact_duration_s": 0.0,
+    "foot_contact_events": [],
+    "foot_contact_duration_capture_s": 0.0,
+    "foot_impact_count": 0,
+    "foot_impact_duration_s": 0.0,
+    "foot_impact_events": [],
+    "foot_impact_duration_capture_s": 0.0,
+    "foot_impact_unknown_overlaps_motion": false,
+    "abs_reference_collision": false,
+    "fall": false,
+    "fall_events": [],
+    "fall_event": null,
+    "coverage_complete_for_motion_interval": true,
+    "coverage_reason": null,
+    "unclassified_contact_overlaps_motion": false,
+    "invalid_posture_overlaps_motion": false,
+    "unconfirmed_fall_candidate_overlaps_motion": false,
+    "max_observed_contacts_per_policy_snapshot": {
+      "foot_floor": 4,
+      "nonfoot_floor": 0,
+      "self": 0
+    }
+  },
+  "nonfoot_collision_failure": false,
+  "foot_contact_count": 0,
+  "foot_contact_duration_s": 0.0,
+  "foot_contact_duration_capture_s": 0.0,
+  "foot_impact_count": 0,
+  "foot_impact_duration_s": 0.0,
+  "foot_impact_duration_capture_s": 0.0,
+  "arrived_with_foot_contact": false,
+  "arrived_with_foot_impact": false,
+  "abs_reference_collision": false,
+  "external_safety_events": [],
+  "command_consumption": "UNKNOWN"
+}

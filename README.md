@@ -19,9 +19,11 @@ Reference code: https://github.com/LeCAR-Lab/ABS
 - 当前状态与 Active Task：[`docs/thesis_project/CURRENT_STATE.md`](docs/thesis_project/CURRENT_STATE.md)
 - 新路线：[`docs/thesis_project/ROADMAP.md`](docs/thesis_project/ROADMAP.md)
 - 实验设计：[`docs/thesis_project/EXPERIMENT_PLAN.md`](docs/thesis_project/EXPERIMENT_PLAN.md)
-- 当前任务：[`docs/thesis_project/tasks/S1-01.md`](docs/thesis_project/tasks/S1-01.md)
+- 当前任务：[`docs/thesis_project/tasks/S1-05.md`](docs/thesis_project/tasks/S1-05.md)
 
-当前主要任务是 **S1-01：统一 A/B/C/D 切换合同与时间语义**。正式实验、模型重训和实机 RL 均未获准；实机状态为 **NO-GO**。
+当前主要任务是 **S1-05：碰撞、跌倒与安全终止记录**。正式实验、模型重训和实机 RL 均未获准；实机状态为 **NO-GO**。
+
+冻结的旧治理文档与 P1 计划已集中到 [`docs/legacy/`](docs/legacy/README.md)，只供历史参考。
 
 ---
 
@@ -37,7 +39,7 @@ Reference code: https://github.com/LeCAR-Lab/ABS
 | `quadruped_ros2_control_humble/controllers/rl_quadruped_controller/doc/real_go2_deployment.md` | Go2 真机部署说明 |
 | `scene.txt` | 场景列表和推荐测试顺序 |
 | `command.txt` / `命令.txt` | 常用命令速查 |
-| `lab_notes/` | 实验记录 |
+| `archive/lab_notes/` | 历史实验笔记（归档，非当前任务指令） |
 
 ---
 

@@ -19,9 +19,12 @@ from typing import Dict, List, Optional, Tuple
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from abs_rt_frame import (  # noqa: E402
+    FRAME_MAGIC,
+    FRAME_VERSION,
     RuntimeFrame,
     SOURCE_AUTHORITATIVE_RUNTIME,
     SOURCE_SYNTHETIC_TEST,
+    _FRAME_STRUCT,
 )
 from run_record import (  # noqa: E402
     RunRecordRecorder,
@@ -31,28 +34,33 @@ from run_record import (  # noqa: E402
     summarize_record,
 )
 
-# Mirror "<7Q11I81f" (see abs_rt_frame._FRAME_STRUCT).
-_FRAME_STRUCT = struct.Struct("<7Q11I81f")
-
-
 def pack_frame(frame: RuntimeFrame) -> bytes:
     ints = [
         frame.magic, frame.version, frame.sequence, frame.monotonic_ns,
         frame.session_id, frame.rl_step, frame.ray_age_ns,
+        frame.sim_clock_sequence, frame.sim_clock_monotonic_ns,
+        frame.sim_clock_segment_id, frame.sim_clock_age_ns,
+        frame.risk_evaluation_ns, frame.risk_condition_entered_ns,
+        frame.mode_change_ns,
     ]
     flags = [
         frame.source, frame.controller_active, frame.rl_entered, frame.rl_active,
         frame.safety_faulted, frame.policy_state, frame.ray_origin, frame.ray_valid,
-        frame.collision_origin, frame.torque_saturated_computed, frame.reserved_pad,
+        frame.collision_origin, frame.torque_saturated_computed,
+        frame.mode_before, frame.switching_mode, frame.action_source,
+        frame.transition_reason, frame.risk_condition_met,
+        frame.risk_condition_entered, frame.policy_mode_changed,
+        frame.sim_clock_status, frame.sim_clock_valid, frame.reserved_pad,
     ]
     floats = [
+        frame.entry_threshold, frame.exit_threshold,
         frame.ra_value,
         *frame.lin_vel, *frame.command, *frame.world_pose,
         *frame.ray2d,
         *frame.action_raw, *frame.action_clipped,
         *frame.joint_target_rad, *frame.torque_nm, *frame.torque_saturated,
     ]
-    return _FRAME_STRUCT.pack(*ints, *flags, *floats)
+    return _FRAME_STRUCT.pack(*ints, *flags, frame.sim_time_s, *floats)
 
 
 def fixture(
@@ -70,12 +78,22 @@ def fixture(
     torque_saturated_computed=0,
 ):
     return RuntimeFrame(
-        magic=0x414253525446524D, version=1, sequence=sequence,
+        magic=FRAME_MAGIC, version=FRAME_VERSION, sequence=sequence,
         monotonic_ns=monotonic_ns, session_id=session_id, rl_step=rl_step,
-        ray_age_ns=1, source=source, controller_active=1, rl_entered=1,
+        ray_age_ns=1, sim_clock_sequence=2,
+        sim_clock_monotonic_ns=max(1, monotonic_ns - 1),
+        sim_clock_segment_id=1,
+        sim_clock_age_ns=monotonic_ns - max(1, monotonic_ns - 1),
+        risk_evaluation_ns=monotonic_ns,
+        risk_condition_entered_ns=0, mode_change_ns=0,
+        source=source, controller_active=1, rl_entered=1,
         rl_active=rl_active, safety_faulted=safety_faulted, policy_state=policy_state,
         ray_origin=1, ray_valid=1, collision_origin=0,
-        torque_saturated_computed=torque_saturated_computed, reserved_pad=0,
+        torque_saturated_computed=torque_saturated_computed,
+        mode_before=policy_state, switching_mode=1, action_source=1,
+        transition_reason=0, risk_condition_met=0, risk_condition_entered=2,
+        policy_mode_changed=0, sim_clock_status=1, sim_clock_valid=1,
+        reserved_pad=0, sim_time_s=0.1, entry_threshold=-0.05, exit_threshold=-0.08,
         ra_value=ra_value, lin_vel=lin_vel, command=(0.5, 0.5, 0.1),
         world_pose=(1.0, 2.0, 0.3), ray2d=tuple(float(i) for i in range(11)),
         action_raw=tuple(float(i) for i in range(12)),

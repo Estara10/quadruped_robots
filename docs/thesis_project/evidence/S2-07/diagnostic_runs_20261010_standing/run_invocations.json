@@ -1,0 +1,33 @@
+{
+  "task": "S2-07",
+  "run_classification": "nonformal diagnostic",
+  "shared_settings": {
+    "group": "A",
+    "candidate": "paper_faithful_switch",
+    "entry_threshold": -0.05,
+    "exit_threshold": -0.05,
+    "goal_world_m": [
+      7.0,
+      0.0
+    ],
+    "arrival_radius_m": 0.5,
+    "sim_limit_s": 20.0,
+    "wall_cap_s": 120.0,
+    "standing_observation_sim_s": 5.0,
+    "standing_observation_wall_cap_s": 30.0,
+    "safety_checks": "unchanged"
+  },
+  "runs": [
+    {
+      "scene": "scene_flat.xml",
+      "order": 1,
+      "condition": "proceed to scene_random_04 only if this run completes ARRIVED and a valid 5 s standing hold"
+    },
+    {
+      "scene": "scene_random_04.xml",
+      "order": 2,
+      "condition": "run only after the flat standing hold passes"
+    }
+  ],
+  "pre_run_process_inventory": "No relevant MuJoCo, controller-manager, RViz, diagnostic supervisor, stop publisher, or recorder processes found"
+}

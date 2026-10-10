@@ -1,185 +1,66 @@
-# ABS-Go2 Project Execution Contract
-
-## Role
-
-You are an Execution Agent only.
-
-Your responsibility:
-- implement assigned engineering tasks;
-- modify code only within approved scope;
-- run required validation;
-- report evidence.
-
-You are NOT:
-- Project Director;
-- Architecture owner;
-- Acceptance authority;
-- Roadmap planner.
-
-Do not redefine project goals.
-Do not change task priority.
-Do not modify acceptance criteria.
-
----
-
-# Source of Truth
-
-The following files define project state:
-
-- AGENTS.md
-- docs/CURRENT_STATE.md
-- docs/ROADMAP.md
-- docs/GAP_MATRIX.md
-- docs/DECISIONS.md
-- docs/exec-plans/
-
-These documents are controlled project state.
-
----
-
-# Mandatory Rules
-
-Before any modification:
-
-Read:
-
-1. AGENTS.md
-2. docs/CURRENT_STATE.md
-3. related docs/exec-plans/<current task>.md
-
-Do not scan the whole repository unless explicitly requested.
-
----
-
-# Documentation Protection Rules
-
-You MUST NOT modify:
-
-- docs/CURRENT_STATE.md
-- docs/ROADMAP.md
-- docs/GAP_MATRIX.md
-- docs/DECISIONS.md
-- Acceptance criteria
-- Phase definitions
-
-unless explicitly instructed by the Project Director.
-
-If your implementation discovers new facts:
-
-Do NOT directly rewrite project decisions.
-
-Instead:
-
-Create:
-
-docs/evidence/<task>/
-
-or provide:
-
-- finding
-- evidence
-- recommended update
-
-for Director review.
-
----
-
-# Engineering Rules
-
-Before changing code:
-
-Confirm:
-
-- current task ID;
-- allowed files;
-- expected acceptance criteria.
-
-Do not:
-
-- change algorithms;
-- change thresholds;
-- change architecture;
-- replace paper-faithful implementation with engineering variants;
-
-unless explicitly authorized.
-
----
-
-# UNKNOWN Policy
-
-UNKNOWN is a valid state.
-
-Never convert:
-
-UNKNOWN → PASS
-
-without evidence.
-
-Never infer:
-
-- model provenance;
-- checkpoint lineage;
-- policy correctness;
-- experimental success;
-
-from filenames or behavior.
-
----
-
-# Git Rules
-
-Every task must leave:
-
-1. clean diff explanation;
-2. changed file list;
-3. validation commands;
-4. test results;
-5. remaining risks.
-
-Do not commit unless requested.
-
----
-
-# Handoff Requirements
-
-Every completed task must generate:
-
-## Task Report
-
-Format:
-
-Task:
-Status:
-
-Implemented:
-
-Changed Files:
-
-Evidence:
-
-Tests:
-
-Known Issues:
-
-Remaining UNKNOWN:
-
-Recommended Next Step:
-
-This report must allow another engineer or Codex session to continue without reading the conversation history.
-
----
-
-# Execution Philosophy
-
-Prefer:
-
-small changes + strong evidence
-
-over:
-
-large refactors + uncertain correctness.
-
-If blocked:
-stop and report.
-
-Do not invent solutions.
+# Undergraduate Thesis Project Entry
+
+This repository is an undergraduate thesis project on risk-driven safe policy
+switching for Unitree Go2 in complex static-obstacle environments.
+
+## Authority and Current Planning
+
+The passed thesis proposal is the highest authority for **what the project is
+intended to do**. Repository code, configuration, and preserved evidence are
+the authority for **what has actually been completed**.
+
+Before planning or making a change, read only this current Source of Truth:
+
+1. `AGENTS.md`
+2. `docs/thesis_project/OVERVIEW.md`
+3. `docs/thesis_project/ROADMAP.md`
+4. `docs/thesis_project/CURRENT_STATE.md`
+5. `docs/thesis_project/EXPERIMENT_PLAN.md`
+6. The single active task under `docs/thesis_project/tasks/`
+
+The active task, its scope, and its entry conditions govern the next action.
+Do not infer a task from an old task ID or an unfinished historical document.
+
+## Legacy Boundary
+
+The following are preserved historical materials, not current instructions:
+
+- old P1 plans in `docs/legacy/exec-plans/`;
+- old P1 evidence in `docs/evidence/`;
+- old top-level governance, Gate, Phase, reviewer, and acceptance documents;
+- old P1 scripts, scenarios, and formalization assets unless an active thesis
+  task explicitly selects one as a reusable technical asset.
+
+Preserve historical facts, failures, risks, artifacts, and UNKNOWN items. Do
+not treat a legacy `PASS`, plan, or checklist as current completion evidence.
+
+## Working Rules
+
+- Keep exactly one main Active Task.
+- Never present PLANNED or UNKNOWN work as FACT.
+- Use simulation before any real-robot work.
+- Real-robot ABS/RL remains NO-GO until the current thesis safety-readiness
+  conditions are met; low-speed monitored preparation is separate from formal
+  real-robot validation.
+- Do not train models, run formal experiments, or change control algorithms
+  unless the active thesis stage authorizes it.
+- Before formal experiments, verify the interfaces and semantics that can
+  affect results: dimensions, order, units, frequency, thresholds, hold time,
+  RA/Recovery behavior, and metrics.
+- Keep code and documentation changes traceable to the thesis objective or the
+  active task. Preserve useful technical evidence rather than rewriting it.
+
+## Technical Orientation
+
+The current executable system is centered on:
+
+- `quadruped_ros2_control_humble/` for ROS 2 control and policy runtime;
+- `unitree_mujoco/` for simulation and obstacle/ray infrastructure;
+- `ABS/` for paper and training-side reference code;
+- `common/` for runtime contracts shared by simulator and controller;
+- `archive/artifacts/manifest.yaml` for the archived model and external-artifact inventory (historical reference; verify against current files before use).
+
+Technical reference documents such as `docs/POLICY_IO_CONTRACT.md`,
+`docs/ABS_PAPER_NOTES.md`, and `docs/REPOSITORY_BASELINE.md` may be consulted
+when their subject is relevant, but they do not supersede the current Source
+of Truth above.

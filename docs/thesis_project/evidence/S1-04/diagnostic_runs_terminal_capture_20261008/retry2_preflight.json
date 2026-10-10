@@ -1,0 +1,26 @@
+{
+  "date_local": "2026-10-08",
+  "permission_scope": "One-time require_escalated command approval used only for local X/GLFW preflight and the authorized diagnostic; no persistent permission change.",
+  "x_connection": {
+    "command": "rtk env DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority xdpyinfo",
+    "result": "exit 0; X.Org display :0 reachable"
+  },
+  "probe": {
+    "compiler": "/usr/bin/gcc (GCC 11.4 system compiler)",
+    "command": "rtk /usr/bin/gcc -O2 -Wall -Wextra /tmp/s1_04_glfw_probe.c -o /tmp/s1_04_glfw_probe -lglfw -lGL; rtk env DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH /tmp/s1_04_glfw_probe",
+    "result": "success; 16x16 hidden window created and destroyed",
+    "glfw": "3.3.6",
+    "vendor": "Intel",
+    "renderer": "Mesa Intel(R) Graphics (RPL-P)",
+    "opengl": "4.6 (Compatibility Profile) Mesa 23.2.1-1ubuntu3.1~22.04.4",
+    "software_rendering_override": false
+  },
+  "temporary_changes": {
+    "DISPLAY": ":0 (command only)",
+    "XAUTHORITY": "/run/user/1000/gdm/Xauthority (command only)",
+    "LD_LIBRARY_PATH": "diagnostic helper path for this command only; no global shell or desktop changes",
+    "source_removed_after_probe": true,
+    "binary_removed_after_probe": true
+  },
+  "preflight_decision": "PASS; one short run may proceed"
+}

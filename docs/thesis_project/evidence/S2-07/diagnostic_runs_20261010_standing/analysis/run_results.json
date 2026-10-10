@@ -1,0 +1,1677 @@
+[
+  {
+    "run_id": "da53e788be7044868df34758895ec61f",
+    "scene": "scene_flat.xml",
+    "scene_id": "flat",
+    "record_validity": "VALID",
+    "record_validity_reasons": [],
+    "terminal_result": "ARRIVED",
+    "navigation_terminal_result": "ARRIVED",
+    "run_terminal_result_context": "ARRIVED",
+    "run_terminal_result_record": "ARRIVED",
+    "cleanup_events": [
+      {
+        "command": 6,
+        "confirmed": true,
+        "event": "NORMAL_SHUTDOWN_REQUESTED",
+        "monotonic_ns": 39273952814645,
+        "phase": "cleanup"
+      },
+      {
+        "controller_state": "FIXEDSTAND",
+        "controller_stop_requested": false,
+        "event": "STANDING_HOLD_OBSERVATION_COMPLETE",
+        "monotonic_ns": 39282733744777,
+        "phase": "cleanup"
+      }
+    ],
+    "motion_metric_time_boundary": {
+      "start_sim_time_s": 23.231999999998003,
+      "end_sim_time_s": 26.651999999996107,
+      "start_cycle": 46,
+      "end_cycle": 217,
+      "terminal_frame_payload_complete": true
+    },
+    "session_id": 39269588597914,
+    "frame_count": 208,
+    "rl_step_gaps": 0,
+    "invalid_clock_frames": 1,
+    "clock_valid_fraction": 0.9951923076923077,
+    "first_valid_sim_time_s": 22.5119999999984,
+    "last_valid_sim_time_s": 26.651999999996107,
+    "policy_interval_ms_median": 20.097684,
+    "policy_interval_ms_p95": 26.509623599999998,
+    "policy_interval_ms_min": 3.848579,
+    "policy_interval_ms_max": 35.788542,
+    "policy_frequency_hz_overall": 50.04112562220782,
+    "mode_transitions": 0,
+    "agile_to_recovery": 0,
+    "recovery_to_agile": 0,
+    "transitions_with_valid_sim_time": 0,
+    "transitions": [],
+    "recovery_intervals": [],
+    "recovery_sim_duration_s": 0.0,
+    "valid_motion_duration_s": 3.3799999999981267,
+    "recovery_share_valid_motion_time": 0.0,
+    "movement_start_sim_time_s": 23.231999999998003,
+    "target_distance_start_m": 6.940934712396165,
+    "target_distance_final_m": 0.4999969003342636,
+    "path_length_m": 6.410976280423781,
+    "mean_path_speed_mps": 1.8967385445051284,
+    "short_reverse_switch_count": 0,
+    "short_reverse_window_s": 0.5,
+    "period_statistics_scope": "all captured LIVE frames including preparation and cleanup tail, if present",
+    "motion_metrics_scope": "valid continuous cycles from observed 0.10m motion-start cycle through terminal frame; cleanup tail excluded",
+    "collision_coverage": {
+      "available": false,
+      "reason": "authoritative samples contain no contact, but capture has no complete episode coverage boundary",
+      "event_count": 0,
+      "coverage": {
+        "samples": 208,
+        "live_samples": 208,
+        "unknown_contacts": 0,
+        "physics_step_gaps": 1860,
+        "sampled_steps_contiguous": true,
+        "producer_physics_coverage_complete": true,
+        "complete_for_no_collision_claim": false,
+        "scope": "whole captured interval; motion boundary is evaluated by S1 analyzer"
+      }
+    },
+    "motion_safety": {
+      "motion_interval_sim_s_inclusive": [
+        23.231999999998003,
+        26.651999999996107
+      ],
+      "collision": false,
+      "collision_events": [],
+      "nonfoot_collision_failure": false,
+      "foot_contact_count": 0,
+      "foot_contact_duration_s": 0.0,
+      "foot_contact_events": [],
+      "foot_contact_duration_capture_s": 0.0,
+      "foot_impact_count": 0,
+      "foot_impact_duration_s": 0.0,
+      "foot_impact_events": [],
+      "foot_impact_duration_capture_s": 0.0,
+      "foot_impact_unknown_overlaps_motion": false,
+      "abs_reference_collision": false,
+      "fall": false,
+      "fall_events": [],
+      "fall_event": null,
+      "coverage_complete_for_motion_interval": true,
+      "coverage_reason": null,
+      "unclassified_contact_overlaps_motion": false,
+      "invalid_posture_overlaps_motion": false,
+      "unconfirmed_fall_candidate_overlaps_motion": false,
+      "max_observed_contacts_per_policy_snapshot": {
+        "foot_floor": 4,
+        "nonfoot_floor": 5,
+        "self": 0
+      }
+    },
+    "nonfoot_collision_failure": false,
+    "foot_contact_count": 0,
+    "foot_contact_duration_s": 0.0,
+    "foot_contact_duration_capture_s": 0.0,
+    "foot_impact_count": 0,
+    "foot_impact_duration_s": 0.0,
+    "foot_impact_duration_capture_s": 0.0,
+    "arrived_with_foot_contact": false,
+    "arrived_with_foot_impact": false,
+    "abs_reference_collision": false,
+    "external_safety_events": [],
+    "command_consumption": "UNKNOWN"
+  },
+  {
+    "run_id": "19b4b20771ec4b3baed9ef02c23b23f1",
+    "scene": "scene_random_04.xml",
+    "scene_id": "random_04",
+    "record_validity": "VALID",
+    "record_validity_reasons": [],
+    "terminal_result": "ARRIVED",
+    "navigation_terminal_result": "ARRIVED",
+    "run_terminal_result_context": "ARRIVED",
+    "run_terminal_result_record": "ARRIVED",
+    "cleanup_events": [
+      {
+        "command": 6,
+        "confirmed": true,
+        "event": "NORMAL_SHUTDOWN_REQUESTED",
+        "monotonic_ns": 39464867103054,
+        "phase": "cleanup"
+      },
+      {
+        "controller_state": "FIXEDSTAND",
+        "controller_stop_requested": false,
+        "event": "STANDING_HOLD_OBSERVATION_COMPLETE",
+        "monotonic_ns": 39474941962373,
+        "phase": "cleanup"
+      }
+    ],
+    "motion_metric_time_boundary": {
+      "start_sim_time_s": 19.84599999999988,
+      "end_sim_time_s": 29.925999999994293,
+      "start_cycle": 48,
+      "end_cycle": 552,
+      "terminal_frame_payload_complete": true
+    },
+    "session_id": 39453802347269,
+    "frame_count": 552,
+    "rl_step_gaps": 1,
+    "invalid_clock_frames": 17,
+    "clock_valid_fraction": 0.9692028985507246,
+    "first_valid_sim_time_s": 18.88600000000041,
+    "last_valid_sim_time_s": 29.925999999994293,
+    "policy_interval_ms_median": 20.038800000000002,
+    "policy_interval_ms_p95": 29.22835935,
+    "policy_interval_ms_min": 2.3528569999999998,
+    "policy_interval_ms_max": 45.830159,
+    "policy_frequency_hz_overall": 50.20913924522925,
+    "mode_transitions": 115,
+    "agile_to_recovery": 57,
+    "recovery_to_agile": 58,
+    "transitions_with_valid_sim_time": 115,
+    "transitions": [
+      {
+        "session_id": 39453802347269,
+        "rl_step": 69,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 20.265999999999647,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 77,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 20.425999999999558,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 91,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 20.705999999999403,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 92,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 20.72799999999939,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 93,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 20.74799999999938,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 101,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 20.90799999999929,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 102,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 20.92599999999928,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 111,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 21.10599999999918,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 154,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 21.965999999998704,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 161,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 22.107999999998626,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 163,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 22.145999999998605,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 169,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 22.265999999998538,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 172,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 22.325999999998505,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 175,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 22.38599999999847,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 176,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 22.40599999999846,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 182,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 22.525999999998394,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 186,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 22.60799999999835,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 188,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 22.645999999998327,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 192,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 22.725999999998283,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 197,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 22.825999999998228,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 201,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 22.90999999999818,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 208,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 23.047999999998105,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 210,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 23.085999999998084,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 211,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 23.105999999998073,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 214,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 23.16599999999804,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 215,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 23.187999999998027,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 216,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 23.205999999998017,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 217,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 23.235999999998,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 218,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 23.27599999999798,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 225,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 23.385999999997917,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 230,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 23.485999999997862,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 247,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 23.825999999997673,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 250,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 23.88599999999764,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 251,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 23.90599999999763,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 253,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 23.945999999997607,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 260,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 24.08599999999753,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 264,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 24.165999999997485,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 265,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 24.19399999999747,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 268,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 24.24599999999744,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 271,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 24.307999999997406,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 272,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 24.325999999997396,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 273,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 24.345999999997385,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 274,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 24.367999999997373,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 275,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 24.385999999997363,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 276,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 24.421999999997343,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 277,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 24.433999999997337,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 278,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 24.44599999999733,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 279,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 24.46599999999732,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 280,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 24.485999999997308,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 281,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 24.509999999997294,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 282,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 24.527999999997284,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 286,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 24.60599999999724,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 287,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 24.62799999999723,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 302,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 24.925999999997064,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 313,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 25.145999999996942,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 314,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 25.16799999999693,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 315,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 25.18599999999692,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 317,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 25.225999999996898,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 318,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 25.247999999996885,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 329,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 25.465999999996765,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 330,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 25.49399999999675,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 331,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 25.505999999996742,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 332,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 25.52599999999673,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 333,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 25.54599999999672,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 336,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 25.605999999996687,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 337,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 25.625999999996676,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 338,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 25.645999999996665,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 339,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 25.665999999996654,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 340,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 25.68799999999664,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 341,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 25.70799999999663,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 342,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 25.735999999996615,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 343,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 25.74599999999661,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 344,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 25.7659999999966,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 345,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 25.785999999996587,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 346,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 25.805999999996576,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 347,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 25.825999999996565,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 348,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 25.847999999996553,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 349,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 25.865999999996543,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 350,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 25.885999999996532,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 351,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 25.90599999999652,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 353,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 25.9459999999965,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 354,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 25.965999999996487,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 355,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 25.987999999996475,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 356,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.01399999999646,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 357,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.025999999996454,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 358,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.045999999996443,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 359,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.065999999996432,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 360,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.08599999999642,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 361,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.10599999999641,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 362,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.1259999999964,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 363,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.145999999996388,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 364,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.173999999996372,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 365,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.187999999996364,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 366,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.205999999996354,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 367,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.225999999996343,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 368,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.245999999996332,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 372,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.327999999996287,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 373,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.347999999996276,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 374,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.367999999996265,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 375,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.385999999996255,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 377,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.443999999996223,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 379,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.46599999999621,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 380,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.4859999999962,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 381,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.505999999996188,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 382,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.529999999996175,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 383,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.547999999996165,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 384,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.569999999996153,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 389,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.6659999999961,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 390,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.68599999999609,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 391,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.705999999996077,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 392,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.73599999999606,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 393,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.745999999996055,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 394,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.765999999996044,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 399,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.86599999999599,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 39453802347269,
+        "rl_step": 400,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.885999999995978,
+        "period_gap_before": null
+      }
+    ],
+    "recovery_intervals": [
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 20.265999999999647,
+        "end_sim_time_s": 20.425999999999558,
+        "duration_s": 0.15999999999991132,
+        "censored": false,
+        "exit_cycle": 77
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 20.705999999999403,
+        "end_sim_time_s": 20.72799999999939,
+        "duration_s": 0.021999999999987807,
+        "censored": false,
+        "exit_cycle": 92
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 20.74799999999938,
+        "end_sim_time_s": null,
+        "duration_s": null,
+        "censored": true,
+        "reason": "cycle gap, invalid clock, session change, or time regression"
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 20.90799999999929,
+        "end_sim_time_s": 20.92599999999928,
+        "duration_s": 0.017999999999990024,
+        "censored": false,
+        "exit_cycle": 102
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 21.10599999999918,
+        "end_sim_time_s": null,
+        "duration_s": null,
+        "censored": true,
+        "reason": "cycle gap, invalid clock, session change, or time regression"
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 21.30799999999907,
+        "end_sim_time_s": null,
+        "duration_s": null,
+        "censored": true,
+        "reason": "cycle gap, invalid clock, session change, or time regression"
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 21.905999999998738,
+        "end_sim_time_s": 21.965999999998704,
+        "duration_s": 0.05999999999996675,
+        "censored": false,
+        "exit_cycle": 154
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 22.107999999998626,
+        "end_sim_time_s": 22.145999999998605,
+        "duration_s": 0.03799999999997894,
+        "censored": false,
+        "exit_cycle": 163
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 22.185999999998582,
+        "end_sim_time_s": 22.265999999998538,
+        "duration_s": 0.07999999999995566,
+        "censored": false,
+        "exit_cycle": 169
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 22.325999999998505,
+        "end_sim_time_s": 22.38599999999847,
+        "duration_s": 0.05999999999996675,
+        "censored": false,
+        "exit_cycle": 175
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 22.40599999999846,
+        "end_sim_time_s": null,
+        "duration_s": null,
+        "censored": true,
+        "reason": "cycle gap, invalid clock, session change, or time regression"
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 22.58599999999836,
+        "end_sim_time_s": 22.60799999999835,
+        "duration_s": 0.021999999999987807,
+        "censored": false,
+        "exit_cycle": 186
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 22.645999999998327,
+        "end_sim_time_s": 22.725999999998283,
+        "duration_s": 0.07999999999995566,
+        "censored": false,
+        "exit_cycle": 192
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 22.825999999998228,
+        "end_sim_time_s": 22.90999999999818,
+        "duration_s": 0.08399999999995345,
+        "censored": false,
+        "exit_cycle": 201
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 23.047999999998105,
+        "end_sim_time_s": 23.085999999998084,
+        "duration_s": 0.03799999999997894,
+        "censored": false,
+        "exit_cycle": 210
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 23.105999999998073,
+        "end_sim_time_s": 23.16599999999804,
+        "duration_s": 0.05999999999996675,
+        "censored": false,
+        "exit_cycle": 214
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 23.187999999998027,
+        "end_sim_time_s": 23.205999999998017,
+        "duration_s": 0.017999999999990024,
+        "censored": false,
+        "exit_cycle": 216
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 23.235999999998,
+        "end_sim_time_s": 23.27599999999798,
+        "duration_s": 0.03999999999997783,
+        "censored": false,
+        "exit_cycle": 218
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 23.385999999997917,
+        "end_sim_time_s": 23.485999999997862,
+        "duration_s": 0.09999999999994458,
+        "censored": false,
+        "exit_cycle": 230
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 23.825999999997673,
+        "end_sim_time_s": 23.88599999999764,
+        "duration_s": 0.05999999999996675,
+        "censored": false,
+        "exit_cycle": 250
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 23.90599999999763,
+        "end_sim_time_s": 23.945999999997607,
+        "duration_s": 0.03999999999997783,
+        "censored": false,
+        "exit_cycle": 253
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 24.08599999999753,
+        "end_sim_time_s": 24.165999999997485,
+        "duration_s": 0.07999999999995566,
+        "censored": false,
+        "exit_cycle": 264
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 24.19399999999747,
+        "end_sim_time_s": 24.24599999999744,
+        "duration_s": 0.05199999999997118,
+        "censored": false,
+        "exit_cycle": 268
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 24.307999999997406,
+        "end_sim_time_s": 24.325999999997396,
+        "duration_s": 0.017999999999990024,
+        "censored": false,
+        "exit_cycle": 272
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 24.345999999997385,
+        "end_sim_time_s": 24.367999999997373,
+        "duration_s": 0.021999999999987807,
+        "censored": false,
+        "exit_cycle": 274
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 24.385999999997363,
+        "end_sim_time_s": 24.421999999997343,
+        "duration_s": 0.03599999999998005,
+        "censored": false,
+        "exit_cycle": 276
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 24.433999999997337,
+        "end_sim_time_s": 24.44599999999733,
+        "duration_s": 0.01199999999999335,
+        "censored": false,
+        "exit_cycle": 278
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 24.46599999999732,
+        "end_sim_time_s": 24.485999999997308,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 280
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 24.509999999997294,
+        "end_sim_time_s": 24.527999999997284,
+        "duration_s": 0.017999999999990024,
+        "censored": false,
+        "exit_cycle": 282
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 24.60599999999724,
+        "end_sim_time_s": 24.62799999999723,
+        "duration_s": 0.021999999999987807,
+        "censored": false,
+        "exit_cycle": 287
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 24.925999999997064,
+        "end_sim_time_s": null,
+        "duration_s": null,
+        "censored": true,
+        "reason": "cycle gap, invalid clock, session change, or time regression"
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.02599999999701,
+        "end_sim_time_s": 25.145999999996942,
+        "duration_s": 0.1199999999999335,
+        "censored": false,
+        "exit_cycle": 313
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.16799999999693,
+        "end_sim_time_s": 25.18599999999692,
+        "duration_s": 0.017999999999990024,
+        "censored": false,
+        "exit_cycle": 315
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.225999999996898,
+        "end_sim_time_s": 25.247999999996885,
+        "duration_s": 0.021999999999987807,
+        "censored": false,
+        "exit_cycle": 318
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.465999999996765,
+        "end_sim_time_s": 25.49399999999675,
+        "duration_s": 0.027999999999984482,
+        "censored": false,
+        "exit_cycle": 330
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.505999999996742,
+        "end_sim_time_s": 25.52599999999673,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 332
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.54599999999672,
+        "end_sim_time_s": 25.605999999996687,
+        "duration_s": 0.05999999999996675,
+        "censored": false,
+        "exit_cycle": 336
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.625999999996676,
+        "end_sim_time_s": 25.645999999996665,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 338
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.665999999996654,
+        "end_sim_time_s": 25.68799999999664,
+        "duration_s": 0.021999999999987807,
+        "censored": false,
+        "exit_cycle": 340
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.70799999999663,
+        "end_sim_time_s": 25.735999999996615,
+        "duration_s": 0.027999999999984482,
+        "censored": false,
+        "exit_cycle": 342
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.74599999999661,
+        "end_sim_time_s": 25.7659999999966,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 344
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.785999999996587,
+        "end_sim_time_s": 25.805999999996576,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 346
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.825999999996565,
+        "end_sim_time_s": 25.847999999996553,
+        "duration_s": 0.021999999999987807,
+        "censored": false,
+        "exit_cycle": 348
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.865999999996543,
+        "end_sim_time_s": 25.885999999996532,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 350
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.90599999999652,
+        "end_sim_time_s": null,
+        "duration_s": null,
+        "censored": true,
+        "reason": "cycle gap, invalid clock, session change, or time regression"
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.9459999999965,
+        "end_sim_time_s": 25.965999999996487,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 354
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 25.987999999996475,
+        "end_sim_time_s": 26.01399999999646,
+        "duration_s": 0.02599999999998559,
+        "censored": false,
+        "exit_cycle": 356
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.025999999996454,
+        "end_sim_time_s": 26.045999999996443,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 358
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.065999999996432,
+        "end_sim_time_s": 26.08599999999642,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 360
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.10599999999641,
+        "end_sim_time_s": 26.1259999999964,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 362
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.145999999996388,
+        "end_sim_time_s": 26.173999999996372,
+        "duration_s": 0.027999999999984482,
+        "censored": false,
+        "exit_cycle": 364
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.187999999996364,
+        "end_sim_time_s": 26.205999999996354,
+        "duration_s": 0.017999999999990024,
+        "censored": false,
+        "exit_cycle": 366
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.225999999996343,
+        "end_sim_time_s": 26.245999999996332,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 368
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.327999999996287,
+        "end_sim_time_s": 26.347999999996276,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 373
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.367999999996265,
+        "end_sim_time_s": 26.385999999996255,
+        "duration_s": 0.017999999999990024,
+        "censored": false,
+        "exit_cycle": 375
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.46599999999621,
+        "end_sim_time_s": 26.4859999999962,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 380
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.505999999996188,
+        "end_sim_time_s": 26.529999999996175,
+        "duration_s": 0.0239999999999867,
+        "censored": false,
+        "exit_cycle": 382
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.547999999996165,
+        "end_sim_time_s": 26.569999999996153,
+        "duration_s": 0.021999999999987807,
+        "censored": false,
+        "exit_cycle": 384
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.6659999999961,
+        "end_sim_time_s": 26.68599999999609,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 390
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.705999999996077,
+        "end_sim_time_s": 26.73599999999606,
+        "duration_s": 0.029999999999983373,
+        "censored": false,
+        "exit_cycle": 392
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.745999999996055,
+        "end_sim_time_s": 26.765999999996044,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 394
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.86599999999599,
+        "end_sim_time_s": 26.885999999995978,
+        "duration_s": 0.019999999999988916,
+        "censored": false,
+        "exit_cycle": 400
+      }
+    ],
+    "recovery_sim_duration_s": 3.021999999998325,
+    "valid_motion_duration_s": 9.36599999999481,
+    "recovery_share_valid_motion_time": 0.3226564168268204,
+    "movement_start_sim_time_s": 19.84599999999988,
+    "target_distance_start_m": 6.938213332370367,
+    "target_distance_final_m": 0.4775463883826311,
+    "path_length_m": 7.7389084089248765,
+    "mean_path_speed_mps": 0.8262767893368744,
+    "short_reverse_switch_count": 108,
+    "short_reverse_window_s": 0.5,
+    "period_statistics_scope": "all captured LIVE frames including preparation and cleanup tail, if present",
+    "motion_metrics_scope": "valid continuous cycles from observed 0.10m motion-start cycle through terminal frame; cleanup tail excluded",
+    "collision_coverage": {
+      "available": false,
+      "reason": "authoritative samples contain no contact, but capture has no complete episode coverage boundary",
+      "event_count": 0,
+      "coverage": {
+        "samples": 552,
+        "live_samples": 552,
+        "unknown_contacts": 0,
+        "physics_step_gaps": 4941,
+        "sampled_steps_contiguous": true,
+        "producer_physics_coverage_complete": true,
+        "complete_for_no_collision_claim": false,
+        "scope": "whole captured interval; motion boundary is evaluated by S1 analyzer"
+      }
+    },
+    "motion_safety": {
+      "motion_interval_sim_s_inclusive": [
+        19.84599999999988,
+        29.925999999994293
+      ],
+      "collision": false,
+      "collision_events": [],
+      "nonfoot_collision_failure": false,
+      "foot_contact_count": 0,
+      "foot_contact_duration_s": 0.0,
+      "foot_contact_events": [],
+      "foot_contact_duration_capture_s": 0.0,
+      "foot_impact_count": 0,
+      "foot_impact_duration_s": 0.0,
+      "foot_impact_events": [],
+      "foot_impact_duration_capture_s": 0.0,
+      "foot_impact_unknown_overlaps_motion": false,
+      "abs_reference_collision": false,
+      "fall": "UNKNOWN",
+      "fall_events": [
+        {
+          "closed": true,
+          "confirmed": false,
+          "confirmed_physics_step": 0,
+          "confirmed_sim_time": 0.0,
+          "end_physics_step": 10259,
+          "end_sim_time": 20.517999999999507,
+          "start_physics_step": 10223,
+          "start_sim_time": 20.445999999999547
+        }
+      ],
+      "fall_event": null,
+      "coverage_complete_for_motion_interval": true,
+      "coverage_reason": null,
+      "unclassified_contact_overlaps_motion": false,
+      "invalid_posture_overlaps_motion": false,
+      "unconfirmed_fall_candidate_overlaps_motion": true,
+      "max_observed_contacts_per_policy_snapshot": {
+        "foot_floor": 4,
+        "nonfoot_floor": 3,
+        "self": 0
+      }
+    },
+    "nonfoot_collision_failure": false,
+    "foot_contact_count": 0,
+    "foot_contact_duration_s": 0.0,
+    "foot_contact_duration_capture_s": 0.0,
+    "foot_impact_count": 0,
+    "foot_impact_duration_s": 0.0,
+    "foot_impact_duration_capture_s": 0.0,
+    "arrived_with_foot_contact": false,
+    "arrived_with_foot_impact": false,
+    "abs_reference_collision": false,
+    "external_safety_events": [],
+    "command_consumption": "UNKNOWN"
+  }
+]

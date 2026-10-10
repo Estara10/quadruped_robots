@@ -1,0 +1,13 @@
+{
+  "run_id": "64d80227fba24d75954fc4da979cd82e",
+  "checked_by": "read-only /proc and /dev/shm inspection after bounded supervisor closeout",
+  "checked_processes": [],
+  "no_related_processes": true,
+  "collision_shared_memory": {
+    "path": "/dev/shm/mujoco_collision_v2",
+    "size_bytes": 5760,
+    "mtime_ns": 1791450504144707438,
+    "retained_not_unlinked": true
+  },
+  "note": "shared-memory object was left intact; no process used by this run remains"
+}

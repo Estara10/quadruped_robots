@@ -1,0 +1,23 @@
+{
+  "task": "S2-07",
+  "scope": "minimal local desktop and OpenGL preflight before bounded closeout diagnostics",
+  "default_sandbox": {
+    "command": "DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority xdpyinfo -display :0; /tmp/s2_04_glfw_preflight",
+    "result": "FAIL: unable to open display; glfw_init=FAIL",
+    "interpretation": "X11 access is blocked in the default execution sandbox"
+  },
+  "temporary_sandbox_external_preflight": {
+    "approval_scope": "one X11/GLFW preflight using the existing desktop session; no system or authorization changes",
+    "temporary_environment": {
+      "DISPLAY": ":0",
+      "XAUTHORITY": "/run/user/1000/gdm/Xauthority"
+    },
+    "x11": "PASS; X.Org 1.21.1.4; 1920x1080",
+    "glfw_initialization": "PASS",
+    "window_creation": "PASS",
+    "opengl_vendor": "Intel",
+    "renderer": "Mesa Intel(R) Graphics (RPL-P)",
+    "version": "4.6 (Compatibility Profile) Mesa 23.2.1-1ubuntu3.1~22.04.4",
+    "system_or_desktop_changes": "none"
+  }
+}

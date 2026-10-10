@@ -1,0 +1,356 @@
+{
+  "frames": 1848,
+  "clock_rows": 27406,
+  "current_clock_rows": 27405,
+  "clock_reset_rows_before_current_segment": 1,
+  "frame_step_range": [
+    0,
+    1847
+  ],
+  "adjacent_intervals": 1847,
+  "step_gaps": [],
+  "step_gap_count": 0,
+  "period_ms": {
+    "min": 1.9385819999999998,
+    "mean": 19.94325962371413,
+    "median": 20.009203,
+    "p95": 26.745381,
+    "max": 58.509223
+  },
+  "frequency_hz": {
+    "min": 17.091322508247973,
+    "mean": 54.72122215984018,
+    "median": 49.97700308203181,
+    "p05": 37.38963374647757,
+    "p95": 78.9342923323623,
+    "max": 515.8409600419276
+  },
+  "mode_counts": {
+    "AGILE": 1813,
+    "RECOVERY": 35,
+    "FAULTED": 0
+  },
+  "mode_edges": 14,
+  "edges_first_20": [
+    {
+      "rl_step": 133,
+      "mode_before": "AGILE",
+      "mode_after": "RECOVERY",
+      "ra": -0.00976367574185133,
+      "mono_ns": 29566815217681
+    },
+    {
+      "rl_step": 136,
+      "mode_before": "RECOVERY",
+      "mode_after": "AGILE",
+      "ra": -0.09608157724142075,
+      "mono_ns": 29566871667365
+    },
+    {
+      "rl_step": 137,
+      "mode_before": "AGILE",
+      "mode_after": "RECOVERY",
+      "ra": -0.0004611909098457545,
+      "mono_ns": 29566893629707
+    },
+    {
+      "rl_step": 146,
+      "mode_before": "RECOVERY",
+      "mode_after": "AGILE",
+      "ra": -0.2866664528846741,
+      "mono_ns": 29567072499517
+    },
+    {
+      "rl_step": 162,
+      "mode_before": "AGILE",
+      "mode_after": "RECOVERY",
+      "ra": -0.026207197457551956,
+      "mono_ns": 29567431203868
+    },
+    {
+      "rl_step": 172,
+      "mode_before": "RECOVERY",
+      "mode_after": "AGILE",
+      "ra": -0.10210681706666946,
+      "mono_ns": 29567592519847
+    },
+    {
+      "rl_step": 181,
+      "mode_before": "AGILE",
+      "mode_after": "RECOVERY",
+      "ra": -0.04787718877196312,
+      "mono_ns": 29567773077280
+    },
+    {
+      "rl_step": 182,
+      "mode_before": "RECOVERY",
+      "mode_after": "AGILE",
+      "ra": -0.23178192973136902,
+      "mono_ns": 29567791758340
+    },
+    {
+      "rl_step": 184,
+      "mode_before": "AGILE",
+      "mode_after": "RECOVERY",
+      "ra": -0.026345502585172653,
+      "mono_ns": 29567835489212
+    },
+    {
+      "rl_step": 185,
+      "mode_before": "RECOVERY",
+      "mode_after": "AGILE",
+      "ra": -0.07920169830322266,
+      "mono_ns": 29567852652993
+    },
+    {
+      "rl_step": 186,
+      "mode_before": "AGILE",
+      "mode_after": "RECOVERY",
+      "ra": 0.11557266861200333,
+      "mono_ns": 29567874572749
+    },
+    {
+      "rl_step": 194,
+      "mode_before": "RECOVERY",
+      "mode_after": "AGILE",
+      "ra": -0.35462355613708496,
+      "mono_ns": 29568032222405
+    },
+    {
+      "rl_step": 203,
+      "mode_before": "AGILE",
+      "mode_after": "RECOVERY",
+      "ra": 0.03120395541191101,
+      "mono_ns": 29568236441939
+    },
+    {
+      "rl_step": 206,
+      "mode_before": "RECOVERY",
+      "mode_after": "AGILE",
+      "ra": -0.846389889717102,
+      "mono_ns": 29568278721425
+    }
+  ],
+  "sim_pairs": 1848,
+  "sim_bracket_width_ms": {
+    "max": 7.808479,
+    "p95": 3.047965
+  },
+  "cmd_telemetry_rows": 295,
+  "q_matches_nearest_prior_policy_frame": 295,
+  "recovery_q_matches": [
+    {
+      "cmd_seq": 575,
+      "timestamp_ns": 29567005719863,
+      "source_rl_step": 142,
+      "ra": 0.07069774717092514,
+      "mode": "RECOVERY"
+    },
+    {
+      "cmd_seq": 675,
+      "timestamp_ns": 29567506470776,
+      "source_rl_step": 167,
+      "ra": 0.3195730745792389,
+      "mode": "RECOVERY"
+    },
+    {
+      "cmd_seq": 750,
+      "timestamp_ns": 29567881406920,
+      "source_rl_step": 186,
+      "ra": 0.11557266861200333,
+      "mode": "RECOVERY"
+    },
+    {
+      "cmd_seq": 775,
+      "timestamp_ns": 29568005742074,
+      "source_rl_step": 192,
+      "ra": 0.13462935388088226,
+      "mode": "RECOVERY"
+    },
+    {
+      "cmd_seq": 825,
+      "timestamp_ns": 29568255741907,
+      "source_rl_step": 205,
+      "ra": 0.24187153577804565,
+      "mode": "RECOVERY"
+    }
+  ],
+  "safety_veto_count": 0,
+  "monotonic_clock_order_count": 0,
+  "first_frame": {
+    "sequence": 2,
+    "session_id": 29564131129926,
+    "rl_step": 0,
+    "monotonic_ns": 29564257470692,
+    "ra_value": -0.3822597861289978,
+    "mode_before": null,
+    "mode_after": "AGILE",
+    "mode_before_basis": "UNKNOWN",
+    "action_source": "agile_policy",
+    "action_raw_policy_order": [
+      0.2438281774520874,
+      0.4301401376724243,
+      0.13997647166252136,
+      -0.5394963026046753,
+      0.6554505825042725,
+      -0.054208628833293915,
+      0.09804399311542511,
+      1.1046749353408813,
+      0.5339657664299011,
+      -0.27777546644210815,
+      2.408198118209839,
+      0.012643486261367798
+    ],
+    "action_clipped_controller_order": [
+      -0.5394963026046753,
+      0.6554505825042725,
+      -0.054208628833293915,
+      0.2438281774520874,
+      0.4301401376724243,
+      0.13997647166252136,
+      -0.27777546644210815,
+      2.408198118209839,
+      0.012643486261367798,
+      0.09804399311542511,
+      1.1046749353408813,
+      0.5339657664299011
+    ],
+    "joint_target_rad_controller_order": [
+      -0.13487407565116882,
+      0.9638626575469971,
+      -1.513552188873291,
+      0.06095704436302185,
+      0.9075350761413574,
+      -1.465005874633789,
+      -0.06944386661052704,
+      1.4020495414733887,
+      -1.496839165687561,
+      0.024510998278856277,
+      1.0761687755584717,
+      -1.3665086030960083
+    ],
+    "ray_valid": true,
+    "ray_age_ns": 44393,
+    "world_pose": [
+      -0.035558778792619705,
+      1.6311105355271138e-05,
+      -8.59702195157297e-05
+    ],
+    "lin_vel": [
+      0.0006175221060402691,
+      2.399892991888919e-06,
+      -0.08897703140974045
+    ],
+    "source": 1,
+    "safety_faulted": false
+  },
+  "last_frame": {
+    "sequence": 3696,
+    "session_id": 29564131129926,
+    "rl_step": 1847,
+    "monotonic_ns": 29601092671217,
+    "ra_value": -0.9988743662834167,
+    "mode_before": "AGILE",
+    "mode_after": "AGILE",
+    "mode_before_basis": "previous adjacent frame in same session",
+    "action_source": "agile_policy",
+    "action_raw_policy_order": [
+      -0.27009427547454834,
+      0.5035054683685303,
+      -0.34009623527526855,
+      0.14318972826004028,
+      0.3293765187263489,
+      0.1966698169708252,
+      -0.10265013575553894,
+      1.0640536546707153,
+      -0.09653787314891815,
+      -0.13723494112491608,
+      1.0960043668746948,
+      -0.6608865857124329
+    ],
+    "action_clipped_controller_order": [
+      0.14318972826004028,
+      0.3293765187263489,
+      0.1966698169708252,
+      -0.27009427547454834,
+      0.5035054683685303,
+      -0.34009623527526855,
+      -0.13723494112491608,
+      1.0960043668746948,
+      -0.6608865857124329,
+      -0.10265013575553894,
+      1.0640536546707153,
+      -0.09653787314891815
+    ],
+    "joint_target_rad_controller_order": [
+      0.03579743206501007,
+      0.882344126701355,
+      -1.4508326053619385,
+      -0.06752356886863708,
+      0.9258763790130615,
+      -1.585024118423462,
+      -0.03430873528122902,
+      1.0740010738372803,
+      -1.6652216911315918,
+      -0.025662533938884735,
+      1.0660134553909302,
+      -1.5241345167160034
+    ],
+    "ray_valid": true,
+    "ray_age_ns": 362459,
+    "world_pose": [
+      9.248963356018066,
+      -0.03561124950647354,
+      -0.08079270273447037
+    ],
+    "lin_vel": [
+      0.0005322090582922101,
+      0.0006505054188892245,
+      -0.0001355054700979963
+    ],
+    "source": 1,
+    "safety_faulted": false
+  },
+  "run_id_scope": {
+    "session_id": 29564131129926,
+    "frames": 1848,
+    "rl_step_first": 0,
+    "rl_step_last": 1847,
+    "consecutive_intervals": 1847,
+    "period_gap_count": 0
+  },
+  "policy_ra_timing": {
+    "total_frame_span_s": 36.835200525,
+    "aggregate_frequency_hz": 50.14225451946281,
+    "period_ms": {
+      "min": 1.938582,
+      "mean": 19.94325962371413,
+      "median": 20.009203,
+      "p95": 26.745381,
+      "max": 58.509223
+    },
+    "per_interval_frequency_hz": {
+      "min": 17.091322508247973,
+      "mean_arithmetic": 54.72122215984018,
+      "median": 49.97700308203181,
+      "p05": 37.38963374647757,
+      "p95": 78.9342923323623,
+      "max": 515.8409600419276
+    }
+  },
+  "sim_time_join": {
+    "rule": "for each runtime-frame steady-clock timestamp, save the immediately adjacent lower and upper MuJoCo clock samples; sim_time is an interval, no interpolation",
+    "current_clock_samples": 27405,
+    "frames_paired": 1848,
+    "frames_unpaired": 0,
+    "bracket_width_ms": {
+      "median": 2.3456355,
+      "p95": 3.047965,
+      "max": 7.808479
+    },
+    "sim_time_range_s": [
+      18.896000000000406,
+      55.73400000002215
+    ]
+  }
+}

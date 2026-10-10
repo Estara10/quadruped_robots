@@ -1,0 +1,10 @@
+{
+  "capture_start_monotonic_ns": 8850068031176,
+  "poll_s_requested": 0.001,
+  "clock_join_rule": "post-process bracketing on shared steady-clock monotonic_ns; no interpolation",
+  "capture_end_monotonic_ns": 8931867379493,
+  "distinct_clock_samples": 32816,
+  "distinct_runtime_frames": 69,
+  "runtime_record_path": "docs/thesis_project/evidence/S1-03/diagnostic_pause_resume_final_20261008/runtime_record.jsonl",
+  "stopped_by_signal": true
+}

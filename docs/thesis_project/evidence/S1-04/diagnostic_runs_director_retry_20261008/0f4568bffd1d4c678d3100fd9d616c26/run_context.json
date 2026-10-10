@@ -1,0 +1,124 @@
+{
+  "capture": {
+    "authoritative_collision_live_before_motion": true,
+    "capture_error": null,
+    "frames_written": 0,
+    "pre_run_shared_frames_ignored_by_session_timestamp": 0
+  },
+  "capture_id": "p1-10-capture-8729ee2b05f443e4998267523746d5be",
+  "classification": "short nonformal S1-04 workflow diagnostic; not a formal A-group result",
+  "commands": [],
+  "created_monotonic_ns": 18050284558790,
+  "events": [
+    {
+      "event": "recorder_ready",
+      "monotonic_ns": 18051171275702,
+      "phase": "startup_preparation"
+    },
+    {
+      "event": "mujoco_started",
+      "monotonic_ns": 18054171835181,
+      "phase": "startup_preparation"
+    },
+    {
+      "event": "collision_source_live",
+      "monotonic_ns": 18054172138248,
+      "phase": "startup_preparation"
+    },
+    {
+      "event": "STARTUP_FAILURE",
+      "frame_ref": null,
+      "monotonic_ns": 18062173826270,
+      "phase": "motion_end"
+    },
+    {
+      "event": "process_groups_stopped",
+      "monotonic_ns": 18062539867740,
+      "phase": "process_cleanup",
+      "processes": [
+        {
+          "exit_code": 1,
+          "forced": false,
+          "name": "ros2_launch",
+          "started": true
+        },
+        {
+          "exit_code": 0,
+          "forced": false,
+          "name": "mujoco",
+          "started": true
+        }
+      ]
+    }
+  ],
+  "lifecycle": {
+    "cleanup_complete_monotonic_ns": 18062539867740,
+    "cleanup_processes": [
+      {
+        "exit_code": 1,
+        "forced": false,
+        "name": "ros2_launch",
+        "started": true
+      },
+      {
+        "exit_code": 0,
+        "forced": false,
+        "name": "mujoco",
+        "started": true
+      }
+    ],
+    "motion_and_cleanup_are_separate": true,
+    "motion_start_event": "first observed base displacement >=0.10m from first valid strategy-frame pose",
+    "motion_start_interval_s": null,
+    "motion_start_sim_time_s": null,
+    "movement_end_monotonic_ns": null,
+    "post_terminal_strategy_stop": null,
+    "run_terminal_event": "STARTUP_FAILURE",
+    "startup_error": "RuntimeError: ROS launch exited at startup with code 1"
+  },
+  "preflight": {
+    "ament_share_lookup_same_shell": "/tmp/s1_04_overlay/share/go2_description",
+    "candidate_config_candidate_verified": true,
+    "candidate_config_goal_x_m_verified": true,
+    "candidate_config_path": "/tmp/s1_04_overlay/share/go2_description/config/abs/config.yaml",
+    "controller_processes_before_launch": [],
+    "launch_command": "source /opt/ros/humble/setup.bash; source workspace/install/setup.bash; export the same AMENT_PREFIX_PATH; ros2 launch ...",
+    "launch_shell_go2_description_prefix": "/tmp/s1_04_overlay"
+  },
+  "result_contract": {
+    "classification": "STARTUP_FAILURE",
+    "command_consumption_by_mujoco": "UNKNOWN; no direct consumption acknowledgement",
+    "fall_detection": "UNKNOWN; no authoritative detector used",
+    "first_valid_frame_monotonic_ns": null,
+    "first_valid_sim_time_s": null,
+    "motion_start_sim_time_s": null,
+    "motion_start_unknown_reason": "no >=0.10m pose displacement observed",
+    "operator_abort": "not issued",
+    "policy_frames_observed": 0,
+    "startup_failure": "RuntimeError: ROS launch exited at startup with code 1",
+    "valid_collision_source_seen": true
+  },
+  "run_id": "0f4568bffd1d4c678d3100fd9d616c26",
+  "schema": "s1-04-run-context-v1",
+  "settings": {
+    "arrival_threshold_m": 0.5,
+    "candidate": "paper_faithful_switch",
+    "controller_config": "/tmp/s1_04_overlay/share/go2_description/config/abs/config.yaml",
+    "diagnostic_sim_limit_after_motion_s": 6.0,
+    "display": ":0",
+    "goal_world_m": [
+      1.0,
+      0.0
+    ],
+    "model_paths": [
+      "/tmp/s1_04_overlay/share/go2_description/config/abs/policy.pt",
+      "/tmp/s1_04_overlay/share/go2_description/config/abs/ra_value.pt",
+      "/tmp/s1_04_overlay/share/go2_description/config/rec/policy.pt"
+    ],
+    "overlay": "/tmp/s1_04_overlay",
+    "runtime_model_fingerprint": "3e4d82cf204d5929ff98c11fed5b3918ba3b92f0d698215860097d734d239694",
+    "scene": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/scene_obstacle.xml",
+    "scene_id": "obstacle_test1",
+    "xauthority": "/run/user/1000/gdm/Xauthority"
+  }
+}

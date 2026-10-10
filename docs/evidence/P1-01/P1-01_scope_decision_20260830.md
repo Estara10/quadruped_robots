@@ -87,7 +87,7 @@ No MuJoCo, ROS2, training, benchmark, real robot, or model execution was run.
 
 ## Cross-reference
 
-- Scope decision recorded formally in [`DECISIONS.md`](../../DECISIONS.md) (DEC-010).
-- Acceptance table updated in [`exec-plans/P1-01.md`](../../exec-plans/P1-01.md).
-- Classifications updated in [`CURRENT_STATE.md`](../../CURRENT_STATE.md) and
-  [`GAP_MATRIX.md`](../../GAP_MATRIX.md).
+- Scope decision recorded formally in [`DECISIONS.md`](../../legacy/DECISIONS.md) (DEC-010).
+- Acceptance table updated in [`exec-plans/P1-01.md`](../../legacy/exec-plans/P1-01.md).
+- Classifications updated in [`CURRENT_STATE.md`](../../legacy/CURRENT_STATE.md) and
+  [`GAP_MATRIX.md`](../../legacy/GAP_MATRIX.md).

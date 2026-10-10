@@ -1,0 +1,74 @@
+{
+  "source": "layouts.json; circumscribed-circle obstacle envelopes against each waypoint polyline",
+  "corridor_width_m": 1.1,
+  "corridor_half_width_m": 0.55,
+  "scenes": [
+    {
+      "name": "random_scene_01",
+      "seed": 3101,
+      "obstacle_count": 15,
+      "boxes": 10,
+      "cylinders": 5,
+      "min_corridor_clearance_m": 0.6700380632889228,
+      "limiting_obstacle_index_1based": 4,
+      "start_nearest_clearance_m": 1.9456650687857058,
+      "goal_nearest_clearance_m": 0.9705822755165372,
+      "declared_world_bounds_overruns": []
+    },
+    {
+      "name": "random_scene_02",
+      "seed": 3102,
+      "obstacle_count": 17,
+      "boxes": 9,
+      "cylinders": 8,
+      "min_corridor_clearance_m": 0.6585648271754434,
+      "limiting_obstacle_index_1based": 6,
+      "start_nearest_clearance_m": 1.2896978500114922,
+      "goal_nearest_clearance_m": 0.9937415434384551,
+      "declared_world_bounds_overruns": []
+    },
+    {
+      "name": "random_scene_03",
+      "seed": 3103,
+      "obstacle_count": 18,
+      "boxes": 12,
+      "cylinders": 6,
+      "min_corridor_clearance_m": 0.6979757468555923,
+      "limiting_obstacle_index_1based": 18,
+      "start_nearest_clearance_m": 1.4438112463266115,
+      "goal_nearest_clearance_m": 1.0374519657898353,
+      "declared_world_bounds_overruns": []
+    },
+    {
+      "name": "random_scene_04",
+      "seed": 3104,
+      "obstacle_count": 19,
+      "boxes": 6,
+      "cylinders": 13,
+      "min_corridor_clearance_m": 0.6503990498927321,
+      "limiting_obstacle_index_1based": 19,
+      "start_nearest_clearance_m": 1.3331032518139778,
+      "goal_nearest_clearance_m": 1.1562960250918224,
+      "declared_world_bounds_overruns": [
+        {
+          "obstacle_index_1based": 14,
+          "overrun_m": {
+            "y_min_m": 0.05637522464399014
+          }
+        }
+      ]
+    },
+    {
+      "name": "random_scene_05",
+      "seed": 3105,
+      "obstacle_count": 20,
+      "boxes": 7,
+      "cylinders": 13,
+      "min_corridor_clearance_m": 0.6630752219829098,
+      "limiting_obstacle_index_1based": 1,
+      "start_nearest_clearance_m": 1.2573669076148302,
+      "goal_nearest_clearance_m": 1.1693996934152437,
+      "declared_world_bounds_overruns": []
+    }
+  ]
+}

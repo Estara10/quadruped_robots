@@ -1,0 +1,56 @@
+{
+  "date_local": "2026-10-08",
+  "permission_scope": "Sandbox escalation was used for read-only X/DRM inspection and the hidden GLFW probe; the later single diagnostic was run with the same escalation. No request was rejected.",
+  "x": {
+    "DISPLAY": ":0",
+    "XAUTHORITY": "/run/user/1000/gdm/Xauthority",
+    "xdpyinfo": "exit 0; X connection succeeded"
+  },
+  "toolchain": {
+    "compiler_command": "/usr/bin/gcc -O2 -Wall -Wextra scripts/s1_glfw_probe_temp.c -o /tmp/s1_04_glfw_probe -lglfw -lGL",
+    "compiler_realpath": "/usr/bin/x86_64-linux-gnu-gcc-11",
+    "compiler_version": "GCC 11.4.0",
+    "pkg_config_glfw3_version": "3.3.6",
+    "probe": "16x16 hidden GLFW window; create, query GL strings and mapped libraries, destroy, terminate",
+    "temporary_source_removed_after_probe": true,
+    "temporary_binary_removed_after_probe": true
+  },
+  "runtime_environment": {
+    "probe_one_command": "rtk /tmp/s1_04_glfw_probe",
+    "probe_two_command": "rtk env LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH rtk /tmp/s1_04_glfw_probe",
+    "temporary_environment_change": "Probe two overrode LD_LIBRARY_PATH for that command only to match scripts/s1_run_diagnostic.py build_env(). No LIBGL_DRIVERS_PATH, MESA_LOADER_DRIVER_OVERRIDE, LIBGL_ALWAYS_SOFTWARE, LD_PRELOAD or shell startup files were changed.",
+    "inherited_PATH_contains_anaconda": true,
+    "inherited_LD_LIBRARY_PATH_contains_anaconda": false,
+    "diagnostic_python_executable": "/home/lidio/anaconda3/bin/python3",
+    "simulation_opengl_path": "Native MuJoCo executable, not Python ctypes; GLFW and OpenGL dependencies resolve from system /usr/lib/x86_64-linux-gnu."
+  },
+    "actual_system_probe_result": {
+    "glfw_version": "3.3.6",
+    "glfwInit": 1,
+    "glfwCreateWindow": "success",
+    "vendor": "Intel",
+    "renderer": "Mesa Intel(R) Graphics (RPL-P)",
+    "version": "4.6 (Compatibility Profile) Mesa 23.2.1-1ubuntu3.1~22.04.4",
+    "software_rendering_override": false,
+    "drm_devices_visible_under_escalated_execution": [
+      "/dev/dri/card1",
+      "/dev/dri/card2",
+      "/dev/dri/renderD128",
+      "/dev/dri/renderD129"
+    ],
+    "mapped_dri_driver": "/usr/lib/x86_64-linux-gnu/dri/iris_dri.so",
+    "mapped_mesa_glx": "/usr/lib/x86_64-linux-gnu/libGLX_mesa.so.0.0.0",
+    "mapped_gl_dispatch": "/usr/lib/x86_64-linux-gnu/libGLdispatch.so.0.0.0",
+    "mapped_libstdc++": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30"
+  },
+  "resolved_libraries_under_diagnostic_LD_LIBRARY_PATH": {
+    "probe_glfw": "/usr/lib/x86_64-linux-gnu/libglfw.so.3",
+    "probe_opengl": "/usr/lib/x86_64-linux-gnu/libGL.so.1",
+    "mujoco": "/home/lidio/Libraries/mujoco-3.3.3-tmp/build/lib/libmujoco.so.3.3.3",
+    "mujoco_glfw": "/usr/lib/x86_64-linux-gnu/libglfw.so.3",
+    "mujoco_libstdc++": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6",
+    "iris_dri": "/usr/lib/x86_64-linux-gnu/dri/iris_dri.so"
+  },
+  "sandbox_diagnosis": "The prior failed preflight's /dev/dri absence was observed in the default executor view. With require_escalated, /dev/dri/card1, card2, renderD128 and renderD129 are visible and the native GLFW probe maps iris_dri.so. This supports an executor-view/device-access difference; it does not indicate the host driver files were absent. A prior Python ctypes probe still failed to create a window, while the system C probe succeeded; that Python-specific probe failure is not treated as evidence of a system driver failure.",
+  "comparison": "The prior successful report records GLFW 3.3.6 and Mesa OpenGL 4.6 but did not record vendor/renderer or Mesa patch version. This probe uses the same system GLFW/OpenGL family and hardware Intel Mesa rendering; exact prior renderer identity cannot be confirmed."
+}

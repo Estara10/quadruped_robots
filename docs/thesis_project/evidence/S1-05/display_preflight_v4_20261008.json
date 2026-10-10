@@ -1,0 +1,23 @@
+{
+  "date_local": "2026-10-08",
+  "purpose": "one-shot preflight for the authorized S1-05 normal diagnostic using the rebuilt v4 producer",
+  "execution_scope": "temporary elevated command to access existing desktop only; no display authorization, system setting, driver, service, installation, or global environment change",
+  "display": ":0",
+  "xauthority": "/run/user/1000/gdm/Xauthority",
+  "x_connection": {
+    "command": "rtk proxy DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority /usr/bin/xdpyinfo",
+    "exit_code": 0
+  },
+  "glfw": {
+    "compiler": "/usr/bin/gcc",
+    "probe": "/tmp/s1_05_glfw_preflight.c",
+    "command": "gcc /tmp/s1_05_glfw_preflight.c -o /tmp/s1_05_glfw_preflight $(pkg-config --cflags --libs glfw3) -lGL; DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib /tmp/s1_05_glfw_preflight",
+    "glfw_init": true,
+    "hidden_window_created": true,
+    "vendor": "Intel",
+    "renderer": "Mesa Intel(R) Graphics (RPL-P)",
+    "opengl": "4.6 (Compatibility Profile) Mesa 23.2.1-1ubuntu3.1~22.04.4",
+    "exit_code": 0
+  },
+  "cleanup": "probe window destroyed and process exited; temporary source/binary removed after diagnostic closeout"
+}

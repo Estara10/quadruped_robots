@@ -1,0 +1,20 @@
+{
+  "scope": "S2-03 one short nonformal PASSIVE-stop timing supplement",
+  "date_local": "2026-10-10",
+  "display": ":0",
+  "xauthority": "/run/user/1000/gdm/Xauthority",
+  "x11_connection": "PASS; xdpyinfo exited 0",
+  "glfw_probe": {
+    "method": "temporary system g++ probe; hidden 16x16 GLFW window",
+    "glfw_init": "PASS",
+    "window_creation": "PASS",
+    "vendor": "Intel",
+    "renderer": "Mesa Intel(R) Graphics (RPL-P)",
+    "version": "4.6 (Compatibility Profile) Mesa 23.2.1-1ubuntu3.1~22.04.4"
+  },
+  "ros_python_probe": "/usr/bin/python3 imported rclpy and control_input_msgs.msg.Inputs successfully after sourcing ROS Humble and the workspace install",
+  "controller_build": "colcon build --packages-select rl_quadruped_controller --symlink-install; passed",
+  "known_project_processes_before_run": [],
+  "overlay": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description",
+  "temporary_system_changes": "none"
+}

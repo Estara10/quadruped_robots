@@ -1,0 +1,42 @@
+{
+  "task": "S2-04",
+  "scope": "one bounded flat and one bounded sparse nonformal diagnostic",
+  "display": ":0",
+  "xauthority": "/run/user/1000/gdm/Xauthority",
+  "x11": {
+    "command": "xdpyinfo -display :0",
+    "result": "PASS",
+    "note": "Connected to the existing desktop; output identified X.Org display :0."
+  },
+  "glfw_opengl": {
+    "probe_source": "/tmp/s2_04_glfw_preflight.cpp",
+    "probe_binary": "/tmp/s2_04_glfw_preflight",
+    "method": "system g++ probe; hidden 16x16 GLFW window created and destroyed",
+    "result": "PASS",
+    "vendor": "Intel",
+    "renderer": "Mesa Intel(R) Graphics (RPL-P)",
+    "version": "4.6 (Compatibility Profile) Mesa 23.2.1-1ubuntu3.1~22.04.4"
+  },
+  "runtime_config": {
+    "overlay": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description",
+    "package_share": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description",
+    "config": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/abs/config.yaml",
+    "group": "A",
+    "entry_threshold": -0.05,
+    "effective_exit_threshold": -0.05,
+    "hysteresis": false,
+    "hold": false,
+    "goal_world_m": [7.0, 0.0],
+    "arrival_radius_m": 0.5,
+    "candidate": "paper_faithful_switch",
+    "model_paths": [
+      "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/abs/policy.pt",
+      "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/abs/ra_value.pt",
+      "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/rec/policy.pt"
+    ],
+    "all_models_present": true
+  },
+  "project_processes_before_each_run": [],
+  "temporary_system_changes": "none",
+  "rendering_and_display_services_modified": false
+}

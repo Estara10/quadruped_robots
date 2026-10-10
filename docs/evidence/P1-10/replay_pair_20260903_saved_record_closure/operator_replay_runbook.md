@@ -1,3 +1,10 @@
+# HISTORICAL P1-10 Operator Runbook — SUPERSEDED_NOT_RUN
+
+本目录的旧 pair 已标记为 `SUPERSEDED_NOT_RUN`，不是当前 pair、不是 retry、
+不是 runtime failure。Operator 禁止按本文件启动或重放。当前 Stage-A
+runbook 见：
+`docs/evidence/P1-10/stage_a_operator_pre_run_identity_runbook_20260905.md`。
+
 # P1-10 宿主 Operator Replay Runbook
 
 状态：**离线 pair 已冻结，等待独立 Reviewer 审核。**
@@ -292,3 +299,10 @@ executable identity 或任何历史 pair。
 - 不 commit/push；
 - 不启动 P1-11、P1-12、P1-13、benchmark 或 FormalRun；
 - 未获独立 Reviewer 通过前，不启动 A/B。
+# HISTORICAL FLAT-REPLAY RUNBOOK — NOT CURRENT STAGE-B INSTRUCTION
+
+This document belongs to the historical saved-record closure directory. It is
+retained as evidence and must not be used to start or retry a pair. The current
+Stage-B `obstacle_test1` pre-run contract is
+[`stage_b_operator_pre_run_identity_runbook_20260905.md`](../stage_b_operator_pre_run_identity_runbook_20260905.md);
+it is also pending independent review and Director authorization.

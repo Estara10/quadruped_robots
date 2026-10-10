@@ -105,7 +105,11 @@ def test_flat_suite_and_frozen_pair_unchanged():
     pair = load_json(PAIR)
     suite_sha = hashlib.sha256(FLAT_SUITE.read_bytes()).hexdigest()
     assert suite_sha == pair["scenario"]["suite_manifest_sha256"]
-    assert pair["status_at_freeze"] == "FROZEN_OFFLINE_PENDING_INDEPENDENT_REVIEW"
+    assert pair["status_at_freeze"] == "SUPERSEDED_NOT_RUN"
+    old_pair = json.loads((REPO / "docs/evidence/P1-10/replay_pair_20260905_stage_a_current_instrumented/pair_manifest.json").read_text())
+    assert old_pair["status_at_freeze"] == "FAILED_FOR_THIS_PAIR"
+    current_pair = json.loads((REPO / "docs/evidence/P1-10/replay_pair_20260907_stage_a_current_instrumented/pair_manifest.json").read_text())
+    assert current_pair["status_at_freeze"] == "FROZEN_OFFLINE_PENDING_INDEPENDENT_REVIEW"
 
 
 def test_ray_contract_fail_closed_boundaries():

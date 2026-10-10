@@ -1,0 +1,189 @@
+{
+  "capture_id": "p1-10-capture-d0993df1fbfc4cddbf478803e66ac5aa",
+  "classification": "short nonformal S1-04 workflow diagnostic; not a formal A-group result",
+  "commands": [
+    {
+      "command": 2,
+      "monotonic_ns": 22405493337150,
+      "output": "publisher: beginning loop\npublishing #1: control_input_msgs.msg.Inputs(command=2, lx=0.0, ly=0.0, rx=0.0, ry=0.0)\n\n",
+      "returncode": 0
+    },
+    {
+      "command": 2,
+      "monotonic_ns": 22407462035442,
+      "output": "publisher: beginning loop\npublishing #1: control_input_msgs.msg.Inputs(command=2, lx=0.0, ly=0.0, rx=0.0, ry=0.0)\n\n",
+      "returncode": 0
+    },
+    {
+      "command": 3,
+      "monotonic_ns": 22413039389397,
+      "output": "publisher: beginning loop\npublishing #1: control_input_msgs.msg.Inputs(command=3, lx=0.0, ly=0.0, rx=0.0, ry=0.0)\n\n",
+      "returncode": 0
+    }
+  ],
+  "created_monotonic_ns": 22388361880621,
+  "events": [
+    {
+      "event": "recorder_ready",
+      "monotonic_ns": 22389587679968,
+      "phase": "startup_preparation"
+    },
+    {
+      "event": "mujoco_started",
+      "monotonic_ns": 22392588285753,
+      "phase": "startup_preparation"
+    },
+    {
+      "event": "collision_source_live",
+      "monotonic_ns": 22392588612335,
+      "phase": "startup_preparation"
+    },
+    {
+      "event": "controller_active",
+      "monotonic_ns": 22401964281918,
+      "phase": "startup_preparation"
+    },
+    {
+      "command": 3,
+      "event": "rl_policy_requested",
+      "monotonic_ns": 22413539508476,
+      "phase": "motion"
+    },
+    {
+      "candidate": "paper_faithful_switch",
+      "entry_threshold": -0.05000000074505806,
+      "event": "runtime_source_bound",
+      "exit_threshold": -0.05000000074505806,
+      "goal_world_m": [
+        1.0,
+        0.0
+      ],
+      "monotonic_ns": 22413546545927,
+      "phase": "motion",
+      "session_id": 22412744739286,
+      "source_evidence_wait_s": 0.0
+    }
+  ],
+  "lifecycle": {
+    "cleanup_complete_monotonic_ns": null,
+    "controller_ready_monotonic_ns": 22403997953314,
+    "motion_and_cleanup_are_separate": true,
+    "motion_start_event": "first observed base displacement >=0.10m from first valid strategy-frame pose",
+    "motion_start_interval_s": null,
+    "motion_start_sim_time_s": null,
+    "movement_end_monotonic_ns": null,
+    "mujoco_started_monotonic_ns": 22403997952495,
+    "rl_entry_command_monotonic_ns": 22413539523647,
+    "ros_launch_started_monotonic_ns": 22403997953068,
+    "run_terminal_event": null,
+    "terminal_frame_capture": {
+      "complete": null,
+      "status": "not_terminal"
+    }
+  },
+  "preflight": {
+    "active_controller_list": "\u001b[92mjoint_state_broadcaster\u001b[0m joint_state_broadcaster/JointStateBroadcaster  \u001b[92mactive\u001b[0m\n\u001b[92mimu_sensor_broadcaster \u001b[0m imu_sensor_broadcaster/IMUSensorBroadcaster    \u001b[92mactive\u001b[0m\n\u001b[92mrl_quadruped_controller\u001b[0m rl_quadruped_controller/LeggedGymController    \u001b[92mactive\u001b[0m",
+    "ament_share_lookup_same_shell": "/tmp/s1_04_overlay/share/go2_description",
+    "candidate_config_candidate_verified": true,
+    "candidate_config_goal_x_m_verified": true,
+    "candidate_config_path": "/tmp/s1_04_overlay/share/go2_description/config/abs/config.yaml",
+    "controller_nodes": [
+      "/controller_manager",
+      "/rl_quadruped_controller"
+    ],
+    "controller_processes_before_launch": [],
+    "launch_command": "source /opt/ros/humble/setup.bash; source workspace/install/setup.bash; export the same AMENT_PREFIX_PATH; ros2 launch ...",
+    "launch_shell_controller_prefix": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/rl_quadruped_controller",
+    "launch_shell_go2_description_prefix": "/tmp/s1_04_overlay",
+    "launched_manager_process_evidence": [
+      {
+        "cmdline": "/opt/ros/humble/lib/controller_manager/ros2_control_node --ros-args --params-file /tmp/s1_04_overlay/share/go2_description/config/robot_control.yaml -r ~/robot_description:=/robot_description",
+        "comm": "ros2_control_no",
+        "pgid": 203890,
+        "pid": 203918
+      }
+    ]
+  },
+  "run_id": "7089073a2a684328b6523efa8c06c384",
+  "runtime_config_observed": {
+    "entry_threshold": -0.05000000074505806,
+    "exit_threshold": -0.05000000074505806,
+    "goal_log_matches_expected": true,
+    "session_id": 22412744739286,
+    "source_binding": {
+      "agile_model": "/tmp/s1_04_overlay/share/go2_description/config/abs/policy.pt",
+      "candidate": "paper_faithful_switch",
+      "config": "/tmp/s1_04_overlay/share/go2_description/config/abs/config.yaml",
+      "controller_launch_config": "/tmp/s1_04_overlay/share/go2_description/config/robot_control.yaml",
+      "controller_pid": 203918,
+      "entry_threshold": -0.05,
+      "exit_threshold": -0.05000000074505806,
+      "goal_world_m": [
+        1.0,
+        0.0
+      ],
+      "launch_node": "ros2_control_node-3",
+      "package_share": "/tmp/s1_04_overlay/share/go2_description",
+      "ra_model": "/tmp/s1_04_overlay/share/go2_description/config/abs/ra_value.pt",
+      "recovery_model": "/tmp/s1_04_overlay/share/go2_description/config/rec/policy.pt",
+      "runtime_path_goal_world_m": [
+        1.0,
+        0.0
+      ],
+      "session_id": 22412744739286,
+      "writer_pid": 203918
+    },
+    "switching_mode": 1
+  },
+  "runtime_source_validation": {
+    "evidence": {
+      "agile_model": "/tmp/s1_04_overlay/share/go2_description/config/abs/policy.pt",
+      "candidate": "paper_faithful_switch",
+      "config": "/tmp/s1_04_overlay/share/go2_description/config/abs/config.yaml",
+      "controller_launch_config": "/tmp/s1_04_overlay/share/go2_description/config/robot_control.yaml",
+      "controller_pid": 203918,
+      "entry_threshold": -0.05,
+      "exit_threshold": -0.05000000074505806,
+      "goal_world_m": [
+        1.0,
+        0.0
+      ],
+      "launch_node": "ros2_control_node-3",
+      "package_share": "/tmp/s1_04_overlay/share/go2_description",
+      "ra_model": "/tmp/s1_04_overlay/share/go2_description/config/abs/ra_value.pt",
+      "recovery_model": "/tmp/s1_04_overlay/share/go2_description/config/rec/policy.pt",
+      "runtime_path_goal_world_m": [
+        1.0,
+        0.0
+      ],
+      "session_id": 22412744739286,
+      "writer_pid": 203918
+    },
+    "reason": "all_source_events_match",
+    "status": "confirmed",
+    "wait_limit_s": 3.0
+  },
+  "schema": "s1-04-run-context-v1",
+  "session_id": 22412744739286,
+  "settings": {
+    "arrival_threshold_m": 0.5,
+    "candidate": "paper_faithful_switch",
+    "controller_config": "/tmp/s1_04_overlay/share/go2_description/config/abs/config.yaml",
+    "diagnostic_sim_limit_after_motion_s": 6.0,
+    "display": ":0",
+    "goal_world_m": [
+      1.0,
+      0.0
+    ],
+    "model_paths": [
+      "/tmp/s1_04_overlay/share/go2_description/config/abs/policy.pt",
+      "/tmp/s1_04_overlay/share/go2_description/config/abs/ra_value.pt",
+      "/tmp/s1_04_overlay/share/go2_description/config/rec/policy.pt"
+    ],
+    "overlay": "/tmp/s1_04_overlay",
+    "runtime_model_fingerprint": "3e4d82cf204d5929ff98c11fed5b3918ba3b92f0d698215860097d734d239694",
+    "scene": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/scene_obstacle.xml",
+    "scene_id": "obstacle_test1",
+    "xauthority": "/run/user/1000/gdm/Xauthority"
+  }
+}

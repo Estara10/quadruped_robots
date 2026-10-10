@@ -1,0 +1,30 @@
+{
+  "date_local": "2026-10-08",
+  "purpose": "S1-05 single authorized short diagnostic preflight",
+  "execution_scope": "one-shot elevated execution to access existing desktop only; no authorization, permission, system service, driver, installation, or global environment changes",
+  "display": ":0",
+  "xauthority": "/run/user/1000/gdm/Xauthority",
+  "x_connection": {
+    "command": "DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority /usr/bin/xdpyinfo",
+    "exit_code": 0
+  },
+  "glfw": {
+    "compiler": "/usr/bin/gcc",
+    "pkg_config_glfw3": "3.3.6",
+    "command": "DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority LD_LIBRARY_PATH=<temporary system/Unitree paths> /tmp/s1_05_glfw_preflight",
+    "exit_code": 0,
+    "glfw_init": true,
+    "hidden_window_created": true,
+    "vendor": "Intel",
+    "renderer": "Mesa Intel(R) Graphics (RPL-P)",
+    "opengl": "4.6 (Compatibility Profile) Mesa 23.2.1-1ubuntu3.1~22.04.4",
+    "temporary_ld_library_path": [
+      "/home/lidio/Libraries/unitree_sdk2/lib",
+      "/home/lidio/Libraries/libtorch-cpu-2.0.1/lib",
+      "/usr/lib/x86_64-linux-gnu",
+      "/home/lidio/Libraries/mujoco/lib",
+      "/home/lidio/Libraries/libfranka/lib"
+    ]
+  },
+  "cleanup": "probe window destroyed before process exit; source/binary scheduled for local /tmp cleanup"
+}

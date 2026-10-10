@@ -1,0 +1,35 @@
+{
+  "run_id": "60f5f44663104b6c883b4668ba1473e4",
+  "read_after_process_exit": true,
+  "snapshot_bytes": 3864,
+  "reader_status_at_snapshot_monotonic_timestamp": "INVALID",
+  "snapshot_identity": {
+    "version": 3,
+    "authoritative": 1,
+    "invalid_reason": 0,
+    "capture_id": "p1-10-capture-b426a7e1c3104330b08f1f2dfc892ec0",
+    "runtime_model_fingerprint": "3e4d82cf204d5929ff98c11fed5b3918ba3b92f0d698215860097d734d239694",
+    "physics_step": 5125,
+    "sim_time_s": 10.250000000000092
+  },
+  "contact_counts": {
+    "classified": 9,
+    "unknown": 0,
+    "robot_obstacle": 0,
+    "ground": 9,
+    "foot_ground": 5,
+    "nonfoot_ground": 0,
+    "self": 0,
+    "other": 0
+  },
+  "failing_reader_invariant": "foot_ground + nonfoot_ground must equal ground_contacts; observed 5 != 9",
+  "other_checked_invariants": {
+    "class_sum_matches": true,
+    "sequence_even": true,
+    "capture_id_valid": true,
+    "fingerprint_valid": true,
+    "coverage_flag": true,
+    "unknown_contacts": 0
+  },
+  "interpretation": "The producer published an authoritative v3 snapshot for this run, but the Python reader rejected the inconsistent ground split before policy startup. The snapshot does not identify the four unaccounted ground contacts, so their exact source is UNKNOWN. The code was then changed to classify ground only for robot-floor contacts and put obstacle-floor contacts in other; this correction has offline/build validation but no subsequent scene run."
+}

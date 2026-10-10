@@ -1,0 +1,57 @@
+{
+  "task": "S1-02 short basic diagnostic; non-formal, not a formal A-group result",
+  "previous_diagnostic": {
+    "candidate": "stabilized_switch (legacy candidate)",
+    "scene": "scene_obstacle.xml",
+    "controller_update_hz": 200,
+    "policy_decimation": 4,
+    "configured_entry_threshold": -0.05,
+    "recovery_hold_steps": 30,
+    "models": {
+      "agile": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/abs/policy.pt",
+      "ra": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/abs/ra_value.pt",
+      "recovery": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/rec/policy.pt"
+    },
+    "evidence": "previous_stabilized_launch.log; prior run ended with ray monotonic_clock_order safety veto at RL step 1978"
+  },
+  "this_diagnostic": {
+    "candidate": "paper_faithful_switch (legacy A-like candidate; not a formal A result)",
+    "scene": "scene_obstacle.xml",
+    "launch": "AUTO_RL=true; ABS_LIVE_TELEMETRY=1; MUJOCO_SCENE=scene_obstacle.xml",
+    "control_input": "launcher stand sequence (command=2 twice), then command=3 with lx=0, ly=1, rx=0, ry=0",
+    "controller_manager_hz": 1000,
+    "controller_update_hz": 200,
+    "decimation": 4,
+    "nominal_period_ms": 20,
+    "entry_threshold": -0.05,
+    "configured_recovery_hold_steps": 30,
+    "hold_effective": false,
+    "model_files_loaded_from_overlay": {
+      "agile": "/tmp/s1_02_overlay/share/go2_description/config/abs/policy.pt",
+      "ra": "/tmp/s1_02_overlay/share/go2_description/config/abs/ra_value.pt",
+      "recovery": "/tmp/s1_02_overlay/share/go2_description/config/rec/policy.pt"
+    },
+    "model_files_byte_compared_equal_to_repository_deploy_artifacts": true,
+    "runtime_log": "ros_launch.log",
+    "saved_candidate_config": "abs_config_used.yaml",
+    "session_id": 29564131129926,
+    "rl_step_range": [
+      0,
+      1847
+    ],
+    "frames": 1848,
+    "continuous_policy_intervals": 1847,
+    "mode_edges": 14,
+    "termination": "manually interrupted after short diagnostic window; no safety veto observed; process/shm cleanup checked"
+  },
+  "capture": {
+    "started_before_simulator": true,
+    "recorder_preflight": "collector_ready.json",
+    "runtime_frames": "policy_frames.jsonl",
+    "sim_clock_samples": "sim_clock.jsonl",
+    "paired_frames": "policy_frames_simtime_bracket.jsonl",
+    "timing_summary": "summary.json",
+    "pairing": "shared steady-clock monotonic_ns bracketing adjacent physics clock samples; no interpolation"
+  },
+  "not_repeated": "TorchScript model shape probe from prior execution report"
+}

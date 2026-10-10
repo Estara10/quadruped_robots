@@ -32,3 +32,8 @@ Old P1 tasks, gates, reviewers, exec plans, evidence bundles and top-level gover
 - Never present PLANNED or UNKNOWN work as completed fact.
 - Do not train models, start formal experiments or perform real RL unless the active thesis stage authorizes it.
 
+## 运行与任务收尾
+
+- 每次测试、诊断运行或任务结束后（包括失败、中止和异常退出），关闭本次使用完的仿真环境、控制器、ROS 启动进程、RViz、采集器及相关辅助进程。清理前确认进程来源，只关闭属于本次任务或已确认遗留的项目进程，不影响无关会话。
+- 清理后核对相关进程是否已退出；不能仅凭窗口关闭或已发送中断就声称清理完成。如有残留或无法确认，明确记录并说明。
+- 每次运行结束及任务提交时，用简洁、通俗的中文说明：做了什么、结果如何、还有什么问题，以及环境是否已关闭。未完成或未验证的内容如实说明。

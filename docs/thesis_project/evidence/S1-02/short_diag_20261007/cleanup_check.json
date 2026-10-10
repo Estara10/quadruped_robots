@@ -1,0 +1,6 @@
+{
+  "after_run": "2026-10-07 diagnostic shutdown",
+  "simulator_and_ros_processes_remaining": false,
+  "dev_shm_entries_remaining": [],
+  "basis": "post-stop process query had no MuJoCo/ROS/recorder process match beyond query command; /dev/shm listing was empty"
+}

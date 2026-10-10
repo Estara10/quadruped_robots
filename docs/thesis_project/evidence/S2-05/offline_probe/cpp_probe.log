@@ -1,0 +1,4 @@
+foot_geom_owners=FL:FL_calf,FR:FR_calf,RL:RL_calf,RR:RR_calf
+nonfoot_identity geom=<unnamed> body=FL_thigh
+[ABS-SCENE-AUTHORITY] scene_id=ppt_sparse root_sha256=55e467f424d8cba7ed3fce44810892de76271b30fe8319ac5104976a67db01fc model_closure_sha256=cf3dd4d610384d34e543950502f2f6e626d1eeea18c307f93b9a5b111da6b379 runtime_model_fingerprint=93dad130d91701f77d16375cded5c02d823d8b6703973e4259ba7407f9f7cd72 obstacle_count=4 obstacle_ids=1,2,3,4
+version=5 bytes=14472 foot_floor_samples=4 foot_ground_contacts=4 real_mj_contact_force_world_transform=PASS real_floor_foot=RR real_floor_force_world_N=-36.4923,6.08441,99.5727 injected_force_impact_mask=0 injected_foot_obstacle_terminal=0 injected_nonfoot_obstacle_terminal=1

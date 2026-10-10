@@ -36,6 +36,7 @@
 #include "param.h"
 #include "abs_sim_clock_contract.h"
 #include "obstacle_collision_authority.h"
+#include "abs_stage_a_common_start_contract.h"
 
 #define MUJOCO_PLUGIN_DIR "mujoco_plugin"
 #define NUM_MOTOR_IDL_GO 20
@@ -71,6 +72,12 @@ namespace
   // sim_time} after every mj_step. Never affects scheduling or behavior.
   abs_sim_clock::SimClockWriter g_sim_clock;
   ObstacleCollisionAuthority g_collision_authority;
+
+  bool envEnabled(const char* name)
+  {
+    const char* value = std::getenv(name);
+    return value != nullptr && std::strcmp(value, "1") == 0;
+  }
 
   // control noise variables
   mjtNum *ctrlnoise = nullptr;
@@ -297,7 +304,8 @@ namespace
   }
 
   // simulate in background thread (while rendering in main thread)
-  void PhysicsLoop(mj::Simulate &sim, BridgeLifecycle *bridge_lifecycle)
+  void PhysicsLoop(mj::Simulate &sim, BridgeLifecycle *bridge_lifecycle,
+                   abs_stage_a_common_start::Writer* stage_a_gate)
   {
     // cpu-sim syncronization point
     std::chrono::time_point<mj::Simulate::Clock> syncCPU;
@@ -429,6 +437,17 @@ namespace
         // run only if model is present
         if (m)
         {
+          // Formal Stage-A common-start scope: keep the initialized model/data
+          // static until the one-shot harness release is durably visible.
+          // mj_forward is allowed for static publication/rendering; mj_step is
+          // not reachable before the gate opens.
+          if (stage_a_gate != nullptr && !stage_a_gate->stepAllowed())
+          {
+            mj_forward(m, d);
+            sim.speed_changed = true;
+            continue;
+          }
+
           // running
           if (sim.run)
           {
@@ -477,9 +496,15 @@ namespace
               // run single step, let next iteration deal with timing
               mj_step(m, d);
               g_sim_clock.publish(abs_sim_clock::monotonicNowNs(), d->time);
+              const uint64_t physics_step = ++physics_step_counter;
+              if (stage_a_gate != nullptr)
+              {
+                stage_a_gate->recordPhysicsStep(
+                    physics_step, d->time, abs_stage_a_common_start::monotonicNowNs());
+              }
               // Stage-B collision authority is formal only on this
               // harness-controlled PhysicsLoop path; UI stepping is excluded.
-              g_collision_authority.publish(m, d, ++physics_step_counter);
+              g_collision_authority.publish(m, d, physics_step);
               stepped = true;
             }
 
@@ -522,9 +547,15 @@ namespace
                 // call mj_step
                 mj_step(m, d);
                 g_sim_clock.publish(abs_sim_clock::monotonicNowNs(), d->time);
+                const uint64_t physics_step = ++physics_step_counter;
+                if (stage_a_gate != nullptr)
+                {
+                  stage_a_gate->recordPhysicsStep(
+                      physics_step, d->time, abs_stage_a_common_start::monotonicNowNs());
+                }
                 // Same formal PhysicsLoop-only collision scope as the path
                 // above; simulate.cc UI step-forward is debug-only.
-                g_collision_authority.publish(m, d, ++physics_step_counter);
+                g_collision_authority.publish(m, d, physics_step);
                 stepped = true;
 
                 // break if reset
@@ -564,7 +595,8 @@ void MuJoCoSignalHandler(int) {
 //-------------------------------------- physics_thread --------------------------------------------
 
 void PhysicsThread(mj::Simulate *sim, const char *filename,
-                   BridgeLifecycle *bridge_lifecycle)
+                   BridgeLifecycle *bridge_lifecycle,
+                   abs_stage_a_common_start::Writer* stage_a_gate)
 {
   // request loadmodel if file given (otherwise drag-and-drop)
   if (filename != nullptr)
@@ -582,6 +614,12 @@ void PhysicsThread(mj::Simulate *sim, const char *filename,
       free(ctrlnoise);
       ctrlnoise = static_cast<mjtNum *>(malloc(sizeof(mjtNum) * m->nu));
       mju_zero(ctrlnoise, m->nu);
+      if (stage_a_gate != nullptr && !stage_a_gate->markInitialReady())
+      {
+        std::cerr << "[P1-10] common-start gate failed initial-ready publication"
+                  << std::endl;
+        return;
+      }
       bridge_lifecycle->markInitialReady();
     }
     else
@@ -590,7 +628,7 @@ void PhysicsThread(mj::Simulate *sim, const char *filename,
     }
   }
 
-  PhysicsLoop(*sim, bridge_lifecycle);
+  PhysicsLoop(*sim, bridge_lifecycle, stage_a_gate);
 }
 
 void *UnitreeSdk2BridgeThread(void *arg)
@@ -719,10 +757,32 @@ int main(int argc, char **argv)
     std::cerr << "[MuJoCoShutdown] failed to reserve bridge lifecycle" << std::endl;
     return 1;
   }
+  std::unique_ptr<abs_stage_a_common_start::Writer> stage_a_gate;
+  if (envEnabled("ABS_P1_10_COMMON_START"))
+  {
+    const char* capture_id = std::getenv("ABS_P1_10_CAPTURE_ID");
+    const char* qpos_sha256 = std::getenv("ABS_P1_10_INITIAL_QPOS_SHA256");
+    const char* shm_name = std::getenv("ABS_P1_10_COMMON_START_SHM");
+    if (capture_id == nullptr || qpos_sha256 == nullptr ||
+        shm_name == nullptr || std::string(shm_name) != abs_stage_a_common_start::kDefaultShmName)
+    {
+      std::cerr << "[P1-10] common-start environment binding is incomplete"
+                << std::endl;
+      return 1;
+    }
+    stage_a_gate = std::make_unique<abs_stage_a_common_start::Writer>(
+        capture_id, qpos_sha256, shm_name);
+    if (!stage_a_gate->initialized())
+    {
+      std::cerr << "[P1-10] common-start gate initialization failed" << std::endl;
+      return 1;
+    }
+  }
   std::thread unitree_thread(UnitreeSdk2BridgeThread, &bridge_stop_request);
 
   // start physics thread
-  std::thread physicsthreadhandle(&PhysicsThread, sim.get(), param::config.robot_scene.c_str(), &bridge_stop_request);
+  std::thread physicsthreadhandle(&PhysicsThread, sim.get(), param::config.robot_scene.c_str(), &bridge_stop_request,
+                                  stage_a_gate.get());
   // start simulation UI loop (blocking call)
   sim->RenderLoop();
   bridge_stop_request.beginStop();

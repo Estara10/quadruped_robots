@@ -1,5 +1,6 @@
 //
-// P1-07 — RA-to-Recovery switching decision helper.
+// RA-to-Recovery switching decision helper. Research-facing configuration is
+// parsed separately; the current ABS config parser supports A only.
 //
 // Pure, dependency-free state machine boundary: no torch, no ROS, no YAML.
 // This is the single place that decides whether the inline RA-based Recovery
@@ -12,7 +13,7 @@
 //       RA >= entry_thr  -> Recovery
 //       RA <  entry_thr  -> Agile
 //       no hysteresis, no forced hold, equality at the threshold enters Recovery.
-//   - stabilized_switch (default): current deployed behavior, preserved exactly
+//   - stabilized_switch: legacy helper retained for regression compatibility
 //       ENTER: !in_recovery && RA >  entry_thr          (strict, no equality)
 //       EXIT : in_recovery && hold expired && RA < exit_thr
 //       forced hold of `hold_steps` policy steps after every ENTER.
@@ -67,6 +68,17 @@ inline const char* switchModeName(SwitchMode mode)
     return "invalid";
 }
 
+// The paper candidate exits at the same threshold it enters; the stabilized
+// candidate uses the caller's configured hysteresis threshold. Keep the
+// recorder and stepSwitching() caller on this one candidate-aware value.
+inline double effectiveExitThreshold(SwitchMode mode,
+                                     double entry_thr,
+                                     double configured_exit_thr)
+{
+    return mode == SwitchMode::paper_faithful_switch
+        ? entry_thr : configured_exit_thr;
+}
+
 // Mutable switching state held across policy steps.
 struct SwitchState
 {
@@ -91,9 +103,9 @@ struct SwitchDecision
 //   cur        - switching state at the start of the step
 //   ra_value   - RA model output for this step (finite in normal operation;
 //                non-finite -> invalid result, no transition)
-//   entry_thr  - Recovery entry threshold (-0.05 deployment)
-//   exit_thr   - Recovery exit threshold (-0.08 deployment, stabilized only)
-//   hold_steps - forced hold length in policy steps (stabilized only; 30 deployment)
+//   entry_thr  - Recovery entry threshold
+//   exit_thr   - legacy helper exit threshold (stabilized mode only)
+//   hold_steps - legacy forced hold length in policy steps (stabilized mode only)
 inline SwitchDecision stepSwitching(SwitchMode mode,
                                     const SwitchState& cur,
                                     double ra_value,

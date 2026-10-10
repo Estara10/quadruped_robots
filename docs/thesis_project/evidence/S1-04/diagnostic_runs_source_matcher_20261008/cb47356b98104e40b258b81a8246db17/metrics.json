@@ -1,0 +1,81 @@
+{
+  "run_id": "cb47356b98104e40b258b81a8246db17",
+  "record_validity": "VALID",
+  "record_validity_reasons": [],
+  "terminal_result": "ARRIVED",
+  "run_terminal_result_context": "ARRIVED",
+  "run_terminal_result_record": "ARRIVED",
+  "cleanup_events": [
+    {
+      "command": 1,
+      "event": "PASSIVE_STOP_REQUESTED",
+      "monotonic_ns": 20305964583116,
+      "phase": "cleanup"
+    },
+    {
+      "event": "GLOBAL_HARD_STOP",
+      "message": "[ros2_control_node-3] [ERROR] [1791438519.349740939] [rl_quadruped_controller]: [HARD-STOP] command=1 -> forcing PASSIVE",
+      "observed_monotonic_ns": 20306214893639,
+      "phase": "cleanup",
+      "source": "RlQuadrupedController/StateRL ROS log"
+    },
+    {
+      "confirmed": false,
+      "event": "STRATEGY_STOP_CONFIRMATION",
+      "monotonic_ns": 20306215184137,
+      "output_after_request_duration_ns": 250000000,
+      "phase": "cleanup"
+    }
+  ],
+  "motion_metric_time_boundary": {
+    "start_sim_time_s": 24.025999999997563,
+    "end_sim_time_s": 24.523999999997287,
+    "start_cycle": 49,
+    "end_cycle": 74
+  },
+  "session_id": 20302804686619,
+  "frame_count": 75,
+  "rl_step_gaps": 0,
+  "invalid_clock_frames": 1,
+  "clock_valid_fraction": 0.9866666666666667,
+  "first_valid_sim_time_s": 23.043999999998107,
+  "last_valid_sim_time_s": 24.523999999997287,
+  "policy_interval_ms_median": 19.988281,
+  "policy_interval_ms_p95": 26.185870699999988,
+  "policy_interval_ms_min": 1.938944,
+  "policy_interval_ms_max": 31.285915999999997,
+  "policy_frequency_hz_overall": 51.77575071842195,
+  "mode_transitions": 0,
+  "agile_to_recovery": 0,
+  "recovery_to_agile": 0,
+  "transitions_with_valid_sim_time": 0,
+  "transitions": [],
+  "recovery_intervals": [],
+  "recovery_sim_duration_s": 0.0,
+  "valid_motion_duration_s": 0.45999999999974506,
+  "recovery_share_valid_motion_time": 0.0,
+  "movement_start_sim_time_s": 24.025999999997563,
+  "target_distance_start_m": 0.9465615800597791,
+  "target_distance_final_m": 0.4843338827688707,
+  "path_length_m": 0.42922485449047937,
+  "mean_path_speed_mps": 0.9330975097624288,
+  "short_reverse_switch_count": 0,
+  "short_reverse_window_s": 0.5,
+  "period_statistics_scope": "all captured LIVE frames including preparation and cleanup tail, if present",
+  "motion_metrics_scope": "valid continuous cycles from observed 0.10m motion-start cycle through terminal frame; cleanup tail excluded",
+  "collision_coverage": {
+    "available": false,
+    "reason": "formal collision snapshot is missing, stale, invalid, has unknown contacts, or lacks contiguous coverage",
+    "event_count": null,
+    "coverage": {
+      "samples": 75,
+      "live_samples": 75,
+      "unknown_contacts": 0,
+      "physics_step_gaps": 641,
+      "sampled_steps_contiguous": false,
+      "complete_for_no_collision_claim": false
+    }
+  },
+  "external_safety_events": [],
+  "command_consumption": "UNKNOWN"
+}

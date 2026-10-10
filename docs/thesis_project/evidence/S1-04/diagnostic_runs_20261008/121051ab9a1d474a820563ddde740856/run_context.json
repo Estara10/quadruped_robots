@@ -1,0 +1,114 @@
+{
+  "actual_run_observation": {
+    "evidence": [
+      "ros_launch.log resolves Recovery policy to quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/rec/policy.pt",
+      "StateRL [PATH] and [EVAL] logs show actual world goal_x=7.0, while this context planned 1.0",
+      "runtime_record.jsonl contains two interleaved session_id values and both stabilized_switch (switching_mode=0) and paper_faithful_switch (switching_mode=1) frames",
+      "runtime_record.jsonl validation is INVALID due session discontinuity and invalid collision snapshot rows"
+    ],
+    "interpretation": "The intended /tmp/s1_04_overlay was not selected by this run. Preserve raw files; do not use as a valid setting, frequency, motion, or result measurement. A later read-only ros2 pkg prefix check with overlay export returned /tmp/s1_04_overlay, but no run with the corrected launcher was started.",
+    "planned_overlay_selected": false,
+    "status": "INVALID_RUN_CONTEXT"
+  },
+  "capture": {
+    "authoritative_collision_live_before_motion": true,
+    "capture_error": null,
+    "frames_written": 832
+  },
+  "capture_id": "p1-10-capture-ae2515ee6a694f34a1ab6f3dc663e66c",
+  "classification": "short nonformal S1-04 workflow diagnostic; not a formal A-group result",
+  "commands": [
+    {
+      "command": 2,
+      "monotonic_ns": 16470321911571,
+      "output": "publisher: beginning loop\npublishing #1: control_input_msgs.msg.Inputs(command=2, lx=0.0, ly=0.0, rx=0.0, ry=0.0)\n\n",
+      "returncode": 0
+    },
+    {
+      "command": 2,
+      "monotonic_ns": 16472951709307,
+      "output": "Waiting for at least 1 matching subscription(s)...\npublisher: beginning loop\npublishing #1: control_input_msgs.msg.Inputs(command=2, lx=0.0, ly=0.0, rx=0.0, ry=0.0)\n\n",
+      "returncode": 0
+    },
+    {
+      "command": 3,
+      "monotonic_ns": 16478518190437,
+      "output": "publisher: beginning loop\npublishing #1: control_input_msgs.msg.Inputs(command=3, lx=0.0, ly=0.0, rx=0.0, ry=0.0)\n\n",
+      "returncode": 0
+    },
+    {
+      "command": 3,
+      "monotonic_ns": 16480569061074,
+      "output": "publisher: beginning loop\npublishing #1: control_input_msgs.msg.Inputs(command=3, lx=0.0, ly=0.0, rx=0.0, ry=0.0)\n\n",
+      "returncode": 0
+    }
+  ],
+  "created_monotonic_ns": 16455902184668,
+  "lifecycle": {
+    "cleanup_complete_monotonic_ns": 16487321167659,
+    "cleanup_processes": [
+      {
+        "exit_code": 0,
+        "forced": false,
+        "name": "ros2_launch",
+        "started": true
+      },
+      {
+        "exit_code": 0,
+        "forced": false,
+        "name": "mujoco",
+        "started": true
+      }
+    ],
+    "controller_ready_monotonic_ns": 16468411516497,
+    "motion_and_cleanup_are_separate": true,
+    "motion_start_event": "first valid pose >=0.10m from first valid policy pose",
+    "motion_start_interval_s": [
+      23.94199999999761,
+      23.94199999999761
+    ],
+    "motion_start_sim_time_s": 23.94199999999761,
+    "movement_end_monotonic_ns": 16486642145450,
+    "mujoco_started_monotonic_ns": 16468411515132,
+    "rl_entry_command_monotonic_ns": 16480569067199,
+    "ros_launch_started_monotonic_ns": 16468411516069,
+    "run_terminal_event": "DIAGNOSTIC_SIM_TIME_LIMIT"
+  },
+  "result_contract": {
+    "classification": "DIAGNOSTIC_SIM_TIME_LIMIT",
+    "command_consumption_by_mujoco": "UNKNOWN; no direct consumption acknowledgement",
+    "fall_detection": "UNKNOWN; no authoritative detector used",
+    "first_valid_frame_monotonic_ns": 16480569661939,
+    "first_valid_sim_time_s": 23.873999999997647,
+    "motion_start_sim_time_s": 23.94199999999761,
+    "motion_start_unknown_reason": null,
+    "operator_abort": "not issued",
+    "policy_frames_observed": 553,
+    "startup_failure": null,
+    "valid_collision_source_seen": true
+  },
+  "run_id": "121051ab9a1d474a820563ddde740856",
+  "schema": "s1-04-run-context-v1",
+  "session_id": 16478219458311,
+  "settings": {
+    "arrival_threshold_m": 0.5,
+    "candidate": "paper_faithful_switch",
+    "controller_config": "/tmp/s1_04_overlay/share/go2_description/config/abs/config.yaml",
+    "diagnostic_sim_limit_after_motion_s": 6.0,
+    "display": ":0",
+    "goal_world_m": [
+      1.0,
+      0.0
+    ],
+    "model_paths": [
+      "/tmp/s1_04_overlay/share/go2_description/config/abs/policy.pt",
+      "/tmp/s1_04_overlay/share/go2_description/config/abs/ra_value.pt",
+      "/tmp/s1_04_overlay/share/go2_description/config/rec/policy.pt"
+    ],
+    "overlay": "/tmp/s1_04_overlay",
+    "runtime_model_fingerprint": "3e4d82cf204d5929ff98c11fed5b3918ba3b92f0d698215860097d734d239694",
+    "scene": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/scene_obstacle.xml",
+    "scene_id": "obstacle_test1",
+    "xauthority": "/run/user/1000/gdm/Xauthority"
+  }
+}

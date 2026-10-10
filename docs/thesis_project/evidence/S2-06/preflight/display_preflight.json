@@ -1,0 +1,33 @@
+{
+  "task": "S2-06",
+  "scope": "read-only X11, GLFW, and OpenGL preflight before the five bounded diagnostics",
+  "initial_default_execution_environment": {
+    "command": "xdpyinfo -display :0",
+    "xauthority_explicitly_in_command": false,
+    "result": "FAIL: unable to open display :0",
+    "cause": "not isolated; this result alone does not distinguish execution restriction from missing/incorrect authorization environment"
+  },
+  "approved_temporary_desktop_preflight": {
+    "commands": [
+      "env DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority xdpyinfo -display :0",
+      "env DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority /tmp/s2_04_glfw_preflight"
+    ],
+    "x11": {
+      "result": "PASS",
+      "server": "X.Org 1.21.1.4",
+      "screen": "1920x1080"
+    },
+    "glfw": "PASS",
+    "window_creation": "PASS",
+    "opengl": {
+      "vendor": "Intel",
+      "renderer": "Mesa Intel(R) Graphics (RPL-P)",
+      "version": "4.6 (Compatibility Profile) Mesa 23.2.1-1ubuntu3.1~22.04.4"
+    },
+    "temporary_environment": {
+      "DISPLAY": ":0",
+      "XAUTHORITY": "/run/user/1000/gdm/Xauthority"
+    },
+    "system_or_desktop_changes": "none"
+  }
+}

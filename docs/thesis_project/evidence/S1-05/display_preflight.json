@@ -1,0 +1,28 @@
+{
+  "date_local": "2026-10-08",
+  "command_scope": "one-shot elevated execution using existing desktop authorization; no auth files, permissions, services, drivers, or installed components changed",
+  "display": ":0",
+  "xauthority": "/run/user/1000/gdm/Xauthority",
+  "x_connection": {
+    "command": "DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority xdpyinfo",
+    "exit_code": 0,
+    "observed": "X connection succeeded; X.Org display :0, server 11.0"
+  },
+  "toolchain": {
+    "compiler": "/usr/bin/gcc",
+    "version": "11.4.0",
+    "glfw3_pkg_config_version": "3.3.6",
+    "probe": "/tmp/s1_05_glfw_preflight",
+    "temporary_ld_library_path": "/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
+  },
+  "glfw": {
+    "command": "DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority LD_LIBRARY_PATH=<diagnostic path> /tmp/s1_05_glfw_preflight",
+    "exit_code": 0,
+    "glfw_init": true,
+    "hidden_window_created": true,
+    "vendor": "Intel",
+    "renderer": "Mesa Intel(R) Graphics (RPL-P)",
+    "opengl": "4.6 (Compatibility Profile) Mesa 23.2.1-1ubuntu3.1~22.04.4"
+  },
+  "cleanup": "probe destroyed its hidden GLFW window before exit; probe source and binary remain in /tmp for this authorized task and will be removed at task closeout"
+}

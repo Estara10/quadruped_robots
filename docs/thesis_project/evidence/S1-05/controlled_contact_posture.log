@@ -1,0 +1,1 @@
+authoritative=1 physics_coverage=1 episodes=1 contact_steps=5 event=RR/ fall_candidate=1 fall_confirmed=1 fall_start_step=11 fall_confirmed_step=161 fall_duration_sim_s=0.300 foot_floor=0 nonfoot_floor=1

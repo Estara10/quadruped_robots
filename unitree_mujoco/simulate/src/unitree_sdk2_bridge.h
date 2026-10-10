@@ -25,6 +25,7 @@
 #include "joinable_thread.h"
 
 #include <abs_ray2d_shm_contract.h>
+#include <abs_scene_catalog.h>
 #include "param.h"
 #include "physics_joystick.h"
 
@@ -59,6 +60,8 @@ public:
     if (param::config.print_scene_information == 1) {
       printSceneInformation();
     }
+    const char* selected_scene = std::getenv("ABS_P1_10_SCENARIO_ID");
+    scene_spec_ = abs_scene::byId(selected_scene == nullptr ? "" : selected_scene);
     if (param::config.use_joystick == 1) {
       if (param::config.joystick_type == "xbox") {
         joystick = std::make_shared<XBoxJoystick>(
@@ -102,6 +105,7 @@ public:
     _setupCollisionShm();
     std::cout << "[Ray2D] Source: "
               << (geometric_ray_write_enabled_ ? "geometric" : "external/ray_pred")
+              << " scene_id=" << (scene_spec_ == nullptr ? "UNKNOWN" : scene_spec_->id)
               << std::endl;
   }
 
@@ -158,6 +162,11 @@ public:
       body_id = mj_name2id(mj_model_, mjOBJ_BODY, "torso_link");
     }
     if (body_id < 0) return;
+    if (scene_spec_ == nullptr) return;
+    std::vector<int> ray_obstacle_ids;
+    std::string ray_scene_error;
+    if (!abs_scene::selectObstacleGeoms(mj_model_, scene_spec_, ray_obstacle_ids,
+                                        &ray_scene_error)) return;
 
     // Get body world position (2D only: x,y) and yaw from rotation matrix
     double* xpos = &mj_data_->xpos[body_id * 3];
@@ -183,20 +192,10 @@ public:
 
       float best_dist = RAY2D_MAX_DIST;
 
-      // Iterate all geoms, find closest 2D intersection with static obstacle geoms
-      for (int gid = 0; gid < mj_model_->ngeom; gid++) {
-        // Skip robot geoms (group 2=visual, group 3=collision)
-        int grp = mj_model_->geom_group[gid];
-        if (grp == 2 || grp == 3) continue;
-        // Skip floor plane
-        const char* gname = mj_id2name(mj_model_, mjOBJ_GEOM, gid);
-        if (gname && strcmp(gname, "floor") == 0) continue;
-        // Skip non-static geoms (bodyid > 0 with joints = dynamic)
-        int g_bodyid = mj_model_->geom_bodyid[gid];
-        if (g_bodyid > 0 && mj_model_->body_mass[g_bodyid] > 0) continue;
-        // Skip non-obstacle geom types: plane(0)=ground, hfield(1)=terrain, mesh(7)=visual
+      // The exact same selected set feeds collision classification. Floors,
+      // robot assets and unmatched world geometry never become ray obstacles.
+      for (int gid : ray_obstacle_ids) {
         int gtype = mj_model_->geom_type[gid];
-        if (gtype == 0 || gtype == 1 || gtype == 7) continue;
 
         // Geom world center
         double* gpos = &mj_data_->geom_xpos[gid * 3];
@@ -319,6 +318,7 @@ private:
         std::chrono::steady_clock::now().time_since_epoch()).count());
   }
   bool geometric_ray_write_enabled_ = true;
+  const abs_scene::SceneSpec* scene_spec_ = nullptr;
   bool ray_telemetry_enabled_ = false;
   uint64_t ray_write_count_ = 0;
   uint64_t ray_last_telemetry_ns_ = 0;

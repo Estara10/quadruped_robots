@@ -1,0 +1,99 @@
+[
+  {
+    "run_id": "0f4568bffd1d4c678d3100fd9d616c26",
+    "record_validity": "INVALID",
+    "record_validity_reason_count": 1,
+    "record_validity_reasons": [
+      "no_frame_lines"
+    ],
+    "terminal_result": "STARTUP_FAILURE",
+    "run_terminal_result_context": "STARTUP_FAILURE",
+    "run_terminal_result_record": "STARTUP_FAILURE",
+    "session_ids_observed": [],
+    "frame_count": 0,
+    "all_derived_metrics": "UNKNOWN: record fails continuity/schema validation; no aggregation across sessions",
+    "collision_coverage": {
+      "available": false,
+      "reason": "formal collision snapshot is missing, stale, invalid, has unknown contacts, or lacks contiguous coverage",
+      "event_count": null,
+      "coverage": {
+        "samples": 0,
+        "live_samples": 0,
+        "unknown_contacts": 0,
+        "physics_step_gaps": 0,
+        "sampled_steps_contiguous": false,
+        "complete_for_no_collision_claim": false
+      }
+    },
+    "external_safety_events": [],
+    "cleanup_events": [],
+    "command_consumption": "UNKNOWN"
+  },
+  {
+    "run_id": "be99392ce9444c1cbe8b17eabe095f7e",
+    "record_validity": "VALID",
+    "record_validity_reasons": [],
+    "terminal_result": "SYSTEM_SAFETY_ABORT",
+    "run_terminal_result_context": "SYSTEM_SAFETY_ABORT",
+    "run_terminal_result_record": "SYSTEM_SAFETY_ABORT",
+    "cleanup_events": [],
+    "motion_metric_time_boundary": {
+      "start_sim_time_s": null,
+      "end_sim_time_s": 22.799999999998242,
+      "start_cycle": null,
+      "end_cycle": 0
+    },
+    "session_id": 18128296032633,
+    "frame_count": 1,
+    "rl_step_gaps": 0,
+    "invalid_clock_frames": 0,
+    "clock_valid_fraction": 1.0,
+    "first_valid_sim_time_s": 22.799999999998242,
+    "last_valid_sim_time_s": 22.799999999998242,
+    "policy_interval_ms_median": null,
+    "policy_interval_ms_p95": null,
+    "policy_interval_ms_min": null,
+    "policy_interval_ms_max": null,
+    "policy_frequency_hz_overall": null,
+    "mode_transitions": null,
+    "agile_to_recovery": null,
+    "recovery_to_agile": null,
+    "transitions_with_valid_sim_time": null,
+    "transitions": [],
+    "recovery_intervals": [],
+    "recovery_sim_duration_s": null,
+    "valid_motion_duration_s": null,
+    "recovery_share_valid_motion_time": null,
+    "movement_start_sim_time_s": null,
+    "target_distance_start_m": null,
+    "target_distance_final_m": null,
+    "path_length_m": null,
+    "mean_path_speed_mps": null,
+    "short_reverse_switch_count": null,
+    "short_reverse_window_s": 0.5,
+    "period_statistics_scope": "all captured LIVE frames including preparation and cleanup tail, if present",
+    "motion_metrics_scope": "valid continuous cycles from observed 0.10m motion-start cycle through terminal frame; cleanup tail excluded",
+    "collision_coverage": {
+      "available": false,
+      "reason": "authoritative samples contain no contact, but capture has no complete episode coverage boundary",
+      "event_count": null,
+      "coverage": {
+        "samples": 1,
+        "live_samples": 1,
+        "unknown_contacts": 0,
+        "physics_step_gaps": 0,
+        "sampled_steps_contiguous": true,
+        "complete_for_no_collision_claim": false
+      }
+    },
+    "external_safety_events": [
+      {
+        "event": "POLICY_SAFETY_VETO",
+        "message": "[ros2_control_node-3] [ERROR] [1791436341.969355077] [StateRL]: [ABS-CONTRACT] event=detected clock=steady_clock_ns detection_ns=18128323651326 last_ray_ns=18128323631102 ray_age_ns=0 ray_reason=monotonic_clock_order stage=ray frame (missing/stale/non-finite) transition_request=PASSIVE",
+        "observed_monotonic_ns": 18129054271809,
+        "source": "RlQuadrupedController/StateRL ROS log"
+      }
+    ],
+    "command_consumption": "UNKNOWN"
+  }
+]

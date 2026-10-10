@@ -80,6 +80,8 @@ from abs_collision import (
     MODEL_CLOSURE_SHA256, SCENARIO_ID, SCENE_ROOT_SHA256, classify_snapshot,
     read_collision_snapshot,
 )
+from abs_scene import LEGACY_BINDING, SCENES
+from p1_10_common_start import CommonStartError, validate_anchor
 
 RECORD_FORMAT_VERSION = 2
 FRAME_SOURCE_PATH = "/dev/shm/mujoco_rt_frame"
@@ -102,23 +104,35 @@ _KNOWN_NON_LIVE_STATUSES = frozenset(
 )
 _ACCEPTED_FRAME_STATUSES = frozenset({FrameStatus.LIVE.value, FrameStatus.MISSING.value})
 
-# LIVE payload schema (scope: fields this record actually stores and the
-# summary statistics depend on). No new runtime fields are introduced.
+# LIVE payload schema. Version 2 of the runtime frame adds strategy-event and
+# simulator-clock association fields; availability flags remain explicit.
 _INT_FIELDS = (
     "session_id", "source_sequence", "rl_step", "ray_age_ns", "monotonic_ns",
+    "policy_cycle_id", "sim_clock_sequence", "sim_clock_monotonic_ns",
+    "sim_clock_segment_id", "sim_clock_age_ns", "risk_evaluation_ns",
+    "risk_condition_entered", "transition_reason", "mode_before", "mode_after",
+    "switching_mode", "action_source", "sim_clock_status",
     "source", "controller_active", "rl_entered", "rl_active", "safety_faulted",
     "policy_state", "ray_origin", "ray_valid", "collision_origin",
     "torque_saturated_computed",
 )
 _BOOL_DOMAINS = frozenset(
     {"controller_active", "rl_entered", "rl_active", "safety_faulted",
-     "ray_valid", "torque_saturated_computed"}
+     "ray_valid", "torque_saturated_computed", "risk_condition_met",
+     "policy_mode_changed", "sim_clock_valid"}
 )
 _INT_ENUM_DOMAINS = {
     "source": (0, 1, 2, 3),
     "policy_state": (0, 1, 2),
     "ray_origin": (0, 1),
     "collision_origin": (0,),
+    "mode_before": (0, 1, 2),
+    "mode_after": (0, 1, 2),
+    "switching_mode": (0, 1),
+    "action_source": (0, 1, 2, 3),
+    "transition_reason": (0, 1, 2, 3, 4),
+    "risk_condition_entered": (0, 1, 2),
+    "sim_clock_status": (0, 1, 2, 3, 4),
 }
 _VECTOR_FIELDS = {
     "lin_vel": 3, "command": 3, "world_pose": 3, "ray2d": 11,
@@ -128,11 +142,11 @@ _VECTOR_FIELDS = {
 _COLLISION_CLASSES = {0, 1, 2, 3, 4, 5}
 
 # Human reason for each terminal field that has no authoritative source today.
-UNKNOWN_REASON_SIM_TIME = "simulation_time_s is not present in the runtime frame; only steady-clock monotonic_ns is available"
+UNKNOWN_REASON_SIM_TIME = "no valid MuJoCo clock sample was associated with the recorded policy frame"
 UNKNOWN_REASON_REACHED_GOAL = "no authoritative reached-goal computation exists in the current runtime frame"
 UNKNOWN_REASON_TIMEOUT = "no authoritative timeout marker exists in the current runtime frame"
-UNKNOWN_REASON_COLLISION = "formal collision snapshot is missing, stale, invalid, has unknown contacts, or lacks contiguous coverage"
-UNKNOWN_REASON_FALL = "no authoritative fall detection exists in the current runtime frame"
+UNKNOWN_REASON_COLLISION = "versioned collision snapshot is missing, stale, invalid, has unknown contacts, or lacks contiguous publisher coverage"
+UNKNOWN_REASON_FALL = "versioned posture source is missing, stale, invalid, or lacks contiguous publisher coverage"
 
 
 def _now_ns() -> int:
@@ -161,6 +175,27 @@ def frame_payload(frame: RuntimeFrame) -> Dict[str, Any]:
         "rl_step": frame.rl_step,
         "ray_age_ns": frame.ray_age_ns,
         "monotonic_ns": frame.monotonic_ns,
+        "policy_cycle_id": frame.rl_step,
+        "sim_time_s": frame.sim_time_s if frame.sim_clock_sequence != 0 else None,
+        "sim_clock_sequence": frame.sim_clock_sequence,
+        "sim_clock_monotonic_ns": frame.sim_clock_monotonic_ns,
+        "sim_clock_segment_id": frame.sim_clock_segment_id,
+        "sim_clock_age_ns": frame.sim_clock_age_ns,
+        "sim_clock_status": frame.sim_clock_status,
+        "sim_clock_valid": bool(frame.sim_clock_valid),
+        "mode_before": frame.mode_before,
+        "mode_after": frame.policy_state,
+        "switching_mode": frame.switching_mode,
+        "action_source": frame.action_source,
+        "transition_reason": frame.transition_reason,
+        "risk_condition_met": bool(frame.risk_condition_met),
+        "risk_condition_entered": frame.risk_condition_entered,
+        "risk_evaluation_ns": frame.risk_evaluation_ns,
+        "risk_condition_entered_ns": frame.risk_condition_entered_ns or None,
+        "policy_mode_changed": bool(frame.policy_mode_changed),
+        "mode_change_ns": frame.mode_change_ns or None,
+        "entry_threshold": float(frame.entry_threshold),
+        "exit_threshold": float(frame.exit_threshold),
         "source": frame.source,
         "controller_active": frame.controller_active,
         "rl_entered": frame.rl_entered,
@@ -199,6 +234,27 @@ def frame_availability(frame: RuntimeFrame) -> Dict[str, bool]:
         "rl_step": True,
         "ray_age_ns": True,
         "monotonic_ns": True,
+        "policy_cycle_id": True,
+        "sim_time_s": bool(frame.sim_clock_sequence),
+        "sim_clock_sequence": bool(frame.sim_clock_sequence),
+        "sim_clock_monotonic_ns": bool(frame.sim_clock_monotonic_ns),
+        "sim_clock_segment_id": bool(frame.sim_clock_sequence),
+        "sim_clock_age_ns": bool(frame.sim_clock_sequence),
+        "sim_clock_status": True,
+        "sim_clock_valid": True,
+        "mode_before": True,
+        "mode_after": True,
+        "switching_mode": True,
+        "action_source": frame.action_source != 0,
+        "transition_reason": True,
+        "risk_condition_met": True,
+        "risk_condition_entered": True,
+        "risk_evaluation_ns": True,
+        "risk_condition_entered_ns": frame.risk_condition_entered_ns != 0,
+        "policy_mode_changed": True,
+        "mode_change_ns": frame.mode_change_ns != 0,
+        "entry_threshold": True,
+        "exit_threshold": True,
         "ra_value": True,
         "lin_vel": True,
         "command": True,
@@ -219,6 +275,7 @@ def collision_snapshot_payload(status: CollisionStatus,
     if snapshot is None:
         return {"status": status.value, "available": False, "reason": status.value.lower()}
     payload: Dict[str, Any] = {
+        "version": snapshot.version,
         "status": status.value,
         "available": status is CollisionStatus.LIVE,
         "reason": None if status is CollisionStatus.LIVE else status.value.lower(),
@@ -236,6 +293,44 @@ def collision_snapshot_payload(status: CollisionStatus,
         "self_contacts": snapshot.self_contacts,
         "other_contacts": snapshot.other_contacts,
         "last_contact_class": snapshot.last_contact_class,
+        "foot_ground_contacts": snapshot.foot_ground_contacts,
+        "nonfoot_ground_contacts": snapshot.nonfoot_ground_contacts,
+        "collision_contact_steps": snapshot.collision_contact_steps,
+        "collision_episode_count": snapshot.collision_episode_count,
+        "last_collision_start_step": snapshot.last_collision_start_step,
+        "last_collision_end_step": snapshot.last_collision_end_step,
+        "collision_duration_s": snapshot.collision_duration_s,
+        "last_collision_start_sim_time": snapshot.last_collision_start_sim_time,
+        "last_collision_end_sim_time": snapshot.last_collision_end_sim_time,
+        "collision_history_count": snapshot.collision_history_count,
+        "collision_history_overflow": bool(snapshot.collision_history_overflow),
+        "physics_coverage_complete": bool(snapshot.physics_coverage_complete),
+        "collision_history": list(snapshot.collision_history),
+        "base_height_m": snapshot.base_height_m,
+        "base_roll_rad": snapshot.base_roll_rad,
+        "base_pitch_rad": snapshot.base_pitch_rad,
+        "fall_candidate": bool(snapshot.fall_candidate),
+        "fall_confirmed": bool(snapshot.fall_confirmed),
+        "fall_start_physics_step": snapshot.fall_start_physics_step,
+        "fall_start_sim_time": snapshot.fall_start_sim_time,
+        "fall_confirmed_physics_step": snapshot.fall_confirmed_physics_step,
+        "fall_confirmed_sim_time": snapshot.fall_confirmed_sim_time,
+        "unknown_contact_steps": snapshot.unknown_contact_steps,
+        "unknown_contact_episodes": snapshot.unknown_contact_episodes,
+        "first_unknown_contact_step": snapshot.first_unknown_contact_step,
+        "last_unknown_contact_step": snapshot.last_unknown_contact_step,
+        "first_unknown_contact_sim_time": snapshot.first_unknown_contact_sim_time,
+        "last_unknown_contact_sim_time": snapshot.last_unknown_contact_sim_time,
+        "invalid_posture_steps": snapshot.invalid_posture_steps,
+        "invalid_posture_episodes": snapshot.invalid_posture_episodes,
+        "first_invalid_posture_step": snapshot.first_invalid_posture_step,
+        "last_invalid_posture_step": snapshot.last_invalid_posture_step,
+        "first_invalid_posture_sim_time": snapshot.first_invalid_posture_sim_time,
+        "last_invalid_posture_sim_time": snapshot.last_invalid_posture_sim_time,
+        "fall_history_count": snapshot.fall_history_count,
+        "fall_history_overflow": bool(snapshot.fall_history_overflow),
+        "fall_history": list(snapshot.fall_history),
+        "event_latches_complete": snapshot.event_latches_complete,
         "last_robot_geom_id": snapshot.last_robot_geom_id,
         "last_obstacle_geom_id": snapshot.last_obstacle_geom_id,
         "invalid_reason": snapshot.invalid_reason,
@@ -245,6 +340,46 @@ def collision_snapshot_payload(status: CollisionStatus,
         "capture_id": snapshot.capture_id,
         "runtime_model_fingerprint": snapshot.runtime_model_fingerprint,
     }
+    if snapshot.version == 5:
+        payload.update({
+            "foot_identity_valid": snapshot.foot_identity_valid == 1,
+            "nonfoot_obstacle_contacts": snapshot.nonfoot_obstacle_contacts,
+            "foot_obstacle_contacts": snapshot.foot_obstacle_contacts,
+            "foot_contact_mask": snapshot.foot_contact_mask,
+            "foot_impact_mask": snapshot.foot_impact_mask,
+            "foot_force_valid_mask": snapshot.foot_force_valid_mask,
+            "foot_impact_unknown_mask": snapshot.foot_impact_unknown_mask,
+            "foot_contact_history_count": snapshot.foot_contact_history_count,
+            "foot_contact_history_overflow": bool(snapshot.foot_contact_history_overflow),
+            "foot_impact_history_count": snapshot.foot_impact_history_count,
+            "foot_impact_history_overflow": bool(snapshot.foot_impact_history_overflow),
+            "foot_contact_physics_steps": snapshot.foot_contact_physics_steps,
+            "foot_contact_episode_count": snapshot.foot_contact_episode_count,
+            "foot_contact_first_step": snapshot.foot_contact_first_step,
+            "foot_contact_last_step": snapshot.foot_contact_last_step,
+            "foot_impact_physics_steps": snapshot.foot_impact_physics_steps,
+            "foot_impact_episode_count": snapshot.foot_impact_episode_count,
+            "foot_impact_first_step": snapshot.foot_impact_first_step,
+            "foot_impact_last_step": snapshot.foot_impact_last_step,
+            "foot_impact_unknown_steps": snapshot.foot_impact_unknown_steps,
+            "foot_impact_unknown_first_step": snapshot.foot_impact_unknown_first_step,
+            "foot_impact_unknown_last_step": snapshot.foot_impact_unknown_last_step,
+            "foot_contact_duration_s": snapshot.foot_contact_duration_s,
+            "foot_contact_first_sim_time": snapshot.foot_contact_first_sim_time,
+            "foot_contact_last_sim_time": snapshot.foot_contact_last_sim_time,
+            "foot_impact_duration_s": snapshot.foot_impact_duration_s,
+            "foot_impact_first_sim_time": snapshot.foot_impact_first_sim_time,
+            "foot_impact_last_sim_time": snapshot.foot_impact_last_sim_time,
+            "foot_impact_unknown_first_sim_time": snapshot.foot_impact_unknown_first_sim_time,
+            "foot_impact_unknown_last_sim_time": snapshot.foot_impact_unknown_last_sim_time,
+            "foot_world_force": snapshot.foot_world_force,
+            "foot_fxy": snapshot.foot_fxy,
+            "foot_abs_fz": snapshot.foot_abs_fz,
+            "foot_impact_threshold": snapshot.foot_impact_threshold,
+            "foot_contact_history": list(snapshot.foot_contact_history),
+            "foot_impact_history": list(snapshot.foot_impact_history),
+            "nonfoot_collision_bodies": list(snapshot.nonfoot_collision_bodies),
+        })
     return payload
 
 
@@ -293,6 +428,22 @@ def _validate_process_facts(facts: Mapping[str, Any]) -> Tuple[Dict[str, Any], L
         "shutdown_complete": _strict_bool(facts.get("shutdown_complete"), "shutdown_complete", errors),
         "shutdown_request_source": _strict_str(facts.get("shutdown_request_source"), "shutdown_request_source", errors),
     }
+    external_events = facts.get("external_safety_events", [])
+    if not isinstance(external_events, list) or any(
+        not isinstance(item, dict) or
+        not all(isinstance(item.get(key), str) for key in ("event", "source", "message")) or
+        type(item.get("observed_monotonic_ns")) is not int
+        for item in external_events
+    ):
+        errors.append("external_safety_events: expected list of event/source/message/observed_monotonic_ns objects")
+        external_events = []
+    validated["external_safety_events"] = external_events
+    validated["cleanup_events"] = facts.get("cleanup_events", [])
+    if not isinstance(validated["cleanup_events"], list) or any(not isinstance(item, dict) for item in validated["cleanup_events"]):
+        errors.append("cleanup_events: expected list of event objects")
+        validated["cleanup_events"] = []
+    validated["run_terminal_result"] = _strict_str(facts.get("run_terminal_result"), "run_terminal_result", errors)
+    validated["run_terminal_monotonic_ns"] = _strict_int(facts.get("run_terminal_monotonic_ns"), "run_terminal_monotonic_ns", errors)
     return validated, errors
 
 
@@ -307,6 +458,9 @@ class RunRecordRecorder:
     def __init__(self, path: str, *, run_id: Optional[str] = None,
                  capture_id: Optional[str] = None,
                  expected_fingerprint: Optional[str] = None,
+                 expected_scene_binding: Optional[Mapping[str, Any]] = None,
+                 common_start_required: bool = False,
+                 expected_initial_qpos_sha256: Optional[str] = None,
                  stale_timeout_ns: int = DEFAULT_STALE_TIMEOUT_NS):
         self.path = Path(path)
         self.run_id = run_id or uuid.uuid4().hex
@@ -315,8 +469,20 @@ class RunRecordRecorder:
             raise ValueError("invalid capture_id")
         if expected_fingerprint is not None and HEX64_RE.fullmatch(expected_fingerprint) is None:
             raise ValueError("invalid expected_fingerprint")
+        if not isinstance(common_start_required, bool):
+            raise ValueError("common_start_required must be bool")
+        if common_start_required and capture_id is None:
+            raise ValueError("common-start record requires capture_id")
+        if common_start_required and (expected_initial_qpos_sha256 is None or
+                                      HEX64_RE.fullmatch(expected_initial_qpos_sha256) is None):
+            raise ValueError("common-start record requires expected initial qpos sha256")
         self.capture_id = capture_id
         self.expected_fingerprint = expected_fingerprint
+        self.scene_binding_explicit = expected_scene_binding is not None
+        self.expected_scene_binding = dict(expected_scene_binding or LEGACY_BINDING)
+        self.common_start_required = common_start_required
+        self.expected_initial_qpos_sha256 = expected_initial_qpos_sha256
+        self._start_anchor: Optional[Dict[str, Any]] = None
         self._fh = None  # type: Optional[object]
         self._frames = 0
         self._first_monotonic_ns: Optional[int] = None
@@ -335,6 +501,14 @@ class RunRecordRecorder:
         self._collision_last_physics_step: Optional[int] = None
         self._collision_last_sim_time: Optional[float] = None
         self._collision_observed_event = False
+        self._collision_episode_count_max = 0
+        self._collision_contact_steps_max = 0
+        self._collision_duration_s_max = 0.0
+        self._collision_history_overflow = False
+        self._collision_event_latches_complete = True
+        self._collision_publisher_coverage_complete = True
+        self._collision_last_payload: Optional[Dict[str, Any]] = None
+        self._fall_confirmed_observed = False
         self._started = False
         self._stopped = False
         self._finalized = False
@@ -354,6 +528,11 @@ class RunRecordRecorder:
         }
         if self.capture_id is not None:
             meta["capture_id"] = self.capture_id
+        if self.scene_binding_explicit:
+            meta["scene_binding"] = self.expected_scene_binding
+        if self.common_start_required:
+            meta["common_start_required"] = True
+            meta["common_start_initial_qpos_sha256"] = self.expected_initial_qpos_sha256
         self._write_line(meta)
         self._started = True
         return self.run_id
@@ -400,6 +579,20 @@ class RunRecordRecorder:
         self._stopped = True
 
     # ------------------------------------------------------------- recording
+    def set_start_anchor(self, anchor: Mapping[str, Any]) -> None:
+        """Attach the producer-side anchor before the first formal LIVE frame."""
+        if not self._started or self._stopped or self._finalized:
+            raise RuntimeError("cannot attach start anchor outside capture")
+        if not self.common_start_required:
+            raise RuntimeError("start anchor is only valid for a common-start record")
+        try:
+            validate_anchor(anchor,
+                            expected_capture_id=self.capture_id or "",
+                            expected_qpos_sha256=self.expected_initial_qpos_sha256 or "")
+        except CommonStartError as exc:
+            raise ValueError(str(exc)) from exc
+        self._start_anchor = json.loads(json.dumps(dict(anchor), sort_keys=True))
+
     def record_snapshot(self, raw: bytes, now_ns: Optional[int] = None) -> Dict[str, Any]:
         """Classify one snapshot and append its frame line.
 
@@ -426,10 +619,24 @@ class RunRecordRecorder:
         else:
             line["payload"] = frame_payload(frame)
             line["availability"] = frame_availability(frame)
+            if self.common_start_required and self._start_anchor is not None:
+                line["start_anchor_ref"] = {
+                    "capture_id": self._start_anchor["capture_id"],
+                    "rl_session_id": self._start_anchor["rl_session_id"],
+                    "first_physics_step": self._start_anchor["first_physics_step"],
+                    "first_runtime_frame_sequence": self._start_anchor["first_runtime_frame_sequence"],
+                }
+            # The simulator can publish the next physics-step timestamp between
+            # the policy-frame timestamp and this read. Validate collision age
+            # against a fresh post-read host clock, not the earlier frame poll.
+            collision_raw = read_collision_snapshot()
+            collision_now_ns = max(now_ns, _now_ns())
             collision_status, collision_snapshot = classify_snapshot(
-                read_collision_snapshot(), now_ns, self.stale_timeout_ns,
+                collision_raw, collision_now_ns, self.stale_timeout_ns,
                 expected_capture_id=self.capture_id,
-                expected_fingerprint=self.expected_fingerprint)
+                expected_fingerprint=self.expected_fingerprint,
+                expected_scene_binding=(self.expected_scene_binding
+                                        if self.scene_binding_explicit else None))
             line["payload"]["collision_snapshot"] = collision_snapshot_payload(
                 collision_status, collision_snapshot)
             line["availability"]["collision_snapshot"] = collision_status is CollisionStatus.LIVE
@@ -460,9 +667,19 @@ class RunRecordRecorder:
                 self._collision_unknown_samples += 1
             return
         self._collision_live_samples += 1
+        self._collision_episode_count_max = max(self._collision_episode_count_max, snapshot.collision_episode_count)
+        self._collision_contact_steps_max = max(self._collision_contact_steps_max, snapshot.collision_contact_steps)
+        self._collision_duration_s_max = max(self._collision_duration_s_max, snapshot.collision_duration_s)
+        self._collision_history_overflow = self._collision_history_overflow or bool(snapshot.collision_history_overflow)
+        self._collision_publisher_coverage_complete = self._collision_publisher_coverage_complete and bool(snapshot.physics_coverage_complete)
+        self._collision_event_latches_complete = self._collision_event_latches_complete and bool(snapshot.event_latches_complete)
+        self._collision_last_payload = collision_snapshot_payload(status, snapshot)
+        self._fall_confirmed_observed = self._fall_confirmed_observed or bool(snapshot.fall_confirmed) or any(
+            isinstance(event, dict) and event.get("confirmed") is True
+            for event in snapshot.fall_history)
         if self._collision_first_physics_step is None:
             self._collision_first_physics_step = snapshot.physics_step
-        if snapshot.unknown_contacts > 0:
+        if snapshot.unknown_contacts > 0 or snapshot.unknown_contact_steps > 0 or not snapshot.event_latches_complete:
             self._collision_unknown_samples += 1
         if self._collision_last_physics_step is not None:
             gap = snapshot.physics_step - self._collision_last_physics_step - 1
@@ -472,7 +689,7 @@ class RunRecordRecorder:
                 self._collision_physics_gaps += gap
         self._collision_last_physics_step = snapshot.physics_step
         self._collision_last_sim_time = snapshot.sim_time
-        if snapshot.current_collision or snapshot.collision_edge:
+        if snapshot.collision_episode_count > 0 or snapshot.current_collision or snapshot.collision_edge:
             self._collision_observed_event = True
 
     # ------------------------------------------------------------- terminal
@@ -495,28 +712,84 @@ class RunRecordRecorder:
         facts = process_facts or {}
         validated, errors = _validate_process_facts(facts)
 
+        external_safety_events = validated["external_safety_events"]
+        observed_safety = self._safety_fault_seen or bool(external_safety_events)
         normal_shutdown, termination_reason = _compute_terminal(
             exit_code=validated["exit_code"],
             forced=validated["forced_termination"],
             shutdown_complete=validated["shutdown_complete"],
-            safety_fault_seen=self._safety_fault_seen,
+            safety_fault_seen=observed_safety,
             frames_observed=self._frames,
         )
+
+        terminal_collision = next((event.get("collision_snapshot")
+                                   for event in reversed(external_safety_events)
+                                   if isinstance(event.get("collision_snapshot"), dict)), None)
+        terminal_collision_validation = (
+            _validate_collision_payload(terminal_collision,
+                                        self.expected_scene_binding if self.scene_binding_explicit else None)
+            if terminal_collision is not None else [])
+        terminal_collision_live = (
+            isinstance(terminal_collision, dict) and
+            terminal_collision.get("status") == CollisionStatus.LIVE.value and
+            terminal_collision.get("version") in (4, 5) and
+            terminal_collision.get("capture_id") == self.capture_id and
+            terminal_collision.get("runtime_model_fingerprint") == self.expected_fingerprint and
+            not terminal_collision_validation)
+        if terminal_collision_live:
+            self._collision_last_payload = terminal_collision
+            self._collision_observed_event = self._collision_observed_event or (
+                terminal_collision.get("collision_episode_count", 0) > 0)
+            self._fall_confirmed_observed = self._fall_confirmed_observed or (
+                terminal_collision.get("fall_confirmed") is True)
+            self._collision_episode_count_max = max(
+                self._collision_episode_count_max, terminal_collision.get("collision_episode_count", 0))
+            self._collision_contact_steps_max = max(
+                self._collision_contact_steps_max, terminal_collision.get("collision_contact_steps", 0))
+            self._collision_duration_s_max = max(
+                self._collision_duration_s_max, terminal_collision.get("collision_duration_s", 0.0))
+            self._collision_history_overflow = self._collision_history_overflow or (
+                terminal_collision.get("collision_history_overflow") is True)
+            self._collision_publisher_coverage_complete = (
+                self._collision_publisher_coverage_complete and
+                terminal_collision.get("physics_coverage_complete") is True)
+            if (terminal_collision.get("unknown_contacts", 0) > 0 or
+                    terminal_collision.get("unknown_contact_steps", 0) > 0 or
+                    terminal_collision.get("event_latches_complete") is not True):
+                self._collision_unknown_samples += 1
+            self._collision_event_latches_complete = (
+                self._collision_event_latches_complete and
+                terminal_collision.get("event_latches_complete") is True)
+            if terminal_collision.get("fall_history") and any(
+                    isinstance(event, dict) and event.get("confirmed") is True
+                    for event in terminal_collision["fall_history"]):
+                self._fall_confirmed_observed = True
+        elif terminal_collision is not None:
+            self._collision_invalid_samples += 1
 
         sampled_collision_complete = (
             self._collision_live_samples > 0 and
             self._collision_unknown_samples == 0 and
             self._collision_invalid_samples == 0 and
-            self._collision_physics_gaps == 0
+            self._collision_publisher_coverage_complete and
+            self._collision_event_latches_complete and
+            not self._collision_history_overflow
         )
+        v5_collision_semantics = isinstance(self._collision_last_payload, dict) and self._collision_last_payload.get("version") == 5
         if self._collision_observed_event:
             collision_events: Any = True
-            collision_reason = "authoritative robot-obstacle contact observed"
+            collision_reason = ("authoritative non-foot robot-obstacle contact observed"
+                                if v5_collision_semantics else
+                                "authoritative robot-obstacle contact observed (historical layout semantics)")
+        elif sampled_collision_complete:
+            collision_events = False
+            collision_reason = ("no non-foot robot-obstacle episode in the contiguous authoritative captured interval"
+                                if v5_collision_semantics else
+                                "no robot-obstacle episode in the contiguous authoritative captured interval")
         else:
             collision_events = "UNKNOWN"
             collision_reason = (
-                "authoritative samples contain no contact, but capture has no complete "
-                "episode coverage boundary; collision-free outcome remains UNKNOWN"
+                "no accumulated obstacle episode in a continuous authoritative PhysicsLoop coverage interval"
                 if sampled_collision_complete else UNKNOWN_REASON_COLLISION
             )
 
@@ -533,8 +806,12 @@ class RunRecordRecorder:
             ),
             "last_session_id": self._last_session_id,
             "last_policy_state": None if self._last_policy_state is None else _policy_name(self._last_policy_state),
-            "safety_fault_seen": self._safety_fault_seen,
+            "safety_fault_seen": observed_safety,
             "safety_fault_last": self._safety_fault_last,
+            "external_safety_events": external_safety_events,
+            "cleanup_events": validated["cleanup_events"],
+            "run_terminal_result": validated["run_terminal_result"],
+            "run_terminal_monotonic_ns": validated["run_terminal_monotonic_ns"],
             "last_ra_value": self._last_ra_value,
             # Terminal/event fields. Those with no authoritative source today are
             # recorded UNKNOWN with an explicit reason — never fabricated.
@@ -549,8 +826,6 @@ class RunRecordRecorder:
             "timeout_reason": UNKNOWN_REASON_TIMEOUT,
             "collision_events": collision_events,
             "collision_events_reason": collision_reason,
-            "fall_events": "UNKNOWN",
-            "fall_events_reason": UNKNOWN_REASON_FALL,
             "process_exit_code": validated["exit_code"],
             "forced_termination": validated["forced_termination"],
             "shutdown_request_source": validated["shutdown_request_source"],
@@ -564,13 +839,37 @@ class RunRecordRecorder:
                 "unknown_samples": self._collision_unknown_samples,
                 "invalid_samples": self._collision_invalid_samples,
                 "physics_step_gaps": self._collision_physics_gaps,
-                "sampled_steps_contiguous": sampled_collision_complete,
-                "complete_for_no_collision_claim": False,
+                "producer_physics_coverage_complete": sampled_collision_complete,
+                "publisher_physics_coverage_complete": self._collision_publisher_coverage_complete,
+                "complete_for_captured_interval": sampled_collision_complete,
+                "complete_for_motion_no_collision_claim": False,
                 "observed_robot_obstacle_event": self._collision_observed_event,
+                "episode_count_max": self._collision_episode_count_max,
+                "contact_physics_steps_max": self._collision_contact_steps_max,
+                "contact_duration_s_max": self._collision_duration_s_max,
+                "event_history_overflow": self._collision_history_overflow,
+                "last_snapshot": self._collision_last_payload,
             },
+            "fall_events": (True if self._fall_confirmed_observed else
+                            (False if sampled_collision_complete and not (
+                                isinstance(self._collision_last_payload, dict) and
+                                self._collision_last_payload.get("invalid_posture_steps", 0) > 0
+                             ) else "UNKNOWN")),
+            "fall_events_reason": (
+                "confirmed posture rule observed" if self._fall_confirmed_observed else
+                "no confirmed posture event in contiguous authoritative captured interval"
+                if sampled_collision_complete and not (
+                    isinstance(self._collision_last_payload, dict) and
+                    self._collision_last_payload.get("invalid_posture_steps", 0) > 0
+                ) else UNKNOWN_REASON_FALL),
         }
         if self.capture_id is not None:
             terminal["capture_id"] = self.capture_id
+        if self.common_start_required:
+            terminal["common_start_required"] = True
+            terminal["start_anchor"] = self._start_anchor
+            terminal["start_anchor_status"] = (
+                "PRESENT" if self._start_anchor is not None else "MISSING")
         self._write_line(terminal)
         self._finalized = True
         self.close()
@@ -724,6 +1023,37 @@ def _validate_live_payload(payload: Any) -> List[str]:
         if payload.get(key) not in domain:
             reasons.append(f"enum_field_out_of_domain:{key}")
 
+    for key in ("risk_condition_entered_ns", "mode_change_ns"):
+        value = payload.get(key)
+        if value is not None and (isinstance(value, bool) or not isinstance(value, int) or value <= 0):
+            reasons.append(f"event_timestamp_invalid:{key}")
+    if payload.get("risk_condition_entered") == 1 and payload.get("risk_condition_entered_ns") is None:
+        reasons.append("risk_edge_timestamp_missing")
+    if payload.get("risk_condition_entered") != 1 and payload.get("risk_condition_entered_ns") is not None:
+        reasons.append("unexpected_risk_edge_timestamp")
+    if payload.get("policy_mode_changed") and payload.get("mode_change_ns") is None:
+        reasons.append("mode_change_timestamp_missing")
+    if not payload.get("policy_mode_changed") and payload.get("mode_change_ns") is not None:
+        reasons.append("unexpected_mode_change_timestamp")
+
+    sim_time = payload.get("sim_time_s")
+    if payload.get("sim_clock_valid"):
+        if isinstance(sim_time, bool) or not isinstance(sim_time, (int, float)) or not math.isfinite(float(sim_time)):
+            reasons.append("valid_sim_time_missing_or_nonfinite")
+        if payload.get("sim_clock_sequence", 0) == 0 or payload.get("sim_clock_monotonic_ns", 0) == 0:
+            reasons.append("valid_sim_clock_source_fields_missing")
+    elif sim_time is not None and (
+        isinstance(sim_time, bool)
+        or not isinstance(sim_time, (int, float))
+        or not math.isfinite(float(sim_time))
+    ):
+        reasons.append("invalid_sim_time_sample_not_finite_number")
+
+    for key in ("entry_threshold", "exit_threshold"):
+        value = payload.get(key)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)):
+            reasons.append(f"threshold_invalid:{key}")
+
     if not isinstance(payload.get("policy_state_name"), str):
         reasons.append("policy_state_name_not_str")
 
@@ -751,7 +1081,8 @@ def _validate_live_payload(payload: Any) -> List[str]:
     return reasons
 
 
-def _validate_collision_payload(value: Any) -> List[str]:
+def _validate_collision_payload(value: Any,
+                                expected_scene_binding: Optional[Mapping[str, Any]] = None) -> List[str]:
     """Validate an optional versioned collision snapshot.
 
     Historical P1-09 records may omit this field; omission is UNKNOWN. If the
@@ -768,6 +1099,9 @@ def _validate_collision_payload(value: Any) -> List[str]:
         return ["collision_snapshot_status_invalid"]
     if status == CollisionStatus.INVALID.value:
         return ["collision_snapshot_invalid_source"]
+    version = value.get("version", 2)  # historical serialized v2 records did not repeat version
+    if isinstance(version, bool) or not isinstance(version, int) or version not in (2, 3, 4, 5):
+        reasons.append("collision_snapshot_version_invalid")
     available = value.get("available")
     if not isinstance(available, bool):
         reasons.append("collision_snapshot_available_not_bool")
@@ -799,13 +1133,164 @@ def _validate_collision_payload(value: Any) -> List[str]:
         if value.get("invalid_reason") != 0:
             reasons.append("collision_snapshot_invalid_reason")
         robot_contacts = value.get("robot_obstacle_contacts")
-        if isinstance(robot_contacts, int) and not isinstance(robot_contacts, bool):
+        if version == 5:
+            nonfoot = value.get("nonfoot_obstacle_contacts")
+            foot = value.get("foot_obstacle_contacts")
+            if (isinstance(nonfoot, bool) or not isinstance(nonfoot, int) or nonfoot < 0 or
+                    isinstance(foot, bool) or not isinstance(foot, int) or foot < 0 or
+                    nonfoot + foot != robot_contacts or
+                    value.get("current_collision") is not (nonfoot > 0)):
+                reasons.append("collision_snapshot_v5_obstacle_partition_invalid")
+        elif isinstance(robot_contacts, int) and not isinstance(robot_contacts, bool):
             if value.get("current_collision") is True and robot_contacts <= 0:
                 reasons.append("collision_snapshot_current_without_obstacle_contact")
             if value.get("current_collision") is False and robot_contacts != 0:
                 reasons.append("collision_snapshot_obstacle_contact_without_current")
         if value.get("collision_edge") is True and value.get("current_collision") is not True:
             reasons.append("collision_snapshot_edge_without_current")
+        if version in (3, 4, 5):
+            for key in ("foot_ground_contacts", "nonfoot_ground_contacts", "collision_contact_steps",
+                        "collision_episode_count", "last_collision_start_step", "last_collision_end_step",
+                        "fall_start_physics_step", "fall_confirmed_physics_step", "collision_history_count"):
+                item = value.get(key)
+                if isinstance(item, bool) or not isinstance(item, int) or item < 0:
+                    reasons.append(f"collision_snapshot_{key}_invalid")
+            for key in ("collision_duration_s", "last_collision_start_sim_time",
+                        "last_collision_end_sim_time", "base_height_m", "base_roll_rad",
+                        "base_pitch_rad", "fall_start_sim_time", "fall_confirmed_sim_time"):
+                item = value.get(key)
+                if isinstance(item, bool) or not isinstance(item, (int, float)) or not math.isfinite(float(item)):
+                    reasons.append(f"collision_snapshot_{key}_invalid")
+            for key in ("collision_history_overflow", "physics_coverage_complete",
+                        "fall_candidate", "fall_confirmed"):
+                if not isinstance(value.get(key), bool):
+                    reasons.append(f"collision_snapshot_{key}_not_bool")
+            if (isinstance(value.get("foot_ground_contacts"), int) and
+                    isinstance(value.get("nonfoot_ground_contacts"), int) and
+                    value["foot_ground_contacts"] + value["nonfoot_ground_contacts"] != value.get("ground_contacts")):
+                reasons.append("collision_snapshot_ground_count_mismatch")
+            if value.get("collision_history_overflow") is True and value.get("collision_episode_count", 0) <= value.get("collision_history_count", 0):
+                reasons.append("collision_snapshot_overflow_without_truncation")
+            history = value.get("collision_history")
+            if not isinstance(history, list) or len(history) != value.get("collision_history_count"):
+                reasons.append("collision_snapshot_history_count_mismatch")
+            elif isinstance(history, list):
+                for event in history:
+                    if not isinstance(event, dict):
+                        reasons.append("collision_snapshot_history_entry_not_object")
+                        continue
+                    for key in ("start_physics_step", "end_physics_step", "robot_geom_id", "obstacle_geom_id"):
+                        if isinstance(event.get(key), bool) or not isinstance(event.get(key), int):
+                            reasons.append(f"collision_snapshot_history_{key}_invalid")
+                    for key in ("start_sim_time", "end_sim_time"):
+                        item = event.get(key)
+                        if isinstance(item, bool) or not isinstance(item, (int, float)) or not math.isfinite(float(item)):
+                            reasons.append(f"collision_snapshot_history_{key}_invalid")
+                    for key in ("robot_geom_name", "obstacle_geom_name"):
+                        if not isinstance(event.get(key), str):
+                            reasons.append(f"collision_snapshot_history_{key}_invalid")
+                    if (isinstance(event.get("start_physics_step"), int) and
+                            isinstance(event.get("end_physics_step"), int) and
+                            event["end_physics_step"] < event["start_physics_step"]):
+                        reasons.append("collision_snapshot_history_step_order_invalid")
+            if version in (4, 5) and "event_latches_complete" in value:
+                if not isinstance(value.get("event_latches_complete"), bool):
+                    reasons.append("collision_snapshot_event_latches_flag_invalid")
+                for key in ("unknown_contact_steps", "unknown_contact_episodes",
+                            "first_unknown_contact_step", "last_unknown_contact_step",
+                            "invalid_posture_steps", "invalid_posture_episodes",
+                            "first_invalid_posture_step", "last_invalid_posture_step",
+                            "fall_history_count"):
+                    item = value.get(key)
+                    if isinstance(item, bool) or not isinstance(item, int) or item < 0:
+                        reasons.append(f"collision_snapshot_{key}_invalid")
+                for key in ("first_unknown_contact_sim_time", "last_unknown_contact_sim_time",
+                            "first_invalid_posture_sim_time", "last_invalid_posture_sim_time"):
+                    item = value.get(key)
+                    if isinstance(item, bool) or not isinstance(item, (int, float)) or not math.isfinite(float(item)):
+                        reasons.append(f"collision_snapshot_{key}_invalid")
+                fall_history = value.get("fall_history")
+                if (not isinstance(fall_history, list) or
+                        len(fall_history) != value.get("fall_history_count")):
+                    reasons.append("collision_snapshot_fall_history_count_mismatch")
+                elif isinstance(fall_history, list):
+                    for event in fall_history:
+                        if not isinstance(event, dict):
+                            reasons.append("collision_snapshot_fall_history_entry_not_object")
+                            continue
+                        if (not isinstance(event.get("confirmed"), bool) or
+                                not isinstance(event.get("closed"), bool)):
+                            reasons.append("collision_snapshot_fall_history_flags_invalid")
+                if not isinstance(value.get("fall_history_overflow"), bool):
+                    reasons.append("collision_snapshot_fall_history_overflow_invalid")
+            if version == 5:
+                if value.get("foot_identity_valid") is not True:
+                    reasons.append("collision_snapshot_foot_identity_invalid")
+                for key in ("nonfoot_obstacle_contacts", "foot_obstacle_contacts",
+                            "foot_contact_mask", "foot_impact_mask", "foot_force_valid_mask",
+                            "foot_impact_unknown_mask", "foot_contact_history_count",
+                            "foot_impact_history_count", "foot_contact_physics_steps",
+                            "foot_contact_episode_count", "foot_impact_physics_steps",
+                            "foot_impact_episode_count", "foot_impact_unknown_steps"):
+                    item = value.get(key)
+                    if isinstance(item, bool) or not isinstance(item, int) or item < 0:
+                        reasons.append(f"collision_snapshot_{key}_invalid")
+                for key in ("foot_contact_history_overflow", "foot_impact_history_overflow"):
+                    if not isinstance(value.get(key), bool):
+                        reasons.append(f"collision_snapshot_{key}_invalid")
+                if value.get("foot_contact_mask", 0) > 0xF or value.get("foot_impact_mask", 0) > 0xF:
+                    reasons.append("collision_snapshot_foot_mask_out_of_range")
+                if (value.get("foot_impact_mask", 0) & ~value.get("foot_contact_mask", 0) or
+                        value.get("foot_impact_unknown_mask", 0) & ~value.get("foot_contact_mask", 0)):
+                    reasons.append("collision_snapshot_foot_impact_without_contact")
+                for key in ("foot_contact_duration_s", "foot_contact_first_sim_time",
+                            "foot_contact_last_sim_time", "foot_impact_duration_s",
+                            "foot_impact_first_sim_time", "foot_impact_last_sim_time",
+                            "foot_impact_unknown_first_sim_time", "foot_impact_unknown_last_sim_time"):
+                    item = value.get(key)
+                    if isinstance(item, bool) or not isinstance(item, (int, float)) or not math.isfinite(float(item)):
+                        reasons.append(f"collision_snapshot_{key}_invalid")
+                for key, width in (("foot_world_force", 4), ("foot_fxy", 4),
+                                   ("foot_abs_fz", 4), ("foot_impact_threshold", 4)):
+                    rows = value.get(key)
+                    if not isinstance(rows, (list, tuple)) or len(rows) != width:
+                        reasons.append(f"collision_snapshot_{key}_invalid")
+                    elif key == "foot_world_force":
+                        if any(not isinstance(row, (list, tuple)) or len(row) != 3 or
+                               any(isinstance(number, bool) or not isinstance(number, (int, float)) or
+                                   not math.isfinite(float(number)) for number in row) for row in rows):
+                            reasons.append(f"collision_snapshot_{key}_invalid")
+                    elif any(isinstance(number, bool) or not isinstance(number, (int, float)) or
+                             not math.isfinite(float(number)) for number in rows):
+                        reasons.append(f"collision_snapshot_{key}_invalid")
+                for key, count_key in (("foot_contact_history", "foot_contact_history_count"),
+                                       ("foot_impact_history", "foot_impact_history_count")):
+                    events = value.get(key)
+                    if not isinstance(events, list) or len(events) != value.get(count_key):
+                        reasons.append(f"collision_snapshot_{key}_count_mismatch")
+                        continue
+                    for event in events:
+                        if not isinstance(event, dict) or event.get("foot_geom_name") not in {"FL", "FR", "RL", "RR"}:
+                            reasons.append(f"collision_snapshot_{key}_identity_invalid")
+                            continue
+                        for field in ("start_physics_step", "end_physics_step", "foot_geom_id", "obstacle_geom_id"):
+                            if isinstance(event.get(field), bool) or not isinstance(event.get(field), int):
+                                reasons.append(f"collision_snapshot_{key}_{field}_invalid")
+                        for field in ("start_sim_time", "end_sim_time"):
+                            number = event.get(field)
+                            if isinstance(number, bool) or not isinstance(number, (int, float)) or not math.isfinite(float(number)):
+                                reasons.append(f"collision_snapshot_{key}_{field}_invalid")
+                        if not isinstance(event.get("closed"), bool) or not isinstance(event.get("force_known"), bool):
+                            reasons.append(f"collision_snapshot_{key}_flags_invalid")
+                        if not isinstance(event.get("obstacle_geom_name"), str) or not event.get("obstacle_geom_name"):
+                            reasons.append(f"collision_snapshot_{key}_obstacle_name_missing")
+                bodies = value.get("nonfoot_collision_bodies")
+                if not isinstance(bodies, list) or len(bodies) != value.get("collision_history_count"):
+                    reasons.append("collision_snapshot_nonfoot_body_count_mismatch")
+                elif any(not isinstance(item, dict) or not isinstance(item.get("robot_body_id"), int) or
+                         item.get("robot_body_id", -1) < 0 or not item.get("robot_body_name")
+                         for item in bodies):
+                    reasons.append("collision_snapshot_nonfoot_body_identity_invalid")
         count_names = ("robot_obstacle_contacts", "ground_contacts", "self_contacts", "other_contacts")
         if all(isinstance(value.get(name), int) and not isinstance(value.get(name), bool) for name in count_names):
             if sum(value[name] for name in count_names) != value.get("classified_contacts"):
@@ -814,12 +1299,16 @@ def _validate_collision_payload(value: Any) -> List[str]:
                     "capture_id", "runtime_model_fingerprint"):
             if not isinstance(value.get(key), str) or not value.get(key):
                 reasons.append(f"collision_snapshot_{key}_invalid")
-        if value.get("scenario_id") != SCENARIO_ID:
+        binding = expected_scene_binding or LEGACY_BINDING
+        if value.get("scenario_id") != binding.get("scene_id"):
             reasons.append("collision_snapshot_scenario_mismatch")
-        if value.get("scene_root_sha256") != SCENE_ROOT_SHA256:
+        if value.get("scene_root_sha256") != binding.get("root_sha256"):
             reasons.append("collision_snapshot_scene_root_mismatch")
-        if value.get("model_closure_sha256") != MODEL_CLOSURE_SHA256:
+        if value.get("model_closure_sha256") != binding.get("closure_sha256"):
             reasons.append("collision_snapshot_model_closure_mismatch")
+        if (expected_scene_binding is not None and
+                value.get("runtime_model_fingerprint") != binding.get("model_fingerprint")):
+            reasons.append("collision_snapshot_scene_model_fingerprint_mismatch")
         if CAPTURE_ID_RE.fullmatch(value.get("capture_id", "")) is None:
             reasons.append("collision_snapshot_capture_id_invalid")
         if HEX64_RE.fullmatch(value.get("runtime_model_fingerprint", "")) is None:
@@ -853,6 +1342,18 @@ def _validate_record_trust(data: RunRecordData) -> Tuple[bool, List[str], List[D
         reasons.append("missing_terminal_line")
     reasons.extend(data.parse_errors)
 
+    scene_binding = data.meta.get("scene_binding")
+    collision_scene_binding = scene_binding
+    if scene_binding is None:
+        scene_binding = LEGACY_BINDING  # pre-S2-04 historical records
+    else:
+        scene_id = scene_binding.get("scene_id") if isinstance(scene_binding, dict) else None
+        catalog_binding = next((spec.binding() for spec in SCENES.values()
+                                if spec.scene_id == scene_id), None)
+        if catalog_binding is None or scene_binding != catalog_binding:
+            reasons.append("meta_scene_binding_not_in_catalog")
+            scene_binding = LEGACY_BINDING
+
     # --- run identity: meta / frames / terminal share one run_id
     meta_run_id = data.meta.get("run_id")
     if not meta_run_id:
@@ -879,6 +1380,32 @@ def _validate_record_trust(data: RunRecordData) -> Tuple[bool, List[str], List[D
                 frame["payload"]["collision_snapshot"].get("status") == CollisionStatus.LIVE.value):
             reasons.append(f"collision_capture_identity_missing:{index}")
 
+    # Common-start records have an additional producer-side boundary.  The
+    # legacy record format remains readable when this opt-in field is absent;
+    # an explicitly enabled record must carry a complete, bound anchor.
+    common_start_required = data.meta.get("common_start_required", False)
+    if not isinstance(common_start_required, bool):
+        reasons.append("common_start_required_not_bool")
+        common_start_required = False
+    if common_start_required:
+        expected_qpos = data.meta.get("common_start_initial_qpos_sha256")
+        if not isinstance(expected_qpos, str) or HEX64_RE.fullmatch(expected_qpos) is None:
+            reasons.append("common_start_initial_qpos_sha256_invalid")
+        if capture_id is None:
+            reasons.append("common_start_capture_id_missing")
+        terminal_anchor = data.terminal.get("start_anchor") if data.terminal is not None else None
+        if data.terminal is None or data.terminal.get("common_start_required") is not True:
+            reasons.append("common_start_terminal_binding_missing")
+        if data.terminal is not None and data.terminal.get("start_anchor_status") != "PRESENT":
+            reasons.append("common_start_anchor_missing")
+        if isinstance(expected_qpos, str) and HEX64_RE.fullmatch(expected_qpos) and capture_id is not None:
+            try:
+                validate_anchor(terminal_anchor,
+                                expected_capture_id=capture_id,
+                                expected_qpos_sha256=expected_qpos)
+            except CommonStartError as exc:
+                reasons.append(f"common_start_anchor_invalid:{exc}")
+
     # --- terminal uniqueness + boundary
     if data.terminal_count != 1:
         reasons.append("terminal_not_unique")
@@ -897,7 +1424,8 @@ def _validate_record_trust(data: RunRecordData) -> Tuple[bool, List[str], List[D
             if payload.get("source") != SOURCE_AUTHORITATIVE_RUNTIME:
                 reasons.append(f"non_authoritative_frame:{index}:{payload.get('source')}")
             payload_reasons = _validate_live_payload(payload)
-            payload_reasons.extend(_validate_collision_payload(payload.get("collision_snapshot")))
+            payload_reasons.extend(_validate_collision_payload(
+                payload.get("collision_snapshot"), collision_scene_binding))
             collision = payload.get("collision_snapshot")
             if isinstance(collision, dict) and collision.get("status") == CollisionStatus.LIVE.value:
                 if capture_id is None or collision.get("capture_id") != capture_id:
@@ -918,6 +1446,39 @@ def _validate_record_trust(data: RunRecordData) -> Tuple[bool, List[str], List[D
         else:
             # Unknown / null / wrong-type status: never treated as MISSING.
             reasons.append(f"unknown_frame_status:{index}:{status!r}")
+
+    if common_start_required:
+        first_live = next((frame for frame in data.frames
+                           if frame.get("status") == FrameStatus.LIVE.value), None)
+        anchor = data.terminal.get("start_anchor") if data.terminal is not None else None
+        ref = first_live.get("start_anchor_ref") if first_live is not None else None
+        expected_ref = None
+        if isinstance(anchor, dict):
+            expected_ref = {
+                "capture_id": anchor.get("capture_id"),
+                "rl_session_id": anchor.get("rl_session_id"),
+                "first_physics_step": anchor.get("first_physics_step"),
+                "first_runtime_frame_sequence": anchor.get("first_runtime_frame_sequence"),
+            }
+        if first_live is None or not isinstance(ref, dict):
+            reasons.append("common_start_first_live_frame_anchor_ref_missing")
+        elif set(ref) != set(expected_ref or {}):
+            reasons.append("common_start_first_live_frame_anchor_ref_fields_invalid")
+        elif ref != expected_ref:
+            reasons.append("common_start_first_live_frame_anchor_ref_mismatch")
+        elif not isinstance(first_live.get("payload"), dict):
+            reasons.append("common_start_first_live_frame_payload_missing")
+        else:
+            payload = first_live["payload"]
+            if isinstance(anchor, dict):
+                if payload.get("session_id") != anchor.get("rl_session_id"):
+                    reasons.append("common_start_first_live_frame_session_mismatch")
+                if payload.get("source_sequence", -1) < anchor.get("first_runtime_frame_sequence", 0):
+                    reasons.append("common_start_first_live_frame_sequence_before_anchor")
+                if payload.get("rl_step", -1) < anchor.get("first_runtime_frame_rl_step", 0):
+                    reasons.append("common_start_first_live_frame_rl_step_before_anchor")
+                if payload.get("monotonic_ns", -1) < anchor.get("first_runtime_frame_monotonic_ns", 0):
+                    reasons.append("common_start_first_live_frame_time_before_anchor")
 
     # --- cross-frame continuity over validated payloads only
     previous_session = None
@@ -1063,7 +1624,8 @@ def summarize_record(path: str) -> Dict[str, Any]:
     collision_live = [item for item in collision_snapshots
                       if isinstance(item, dict) and item.get("status") == CollisionStatus.LIVE.value]
     collision_observed = any(
-        isinstance(item, dict) and (item.get("current_collision") is True or item.get("collision_edge") is True)
+        isinstance(item, dict) and (item.get("collision_episode_count", 0) > 0 or
+                                    item.get("current_collision") is True or item.get("collision_edge") is True)
         for item in collision_live
     )
     collision_unknown = any(
@@ -1078,9 +1640,11 @@ def summarize_record(path: str) -> Dict[str, Any]:
         if isinstance(step, int) and previous_physics_step is not None:
             collision_gaps += max(0, step - previous_physics_step - 1)
         previous_physics_step = step
-    sampled_collision_complete = bool(collision_live) and not collision_unknown and collision_gaps == 0
-    # A recorder sampling boundary is not an episode coverage boundary.  Never
-    # turn a final sampled false into a whole-episode collision-free claim.
+    sampled_collision_complete = bool(collision_live) and not collision_unknown and all(
+        item.get("version", 2) in (4, 5) and item.get("physics_coverage_complete") is True and
+        item.get("collision_history_overflow") is False for item in collision_live)
+    # The simulator accumulates every PhysicsLoop step. Policy-frame gaps are
+    # informational and do not erase that producer-side coverage.
     collision_available = collision_observed
     summary["collision"] = {
         "available": collision_available,
@@ -1088,14 +1652,17 @@ def summarize_record(path: str) -> Dict[str, Any]:
             "authoritative samples contain no contact, but capture has no complete episode coverage boundary"
             if sampled_collision_complete else UNKNOWN_REASON_COLLISION
         ),
-        "event_count": 1 if collision_observed else None,
+        "event_count": max((item.get("collision_episode_count", 0) for item in collision_live), default=None)
+            if collision_observed else (0 if sampled_collision_complete else None),
         "coverage": {
             "samples": len(collision_snapshots),
             "live_samples": len(collision_live),
             "unknown_contacts": sum(item.get("unknown_contacts", 0) for item in collision_live),
             "physics_step_gaps": collision_gaps,
             "sampled_steps_contiguous": sampled_collision_complete,
+            "producer_physics_coverage_complete": sampled_collision_complete,
             "complete_for_no_collision_claim": False,
+            "scope": "whole captured interval; motion boundary is evaluated by S1 analyzer",
         },
     }
 

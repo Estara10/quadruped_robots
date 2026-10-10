@@ -1,0 +1,132 @@
+{
+  "capture": {
+    "authoritative_collision_live_before_motion": false,
+    "capture_error": null,
+    "frame_capture_writer": "supervisor_synchronous_single_writer",
+    "frames_written": 0,
+    "pre_run_shared_frames_ignored_by_session_timestamp": 0
+  },
+  "capture_id": "p1-10-capture-01c7fa7a61e54e6d9a280d84a85548af",
+  "classification": "short nonformal S1-05 safety-recording diagnostic; not a formal experiment",
+  "commands": [],
+  "created_monotonic_ns": 6751442828746,
+  "events": [
+    {
+      "event": "STARTUP_FAILURE",
+      "frame_ref": null,
+      "monotonic_ns": 6751940663484,
+      "phase": "motion_end"
+    },
+    {
+      "event": "process_groups_stopped",
+      "monotonic_ns": 6751940741123,
+      "phase": "process_cleanup",
+      "processes": [
+        {
+          "exit_code": null,
+          "forced": false,
+          "name": "ros2_launch",
+          "started": false
+        },
+        {
+          "exit_code": null,
+          "forced": false,
+          "name": "mujoco",
+          "started": false
+        }
+      ]
+    }
+  ],
+  "lifecycle": {
+    "cleanup_complete_monotonic_ns": 6751940741123,
+    "cleanup_processes": [
+      {
+        "exit_code": null,
+        "forced": false,
+        "name": "ros2_launch",
+        "started": false
+      },
+      {
+        "exit_code": null,
+        "forced": false,
+        "name": "mujoco",
+        "started": false
+      }
+    ],
+    "closeout_errors": [],
+    "motion_and_cleanup_are_separate": true,
+    "motion_start_event": "first observed base displacement >=0.10m from first valid strategy-frame pose",
+    "motion_start_interval_s": null,
+    "motion_start_sim_time_s": null,
+    "movement_end_monotonic_ns": null,
+    "post_terminal_strategy_stop": null,
+    "run_terminal_event": "STARTUP_FAILURE",
+    "startup_error": "RuntimeError: go2_description overlay was not selected: rc=0, prefix='/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description'",
+    "terminal_frame_capture": {
+      "complete": null,
+      "status": "not_terminal"
+    }
+  },
+  "preflight": {},
+  "result_contract": {
+    "classification": "STARTUP_FAILURE",
+    "command_consumption_by_mujoco": "UNKNOWN; no direct consumption acknowledgement",
+    "fall_detection": "PhysicsLoop base_link posture rule; continuously >=0.30 valid sim seconds",
+    "first_valid_frame_monotonic_ns": null,
+    "first_valid_sim_time_s": null,
+    "motion_start_sim_time_s": null,
+    "motion_start_unknown_reason": "no >=0.10m pose displacement observed",
+    "operator_abort": "not issued",
+    "policy_frames_observed": 0,
+    "startup_failure": "RuntimeError: go2_description overlay was not selected: rc=0, prefix='/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description'",
+    "supervisor_loop_frames_observed": 0,
+    "valid_collision_source_seen": false
+  },
+  "run_id": "6725394299864997989fc2862c9bb429",
+  "safety_result_contract": {
+    "cleanup_is_not_motion": true,
+    "collision_terminal": "immediate once an accumulated robot-obstacle episode intersects inclusive motion interval",
+    "motion_start": "first valid policy pose displacement >=0.10m from initial pose",
+    "mujoco_command_consumption": "UNKNOWN",
+    "policy_stop_request_is_not_stop_confirmation": true,
+    "terminal_priority_same_observation": [
+      "SYSTEM_SAFETY_ABORT",
+      "COLLISION_TERMINATION",
+      "FALL_TERMINATION",
+      "ARRIVED",
+      "DIAGNOSTIC_SIM_TIME_LIMIT",
+      "WALL_CLOCK_GUARD_INCOMPLETE"
+    ]
+  },
+  "schema": "s1-run-context-v1",
+  "settings": {
+    "arrival_threshold_m": 0.5,
+    "candidate": "paper_faithful_switch",
+    "collision_scope": "PhysicsLoop mj_step; bound robot-obstacle contact episodes; ground, self, other, and unknown contacts retained separately",
+    "controller_config": "/home/lidio/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/abs/config.yaml",
+    "diagnostic_sim_limit_after_motion_s": 6.0,
+    "display": ":0",
+    "fall_rule": {
+      "base_body": "base_link",
+      "combination": "height OR absolute roll OR absolute pitch",
+      "duration_boundary": "candidate must hold continuously for >=0.30 valid sim seconds",
+      "duration_sim_s": 0.3,
+      "height_threshold_m": 0.22,
+      "tilt_threshold_deg": 60.0
+    },
+    "goal_world_m": [
+      7.0,
+      0.0
+    ],
+    "model_paths": [
+      "/home/lidio/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/abs/policy.pt",
+      "/home/lidio/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/abs/ra_value.pt",
+      "/home/lidio/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/rec/policy.pt"
+    ],
+    "overlay": "/home/lidio/quadruped_ros2_control_humble/install/go2_description",
+    "runtime_model_fingerprint": "3e4d82cf204d5929ff98c11fed5b3918ba3b92f0d698215860097d734d239694",
+    "scene": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/scene_obstacle.xml",
+    "scene_id": "obstacle_test1",
+    "xauthority": "/run/user/1000/gdm/Xauthority"
+  }
+}

@@ -14,12 +14,15 @@
 
 #include "simulate.h"
 #include "abs_sim_clock_contract.h"
+#include "abs_mujoco_live_panel.h"
 
 #include <algorithm>
 #include <atomic>
+#include <cerrno>
 #include <chrono>
 #include <climits>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <memory>
 #include <optional>
@@ -27,6 +30,10 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 //#include "lodepng.h"
 #include <mujoco/mjdata.h>
@@ -56,6 +63,55 @@ namespace mju = ::mujoco::sample_util;
 
 using Seconds = std::chrono::duration<double>;
 using Milliseconds = std::chrono::duration<double, std::milli>;
+
+abs_mujoco_live_panel::Snapshot ReadAbsLivePanelSnapshot() {
+  using namespace abs_mujoco_live_panel;
+  const int fd = shm_open(abs_rt_frame::kFrameShmName, O_RDONLY, 0);
+  if (fd < 0) {
+    Snapshot missing;
+    missing.status = errno == ENOENT ? Status::kMissing : Status::kInvalid;
+    return missing;
+  }
+
+  struct stat info {};
+  if (fstat(fd, &info) != 0 ||
+      info.st_size != static_cast<off_t>(sizeof(abs_rt_frame::RuntimeFrame))) {
+    close(fd);
+    Snapshot invalid;
+    invalid.status = Status::kInvalid;
+    return invalid;
+  }
+  void* mapping = mmap(nullptr, sizeof(abs_rt_frame::RuntimeFrame), PROT_READ,
+                       MAP_SHARED, fd, 0);
+  close(fd);
+  if (mapping == MAP_FAILED) {
+    Snapshot invalid;
+    invalid.status = Status::kInvalid;
+    return invalid;
+  }
+
+  Snapshot result;
+  auto* frame = static_cast<const abs_rt_frame::RuntimeFrame*>(mapping);
+  for (int attempt = 0; attempt < 3; ++attempt) {
+    const uint64_t before = abs_rt_frame::loadAcquire(&frame->header.sequence);
+    if (before == 0 || (before & 1U)) continue;
+    abs_rt_frame::RuntimeFrame copy{};
+    std::memcpy(&copy, mapping, sizeof(copy));
+    const uint64_t after = abs_rt_frame::loadAcquire(&frame->header.sequence);
+    if (before == after && !(after & 1U)) {
+      result = classify(&copy, sizeof(copy),
+                        static_cast<uint64_t>(std::chrono::duration_cast<
+                            std::chrono::nanoseconds>(
+                                std::chrono::steady_clock::now().time_since_epoch())
+                            .count()));
+      munmap(mapping, sizeof(abs_rt_frame::RuntimeFrame));
+      return result;
+    }
+  }
+  munmap(mapping, sizeof(abs_rt_frame::RuntimeFrame));
+  result.status = Status::kInvalid;
+  return result;
+}
 
 template <typename T>
 inline bool IsDifferent(const T& a, const T& b) {
@@ -2633,6 +2689,26 @@ void Simulate::Render() {
                 &this->platform_ui->mjr_context());
   }
 
+  // Read the controller's versioned frame only from the render thread. The
+  // reader opens the current shared object for each draw, so a replaced session
+  // cannot leave a cached old mapping visible. Non-LIVE states render no values.
+  const auto abs_panel = ReadAbsLivePanelSnapshot();
+  std::string abs_panel_text = abs_mujoco_live_panel::render(abs_panel);
+  const char* standing_prompt_marker = std::getenv("ABS_MUJOCO_STANDING_PROMPT_MARKER");
+  const bool standing_prompt_active = standing_prompt_marker && standing_prompt_marker[0] &&
+      access(standing_prompt_marker, F_OK) == 0;
+  if (standing_prompt_active) {
+    abs_panel_text = "ARRIVED - HOLDING STAND\n" + abs_panel_text;
+  }
+  if (!this->help) {
+    mjrRect abs_panel_rect = rect;
+    // Leave room for the realtime multiplier label above the panel.
+    abs_panel_rect.height = std::max(1, abs_panel_rect.height - 40);
+    mjr_overlay(mjFONT_NORMAL, mjGRID_TOPLEFT, abs_panel_rect,
+                abs_panel_text.c_str(), nullptr,
+                &this->platform_ui->mjr_context());
+  }
+
   // show ui 0
   if (this->ui0_enable) {
     mjui_render(&this->ui0, &this->uistate, &this->platform_ui->mjr_context());
@@ -2697,6 +2773,48 @@ void Simulate::Render() {
     //     std::printf("saved screenshot: %s\n", path.c_str());
     //   }
     // }
+  }
+
+  // Optional one-shot capture of the actual rendered framebuffer, used for
+  // bounded visual verification. Capture only a fresh LIVE policy panel.
+  auto capture_framebuffer = [&](const char* capture_path, const char* label) {
+    const unsigned int h = uistate.rect[0].height;
+    const unsigned int w = uistate.rect[0].width;
+    std::unique_ptr<unsigned char[]> rgb(new unsigned char[3 * w * h]);
+    if (rgb) {
+      mjr_readPixels(rgb.get(), nullptr, uistate.rect[0],
+                     &this->platform_ui->mjr_context());
+      for (int r = 0; r < h / 2; ++r) {
+        unsigned char* top_row = &rgb[3 * w * r];
+        unsigned char* bottom_row = &rgb[3 * w * (h - 1 - r)];
+        std::swap_ranges(top_row, top_row + 3 * w, bottom_row);
+      }
+      std::FILE* image = std::fopen(capture_path, "wb");
+      if (image) {
+        std::fprintf(image, "P6\n%u %u\n255\n", w, h);
+        const size_t expected = static_cast<size_t>(w) * h;
+        const size_t written = std::fwrite(rgb.get(), 3, expected, image);
+        const bool close_ok = std::fclose(image) == 0;
+        if (written == expected && close_ok) {
+          std::fprintf(stderr, "[ABS-PANEL] %s framebuffer capture saved: %s (%ux%u)\n",
+                       label, capture_path, w, h);
+        } else {
+          std::fprintf(stderr, "[ABS-PANEL] %s framebuffer capture write failed: %s\n", label, capture_path);
+        }
+      } else {
+        std::fprintf(stderr, "[ABS-PANEL] %s framebuffer capture open failed: %s\n", label, capture_path);
+      }
+    }
+  };
+  const char* capture_path = std::getenv("ABS_MUJOCO_FRAMEBUFFER_CAPTURE");
+  if (capture_path && capture_path[0] && abs_panel.status == abs_mujoco_live_panel::Status::kLive &&
+      !this->help && !this->abs_panel_capture_attempted.exchange(true)) {
+    capture_framebuffer(capture_path, "LIVE");
+  }
+  const char* standing_capture_path = std::getenv("ABS_MUJOCO_STANDING_FRAMEBUFFER_CAPTURE");
+  if (standing_prompt_active && standing_capture_path && standing_capture_path[0] &&
+      !this->help && !this->abs_standing_capture_attempted.exchange(true)) {
+    capture_framebuffer(standing_capture_path, "STANDING_HOLD");
   }
 
   // user figures

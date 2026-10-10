@@ -1,0 +1,208 @@
+[INFO] [launch]: All log files can be found below /home/lidio/.ros/log/2026-10-10-13-31-56-046294-Estara-78718
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [rviz2-1]: process started with pid [78741]
+[INFO] [robot_state_publisher-2]: process started with pid [78743]
+[INFO] [ros2_control_node-3]: process started with pid [78745]
+[INFO] [spawner-4]: process started with pid [78747]
+[robot_state_publisher-2] [INFO] [1791610316.197679172] [robot_state_publisher]: got segment FL_calf
+[robot_state_publisher-2] [INFO] [1791610316.197812339] [robot_state_publisher]: got segment FL_foot
+[robot_state_publisher-2] [INFO] [1791610316.197817682] [robot_state_publisher]: got segment FL_hip
+[robot_state_publisher-2] [INFO] [1791610316.197820561] [robot_state_publisher]: got segment FL_thigh
+[robot_state_publisher-2] [INFO] [1791610316.197823025] [robot_state_publisher]: got segment FR_calf
+[robot_state_publisher-2] [INFO] [1791610316.197825481] [robot_state_publisher]: got segment FR_foot
+[robot_state_publisher-2] [INFO] [1791610316.197827940] [robot_state_publisher]: got segment FR_hip
+[robot_state_publisher-2] [INFO] [1791610316.197830564] [robot_state_publisher]: got segment FR_thigh
+[robot_state_publisher-2] [INFO] [1791610316.197833092] [robot_state_publisher]: got segment RL_calf
+[robot_state_publisher-2] [INFO] [1791610316.197835558] [robot_state_publisher]: got segment RL_foot
+[robot_state_publisher-2] [INFO] [1791610316.197837908] [robot_state_publisher]: got segment RL_hip
+[robot_state_publisher-2] [INFO] [1791610316.197840679] [robot_state_publisher]: got segment RL_thigh
+[robot_state_publisher-2] [INFO] [1791610316.197843056] [robot_state_publisher]: got segment RR_calf
+[robot_state_publisher-2] [INFO] [1791610316.197845452] [robot_state_publisher]: got segment RR_foot
+[robot_state_publisher-2] [INFO] [1791610316.197847888] [robot_state_publisher]: got segment RR_hip
+[robot_state_publisher-2] [INFO] [1791610316.197850324] [robot_state_publisher]: got segment RR_thigh
+[robot_state_publisher-2] [INFO] [1791610316.197852775] [robot_state_publisher]: got segment base
+[robot_state_publisher-2] [INFO] [1791610316.197855324] [robot_state_publisher]: got segment front_camera
+[robot_state_publisher-2] [INFO] [1791610316.197858077] [robot_state_publisher]: got segment imu_link
+[robot_state_publisher-2] [INFO] [1791610316.197860854] [robot_state_publisher]: got segment lidar
+[robot_state_publisher-2] [INFO] [1791610316.197863249] [robot_state_publisher]: got segment trunk
+[ros2_control_node-3] [INFO] [1791610316.202111775] [controller_manager]: Subscribing to '~/robot_description' topic for robot description file.
+[ros2_control_node-3] [INFO] [1791610316.202985437] [controller_manager]: update rate is 1000 Hz
+[ros2_control_node-3] [INFO] [1791610316.203004955] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-3] [WARN] [1791610316.203102247] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[ros2_control_node-3] [INFO] [1791610316.346675472] [controller_manager]: Received robot description file.
+[ros2_control_node-3] [INFO] [1791610316.347304390] [resource_manager]: Loading hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1791610316.365028204] [resource_manager]: Initialize hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1791610316.367938761] [unitree_hardware]:  network_interface: lo, domain: 1
+[ros2_control_node-3] 1791610316.373052 [1] ros2_contr: selected interface "lo" is not multicast-capable: disabling multicast
+[spawner-4] [INFO] [1791610316.468935767] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [INFO] [1791610316.480123779] [unitree_hardware]: [MOTOR-MAP] controller[0] FR_hip_joint -> Unitree motor[0]
+[ros2_control_node-3] [INFO] [1791610316.480150146] [unitree_hardware]: [MOTOR-MAP] controller[1] FR_thigh_joint -> Unitree motor[1]
+[ros2_control_node-3] [INFO] [1791610316.480156524] [unitree_hardware]: [MOTOR-MAP] controller[2] FR_calf_joint -> Unitree motor[2]
+[ros2_control_node-3] [INFO] [1791610316.480161537] [unitree_hardware]: [MOTOR-MAP] controller[3] FL_hip_joint -> Unitree motor[3]
+[ros2_control_node-3] [INFO] [1791610316.480166183] [unitree_hardware]: [MOTOR-MAP] controller[4] FL_thigh_joint -> Unitree motor[4]
+[ros2_control_node-3] [INFO] [1791610316.480170636] [unitree_hardware]: [MOTOR-MAP] controller[5] FL_calf_joint -> Unitree motor[5]
+[ros2_control_node-3] [INFO] [1791610316.480175022] [unitree_hardware]: [MOTOR-MAP] controller[6] RR_hip_joint -> Unitree motor[6]
+[ros2_control_node-3] [INFO] [1791610316.480179359] [unitree_hardware]: [MOTOR-MAP] controller[7] RR_thigh_joint -> Unitree motor[7]
+[ros2_control_node-3] [INFO] [1791610316.480183628] [unitree_hardware]: [MOTOR-MAP] controller[8] RR_calf_joint -> Unitree motor[8]
+[ros2_control_node-3] [INFO] [1791610316.480187932] [unitree_hardware]: [MOTOR-MAP] controller[9] RL_hip_joint -> Unitree motor[9]
+[ros2_control_node-3] [INFO] [1791610316.480192146] [unitree_hardware]: [MOTOR-MAP] controller[10] RL_thigh_joint -> Unitree motor[10]
+[ros2_control_node-3] [INFO] [1791610316.480196511] [unitree_hardware]: [MOTOR-MAP] controller[11] RL_calf_joint -> Unitree motor[11]
+[ros2_control_node-3] [INFO] [1791610316.481021379] [resource_manager]: Successful initialization of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1791610316.481224744] [resource_manager]: 'configure' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1791610316.481238011] [resource_manager]: Successful 'configure' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1791610316.481263717] [resource_manager]: 'activate' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1791610316.481271070] [resource_manager]: Successful 'activate' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1791610316.722976102] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[rviz2-1] [INFO] [1791610316.724629479] [rviz2]: Stereo is NOT SUPPORTED
+[rviz2-1] [INFO] [1791610316.724721190] [rviz2]: OpenGl version: 4.6 (GLSL 4.6)
+[spawner-4] [INFO] [1791610316.731948491] [spawner_joint_state_broadcaster]: [94mLoaded [1mjoint_state_broadcaster[0m
+[ros2_control_node-3] [INFO] [1791610316.733181976] [controller_manager]: Configuring controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1791610316.733299424] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[rviz2-1] [INFO] [1791610316.742001945] [rviz2]: Stereo is NOT SUPPORTED
+[spawner-4] [INFO] [1791610316.742966695] [spawner_joint_state_broadcaster]: [92mConfigured and activated [1mjoint_state_broadcaster[0m
+[INFO] [spawner-4]: process has finished cleanly [pid 78747]
+[INFO] [spawner-5]: process started with pid [78869]
+[ros2_control_node-3] [INFO] [1791610317.149145326] [controller_manager]: Loading controller 'imu_sensor_broadcaster'
+[spawner-5] [INFO] [1791610317.161972330] [spawner_imu_sensor_broadcaster]: [94mLoaded [1mimu_sensor_broadcaster[0m
+[ros2_control_node-3] [INFO] [1791610317.162668589] [controller_manager]: Configuring controller 'imu_sensor_broadcaster'
+[spawner-5] [INFO] [1791610317.167857299] [spawner_imu_sensor_broadcaster]: [92mConfigured and activated [1mimu_sensor_broadcaster[0m
+[INFO] [spawner-5]: process has finished cleanly [pid 78869]
+[INFO] [spawner-6]: process started with pid [78923]
+[spawner-6] [INFO] [1791610317.600529020] [spawner_rl_quadruped_controller]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [INFO] [1791610317.854630197] [controller_manager]: Loading controller 'rl_quadruped_controller'
+[ros2_control_node-3] [INFO] [1791610318.094004077] [rl_quadruped_controller]: Controller Update Rate: 200 Hz
+[ros2_control_node-3] [INFO] [1791610318.094059678] [rl_quadruped_controller]: Enable Estimator
+[ros2_control_node-3] dt: 0.005
+[spawner-6] [INFO] [1791610318.094996361] [spawner_rl_quadruped_controller]: [94mLoaded [1mrl_quadruped_controller[0m
+[ros2_control_node-3] [INFO] [1791610318.095616199] [controller_manager]: Configuring controller 'rl_quadruped_controller'
+[ros2_control_node-3] [INFO] [1791610318.099504045] [rl_quadruped_controller]: [FOOT-LOANED] index=0 name=foot_force/FR
+[ros2_control_node-3] [INFO] [1791610318.099549211] [rl_quadruped_controller]: [FOOT-LOANED] index=1 name=foot_force/FL
+[ros2_control_node-3] [INFO] [1791610318.099562008] [rl_quadruped_controller]: [FOOT-LOANED] index=2 name=foot_force/RR
+[ros2_control_node-3] [INFO] [1791610318.099572745] [rl_quadruped_controller]: [FOOT-LOANED] index=3 name=foot_force/RL
+[ros2_control_node-3] [INFO] [1791610318.099608612] [rl_quadruped_controller]: [VERIFY] joint interface order: FR_hip_joint FR_thigh_joint FR_calf_joint ... RL_calf_joint
+[ros2_control_node-3] [INFO] [1791610318.099720645] [rl_quadruped_controller]: Using robot model from go2_description
+[ros2_control_node-3] [INFO] [1791610318.102253443] [rl_quadruped_controller]: [S1-RUN-SOURCE] pid=78745 package_share=/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description config=/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/abs/config.yaml agile_model=/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/abs/policy.pt ra_model=/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/abs/ra_value.pt candidate=paper_faithful_switch group=A entry_threshold=-0.05 effective_exit_threshold=-0.05 hysteresis=false hold=false goal=(7.000,0.000)
+[ros2_control_node-3] [INFO] [1791610318.102307982] [rl_quadruped_controller]: [S2-SWITCH-CONFIG] group=A entry_threshold=-0.05 effective_exit_threshold=-0.05 hysteresis=false hold=false
+[ros2_control_node-3] [INFO] [1791610318.102315958] [rl_quadruped_controller]: Model loading: policy.pt
+[ros2_control_node-3] robot_legs_.size(): 4
+[ros2_control_node-3] [INFO] [1791610318.118545856] [rl_quadruped_controller]: [VERIFY] num_observations=61, num_of_dofs=12
+[ros2_control_node-3] [INFO] [1791610318.118591982] [rl_quadruped_controller]: [VERIFY] observations order: contact ang_vel gravity_vec commands timer dof_pos dof_vel actions ray2d 
+[ros2_control_node-3] [INFO] [1791610318.118645494] [rl_quadruped_controller]: [VERIFY] rl_kp[0]=30.00, rl_kd[0]=0.65
+[ros2_control_node-3] [INFO] [1791610318.118654191] [rl_quadruped_controller]: [VERIFY] scales: action=0.25 lin_vel=1.00 ang_vel=1.00 dof_pos=1.00 dof_vel=0.20
+[ros2_control_node-3] [INFO] [1791610318.118663513] [rl_quadruped_controller]: [VERIFY] default_dof_pos: 0.0000 0.8000 -1.5000 (first 3 joints = FR hip/thigh/calf)
+[ros2_control_node-3] [INFO] [1791610318.118668300] [rl_quadruped_controller]: [VERIFY] ABS: max_ep_len=9.0s contact_thr=1.0N ray2d_count=11 ray2d_max_range=6.0m
+[ros2_control_node-3] [INFO] [1791610318.118672368] [rl_quadruped_controller]: [VERIFY] decimation=4 frequency=200Hz dt=0.0200s
+[ros2_control_node-3] [INFO] [1791610318.118676125] [rl_quadruped_controller]: [VERIFY] use_rl_thread=false policy_joint_order=ros1_fl_fr_rl_rr
+[ros2_control_node-3] [INFO] [1791610318.120772711] [rl_quadruped_controller]: [RA] Value network loaded: ra_value.pt
+[ros2_control_node-3] [INFO] [1791610318.124399343] [rl_quadruped_controller]: [REC] Recovery policy loaded: /home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/rec/policy.pt
+[ros2_control_node-3] [INFO] [1791610318.124957623] [rl_quadruped_controller]: StateRLRec: Loading recovery model: policy.pt
+[ros2_control_node-3] [INFO] [1791610318.128137259] [rl_quadruped_controller]: [REC-VERIFY] num_observations=49, num_of_dofs=12
+[ros2_control_node-3] [INFO] [1791610318.128184937] [rl_quadruped_controller]: [REC-VERIFY] observations: contact ang_vel gravity_vec commands dof_pos dof_vel actions 
+[ros2_control_node-3] [INFO] [1791610318.128206746] [rl_quadruped_controller]: [REC-VERIFY] rl_kp[0]=30.00, rl_kd[0]=0.65
+[ros2_control_node-3] [INFO] [1791610318.128215107] [rl_quadruped_controller]: [REC-VERIFY] action_scale=0.25 dof_vel_scale=0.20 contact_thr=1.0N
+[spawner-6] [INFO] [1791610318.129128336] [spawner_rl_quadruped_controller]: [92mConfigured and activated [1mrl_quadruped_controller[0m
+[INFO] [spawner-6]: process has finished cleanly [pid 78923]
+[ros2_control_node-3] [INFO] [1791610328.142422722] [rl_quadruped_controller]: Switched from passive to fixed down
+[ros2_control_node-3] [INFO] [1791610330.157772393] [rl_quadruped_controller]: Switched from fixed down to fixed stand
+[ros2_control_node-3] [INFO] [1791610330.167777840] [BaseFixedStand]: [STAND-SYMM] phase=0.004 q_thigh FR=1.256 FL=1.256 RR=1.342 RL=1.342 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-2.732 FL=-2.732 RR=-2.743 RL=-2.743 diff_FLFR=0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791610330.667775236] [BaseFixedStand]: [STAND-SYMM] phase=0.398 q_thigh FR=1.075 FL=1.075 RR=1.133 RL=1.133 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-2.369 FL=-2.369 RR=-2.395 RL=-2.395 diff_FLFR=-0.000 diff_RLRR=0.000
+[ros2_control_node-3] [INFO] [1791610331.167654779] [BaseFixedStand]: [STAND-SYMM] phase=0.684 q_thigh FR=0.939 FL=0.939 RR=0.976 RL=0.976 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.996 FL=-1.996 RR=-2.010 RL=-2.010 diff_FLFR=-0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791610331.667758928] [BaseFixedStand]: [STAND-SYMM] phase=0.849 q_thigh FR=0.862 FL=0.862 RR=0.887 RL=0.887 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.778 FL=-1.778 RR=-1.780 RL=-1.780 diff_FLFR=-0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791610332.167832971] [BaseFixedStand]: [STAND-SYMM] phase=0.932 q_thigh FR=0.823 FL=0.823 RR=0.842 RL=0.842 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.668 FL=-1.668 RR=-1.663 RL=-1.663 diff_FLFR=0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791610332.667548021] [BaseFixedStand]: [STAND-SYMM] phase=0.970 q_thigh FR=0.806 FL=0.806 RR=0.822 RL=0.822 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.616 FL=-1.616 RR=-1.609 RL=-1.609 diff_FLFR=0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791610333.167758674] [BaseFixedStand]: [STAND-SYMM] phase=0.987 q_thigh FR=0.798 FL=0.798 RR=0.813 RL=0.813 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.593 FL=-1.593 RR=-1.584 RL=-1.584 diff_FLFR=0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791610333.667801781] [BaseFixedStand]: [STAND-SYMM] phase=0.994 q_thigh FR=0.794 FL=0.794 RR=0.808 RL=0.808 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.583 FL=-1.583 RR=-1.573 RL=-1.573 diff_FLFR=0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791610334.167599500] [BaseFixedStand]: [STAND-SYMM] phase=0.997 q_thigh FR=0.792 FL=0.792 RR=0.806 RL=0.806 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.577 FL=-1.577 RR=-1.567 RL=-1.567 diff_FLFR=0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791610334.667458787] [BaseFixedStand]: [STAND-SYMM] phase=0.999 q_thigh FR=0.791 FL=0.791 RR=0.805 RL=0.805 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.574 FL=-1.574 RR=-1.564 RL=-1.564 diff_FLFR=0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791610335.167556137] [BaseFixedStand]: [STAND-SYMM] phase=1.000 q_thigh FR=0.791 FL=0.791 RR=0.804 RL=0.804 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.573 FL=-1.573 RR=-1.562 RL=-1.562 diff_FLFR=0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791610335.627631749] [rl_quadruped_controller]: Switched from fixed stand to rl
+[ros2_control_node-3] [INFO] [1791610335.633185749] [StateRL]: [Ray2D] Shared memory connected: /mujoco_ray2d
+[ros2_control_node-3] [INFO] [1791610335.633307344] [StateRL]: [RtFrame] Shared memory initialized: /mujoco_rt_frame session_id=17837954878104 writer_pid=78745
+[ros2_control_node-3] [INFO] [1791610335.634058354] [StateRL]: [RL] enable_estimator_=1 rec_loaded=1 ra_loaded=1 ra_threshold=-0.0500
+[ros2_control_node-3] [INFO] [1791610335.634089261] [StateRL]: [RL] Ray2d: shm connected, policy active
+[ros2_control_node-3] [INFO] [1791610335.659575143] [StateRL]: [PATH] start=(-0.03,0.00) goal=(7.00,0.00) tracking=1 lateral_gain=2.50 heading_gain=2.50
+[ros2_control_node-3] [INFO] [1791610335.659671121] [StateRL]: [GOAL] 位置=(-0.03,0.00) 偏航=-0.00 目标=(7.00,0.00) 距离=7.03 机体系=(4.99,0.00) 航向=0.00 path_err=0.00 path_on=1
+[ros2_control_node-3] [INFO] [1791610335.704557288] [StateRL]: [RA] ra=-0.3842 ray2d=[1.13 0.95 2.05 2.58 2.58 2.58 2.14 0.77 0.87 2.58 2.58]
+[ros2_control_node-3] [INFO] [1791610335.706565076] [StateRL]: [EVAL] step=0 t=0.000 robot=(-0.034,0.000) yaw=-0.000 goal=(7.000,0.000) dist=7.034 body=(4.993,0.000) heading=0.000 arrived=0 ra=-0.38421 entry=-0.05000 recovery=0 hold=0 twist=(0.000,0.000,0.000) min_ray_log=0.772 max_ray_log=2.585 min_ray_m=1.708 lin_vel=(0.001,0.000,-0.059) ang_vel=(-0.000,0.043,-0.000) action_range=(-0.552,2.408) contact=(1,1,1,1)
+[ros2_control_node-3] [INFO] [1791610336.154720021] [StateRL]: [EVAL] step=25 t=0.500 robot=(-0.077,-0.002) yaw=0.033 goal=(7.000,0.000) dist=7.077 body=(4.990,-0.158) heading=-0.079 arrived=0 ra=-0.41833 entry=-0.05000 recovery=0 hold=0 twist=(0.000,0.000,0.000) min_ray_log=0.823 max_ray_log=2.585 min_ray_m=1.769 lin_vel=(0.050,-0.024,0.319) ang_vel=(0.203,0.760,0.217) action_range=(-1.672,3.083) contact=(1,1,1,1)
+[ros2_control_node-3] [INFO] [1791610336.654472075] [StateRL]: [EVAL] step=50 t=1.000 robot=(0.077,-0.000) yaw=-0.026 goal=(7.000,0.000) dist=6.923 body=(4.991,0.131) heading=0.065 arrived=0 ra=-0.35732 entry=-0.05000 recovery=0 hold=0 twist=(0.000,0.000,0.000) min_ray_log=0.655 max_ray_log=2.585 min_ray_m=1.574 lin_vel=(0.491,-0.115,-0.147) ang_vel=(-1.349,0.626,-0.343) action_range=(-1.019,2.952) contact=(-1,-1,1,-1)
+[ros2_control_node-3] [INFO] [1791610337.159579587] [StateRL]: [EVAL] step=75 t=1.500 robot=(0.614,-0.013) yaw=-0.083 goal=(7.000,0.000) dist=6.386 body=(4.974,0.454) heading=0.224 arrived=0 ra=-0.53624 entry=-0.05000 recovery=0 hold=0 twist=(0.000,0.000,0.000) min_ray_log=0.073 max_ray_log=2.585 min_ray_m=1.052 lin_vel=(1.593,0.230,0.131) ang_vel=(-2.046,0.162,0.679) action_range=(-2.456,2.366) contact=(1,-1,-1,1)
+[ros2_control_node-3] [INFO] [1791610337.653343376] [StateRL]: [GOAL] 位置=(1.40,-0.07) 偏航=-0.07 目标=(7.00,0.00) 距离=5.60 机体系=(4.97,0.61) 航向=0.30 path_err=-0.07 path_on=1
+[ros2_control_node-3] [INFO] [1791610337.654342500] [StateRL]: [EVAL] step=100 t=2.000 robot=(1.397,-0.074) yaw=-0.073 goal=(7.000,0.000) dist=5.603 body=(4.973,0.611) heading=0.298 arrived=0 ra=-0.23938 entry=-0.05000 recovery=0 hold=0 twist=(0.000,0.000,0.000) min_ray_log=-0.515 max_ray_log=2.585 min_ray_m=0.700 lin_vel=(1.474,-0.153,-0.101) ang_vel=(-0.313,-1.977,-0.142) action_range=(-2.306,1.881) contact=(-1,1,-1,-1)
+[ros2_control_node-3] [INFO] [1791610338.154793571] [StateRL]: [EVAL] step=125 t=2.500 robot=(2.289,-0.140) yaw=0.011 goal=(7.000,0.000) dist=4.713 body=(4.712,0.439) heading=0.229 arrived=0 ra=-0.22355 entry=-0.05000 recovery=0 hold=0 twist=(0.000,0.000,0.000) min_ray_log=1.034 max_ray_log=2.585 min_ray_m=2.048 lin_vel=(1.985,0.070,0.304) ang_vel=(0.088,0.217,0.374) action_range=(-1.546,2.517) contact=(1,-1,1,1)
+[ros2_control_node-3] [INFO] [1791610338.339659037] [StateRL]: [TWIST-GD] 梯度下降恢复速度优化 | 初始=[1.75,-0.08,0.11] 最终=[1.26,-0.30,0.23] 目标=(4.36,0.47) RA迭代=[-0.0213,-0.1645,-0.1635] 中心射线=2.58
+[ros2_control_node-3] [WARN] [1791610338.339708747] [StateRL]: [RA-REC] 进入恢复 | group=A mode=paper_faithful_switch ra=-0.0213 entry=-0.0500 effective_exit=-0.0500 hysteresis=false hold=false 恢复速度=[1.26,-0.30,0.23]
+[ros2_control_node-3] [INFO] [1791610338.343005734] [StateRL]: [REC-DIAG] lin_vel=[1.75,-0.08,-0.07] twist=[1.26,-0.30,0.23] hold=0 rec_action_range=[-1.651,0.432]
+[ros2_control_node-3] [INFO] [1791610338.343738324] [StateRL]: [ABS-POLICY-CMD] event=recovery_command_issued clock=steady_clock_ns write_ns=17840665323173 write_id=540 source_session_id=17837954878104 source_policy_cycle_id=134 source_mode=1 action_source=2 transition_reason=1 recovery_episode_id=1 q_rad=[0.081575,0.604212,-1.669078,0.071014,0.520787,-1.912850,0.022541,0.744915,-1.418847,0.107986,0.784250,-1.595497]
+[ros2_control_node-3] [INFO] [1791610338.372809779] [StateRL]: [RA-REC] 退出恢复 | group=A mode=paper_faithful_switch ra=-0.0923 < effective_exit=-0.0500 entry=-0.0500 hysteresis=false hold=false, 回到敏捷策略
+[ros2_control_node-3] [INFO] [1791610338.393917667] [StateRL]: [TWIST-GD] 梯度下降恢复速度优化 | 初始=[1.82,-0.18,-0.17] 最终=[1.33,-0.30,-0.04] 目标=(4.25,0.52) RA迭代=[-0.0200,-0.1455,-0.1446] 中心射线=2.58
+[ros2_control_node-3] [WARN] [1791610338.393949254] [StateRL]: [RA-REC] 进入恢复 | group=A mode=paper_faithful_switch ra=-0.0200 entry=-0.0500 effective_exit=-0.0500 hysteresis=false hold=false 恢复速度=[1.33,-0.30,-0.04]
+[ros2_control_node-3] [INFO] [1791610338.394852371] [StateRL]: [ABS-POLICY-CMD] event=recovery_command_issued clock=steady_clock_ns write_ns=17840716436153 write_id=552 source_session_id=17837954878104 source_policy_cycle_id=137 source_mode=1 action_source=2 transition_reason=1 recovery_episode_id=2 q_rad=[-0.067970,0.127885,-1.550866,-0.146006,0.600225,-1.638773,0.234277,0.662420,-1.594395,0.267211,0.722973,-1.823195]
+[ros2_control_node-3] [INFO] [1791610338.413928656] [StateRL]: [RA-REC] 退出恢复 | group=A mode=paper_faithful_switch ra=-0.1445 < effective_exit=-0.0500 entry=-0.0500 hysteresis=false hold=false, 回到敏捷策略
+[ros2_control_node-3] [INFO] [1791610338.438592166] [StateRL]: [TWIST-GD] 梯度下降恢复速度优化 | 初始=[1.88,-0.13,-0.49] 最终=[1.39,-0.30,-0.36] 目标=(4.18,0.57) RA迭代=[-0.0205,-0.1525,-0.1516] 中心射线=2.58
+[ros2_control_node-3] [WARN] [1791610338.438815711] [StateRL]: [RA-REC] 进入恢复 | group=A mode=paper_faithful_switch ra=-0.0205 entry=-0.0500 effective_exit=-0.0500 hysteresis=false hold=false 恢复速度=[1.39,-0.30,-0.36]
+[ros2_control_node-3] [INFO] [1791610338.443582038] [StateRL]: [ABS-POLICY-CMD] event=recovery_command_issued clock=steady_clock_ns write_ns=17840765149702 write_id=560 source_session_id=17837954878104 source_policy_cycle_id=139 source_mode=1 action_source=2 transition_reason=1 recovery_episode_id=3 q_rad=[0.126150,0.319694,-1.449185,-0.069686,0.503262,-1.376180,0.230471,0.865420,-1.917908,0.126834,0.714727,-1.734978]
+[ros2_control_node-3] [INFO] [1791610338.573829969] [StateRL]: [REC-DIAG] lin_vel=[1.40,-0.03,-0.40] twist=[1.39,-0.30,-0.36] hold=0 rec_action_range=[-1.381,1.430]
+[ros2_control_node-3] [INFO] [1791610338.593152639] [StateRL]: [RA-REC] 退出恢复 | group=A mode=paper_faithful_switch ra=-0.0657 < effective_exit=-0.0500 entry=-0.0500 hysteresis=false hold=false, 回到敏捷策略
+[ros2_control_node-3] [INFO] [1791610338.659904695] [StateRL]: [EVAL] step=150 t=3.000 robot=(3.168,-0.152) yaw=-0.035 goal=(7.000,0.000) dist=3.835 body=(3.825,0.664) heading=0.410 arrived=0 ra=-0.13079 entry=-0.05000 recovery=0 hold=0 twist=(1.387,-0.299,-0.361) min_ray_log=0.247 max_ray_log=2.585 min_ray_m=1.187 lin_vel=(1.403,0.109,0.214) ang_vel=(1.471,0.173,0.265) action_range=(-1.950,2.009) contact=(1,1,1,1)
+[ros2_control_node-3] [INFO] [1791610338.909251551] [StateRL]: [TWIST-GD] 梯度下降恢复速度优化 | 初始=[1.26,0.08,-0.73] 最终=[0.77,-0.30,-0.23] 目标=(3.49,0.79) RA迭代=[0.0433,-0.3614,-0.3599] 中心射线=2.58
+[ros2_control_node-3] [WARN] [1791610338.909301761] [StateRL]: [RA-REC] 进入恢复 | group=A mode=paper_faithful_switch ra=0.0433 entry=-0.0500 effective_exit=-0.0500 hysteresis=false hold=false 恢复速度=[0.77,-0.30,-0.23]
+[ros2_control_node-3] [INFO] [1791610338.923651777] [StateRL]: [ABS-POLICY-CMD] event=recovery_command_issued clock=steady_clock_ns write_ns=17841245239426 write_id=652 source_session_id=17837954878104 source_policy_cycle_id=162 source_mode=1 action_source=2 transition_reason=1 recovery_episode_id=4 q_rad=[-0.123096,0.214309,-1.600453,-0.233685,0.480753,-2.010745,0.348043,0.668515,-1.380417,0.144037,0.667465,-1.852863]
+[ros2_control_node-3] [INFO] [1791610339.073830787] [StateRL]: [REC-DIAG] lin_vel=[1.13,0.15,-0.99] twist=[0.77,-0.30,-0.23] hold=0 rec_action_range=[-2.696,1.585]
+[ros2_control_node-3] [INFO] [1791610339.114595265] [StateRL]: [RA-REC] 退出恢复 | group=A mode=paper_faithful_switch ra=-0.0572 < effective_exit=-0.0500 entry=-0.0500 hysteresis=false hold=false, 回到敏捷策略
+[ros2_control_node-3] [INFO] [1791610339.156304797] [StateRL]: [EVAL] step=175 t=3.500 robot=(3.772,-0.134) yaw=-0.174 goal=(7.000,0.000) dist=3.230 body=(3.156,1.021) heading=0.680 arrived=0 ra=-0.32237 entry=-0.05000 recovery=0 hold=0 twist=(0.770,-0.298,-0.229) min_ray_log=-0.849 max_ray_log=2.585 min_ray_m=0.555 lin_vel=(0.541,-0.074,-0.280) ang_vel=(0.711,-0.912,0.146) action_range=(-2.986,2.709) contact=(1,1,1,1)
+[ros2_control_node-3] [INFO] [1791610339.197043744] [StateRL]: [TWIST-GD] 梯度下降恢复速度优化 | 初始=[0.81,0.19,-0.96] 最终=[0.32,-0.30,-0.46] 目标=(3.10,1.14) RA迭代=[0.0228,-0.5852,-0.5839] 中心射线=2.58
+[ros2_control_node-3] [WARN] [1791610339.197119257] [StateRL]: [RA-REC] 进入恢复 | group=A mode=paper_faithful_switch ra=0.0228 entry=-0.0500 effective_exit=-0.0500 hysteresis=false hold=false 恢复速度=[0.32,-0.30,-0.46]
+[ros2_control_node-3] [INFO] [1791610339.199202392] [StateRL]: [ABS-POLICY-CMD] event=recovery_command_issued clock=steady_clock_ns write_ns=17841520782218 write_id=712 source_session_id=17837954878104 source_policy_cycle_id=177 source_mode=1 action_source=2 transition_reason=1 recovery_episode_id=5 q_rad=[-0.014487,0.721352,-2.095062,-0.055051,0.539315,-1.982108,0.428692,1.164208,-2.062155,0.072818,0.972344,-2.056279]
+[ros2_control_node-3] [INFO] [1791610339.239077937] [StateRL]: [RA-REC] 退出恢复 | group=A mode=paper_faithful_switch ra=-0.1509 < effective_exit=-0.0500 entry=-0.0500 hysteresis=false hold=false, 回到敏捷策略
+[ros2_control_node-3] [INFO] [1791610339.293691184] [StateRL]: [TWIST-GD] 梯度下降恢复速度优化 | 初始=[0.54,0.19,0.06] 最终=[0.05,-0.30,0.56] 目标=(3.00,1.20) RA迭代=[0.0694,-0.5564,-0.5550] 中心射线=2.58
+[ros2_control_node-3] [WARN] [1791610339.293960088] [StateRL]: [RA-REC] 进入恢复 | group=A mode=paper_faithful_switch ra=0.0694 entry=-0.0500 effective_exit=-0.0500 hysteresis=false hold=false 恢复速度=[0.05,-0.30,0.56]
+[ros2_control_node-3] [INFO] [1791610339.312109545] [StateRL]: [ABS-POLICY-CMD] event=recovery_command_issued clock=steady_clock_ns write_ns=17841633640835 write_id=728 source_session_id=17837954878104 source_policy_cycle_id=181 source_mode=1 action_source=2 transition_reason=1 recovery_episode_id=6 q_rad=[0.298043,0.871514,-2.028256,-0.425490,0.651131,-1.715319,0.463472,1.057862,-1.933784,-0.111194,1.151018,-1.924832]
+[ros2_control_node-3] [INFO] [1791610339.323108036] [StateRL]: [RA-REC] 退出恢复 | group=A mode=paper_faithful_switch ra=-0.0942 < effective_exit=-0.0500 entry=-0.0500 hysteresis=false hold=false, 回到敏捷策略
+[ros2_control_node-3] [INFO] [1791610339.414717789] [StateRL]: [TWIST-GD] 梯度下降恢复速度优化 | 初始=[0.78,0.02,1.20] 最终=[0.29,-0.30,1.70] 目标=(3.01,0.82) RA迭代=[-0.0263,-0.5373,-0.5358] 中心射线=2.58
+[ros2_control_node-3] [WARN] [1791610339.414763165] [StateRL]: [RA-REC] 进入恢复 | group=A mode=paper_faithful_switch ra=-0.0263 entry=-0.0500 effective_exit=-0.0500 hysteresis=false hold=false 恢复速度=[0.29,-0.30,1.70]
+[ros2_control_node-3] [INFO] [1791610339.421075665] [StateRL]: [ABS-POLICY-CMD] event=recovery_command_issued clock=steady_clock_ns write_ns=17841742623409 write_id=756 source_session_id=17837954878104 source_policy_cycle_id=188 source_mode=1 action_source=2 transition_reason=1 recovery_episode_id=7 q_rad=[0.207159,0.483564,-1.496076,-0.138421,0.960712,-2.182090,0.199541,0.790816,-1.651573,0.204135,0.845027,-1.821362]
+[ros2_control_node-3] [INFO] [1791610339.513929399] [StateRL]: [REC-DIAG] lin_vel=[0.61,0.11,-0.06] twist=[0.29,-0.30,1.70] hold=0 rec_action_range=[-2.437,1.572]
+[ros2_control_node-3] [INFO] [1791610339.653011084] [StateRL]: [GOAL] 位置=(4.08,-0.16) 偏航=0.14 目标=(7.00,0.00) 距离=2.92 机体系=(2.91,-0.26) 航向=-0.09 path_err=0.00 path_on=0
+[ros2_control_node-3] [INFO] [1791610339.654641110] [StateRL]: [EVAL] step=200 t=4.000 robot=(4.083,-0.163) yaw=0.144 goal=(7.000,0.000) dist=2.921 body=(2.910,-0.258) heading=-0.088 arrived=0 ra=0.09234 entry=-0.05000 recovery=1 hold=0 twist=(0.286,-0.298,1.701) min_ray_log=-1.646 max_ray_log=2.585 min_ray_m=0.319 lin_vel=(0.188,-0.213,-0.208) ang_vel=(-1.287,1.039,1.174) action_range=(-2.495,2.109) contact=(1,1,-1,1)
+[ros2_control_node-3] [INFO] [1791610339.693160836] [StateRL]: [RA-REC] 退出恢复 | group=A mode=paper_faithful_switch ra=-0.0576 < effective_exit=-0.0500 entry=-0.0500 hysteresis=false hold=false, 回到敏捷策略
+[ros2_control_node-3] [INFO] [1791610339.813791805] [StateRL]: [TWIST-GD] 梯度下降恢复速度优化 | 初始=[0.23,-0.39,-0.16] 最终=[-0.27,-0.30,0.17] 目标=(2.85,-0.07) RA迭代=[-0.0255,-0.2224,-0.2214] 中心射线=2.58
+[ros2_control_node-3] [WARN] [1791610339.813824811] [StateRL]: [RA-REC] 进入恢复 | group=A mode=paper_faithful_switch ra=-0.0255 entry=-0.0500 effective_exit=-0.0500 hysteresis=false hold=false 恢复速度=[-0.27,-0.30,0.17]
+[ros2_control_node-3] [INFO] [1791610339.814919893] [StateRL]: [ABS-POLICY-CMD] event=recovery_command_issued clock=steady_clock_ns write_ns=17842136517567 write_id=836 source_session_id=17837954878104 source_policy_cycle_id=208 source_mode=1 action_source=2 transition_reason=1 recovery_episode_id=8 q_rad=[0.470743,0.734724,-1.834518,-0.326671,0.886065,-1.617504,0.038386,1.163451,-1.816279,0.086093,1.176012,-1.812895]
+[ros2_control_node-3] [INFO] [1791610339.835672095] [StateRL]: [REC-DIAG] lin_vel=[0.17,-0.40,0.45] twist=[-0.27,-0.30,0.17] hold=0 rec_action_range=[-1.877,1.541]
+[ros2_control_node-3] [INFO] [1791610339.854200788] [StateRL]: [RA-REC] 退出恢复 | group=A mode=paper_faithful_switch ra=-0.0850 < effective_exit=-0.0500 entry=-0.0500 hysteresis=false hold=false, 回到敏捷策略
+[ros2_control_node-3] [INFO] [1791610339.913885204] [StateRL]: [TWIST-GD] 梯度下降恢复速度优化 | 初始=[0.10,-0.37,-0.38] 最终=[-0.40,-0.30,0.12] 目标=(2.84,0.09) RA迭代=[-0.0078,-0.2517,-0.2504] 中心射线=2.58
+[ros2_control_node-3] [WARN] [1791610339.913937079] [StateRL]: [RA-REC] 进入恢复 | group=A mode=paper_faithful_switch ra=-0.0078 entry=-0.0500 effective_exit=-0.0500 hysteresis=false hold=false 恢复速度=[-0.40,-0.30,0.12]
+[ros2_control_node-3] [INFO] [1791610339.914733902] [StateRL]: [ABS-POLICY-CMD] event=recovery_command_issued clock=steady_clock_ns write_ns=17842236336391 write_id=856 source_session_id=17837954878104 source_policy_cycle_id=213 source_mode=1 action_source=2 transition_reason=1 recovery_episode_id=9 q_rad=[0.273991,0.874244,-1.827393,-0.597270,0.792936,-1.737741,0.414979,0.759708,-1.637947,0.192782,1.288758,-1.603508]
+[ros2_control_node-3] [INFO] [1791610340.013793412] [StateRL]: [RA-REC] 退出恢复 | group=A mode=paper_faithful_switch ra=-0.0525 < effective_exit=-0.0500 entry=-0.0500 hysteresis=false hold=false, 回到敏捷策略
+[ros2_control_node-3] [INFO] [1791610340.154444555] [StateRL]: [EVAL] step=225 t=4.500 robot=(4.186,-0.316) yaw=0.228 goal=(7.000,0.000) dist=2.832 body=(2.813,0.441) heading=0.374 arrived=0 ra=-0.62685 entry=-0.05000 recovery=0 hold=0 twist=(-0.395,-0.300,0.118) min_ray_log=-1.286 max_ray_log=2.585 min_ray_m=0.410 lin_vel=(0.412,-0.097,0.081) ang_vel=(-1.348,0.961,0.652) action_range=(-1.621,1.930) contact=(1,1,-1,1)
+[ros2_control_node-3] [INFO] [1791610340.653801108] [StateRL]: [EVAL] step=250 t=5.000 robot=(4.624,-0.293) yaw=0.397 goal=(7.000,0.000) dist=2.394 body=(2.304,0.028) heading=0.030 arrived=0 ra=-0.97835 entry=-0.05000 recovery=0 hold=0 twist=(-0.395,-0.300,0.118) min_ray_log=2.585 max_ray_log=2.585 min_ray_m=6.000 lin_vel=(0.957,-0.399,-0.302) ang_vel=(-0.387,-2.679,0.074) action_range=(-2.229,2.118) contact=(-1,1,1,-1)
+[ros2_control_node-3] [INFO] [1791610341.153547349] [StateRL]: [EVAL] step=275 t=5.500 robot=(5.292,-0.021) yaw=0.131 goal=(7.000,0.000) dist=1.708 body=(1.696,-0.152) heading=-0.220 arrived=0 ra=-0.99508 entry=-0.05000 recovery=0 hold=0 twist=(-0.395,-0.300,0.118) min_ray_log=2.585 max_ray_log=2.585 min_ray_m=6.000 lin_vel=(1.754,0.502,0.144) ang_vel=(-1.116,0.019,-0.268) action_range=(-1.571,2.500) contact=(1,-1,1,1)
+[ros2_control_node-3] [ERROR] [1791610341.287472482] [StateRL]: [EMERGENCY] Remote stop triggered → PASSIVE
+[ros2_control_node-3] [INFO] [1791610341.287543376] [rl_quadruped_controller]: Switched from rl to passive
+[ros2_control_node-3] [ERROR] [1791610341.292296972] [rl_quadruped_controller]: [HARD-STOP] command=1 -> forcing PASSIVE
+[ros2_control_node-3] [INFO] [1791610341.292366778] [StateRL]: [VERIFY-EXIT] RL steps executed: 282
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [ros2_control_node-3]: sending signal 'SIGINT' to process[ros2_control_node-3]
+[INFO] [robot_state_publisher-2]: sending signal 'SIGINT' to process[robot_state_publisher-2]
+[INFO] [rviz2-1]: sending signal 'SIGINT' to process[rviz2-1]
+[ros2_control_node-3] [INFO] [1791610341.808682127] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1791610341.808926821] [controller_manager]: Shutdown request received....
+[ros2_control_node-3] [INFO] [1791610341.809076128] [controller_manager]: Shutting down all controllers in the controller manager.
+[ros2_control_node-3] [INFO] [1791610341.809166074] [controller_manager]: Deactivating controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1791610341.809368990] [controller_manager]: Shutting down controller 'joint_state_broadcaster'
+[rviz2-1] [INFO] [1791610341.808696098] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[robot_state_publisher-2] [INFO] [1791610341.808758266] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ERROR] [robot_state_publisher-2]: process has died [pid 78743, exit code -2, cmd '/opt/ros/humble/lib/robot_state_publisher/robot_state_publisher --ros-args -r __node:=robot_state_publisher --params-file /tmp/launch_params_n68xnzvv'].
+[ros2_control_node-3] [INFO] [1791610341.809668615] [controller_manager]: Deactivating controller 'imu_sensor_broadcaster'
+[ros2_control_node-3] [INFO] [1791610341.809730008] [controller_manager]: Shutting down controller 'imu_sensor_broadcaster'
+[ros2_control_node-3] [INFO] [1791610341.809765393] [controller_manager]: Deactivating controller 'rl_quadruped_controller'
+[ros2_control_node-3] [INFO] [1791610341.809831748] [controller_manager]: Shutting down controller 'rl_quadruped_controller'
+[ros2_control_node-3] [INFO] [1791610341.809888068] [resource_manager]: 'deactivate' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1791610341.809926181] [resource_manager]: Successful 'deactivate' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1791610341.809939921] [resource_manager]: 'shutdown' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1791610341.809956733] [resource_manager]: Successful 'shutdown' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1791610341.809969030] [controller_manager]: Shutting down the controller manager.
+[rviz2-1] [INFO] [1791610341.822741624] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ERROR] [ros2_control_node-3]: process has died [pid 78745, exit code -2, cmd '/opt/ros/humble/lib/controller_manager/ros2_control_node --ros-args --params-file /home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/robot_control.yaml -r ~/robot_description:=/robot_description'].
+[INFO] [rviz2-1]: process has finished cleanly [pid 78741]

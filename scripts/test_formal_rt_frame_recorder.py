@@ -7,6 +7,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from abs_rt_frame import (  # noqa: E402
+    FRAME_MAGIC,
+    FRAME_VERSION,
     FrameStatus,
     RuntimeFrame,
     SOURCE_AUTHORITATIVE_RUNTIME,
@@ -21,12 +23,19 @@ from formal_rt_frame_recorder import (  # noqa: E402
 
 def fixture(source=SOURCE_AUTHORITATIVE_RUNTIME, sequence=2, session_id=7, rl_step=1, monotonic_ns=100):
     values = dict(
-        magic=0x414253525446524D, version=1, sequence=sequence,
+        magic=FRAME_MAGIC, version=FRAME_VERSION, sequence=sequence,
         monotonic_ns=monotonic_ns, session_id=session_id, rl_step=rl_step,
-        ray_age_ns=1, source=source, controller_active=1, rl_entered=1,
+        ray_age_ns=1, sim_clock_sequence=2, sim_clock_monotonic_ns=monotonic_ns - 1,
+        sim_clock_segment_id=1, sim_clock_age_ns=1,
+        risk_evaluation_ns=monotonic_ns, risk_condition_entered_ns=0, mode_change_ns=0,
+        source=source, controller_active=1, rl_entered=1,
         rl_active=1, safety_faulted=0, policy_state=0, ray_origin=1,
         ray_valid=1, collision_origin=0, torque_saturated_computed=0,
-        reserved_pad=0, ra_value=0.1, lin_vel=(0.1, 0.2, 0.3),
+        mode_before=0, switching_mode=1, action_source=1, transition_reason=0,
+        risk_condition_met=0, risk_condition_entered=2, policy_mode_changed=0,
+        sim_clock_status=1, sim_clock_valid=1, reserved_pad=0,
+        sim_time_s=0.1, entry_threshold=-0.05, exit_threshold=-0.08,
+        ra_value=0.1, lin_vel=(0.1, 0.2, 0.3),
         command=(0.4, 0.5, 0.6), world_pose=(1.0, 2.0, 0.3),
         ray2d=tuple(float(i) for i in range(11)),
         action_raw=tuple(float(i) for i in range(12)),

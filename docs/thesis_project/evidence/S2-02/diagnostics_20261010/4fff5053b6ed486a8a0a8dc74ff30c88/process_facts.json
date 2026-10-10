@@ -1,0 +1,33 @@
+{
+  "cleanup_events": [
+    {
+      "command": 1,
+      "event": "PASSIVE_STOP_REQUESTED",
+      "monotonic_ns": 17843879033048,
+      "phase": "cleanup"
+    },
+    {
+      "event": "GLOBAL_HARD_STOP",
+      "message": "[ros2_control_node-3] [ERROR] [1791610341.292296972] [rl_quadruped_controller]: [HARD-STOP] command=1 -> forcing PASSIVE",
+      "observed_monotonic_ns": 17844129680979,
+      "phase": "cleanup",
+      "source": "RlQuadrupedController/StateRL ROS log"
+    },
+    {
+      "confirmed": true,
+      "event": "STRATEGY_STOP_CONFIRMATION",
+      "monotonic_ns": 17844130198837,
+      "output_after_request_duration_ns": 0,
+      "phase": "cleanup"
+    }
+  ],
+  "closeout_complete": true,
+  "closeout_errors": [],
+  "exit_code": 0,
+  "external_safety_events": [],
+  "forced_termination": false,
+  "run_terminal_monotonic_ns": 17841920240111,
+  "run_terminal_result": "COLLISION_TERMINATION",
+  "shutdown_complete": true,
+  "shutdown_request_source": "S1-04 bounded supervisor SIGINT with TERM/KILL fallback"
+}

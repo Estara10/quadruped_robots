@@ -1,0 +1,39 @@
+{
+  "run_id": "64d80227fba24d75954fc4da979cd82e",
+  "raw_shm_path": "/dev/shm/mujoco_collision_v2",
+  "raw_bytes": 5760,
+  "expected_v3_extended_bytes": 5760,
+  "producer_stored_version": 4,
+  "reader_expected_version": 3,
+  "normal_reader_status_at_run": "INVALID",
+  "reader_rejection_cause": "producer binary wrote version=4 while the deployed reader requires version=3; post-run rebuild restored producer kVersion=3, but this run was not repeated",
+  "producer_authoritative": true,
+  "capture_id_matches": true,
+  "model_fingerprint_matches": true,
+  "ground_split": {
+    "total": 9,
+    "foot": 4,
+    "nonfoot": 5,
+    "invariant_holds": true
+  },
+  "physics_coverage_complete": true,
+  "unknown_contact_steps": 0,
+  "invalid_posture_steps": 0,
+  "fall_episode_count": 1,
+  "fall_history_overflow": false,
+  "offline_corrected_layout_and_version_check_on_saved_snapshot": true,
+  "caveat": "The snapshot contains one confirmed posture episode while no controller or policy frame had started. The supervisor rejected the stored version tag, so this is forensic startup-source evidence only and cannot classify a motion fall or validate the runtime recorder/analyzer chain.",
+  "fall_history_at_startup": [
+    {
+      "start_physics_step": 125,
+      "end_physics_step": 5124,
+      "confirmed_physics_step": 275,
+      "start_sim_time": 0.25000000000000017,
+      "end_sim_time": 10.248000000000092,
+      "confirmed_sim_time": 0.5500000000000004,
+      "confirmed": true,
+      "closed": false
+    }
+  ],
+  "fall_confirmed_current_at_snapshot": true
+}

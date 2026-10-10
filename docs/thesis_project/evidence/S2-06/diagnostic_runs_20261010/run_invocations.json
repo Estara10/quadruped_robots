@@ -1,0 +1,147 @@
+[
+  {
+    "scene": "scene_random_01.xml",
+    "run_id": "a1b6a46f7e694b2e8eca86b904baf6eb",
+    "command": [
+      "/usr/bin/python3",
+      "scripts/s1_run_diagnostic.py",
+      "--scene",
+      "scene_random_01.xml",
+      "--goal-x",
+      "7.0",
+      "--sim-limit-s",
+      "20",
+      "--wall-cap-s",
+      "120",
+      "--overlay",
+      "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description",
+      "--output-root",
+      "docs/thesis_project/evidence/S2-06/diagnostic_runs_20261010/scene_random_01",
+      "--display",
+      ":0",
+      "--xauthority",
+      "/run/user/1000/gdm/Xauthority"
+    ],
+    "environment": {
+      "DISPLAY": ":0",
+      "XAUTHORITY": "/run/user/1000/gdm/Xauthority",
+      "execution": "temporary sandbox-external X11/GLFW access approved for this task"
+    }
+  },
+  {
+    "scene": "scene_random_02.xml",
+    "run_id": "8f2ee979a36d49a2a8951c5e8eac6f07",
+    "command": [
+      "/usr/bin/python3",
+      "scripts/s1_run_diagnostic.py",
+      "--scene",
+      "scene_random_02.xml",
+      "--goal-x",
+      "7.0",
+      "--sim-limit-s",
+      "20",
+      "--wall-cap-s",
+      "120",
+      "--overlay",
+      "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description",
+      "--output-root",
+      "docs/thesis_project/evidence/S2-06/diagnostic_runs_20261010/scene_random_02",
+      "--display",
+      ":0",
+      "--xauthority",
+      "/run/user/1000/gdm/Xauthority"
+    ],
+    "environment": {
+      "DISPLAY": ":0",
+      "XAUTHORITY": "/run/user/1000/gdm/Xauthority",
+      "execution": "temporary sandbox-external X11/GLFW access approved for this task"
+    }
+  },
+  {
+    "scene": "scene_random_03.xml",
+    "run_id": "68447ad2375a4b28b3abbe10d4a1977d",
+    "command": [
+      "/usr/bin/python3",
+      "scripts/s1_run_diagnostic.py",
+      "--scene",
+      "scene_random_03.xml",
+      "--goal-x",
+      "7.0",
+      "--sim-limit-s",
+      "20",
+      "--wall-cap-s",
+      "120",
+      "--overlay",
+      "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description",
+      "--output-root",
+      "docs/thesis_project/evidence/S2-06/diagnostic_runs_20261010/scene_random_03",
+      "--display",
+      ":0",
+      "--xauthority",
+      "/run/user/1000/gdm/Xauthority"
+    ],
+    "environment": {
+      "DISPLAY": ":0",
+      "XAUTHORITY": "/run/user/1000/gdm/Xauthority",
+      "execution": "temporary sandbox-external X11/GLFW access approved for this task"
+    }
+  },
+  {
+    "scene": "scene_random_04.xml",
+    "run_id": "1173da3d307f474d91f034ebf1582476",
+    "command": [
+      "/usr/bin/python3",
+      "scripts/s1_run_diagnostic.py",
+      "--scene",
+      "scene_random_04.xml",
+      "--goal-x",
+      "7.0",
+      "--sim-limit-s",
+      "20",
+      "--wall-cap-s",
+      "120",
+      "--overlay",
+      "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description",
+      "--output-root",
+      "docs/thesis_project/evidence/S2-06/diagnostic_runs_20261010/scene_random_04",
+      "--display",
+      ":0",
+      "--xauthority",
+      "/run/user/1000/gdm/Xauthority"
+    ],
+    "environment": {
+      "DISPLAY": ":0",
+      "XAUTHORITY": "/run/user/1000/gdm/Xauthority",
+      "execution": "temporary sandbox-external X11/GLFW access approved for this task"
+    }
+  },
+  {
+    "scene": "scene_random_05.xml",
+    "run_id": "0eb23aa93ec94f52968248d971fa832a",
+    "command": [
+      "/usr/bin/python3",
+      "scripts/s1_run_diagnostic.py",
+      "--scene",
+      "scene_random_05.xml",
+      "--goal-x",
+      "7.0",
+      "--sim-limit-s",
+      "20",
+      "--wall-cap-s",
+      "120",
+      "--overlay",
+      "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description",
+      "--output-root",
+      "docs/thesis_project/evidence/S2-06/diagnostic_runs_20261010/scene_random_05",
+      "--display",
+      ":0",
+      "--xauthority",
+      "/run/user/1000/gdm/Xauthority"
+    ],
+    "environment": {
+      "DISPLAY": ":0",
+      "XAUTHORITY": "/run/user/1000/gdm/Xauthority",
+      "execution": "temporary sandbox-external X11/GLFW access approved for this task"
+    }
+  }
+]

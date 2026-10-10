@@ -1,0 +1,2 @@
+{"event": "space_pause_requested", "keycode": 65, "window_id": "0x6a00009", "window_pid": 130207, "monotonic_ns_after_key_release": 8196631886904}
+{"event": "pause_observation", "before_clock": [34098, 34.095999999995705, 8196591808715], "after_clock": [34098, 34.095999999995705, 8196591808715], "policy_frames_before": 811, "policy_frames_after": 811, "new_frame_clock_statuses": [], "new_frame_safety_faults": 0}

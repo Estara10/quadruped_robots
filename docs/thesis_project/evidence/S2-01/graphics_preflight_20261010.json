@@ -1,0 +1,19 @@
+{
+  "date_local": "2026-10-10",
+  "authorization_scope": "temporary elevated execution used only for read-only access to the existing desktop display and a 16x16 hidden GLFW window; no authorization, permissions, global environment, system service, or installed component changed",
+  "display": ":0",
+  "xauthority": "/run/user/1000/gdm/Xauthority",
+  "xauthority_readable_before_probe": true,
+  "xdpyinfo": "exit 0; X connection succeeded",
+  "compiler": "/usr/bin/gcc; GCC 11.4.0",
+  "glfw_version": "3.3.6",
+  "probe": "temporary C program compiled against system GLFW/OpenGL; hidden 16x16 window created and destroyed",
+  "glfw_init": "PASS",
+  "window_creation": "PASS",
+  "gl_vendor": "Intel",
+  "gl_renderer": "Mesa Intel(R) Graphics (RPL-P)",
+  "gl_version": "4.6 (Compatibility Profile) Mesa 23.2.1-1ubuntu3.1~22.04.4",
+  "initial_probe_attempt": "The first temporary probe source omitted stdlib.h and exited with SIGSEGV after a compiler warning about getenv; X access had already passed. After adding the required header, the same minimal GLFW probe passed. No project process was started by the failed probe.",
+  "temporary_ld_library_path": "/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH",
+  "temporary_probe_cleanup": "source and executable removed after recording; window destroyed before exit"
+}

@@ -1,0 +1,73 @@
+{
+  "run_id": "371cde10a7e9498f99bf54686852d4c7",
+  "record_validity": "INVALID",
+  "record_validity_reason_count": 1,
+  "record_validity_reasons": [
+    "no_frame_lines"
+  ],
+  "terminal_result": "INCOMPLETE_UNTRUSTED_RECORD",
+  "run_terminal_result_context": "WALL_CLOCK_GUARD_INCOMPLETE",
+  "run_terminal_result_record": "WALL_CLOCK_GUARD_INCOMPLETE",
+  "session_ids_observed": [],
+  "frame_count": 0,
+  "all_derived_metrics": "UNKNOWN: record fails continuity/schema validation; no aggregation across sessions",
+  "collision_coverage": {
+    "available": false,
+    "reason": "versioned collision snapshot is missing, stale, invalid, has unknown contacts, or lacks contiguous publisher coverage",
+    "event_count": null,
+    "coverage": {
+      "samples": 0,
+      "live_samples": 0,
+      "unknown_contacts": 0,
+      "physics_step_gaps": 0,
+      "sampled_steps_contiguous": false,
+      "producer_physics_coverage_complete": false,
+      "complete_for_no_collision_claim": false,
+      "scope": "whole captured interval; motion boundary is evaluated by S1 analyzer"
+    }
+  },
+  "external_safety_events": [],
+  "cleanup_events": [
+    {
+      "command": 1,
+      "event": "PASSIVE_STOP_REQUESTED",
+      "monotonic_ns": 37683374470146,
+      "phase": "cleanup",
+      "publish_return_monotonic_ns": 37683374682614,
+      "publisher_invoked_monotonic_ns": 37683374212602
+    },
+    {
+      "confirmed": true,
+      "event": "STRATEGY_STOP_CONFIRMATION",
+      "evidence": {
+        "command": 1,
+        "controller_steady_monotonic_ns": 37683379549784,
+        "event": "hard_stop_transition_complete",
+        "message": "[ros2_control_node-3] [INFO] [1791630181.057933952] [rl_quadruped_controller]: [HARD-STOP-CONFIRMED] command=1 state=PASSIVE steady_ns=37683379549784 changed=1",
+        "state": "PASSIVE"
+      },
+      "monotonic_ns": 37683379549784,
+      "observation_window_monotonic_ns": [
+        37683374931510,
+        37683381950305
+      ],
+      "phase": "cleanup"
+    },
+    {
+      "event": "GLOBAL_HARD_STOP",
+      "event_monotonic_ns": null,
+      "event_time_interval_monotonic_ns": [
+        37683374470146,
+        37683379549784
+      ],
+      "event_time_source": "not embedded in source line",
+      "message": "[ros2_control_node-3] [ERROR] [1791630181.057748596] [rl_quadruped_controller]: [HARD-STOP] command=1 -> forcing PASSIVE",
+      "observer_received_monotonic_ns": 37684176685498,
+      "phase": "cleanup",
+      "source": "RlQuadrupedController/StateRL ROS log"
+    }
+  ],
+  "command_consumption": "UNKNOWN",
+  "scene": "scene_flat.xml",
+  "scene_id": "flat"
+}

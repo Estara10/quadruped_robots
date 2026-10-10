@@ -4,9 +4,13 @@
 
 #include "rl_quadruped_controller/FSM/StateRL.h"
 #include "rl_quadruped_controller/FSM/AbsObservationContract.h"
+#include "rl_quadruped_controller/FSM/AbsSwitchConfig.hpp"
 #include "rl_quadruped_controller/FSM/RASwitchingLogic.hpp"
 #include <abs_ray2d_shm_contract.h>
+#include <abs_ray2d_validation.h>
 #include <abs_rt_frame_contract.h>
+#include <abs_normal_shutdown_contract.h>
+#include <abs_sim_clock_contract.h>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <algorithm>
 #include <rclcpp/logging.hpp>
@@ -26,6 +30,8 @@
 #include <stdexcept>
 
 namespace {
+constexpr uint64_t kSimClockFreshnessNs = 100'000'000ULL;
+
 uint64_t monotonicNowNs()
 {
     return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -85,7 +91,22 @@ StateRL::StateRL(CtrlInterfaces& ctrl_interfaces,
     // read params from yaml
     loadYaml(model_path);
 
+    RCLCPP_INFO(node_->get_logger(),
+        "[S1-RUN-SOURCE] pid=%d package_share=%s config=%s agile_model=%s ra_model=%s candidate=%s group=A entry_threshold=%.9g effective_exit_threshold=%.9g hysteresis=false hold=false goal=(%.3f,%.3f)",
+        static_cast<int>(::getpid()), package_share_directory.c_str(),
+        (model_path + "/config.yaml").c_str(), (model_path + "/" + params_.model_name).c_str(),
+        (model_path + "/" + params_.ra_model_name).c_str(),
+        abs_switching::switchModeName(switching_mode_), params_.ra_threshold,
+        abs_switching::effectiveExitThreshold(switching_mode_, params_.ra_threshold, params_.ra_threshold - 0.03),
+        goal_x_, goal_y_);
+    const double effective_exit = abs_switching::effectiveExitThreshold(
+        switching_mode_, params_.ra_threshold, params_.ra_threshold - 0.03);
+    RCLCPP_INFO(node_->get_logger(),
+        "[S2-SWITCH-CONFIG] group=A entry_threshold=%.9g effective_exit_threshold=%.9g hysteresis=false hold=false",
+        params_.ra_threshold, effective_exit);
+
     live_telemetry_enabled_ = envEnabled("ABS_LIVE_TELEMETRY");
+    policy_event_trace_enabled_ = envEnabled("ABS_POLICY_EVENT_TRACE");
     if (const char* requested_fault = std::getenv("ABS_TEST_FAULT"); requested_fault != nullptr && requested_fault[0] != '\0')
     {
         if (!envEnabled("ABS_SIMULATION_TEST"))
@@ -263,6 +284,9 @@ StateRL::~StateRL()
     }
     if (ray2d_stamp_shm_ptr_ != nullptr && ray2d_stamp_shm_ptr_ != MAP_FAILED) munmap(ray2d_stamp_shm_ptr_, sizeof(abs_ray2d_shm::FrameHeader));
     if (ray2d_stamp_shm_fd_ >= 0) close(ray2d_stamp_shm_fd_);
+    if (sim_clock_shm_ptr_ != nullptr && sim_clock_shm_ptr_ != MAP_FAILED)
+        munmap(sim_clock_shm_ptr_, sizeof(abs_sim_clock::SimClock));
+    if (sim_clock_shm_fd_ >= 0) close(sim_clock_shm_fd_);
     // Cleanup real-time observation frame shared memory. Invalidate BEFORE
     // unmapping so the HUD sees INVALID immediately instead of a stale LIVE
     // frame that would only expire after the freshness timeout.
@@ -279,6 +303,13 @@ StateRL::~StateRL()
 
 void StateRL::enter()
 {
+    goal_arrived_ = false;
+    normal_shutdown_requested_ = false;
+    normal_shutdown_ready_ = false;
+    normal_deceleration_failed_logged_ = false;
+    normal_shutdown_request_ns_ = 0;
+    normal_deceleration_stable_since_ns_ = 0;
+    normal_shutdown_initial_command_ = {0.0, 0.0, 0.0};
     // Init observations
     obs_.lin_vel = torch::tensor({{0.0, 0.0, 0.0}});
     obs_.ang_vel = torch::tensor({{0.0, 0.0, 0.0}});
@@ -359,8 +390,8 @@ void StateRL::enter()
         abs_rt_frame::storeRelease(&rt_frame_shm_ptr_->header.sequence, 0);
         abs_rt_frame::storeRelease(&rt_frame_shm_ptr_->header.monotonic_ns, 0);
         RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-            "[RtFrame] Shared memory initialized: %s session_id=%lu",
-            abs_rt_frame::kFrameShmName, rt_session_id_);
+            "[RtFrame] Shared memory initialized: %s session_id=%lu writer_pid=%d",
+            abs_rt_frame::kFrameShmName, rt_session_id_, static_cast<int>(::getpid()));
     }
 
     // Always initialize obs_.ray2d (will be updated from shm in runModel if available)
@@ -368,6 +399,11 @@ void StateRL::enter()
     last_contacts_ = torch::zeros({1, 4}, torch::kBool);
     ray2d_valid_ = false;
     safety_faulted_ = false;
+    goal_arrived_ = false;
+    normal_shutdown_ready_ = false;
+    normal_deceleration_failed_logged_ = false;
+    normal_shutdown_request_ns_ = 0;
+    normal_deceleration_stable_since_ns_ = 0;
     episode_timer_ = 0.0;
     rl_step_count_ = 0;
     sync_decimation_counter_ = 0;
@@ -377,19 +413,39 @@ void StateRL::enter()
     last_ray_reason_ = "not_checked";
     ray_check_count_ = 0;
     ray_last_check_telemetry_ns_ = 0;
+    last_sim_clock_sequence_ = 0;
+    last_sim_clock_monotonic_ns_ = 0;
+    last_sim_time_s_ = 0.0;
+    sim_clock_segment_id_ = 0;
+    sim_clock_mapping_replacement_pending_ = false;
+    recovery_episode_id_ = 0;
+    previous_risk_valid_ = false;
+    previous_risk_met_ = false;
+    previous_risk_session_id_ = 0;
+    previous_risk_step_ = 0;
+    cycle_trace_ = PolicyCycleTrace{};
+    {
+        std::lock_guard<std::mutex> lock(command_mutex_);
+        command_trace_ = CommandTrace{};
+        command_write_id_ = 0;
+        last_issued_recovery_episode_id_ = 0;
+    }
 
     // Init output
     output_torques = torch::zeros({1, params_.num_of_dofs});
     output_dof_pos_ = params_.default_dof_pos;
 
     // Init robot_command_ to stand position (prevent sending zero commands before RL thread runs)
-    for (int i = 0; i < params_.num_of_dofs; ++i)
     {
-        robot_command_.motor_command.q[i] = params_.default_dof_pos[0][i].item<double>();
-        robot_command_.motor_command.dq[i] = 0;
-        robot_command_.motor_command.kp[i] = params_.rl_kp[0][i].item<double>();
-        robot_command_.motor_command.kd[i] = params_.rl_kd[0][i].item<double>();
-        robot_command_.motor_command.tau[i] = 0;
+        std::lock_guard<std::mutex> lock(command_mutex_);
+        for (int i = 0; i < params_.num_of_dofs; ++i)
+        {
+            robot_command_.motor_command.q[i] = params_.default_dof_pos[0][i].item<double>();
+            robot_command_.motor_command.dq[i] = 0;
+            robot_command_.motor_command.kp[i] = params_.rl_kp[0][i].item<double>();
+            robot_command_.motor_command.kd[i] = params_.rl_kd[0][i].item<double>();
+            robot_command_.motor_command.tau[i] = 0;
+        }
     }
 
     // Init control
@@ -411,6 +467,25 @@ void StateRL::enter()
     }
 
     running_ = true;
+    stage_a_common_start_enabled_ = envEnabled("ABS_P1_10_COMMON_START");
+    if (stage_a_common_start_enabled_)
+    {
+        const char* capture_id = std::getenv("ABS_P1_10_CAPTURE_ID");
+        const char* shm_name = std::getenv("ABS_P1_10_COMMON_START_SHM");
+        if (capture_id != nullptr && shm_name != nullptr &&
+            std::string(shm_name) == abs_stage_a_common_start::kDefaultShmName &&
+            abs_stage_a_common_start::validCaptureId(capture_id))
+        {
+            stage_a_start_gate_ = std::make_unique<abs_stage_a_common_start::SharedClient>(
+                shm_name, capture_id);
+        }
+        if (stage_a_start_gate_ == nullptr || !stage_a_start_gate_->valid() ||
+            !stage_a_start_gate_->recordRlEnter(rt_session_id_, 0, 0, monotonicNowNs()))
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("StateRL"),
+                "[P1-10] common-start RL-enter anchor unavailable; gated record will fail closed");
+        }
+    }
     if (test_fault_blocked_)
     {
         safetyVeto("simulation test fault requested outside simulation mode");
@@ -567,11 +642,16 @@ void StateRL::exit()
     // LIVE-faulted frame and never reaches exit().
     invalidateRtFrame();
 
-    // Zero PD gains so the robot goes limp when exiting to PASSIVE
+    // Preserve live support gains only for the confirmed healthy normal-arrival
+    // transition into FIXEDSTAND. Other exits retain the existing limp behavior.
+    // S2-07 ends its bounded simulation hold by stopping MuJoCo before ROS/controller.
     for (int i = 0; i < params_.num_of_dofs; ++i)
     {
-        robot_command_.motor_command.kp[i] = 0;
-        robot_command_.motor_command.kd[i] = 0;
+        if (!normal_shutdown_ready_)
+        {
+            robot_command_.motor_command.kp[i] = 0;
+            robot_command_.motor_command.kd[i] = 0;
+        }
         robot_command_.motor_command.tau[i] = 0;
     }
 }
@@ -685,7 +765,10 @@ double StateRL::normalizedTimer() const
 
 bool StateRL::updateRay2d()
 {
-    const uint64_t now_ns = monotonicNowNs();
+    // These fields describe the current validation attempt, not a prior frame.
+    last_ray_stamp_ns_ = 0;
+    last_ray_validation_ns_ = 0;
+    last_ray_age_ns_ = 0;
     const uint64_t timeout_ns = static_cast<uint64_t>(params_.abs_ray2d_timeout_ms) * 1000000ULL;
     if (ray2d_stamp_shm_ptr_ == nullptr || ray2d_shm_ptr_ == nullptr)
     {
@@ -710,26 +793,21 @@ bool StateRL::updateRay2d()
         const uint64_t stamp_ns = abs_ray2d_shm::loadAcquire(&ray2d_stamp_shm_ptr_->monotonic_ns);
         std::memcpy(snapshot.data(), ray2d_shm_ptr_, snapshot.size() * sizeof(float));
         const uint64_t sequence_after = abs_ray2d_shm::loadAcquire(&ray2d_stamp_shm_ptr_->sequence);
-        if (sequence_before != sequence_after || (sequence_after & 1U) != 0U)
+        if (!abs_ray2d_shm::coherentSequence(sequence_before, sequence_after))
         {
             last_ray_reason_ = "incoherent_snapshot";
             continue;
         }
 
+        // Read the validation clock only after the accepted seqlock snapshot.
+        // The producer may have published this valid timestamp while we copied it.
+        const uint64_t validation_now_ns = monotonicNowNs();
         last_ray_stamp_ns_ = stamp_ns;
-        last_ray_age_ns_ = now_ns >= stamp_ns ? now_ns - stamp_ns : 0;
-        if (magic != abs_ray2d_shm::kMagic || version != abs_ray2d_shm::kVersion)
-            last_ray_reason_ = "header_magic_or_version";
-        else if (stamp_ns == 0)
-            last_ray_reason_ = "unarmed_timestamp";
-        else if (now_ns < stamp_ns)
-            last_ray_reason_ = "monotonic_clock_order";
-        else if (last_ray_age_ns_ > timeout_ns)
-            last_ray_reason_ = "stale";
-        else if (!abs_observation::rayFrameValid(snapshot.data(), params_.abs_ray2d_count,
-                                                    magic, stamp_ns, now_ns, timeout_ns))
-            last_ray_reason_ = "non_finite_ray";
-        else
+        last_ray_validation_ns_ = validation_now_ns;
+        last_ray_age_ns_ = validation_now_ns >= stamp_ns ? validation_now_ns - stamp_ns : 0;
+        const auto validation = abs_ray2d_shm::validate(snapshot.data(), params_.abs_ray2d_count,
+            magic, version, stamp_ns, validation_now_ns, timeout_ns);
+        if (validation == abs_ray2d_shm::Validation::valid)
         {
             obs_.ray2d = torch::from_blob(snapshot.data(), {1, params_.abs_ray2d_count}, torch::kFloat32).clone();
             ray2d_valid_ = true;
@@ -737,13 +815,22 @@ bool StateRL::updateRay2d()
             if (live_telemetry_enabled_ && ++ray_check_count_ % 50U == 0U)
             {
                 const double average_period_ms = ray_last_check_telemetry_ns_ == 0 ? 0.0
-                    : static_cast<double>(now_ns - ray_last_check_telemetry_ns_) / 50.0 / 1e6;
+                    : static_cast<double>(validation_now_ns - ray_last_check_telemetry_ns_) / 50.0 / 1e6;
                 RCLCPP_INFO(rclcpp::get_logger("StateRL"),
                     "[ABS-LIVE-RAY-CHECK] clock=steady_clock_ns now_ns=%lu checks=50 average_period_ms=%.6f",
-                    now_ns, average_period_ms);
-                ray_last_check_telemetry_ns_ = now_ns;
+                    validation_now_ns, average_period_ms);
+                ray_last_check_telemetry_ns_ = validation_now_ns;
             }
             return true;
+        }
+        switch (validation)
+        {
+            case abs_ray2d_shm::Validation::header: last_ray_reason_ = "header_magic_or_version"; break;
+            case abs_ray2d_shm::Validation::unarmed_timestamp: last_ray_reason_ = "unarmed_timestamp"; break;
+            case abs_ray2d_shm::Validation::monotonic_clock_order: last_ray_reason_ = "monotonic_clock_order"; break;
+            case abs_ray2d_shm::Validation::stale: last_ray_reason_ = "stale"; break;
+            case abs_ray2d_shm::Validation::non_finite: last_ray_reason_ = "non_finite_ray"; break;
+            case abs_ray2d_shm::Validation::valid: break;
         }
         ray2d_valid_ = false;
         return false;
@@ -758,17 +845,25 @@ void StateRL::safetyVeto(const char* stage)
     {
         const uint64_t now_ns = monotonicNowNs();
         RCLCPP_ERROR(rclcpp::get_logger("StateRL"),
-            "[ABS-CONTRACT] event=detected clock=steady_clock_ns detection_ns=%lu last_ray_ns=%lu ray_age_ns=%lu ray_reason=%s stage=%s transition_request=PASSIVE",
-            now_ns, last_ray_stamp_ns_, last_ray_age_ns_, last_ray_reason_.c_str(), stage);
+            "[ABS-CONTRACT] event=detected clock=steady_clock_ns detection_ns=%lu ray_stamp_ns=%lu ray_validation_now_ns=%lu ray_age_ns=%lu ray_reason=%s stage=%s transition_request=PASSIVE",
+            now_ns, last_ray_stamp_ns_, last_ray_validation_ns_, last_ray_age_ns_, last_ray_reason_.c_str(), stage);
     }
     safety_faulted_ = true;
     running_ = false;
-    for (int i = 0; i < params_.num_of_dofs; ++i) {
-        robot_command_.motor_command.q[i] = params_.default_dof_pos[0][i].item<double>();
-        robot_command_.motor_command.kp[i] = 0.0;
-        robot_command_.motor_command.kd[i] = 0.0;
-        robot_command_.motor_command.tau[i] = 0.0;
+    {
+        std::lock_guard<std::mutex> lock(command_mutex_);
+        for (int i = 0; i < params_.num_of_dofs; ++i) {
+            robot_command_.motor_command.q[i] = params_.default_dof_pos[0][i].item<double>();
+            robot_command_.motor_command.kp[i] = 0.0;
+            robot_command_.motor_command.kd[i] = 0.0;
+            robot_command_.motor_command.tau[i] = 0.0;
+        }
+        command_trace_.action_source = abs_rt_frame::kActionNone;
     }
+    cycle_trace_.action_source = abs_rt_frame::kActionNone;
+    cycle_trace_.transition_reason = abs_rt_frame::kTransitionNone;
+    cycle_trace_.policy_mode_changed = 0;
+    cycle_trace_.mode_change_ns = 0;
     emitCommandTelemetry("safety_veto", stage);
     writeRtFaultedFrame();
 }
@@ -905,7 +1000,44 @@ void StateRL::writeRtFrame(uint32_t policy_state,
     local.ray_age_ns = last_ray_age_ns_;
     local.collision_origin = abs_rt_frame::kCollisionUnavailable;  // bridge-side only
     local.torque_saturated_computed = 0;                           // not computed anywhere
+    local.mode_before = cycle_trace_.mode_before;
+    local.switching_mode = cycle_trace_.switching_mode;
+    local.action_source = cycle_trace_.action_source;
+    local.transition_reason = cycle_trace_.transition_reason;
+    local.risk_condition_met = cycle_trace_.risk_condition_met;
+    local.risk_condition_entered = cycle_trace_.risk_condition_entered;
+    local.policy_mode_changed = cycle_trace_.policy_mode_changed;
+    local.sim_clock_status = cycle_trace_.sim_clock_status;
+    local.sim_clock_valid = cycle_trace_.sim_clock_valid;
     local.reserved_pad = 0;
+    local.sim_time_s = cycle_trace_.sim_time_s;
+    local.sim_clock_sequence = cycle_trace_.sim_clock_sequence;
+    local.sim_clock_monotonic_ns = cycle_trace_.sim_clock_monotonic_ns;
+    local.sim_clock_segment_id = cycle_trace_.sim_clock_segment_id;
+    local.sim_clock_age_ns = cycle_trace_.sim_clock_age_ns;
+    if (local.sim_clock_valid)
+    {
+        if (now_ns < local.sim_clock_monotonic_ns)
+        {
+            local.sim_clock_valid = 0;
+            local.sim_clock_status = abs_rt_frame::kSimClockStale;
+            local.sim_clock_age_ns = 0;
+        }
+        else
+        {
+            local.sim_clock_age_ns = now_ns - local.sim_clock_monotonic_ns;
+            if (local.sim_clock_age_ns > kSimClockFreshnessNs)
+            {
+                local.sim_clock_valid = 0;
+                local.sim_clock_status = abs_rt_frame::kSimClockStale;
+            }
+        }
+    }
+    local.risk_evaluation_ns = cycle_trace_.risk_evaluation_ns;
+    local.risk_condition_entered_ns = cycle_trace_.risk_condition_entered_ns;
+    local.mode_change_ns = cycle_trace_.mode_change_ns;
+    local.entry_threshold = static_cast<float>(cycle_trace_.entry_threshold);
+    local.exit_threshold = static_cast<float>(cycle_trace_.exit_threshold);
     local.ra_value = static_cast<float>(ra_value_);
 
     // Every value copied into the frame must be finite; any NaN/Inf invalidates.
@@ -915,6 +1047,9 @@ void StateRL::writeRtFrame(uint32_t policy_state,
     };
 
     require_finite(ra_value_);
+    require_finite(cycle_trace_.entry_threshold);
+    require_finite(cycle_trace_.exit_threshold);
+    if (cycle_trace_.sim_clock_valid) require_finite(cycle_trace_.sim_time_s);
     for (int i = 0; i < 3; ++i)
     {
         const double v = obs_.lin_vel[0][i].item<double>();
@@ -969,6 +1104,22 @@ void StateRL::writeRtFrame(uint32_t policy_state,
     // then sequence even (seqlock, identical to the ray2d stamp protocol).
     uint64_t sequence = abs_rt_frame::loadAcquire(&frame->header.sequence);
     if (sequence & 1U) ++sequence;
+
+    if (stage_a_common_start_enabled_)
+    {
+        if (stage_a_start_gate_ == nullptr ||
+            !stage_a_start_gate_->recordFirstRuntimeFrame(
+                local.session_id, local.rl_step, sequence + 2U, now_ns))
+        {
+            // Do not expose a runtime frame that cannot be linked to the
+            // producer-side common-start anchor.
+            invalidateRtFrame();
+            return;
+        }
+    }
+
+    // Publish the already-validated frame after the anchor reference has been
+    // accepted.
     abs_rt_frame::storeRelease(&frame->header.sequence, sequence + 1U);
     std::memcpy(reinterpret_cast<char*>(frame) + sizeof(abs_rt_frame::FrameHeader),
                 reinterpret_cast<const char*>(&local) + sizeof(abs_rt_frame::FrameHeader),
@@ -1011,6 +1162,157 @@ void StateRL::writeRtFaultedFrame()
     writeRtFrame(abs_rt_frame::kPolicyFaulted,
                  0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                  zeros, zeros, zeros, zeros);
+}
+
+void StateRL::captureSimClock(uint64_t reference_monotonic_ns)
+{
+    cycle_trace_.sim_clock_valid = 0;
+    cycle_trace_.sim_clock_status = abs_rt_frame::kSimClockUnavailable;
+    cycle_trace_.sim_time_s = 0.0;
+    cycle_trace_.sim_clock_sequence = 0;
+    cycle_trace_.sim_clock_monotonic_ns = 0;
+    cycle_trace_.sim_clock_age_ns = 0;
+    cycle_trace_.sim_clock_segment_id = sim_clock_segment_id_;
+
+    // Reopen the name each policy cycle so unlink+same-name recreation is
+    // detectable. A mapping keeps referring to the unlinked object forever;
+    // comparing the open object's dev/inode prevents silently reading it.
+    bool mapping_replaced = sim_clock_mapping_replacement_pending_;
+    const int named_fd = shm_open(abs_sim_clock::kShmName, O_RDONLY, 0666);
+    if (named_fd >= 0)
+    {
+        struct stat named_stat{};
+        struct stat mapped_stat{};
+        const bool named_stat_ok = fstat(named_fd, &named_stat) == 0 &&
+                                   named_stat.st_size >= static_cast<off_t>(abs_sim_clock::kSize);
+        const bool have_existing = sim_clock_shm_ptr_ != nullptr &&
+                                   sim_clock_shm_ptr_ != MAP_FAILED &&
+                                   sim_clock_shm_fd_ >= 0;
+        const bool mapped_stat_ok = have_existing &&
+                                    fstat(sim_clock_shm_fd_, &mapped_stat) == 0;
+        if (have_existing && named_stat_ok && mapped_stat_ok &&
+            (named_stat.st_dev != mapped_stat.st_dev || named_stat.st_ino != mapped_stat.st_ino))
+        {
+            munmap(sim_clock_shm_ptr_, sizeof(abs_sim_clock::SimClock));
+            close(sim_clock_shm_fd_);
+            sim_clock_shm_ptr_ = nullptr;
+            sim_clock_shm_fd_ = named_fd;
+            sim_clock_mapping_replacement_pending_ = true;
+            mapping_replaced = true;
+            ++sim_clock_segment_id_;
+            last_sim_clock_sequence_ = 0;
+            last_sim_clock_monotonic_ns_ = 0;
+            last_sim_time_s_ = 0.0;
+        }
+        else if (!have_existing && named_stat_ok)
+        {
+            if (sim_clock_shm_fd_ >= 0) close(sim_clock_shm_fd_);
+            sim_clock_shm_fd_ = named_fd;
+        }
+        else
+        {
+            close(named_fd);
+        }
+    }
+
+    if (sim_clock_shm_ptr_ == nullptr && sim_clock_shm_fd_ >= 0)
+    {
+        sim_clock_shm_ptr_ = static_cast<abs_sim_clock::SimClock*>(
+            mmap(nullptr, abs_sim_clock::kSize, PROT_READ, MAP_SHARED, sim_clock_shm_fd_, 0));
+        if (sim_clock_shm_ptr_ == MAP_FAILED)
+        {
+            sim_clock_shm_ptr_ = nullptr;
+            close(sim_clock_shm_fd_);
+            sim_clock_shm_fd_ = -1;
+        }
+    }
+    cycle_trace_.sim_clock_segment_id = sim_clock_segment_id_;
+
+    abs_sim_clock::SimClock sample{};
+    if (sim_clock_shm_ptr_ == nullptr ||
+        !abs_sim_clock::readSnapshot(sim_clock_shm_ptr_, &sample))
+    {
+        if (last_sim_clock_sequence_ != 0)
+        {
+            cycle_trace_.sim_clock_status = abs_rt_frame::kSimClockStale;
+            cycle_trace_.sim_clock_sequence = last_sim_clock_sequence_;
+            cycle_trace_.sim_clock_monotonic_ns = last_sim_clock_monotonic_ns_;
+            cycle_trace_.sim_time_s = last_sim_time_s_;
+            cycle_trace_.sim_clock_age_ns = reference_monotonic_ns >= last_sim_clock_monotonic_ns_
+                ? reference_monotonic_ns - last_sim_clock_monotonic_ns_ : 0;
+            cycle_trace_.sim_clock_segment_id = sim_clock_segment_id_;
+        }
+        return;
+    }
+
+    cycle_trace_.sim_clock_sequence = sample.sequence;
+    cycle_trace_.sim_clock_monotonic_ns = sample.monotonic_ns;
+    cycle_trace_.sim_time_s = sample.sim_time;
+    cycle_trace_.sim_clock_age_ns = reference_monotonic_ns >= sample.monotonic_ns
+        ? reference_monotonic_ns - sample.monotonic_ns : 0;
+
+    // Do not reuse a valid-looking sample left by an earlier controller/run.
+    // The run boundary is the new runtime session's monotonic start timestamp.
+    if (sample.monotonic_ns < rt_session_id_ || sample.monotonic_ns > reference_monotonic_ns)
+    {
+        cycle_trace_.sim_clock_status = abs_rt_frame::kSimClockStale;
+        return;
+    }
+
+    bool reset = false;
+    bool stationary = false;
+    if (last_sim_clock_sequence_ == 0 && !mapping_replaced)
+    {
+        ++sim_clock_segment_id_;
+    }
+    else if (sample.sequence != last_sim_clock_sequence_)
+    {
+        if (sample.sequence < last_sim_clock_sequence_ ||
+            sample.monotonic_ns <= last_sim_clock_monotonic_ns_ ||
+            sample.sim_time < last_sim_time_s_)
+        {
+            ++sim_clock_segment_id_;
+            reset = true;
+        }
+        else
+        {
+            stationary = sample.sim_time == last_sim_time_s_;
+        }
+    }
+    else if (sample.monotonic_ns != last_sim_clock_monotonic_ns_ ||
+             sample.sim_time != last_sim_time_s_)
+    {
+        // Same sequence with changed payload cannot be a coherent clock update.
+        cycle_trace_.sim_clock_status = abs_rt_frame::kSimClockStale;
+        return;
+    }
+
+    last_sim_clock_sequence_ = sample.sequence;
+    last_sim_clock_monotonic_ns_ = sample.monotonic_ns;
+    last_sim_time_s_ = sample.sim_time;
+    cycle_trace_.sim_clock_segment_id = sim_clock_segment_id_;
+
+    if (mapping_replaced)
+    {
+        sim_clock_mapping_replacement_pending_ = false;
+        cycle_trace_.sim_clock_status = abs_rt_frame::kSimClockReset;
+        return;
+    }
+
+    if (reset)
+    {
+        cycle_trace_.sim_clock_status = abs_rt_frame::kSimClockReset;
+        return;
+    }
+
+    if (cycle_trace_.sim_clock_age_ns > kSimClockFreshnessNs)
+    {
+        cycle_trace_.sim_clock_status = abs_rt_frame::kSimClockStale;
+        return;
+    }
+    cycle_trace_.sim_clock_status = stationary ? abs_rt_frame::kSimClockStationary
+                                                : abs_rt_frame::kSimClockFresh;
+    cycle_trace_.sim_clock_valid = 1;
 }
 
 bool StateRL::checkBodySafety() const
@@ -1089,6 +1391,89 @@ FSMStateName StateRL::checkChange()
         return FSMStateName::PASSIVE;
     }
 
+    // Command 6 requests a healthy normal closeout. Only the diagnostic
+    // supervisor sends it after ARRIVED or a healthy controlled timeout. The
+    // policy first ramps its body command to zero; the hard stop remains in the
+    // controller's earlier global-priority branch.
+    if (ctrl_interfaces_.control_inputs_.command == 6 && normal_shutdown_requested_)
+    {
+        const uint64_t now_ns = monotonicNowNs();
+        if (normal_shutdown_request_ns_ == 0) normal_shutdown_request_ns_ = now_ns;
+        abs_normal_shutdown::Feedback feedback{};
+        const double vx = ctrl_interfaces_.odom_state_interface_.size() >= 6
+            ? ctrl_interfaces_.odom_state_interface_[3].get().get_value()
+            : std::numeric_limits<double>::quiet_NaN();
+        const double vy = ctrl_interfaces_.odom_state_interface_.size() >= 6
+            ? ctrl_interfaces_.odom_state_interface_[4].get().get_value()
+            : std::numeric_limits<double>::quiet_NaN();
+        feedback.horizontal_speed_mps = std::hypot(vx, vy);
+        feedback.angular_speed_radps = std::hypot(
+            std::hypot(robot_state_.imu.gyroscope[0], robot_state_.imu.gyroscope[1]),
+            robot_state_.imu.gyroscope[2]);
+        const double qx = robot_state_.imu.quaternion[0];
+        const double qy = robot_state_.imu.quaternion[1];
+        const double qz = robot_state_.imu.quaternion[2];
+        const double qw = robot_state_.imu.quaternion[3];
+        feedback.roll_rad = std::atan2(2.0 * (qw * qx + qy * qz),
+                                       1.0 - 2.0 * (qx * qx + qy * qy));
+        const double sin_pitch = 2.0 * (qw * qy - qz * qx);
+        feedback.pitch_rad = std::asin(std::clamp(sin_pitch, -1.0, 1.0));
+        int supported_feet = 0;
+        bool sensors_finite = ctrl_interfaces_.odom_state_interface_.size() >= 6 &&
+                              ctrl_interfaces_.imu_state_interface_.size() >= 7 &&
+                              ctrl_interfaces_.foot_force_state_interface_.size() >= 4;
+        for (const auto& sensor : ctrl_interfaces_.foot_force_state_interface_)
+        {
+            const double force = sensor.get().get_value();
+            sensors_finite = sensors_finite && std::isfinite(force);
+            if (std::isfinite(force) && force > params_.abs_contact_threshold) ++supported_feet;
+        }
+        feedback.supported_feet = supported_feet;
+        feedback.valid = sensors_finite && abs_normal_shutdown::finite(feedback);
+        const bool settled = abs_normal_shutdown::decelerationSettled(feedback);
+        if (settled)
+        {
+            if (normal_deceleration_stable_since_ns_ == 0)
+                normal_deceleration_stable_since_ns_ = now_ns;
+        }
+        else
+        {
+            normal_deceleration_stable_since_ns_ = 0;
+        }
+        const uint64_t shutdown_elapsed_ns = now_ns - normal_shutdown_request_ns_;
+        const auto decision = abs_normal_shutdown::evaluate(
+            false, false, feedback.valid, settled && shutdown_elapsed_ns >= 600000000ULL,
+            normal_deceleration_stable_since_ns_ == 0 ? 0 : now_ns - normal_deceleration_stable_since_ns_,
+            shutdown_elapsed_ns, 400000000ULL, 5000000000ULL);
+        if (decision == abs_normal_shutdown::Decision::CONFIRM)
+        {
+            normal_shutdown_ready_ = true;
+            RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+                "[NORMAL-SHUTDOWN] phase=DECELERATED steady_ns=%llu speed_xy=%.5f angular_speed=%.5f "
+                "roll=%.5f pitch=%.5f supported_feet=%d stable_ms=400",
+                static_cast<unsigned long long>(now_ns), feedback.horizontal_speed_mps,
+                feedback.angular_speed_radps, feedback.roll_rad, feedback.pitch_rad,
+                feedback.supported_feet);
+            return FSMStateName::FIXEDSTAND;
+        }
+        if (decision == abs_normal_shutdown::Decision::FAIL)
+        {
+            if (!normal_deceleration_failed_logged_)
+            {
+                RCLCPP_ERROR(rclcpp::get_logger("StateRL"),
+                    "[NORMAL-SHUTDOWN] phase=FAILED steady_ns=%llu stage=DECELERATING "
+                    "reason=settled_state_not_confirmed speed_xy=%.5f angular_speed=%.5f "
+                    "roll=%.5f pitch=%.5f supported_feet=%d",
+                    static_cast<unsigned long long>(now_ns), feedback.horizontal_speed_mps,
+                    feedback.angular_speed_radps, feedback.roll_rad, feedback.pitch_rad,
+                    feedback.supported_feet);
+                normal_deceleration_failed_logged_ = true;
+            }
+            return FSMStateName::PASSIVE;
+        }
+        return FSMStateName::RL;
+    }
+
     // RA-based recovery is now INLINE in runModel() (matches ROS1 lines 495-538).
     // No FSM switch — recovery action replaces agile action per-timestep.
     // keep key-4 for manual RL_REC mode (testing/debugging)
@@ -1164,7 +1549,7 @@ void StateRL::loadYaml(const std::string& config_path)
     catch ([[maybe_unused]] YAML::BadFile& e)
     {
         RCLCPP_ERROR(rclcpp::get_logger("StateRL"), "The file '%s' does not exist", config_path.c_str());
-        return;
+        throw std::invalid_argument("ABS deployment config is required: " + config_path + "/config.yaml");
     }
 
     params_.model_name = config["model_name"].as<std::string>();
@@ -1221,10 +1606,30 @@ void StateRL::loadYaml(const std::string& config_path)
         params_.policy_joint_order = config["policy_joint_order"].as<std::string>();
     }
 
-    // ABS-specific parameters
-    if (config["abs"])
+    // ABS-specific parameters. The research-facing switching entry is strictly
+    // abs.switching.group=A plus entry_threshold; legacy parallel authorities
+    // and unsupported groups are rejected by the production parser.
+    if (!config["abs"] || !config["abs"].IsMap())
+    {
+        RCLCPP_FATAL(rclcpp::get_logger("StateRL"), "[S2-SWITCH-CONFIG] abs mapping is required; refusing to start");
+        throw std::invalid_argument("abs mapping is required in deployment config");
+    }
     {
         auto abs_node = config["abs"];
+        abs_switching::AGroupConfig switching_config;
+        try
+        {
+            switching_config = abs_switching::parseAGroupConfig(abs_node);
+        }
+        catch (const std::exception& e)
+        {
+            RCLCPP_FATAL(rclcpp::get_logger("StateRL"),
+                "[S2-SWITCH-CONFIG] invalid switching configuration: %s", e.what());
+            throw;
+        }
+        params_.ra_threshold = switching_config.entry_threshold;
+        switching_mode_ = abs_switching::SwitchMode::paper_faithful_switch;
+        recovery_hold_steps_ = 0;
         params_.abs_max_episode_length_s = abs_node["max_episode_length_s"].as<double>();
         params_.abs_contact_threshold = abs_node["contact_threshold"].as<double>();
         params_.abs_ray2d_count = abs_node["ray2d_count"].as<int>();
@@ -1233,8 +1638,6 @@ void StateRL::loadYaml(const std::string& config_path)
         if (abs_node["timer_mode"]) params_.abs_timer_mode = abs_node["timer_mode"].as<std::string>();
         if (abs_node["ra_model_name"])
             params_.ra_model_name = abs_node["ra_model_name"].as<std::string>();
-        if (abs_node["ra_threshold"])
-            params_.ra_threshold = abs_node["ra_threshold"].as<double>();
         // Recovery twist optimization params (with defaults)
         if (abs_node["twist_lam"]) params_.twist_lam = abs_node["twist_lam"].as<double>();
         if (abs_node["twist_lr"]) params_.twist_lr = abs_node["twist_lr"].as<double>();
@@ -1248,21 +1651,6 @@ void StateRL::loadYaml(const std::string& config_path)
         if (abs_node["twist_wz_max"]) params_.twist_wz_max = abs_node["twist_wz_max"].as<double>();
         if (abs_node["recovery_steps"]) params_.recovery_steps = abs_node["recovery_steps"].as<int>();
         if (abs_node["soft_start_steps"]) soft_start_steps_ = abs_node["soft_start_steps"].as<int>();
-        if (abs_node["recovery_hold_steps"]) recovery_hold_steps_ = abs_node["recovery_hold_steps"].as<int>();
-        // P1-07: RA-to-Recovery switching mode. Exactly two valid values; any
-        // other value is a hard configuration error at initialization (no
-        // silent fallback to paper or stabilized mode).
-        if (abs_node["switching_mode"])
-        {
-            const std::string mode_str = abs_node["switching_mode"].as<std::string>();
-            if (!abs_switching::parseSwitchMode(mode_str, switching_mode_))
-            {
-                RCLCPP_FATAL(node_->get_logger(),
-                    "[P1-07] Invalid switching_mode '%s' (valid: 'stabilized_switch', 'paper_faithful_switch'); refusing to start",
-                    mode_str.c_str());
-                throw std::invalid_argument("invalid ABS switching_mode: " + mode_str);
-            }
-        }
         if (abs_node["goal_x"]) goal_x_ = abs_node["goal_x"].as<double>();
         if (abs_node["goal_y"]) goal_y_ = abs_node["goal_y"].as<double>();
         if (abs_node["resample_goal_on_arrival"])
@@ -1376,6 +1764,19 @@ void StateRL::getState()
 
 void StateRL::runModel()
 {
+    const uint64_t policy_start_ns = monotonicNowNs();
+    cycle_trace_ = PolicyCycleTrace{};
+    cycle_trace_.mode_before = in_recovery_ ? abs_rt_frame::kPolicyRecovery
+                                             : abs_rt_frame::kPolicyAgile;
+    cycle_trace_.switching_mode = switching_mode_ == abs_switching::SwitchMode::paper_faithful_switch
+        ? abs_rt_frame::kSwitchPaperFaithful : abs_rt_frame::kSwitchStabilized;
+    cycle_trace_.entry_threshold = params_.ra_threshold;
+    cycle_trace_.exit_threshold = abs_switching::effectiveExitThreshold(
+        switching_mode_, cycle_trace_.entry_threshold,
+        params_.ra_threshold - 0.03);
+    cycle_trace_.risk_condition_entered = abs_rt_frame::kRiskEdgeUnknown;
+    captureSimClock(policy_start_ns);
+
     obs_.ang_vel = torch::tensor(robot_state_.imu.gyroscope).unsqueeze(0);
     obs_.base_quat = torch::tensor(robot_state_.imu.quaternion).unsqueeze(0);
 
@@ -1534,6 +1935,28 @@ void StateRL::runModel()
     }
 
     const bool arrived = dist_to_goal < arrival_threshold;
+    goal_arrived_ = arrived;
+
+    if (ctrl_interfaces_.control_inputs_.command == 6)
+    {
+        const uint64_t shutdown_now_ns = monotonicNowNs();
+        if (!normal_shutdown_requested_)
+        {
+            normal_shutdown_requested_ = true;
+            normal_shutdown_request_ns_ = shutdown_now_ns;
+            for (int i = 0; i < 3; ++i)
+                normal_shutdown_initial_command_[i] = obs_.commands[0][i].item<double>();
+            RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+                "[NORMAL-SHUTDOWN] phase=DECELERATING steady_ns=%llu initial_vx=%.5f initial_vy=%.5f initial_wz=%.5f ramp_ms=600",
+                static_cast<unsigned long long>(shutdown_now_ns), normal_shutdown_initial_command_[0],
+                normal_shutdown_initial_command_[1], normal_shutdown_initial_command_[2]);
+        }
+        const double elapsed_s = static_cast<double>(shutdown_now_ns - normal_shutdown_request_ns_) / 1e9;
+        const double ratio = abs_normal_shutdown::decelerationScale(elapsed_s, 0.6);
+        body_x = normal_shutdown_initial_command_[0] * ratio;
+        body_y = normal_shutdown_initial_command_[1] * ratio;
+        heading_cmd = normal_shutdown_initial_command_[2] * ratio;
+    }
 
     obs_.commands = torch::tensor({{body_x, body_y, heading_cmd}});
     obs_.base_quat = torch::tensor(robot_state_.imu.quaternion).unsqueeze(0);
@@ -1563,6 +1986,27 @@ void StateRL::runModel()
     runRAModel();
     if (safety_faulted_) return;
 
+    cycle_trace_.risk_evaluation_ns = monotonicNowNs();
+    const bool risk_condition_met = switching_mode_ == abs_switching::SwitchMode::paper_faithful_switch
+        ? (ra_value_ >= cycle_trace_.entry_threshold)
+        : (ra_value_ > cycle_trace_.entry_threshold);
+    cycle_trace_.risk_condition_met = risk_condition_met ? 1U : 0U;
+    const bool risk_contiguous = previous_risk_valid_ &&
+        previous_risk_session_id_ == rt_session_id_ &&
+        previous_risk_step_ + 1U == static_cast<uint64_t>(rl_step_count_);
+    if (risk_contiguous)
+    {
+        cycle_trace_.risk_condition_entered =
+            (!previous_risk_met_ && risk_condition_met)
+                ? abs_rt_frame::kRiskEdgeTrue : abs_rt_frame::kRiskEdgeFalse;
+    }
+    if (cycle_trace_.risk_condition_entered == abs_rt_frame::kRiskEdgeTrue)
+        cycle_trace_.risk_condition_entered_ns = cycle_trace_.risk_evaluation_ns;
+    previous_risk_valid_ = true;
+    previous_risk_met_ = risk_condition_met;
+    previous_risk_session_id_ = rt_session_id_;
+    previous_risk_step_ = static_cast<uint64_t>(rl_step_count_);
+
     // === ROS1 lines 495-538: RA-based recovery (inline, per-timestep) ===
     // Frequency adaptation: ROS1 inference at 12.5Hz (80ms/step), we run at 125Hz (8ms/step).
     // To match ROS1 effective recovery duration (~250ms), we enforce a minimum hold:
@@ -1573,8 +2017,8 @@ void StateRL::runModel()
     const int REC_HOLD_STEPS = recovery_hold_steps_;
     torch::Tensor policy_actions;
     torch::Tensor clamped_actions;
-    double ra_entry_thr = params_.ra_threshold;         // -0.05 = ROS1 default
-    double ra_exit_thr = params_.ra_threshold - 0.03;   // -0.08 = hysteresis margin
+    const double ra_entry_thr = cycle_trace_.entry_threshold;
+    const double ra_exit_thr = cycle_trace_.exit_threshold;
 
     // Cache last optimized twist (avoids recomputing GD every 8ms step)
 
@@ -1592,10 +2036,31 @@ void StateRL::runModel()
         const abs_switching::SwitchDecision decision =
             abs_switching::stepSwitching(switching_mode_, sw, ra_value_,
                                          ra_entry_thr, ra_exit_thr, REC_HOLD_STEPS);
+        const uint64_t decision_ns = monotonicNowNs();
         if (!decision.invalid)
         {
             in_recovery_ = decision.state.in_recovery;
             rec_hold_left_ = decision.state.hold_left;
+            cycle_trace_.policy_mode_changed = was_in_recovery != in_recovery_ ? 1U : 0U;
+            if (cycle_trace_.policy_mode_changed)
+            {
+                cycle_trace_.mode_change_ns = decision_ns;
+                if (!was_in_recovery && in_recovery_)
+                {
+                    cycle_trace_.transition_reason = abs_rt_frame::kRiskEnter;
+                }
+                else if (was_in_recovery && !in_recovery_)
+                {
+                    cycle_trace_.transition_reason =
+                        switching_mode_ == abs_switching::SwitchMode::paper_faithful_switch
+                            ? abs_rt_frame::kRiskExitSingle
+                            : abs_rt_frame::kHoldAndRiskExitHysteresis;
+                }
+            }
+            if (decision.enter_edge)
+            {
+                ++recovery_episode_id_;
+            }
             if (decision.enter_edge)
             {
                 // ENTER recovery (ROS1 L495-497): optimize + cache the safe twist
@@ -1604,23 +2069,24 @@ void StateRL::runModel()
                 cached_rec_vy_ = ctrl_component_.recovery_twist_vy;
                 cached_rec_wz_ = ctrl_component_.recovery_twist_wz;
                 RCLCPP_WARN(rclcpp::get_logger("StateRL"),
-                    "[RA-REC] 进入恢复 | mode=%s 风险值 ra=%.4f 进入阈值=%.4f 恢复速度=[%.2f,%.2f,%.2f] 保持步数=%d",
+                    "[RA-REC] 进入恢复 | group=A mode=%s ra=%.4f entry=%.4f effective_exit=%.4f hysteresis=false hold=false 恢复速度=[%.2f,%.2f,%.2f]",
                     abs_switching::switchModeName(switching_mode_), ra_value_,
-                    ra_entry_thr, cached_rec_vx_, cached_rec_vy_, cached_rec_wz_, REC_HOLD_STEPS);
+                    ra_entry_thr, ra_exit_thr, cached_rec_vx_, cached_rec_vy_, cached_rec_wz_);
             }
             else if (was_in_recovery && !in_recovery_)
             {
                 const double return_thr = (switching_mode_ == abs_switching::SwitchMode::paper_faithful_switch)
                                               ? ra_entry_thr : ra_exit_thr;
                 RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-                    "[RA-REC] 退出恢复 | mode=%s 风险值 ra=%.4f < 退出阈值=%.4f, 回到敏捷策略",
-                    abs_switching::switchModeName(switching_mode_), ra_value_, return_thr);
+                    "[RA-REC] 退出恢复 | group=A mode=%s ra=%.4f < effective_exit=%.4f entry=%.4f hysteresis=false hold=false, 回到敏捷策略",
+                    abs_switching::switchModeName(switching_mode_), ra_value_, return_thr, ra_entry_thr);
             }
         }
     }
 
     if (in_recovery_)
     {
+        cycle_trace_.action_source = abs_rt_frame::kActionRecovery;
         // Use cached twist (reuse across multiple RL steps to match ROS1 80ms dwell)
         ctrl_component_.recovery_twist_vx = cached_rec_vx_;
         ctrl_component_.recovery_twist_vy = cached_rec_vy_;
@@ -1654,6 +2120,7 @@ void StateRL::runModel()
     }
     else
     {
+        cycle_trace_.action_source = abs_rt_frame::kActionAgile;
         policy_actions = forward();
         injectTestFault("action_nan", &policy_actions);
         if (!policy_actions.defined() || !abs_observation::finite(policy_actions)) { safetyVeto("agile policy action"); return; }
@@ -1694,13 +2161,25 @@ void StateRL::runModel()
             q = std::clamp(q, -2.7227, -0.83776);     // calf
         output_dof_pos_[0][i] = q;
     }
-    for (int i = 0; i < params_.num_of_dofs; ++i)
     {
-        robot_command_.motor_command.q[i] = output_dof_pos_[0][i].item<double>();
-        robot_command_.motor_command.dq[i] = 0;
-        robot_command_.motor_command.kp[i] = params_.rl_kp[0][i].item<double>();
-        robot_command_.motor_command.kd[i] = params_.rl_kd[0][i].item<double>();
-        robot_command_.motor_command.tau[i] = 0;
+        std::lock_guard<std::mutex> lock(command_mutex_);
+        for (int i = 0; i < params_.num_of_dofs; ++i)
+        {
+            robot_command_.motor_command.q[i] = output_dof_pos_[0][i].item<double>();
+            robot_command_.motor_command.dq[i] = 0;
+            robot_command_.motor_command.kp[i] = params_.rl_kp[0][i].item<double>();
+            robot_command_.motor_command.kd[i] = params_.rl_kd[0][i].item<double>();
+            robot_command_.motor_command.tau[i] = 0;
+        }
+        command_trace_.source_session_id = rt_session_id_;
+        command_trace_.source_policy_cycle_id = static_cast<uint64_t>(rl_step_count_);
+        command_trace_.source_mode = in_recovery_ ? abs_rt_frame::kPolicyRecovery
+                                                  : abs_rt_frame::kPolicyAgile;
+        command_trace_.action_source = cycle_trace_.action_source;
+        command_trace_.transition_reason = cycle_trace_.transition_reason;
+        command_trace_.recovery_episode_id =
+            cycle_trace_.action_source == abs_rt_frame::kActionRecovery
+                ? recovery_episode_id_ : 0;
     }
     injectTestFault("final_command_nan");
     injectTestFault("final_command_inf");
@@ -1733,20 +2212,73 @@ void StateRL::setCommand() const
     const double ratio = std::min(1.0, static_cast<double>(soft_start_step_) / soft_start_steps_);
     applied_gain_ratio_ = ratio;
 
+    std::array<double, 12> q{}, dq{}, kp{}, kd{}, tau{};
+    CommandTrace source;
+    uint64_t write_id = 0;
+    bool recovery_candidate = false;
+    bool first_recovery_write = false;
+    {
+        std::lock_guard<std::mutex> lock(command_mutex_);
+        source = command_trace_;
+        write_id = ++command_write_id_;
+        if (source.action_source == abs_rt_frame::kActionRecovery &&
+            source.recovery_episode_id != 0 &&
+            source.recovery_episode_id != last_issued_recovery_episode_id_)
+        {
+            recovery_candidate = true;
+        }
+        for (int i = 0; i < 12; i++)
+        {
+            q[i] = robot_command_.motor_command.q[i];
+            dq[i] = robot_command_.motor_command.dq[i];
+            kp[i] = robot_command_.motor_command.kp[i];
+            kd[i] = robot_command_.motor_command.kd[i];
+            tau[i] = robot_command_.motor_command.tau[i];
+        }
+    }
+
     for (int i = 0; i < 12; i++)
     {
         ctrl_interfaces_.joint_position_command_interface_[i].get().
                                                                             set_value(
-                                                                                robot_command_.motor_command.q[i]);
+                                                                                q[i]);
         ctrl_interfaces_.joint_velocity_command_interface_[i].get().set_value(
-            robot_command_.motor_command.dq[i]);
+            dq[i]);
         ctrl_interfaces_.joint_kp_command_interface_[i].get().set_value(
-            robot_command_.motor_command.kp[i] * ratio);
+            kp[i] * ratio);
         ctrl_interfaces_.joint_kd_command_interface_[i].get().set_value(
-            robot_command_.motor_command.kd[i] * ratio);
+            kd[i] * ratio);
         ctrl_interfaces_.joint_torque_command_interface_[i].get().
                                                                           set_value(
-                                                                              robot_command_.motor_command.tau[i]);
+                                                                              tau[i]);
+    }
+    const uint64_t write_ns = monotonicNowNs();
+    if (recovery_candidate)
+    {
+        // Mark issued only after every command interface accepted this write.
+        std::lock_guard<std::mutex> lock(command_mutex_);
+        if (source.recovery_episode_id != last_issued_recovery_episode_id_)
+        {
+            last_issued_recovery_episode_id_ = source.recovery_episode_id;
+            first_recovery_write = true;
+        }
+    }
+    if (first_recovery_write || policy_event_trace_enabled_)
+    {
+        std::ostringstream q_values;
+        q_values << std::fixed << std::setprecision(6);
+        for (size_t i = 0; i < q.size(); ++i)
+        {
+            if (i != 0) q_values << ',';
+            q_values << q[i];
+        }
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+            "[ABS-POLICY-CMD] event=%s clock=steady_clock_ns write_ns=%lu write_id=%lu source_session_id=%lu source_policy_cycle_id=%lu source_mode=%u action_source=%u transition_reason=%u recovery_episode_id=%lu q_rad=[%s]",
+            first_recovery_write ? "recovery_command_issued" : "command_write",
+            write_ns, write_id, source.source_session_id,
+            source.source_policy_cycle_id, source.source_mode,
+            source.action_source, source.transition_reason,
+            source.recovery_episode_id, q_values.str().c_str());
     }
     emitCommandTelemetry(safety_faulted_ ? "passive_command_write" : "rl_command_write");
 }

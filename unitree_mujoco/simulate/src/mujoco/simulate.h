@@ -221,6 +221,8 @@ public:
   std::atomic_int exitrequest = 0;
   std::atomic_int droploadrequest = 0;
   std::atomic_int screenshotrequest = 0;
+  std::atomic_bool abs_panel_capture_attempted = false;
+  std::atomic_bool abs_standing_capture_attempted = false;
   std::atomic_int uiloadrequest = 0;
 
   // loadrequest

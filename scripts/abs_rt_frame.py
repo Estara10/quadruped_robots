@@ -4,7 +4,7 @@
 This module is the consumer side of the single real-time data link described in
 ``common/abs_rt_frame_contract.h``. It does three things, all fail-closed:
 
-1. Mirrors the fixed 424-byte frame layout and the magic/version/source enums so
+1. Mirrors the fixed 536-byte frame layout and the magic/version/source enums so
    the Python side and the C++ writer (``StateRL::writeRtFrame``) agree exactly.
 2. Classifies one frame snapshot into MISSING / INVALID / UNKNOWN_ORIGIN /
    LEGACY / SYNTHETIC / STALE / LIVE, applying the real-data boundary: only a
@@ -31,22 +31,16 @@ from typing import Dict, Optional, Tuple
 # ---------------------------------------------------------------- frame layout
 # These MUST stay byte-identical to common/abs_rt_frame_contract.h.
 FRAME_MAGIC = 0x414253525446524D  # mnemonic "ABSRTFRM"
-FRAME_VERSION = 1
+FRAME_VERSION = 2
 JOINT_COUNT = 12
 RAY_COUNT = 11
 SHM_NAME = "/mujoco_rt_frame"
 SHM_PATH = "/dev/shm/mujoco_rt_frame"
 
-# Field order is chosen so the C++ struct has no implicit padding and matches
-# "<7Q11I81f" exactly. 7 Q = header(4) + session_id + rl_step + ray_age_ns;
-# 11 I = source, controller_active, rl_entered, rl_active, safety_faulted,
-#        policy_state, ray_origin, ray_valid, collision_origin,
-#        torque_saturated_computed, reserved_pad;
-# 81 f = ra_value + lin_vel(3) + command(3) + world_pose(3) + ray2d(11)
-#        + action_raw(12) + action_clipped(12) + joint_target_rad(12)
-#        + torque_nm(12) + torque_saturated(12).
-_FRAME_STRUCT = struct.Struct("<7Q11I81f")
-FRAME_SIZE = _FRAME_STRUCT.size  # 424
+# Field order mirrors common/abs_rt_frame_contract.h: 14 Q, 20 I, one double,
+# 83 floats, and four explicit ABI pad bytes.
+_FRAME_STRUCT = struct.Struct("<14Q20Id83f4x")
+FRAME_SIZE = _FRAME_STRUCT.size  # 536
 
 _HEADER_SEQUENCE_OFFSET = 16  # 3rd uint64 in the header
 
@@ -65,6 +59,21 @@ RAY_UNAVAILABLE = 0
 RAY_SHM_RUNTIME = 1
 
 COLLISION_UNAVAILABLE = 0
+
+SWITCH_STABILIZED = 0
+SWITCH_PAPER_FAITHFUL = 1
+ACTION_UNKNOWN = 0
+ACTION_AGILE = 1
+ACTION_RECOVERY = 2
+ACTION_NONE = 3
+RISK_EDGE_FALSE = 0
+RISK_EDGE_TRUE = 1
+RISK_EDGE_UNKNOWN = 2
+SIM_CLOCK_UNAVAILABLE = 0
+SIM_CLOCK_FRESH = 1
+SIM_CLOCK_STALE = 2
+SIM_CLOCK_RESET = 3
+SIM_CLOCK_STATIONARY = 4
 
 _POLICY_NAMES = {POLICY_AGILE: "AGILE", POLICY_RECOVERY: "RECOVERY", POLICY_FAULTED: "FAULTED"}
 
@@ -97,6 +106,13 @@ class RuntimeFrame:
     session_id: int
     rl_step: int
     ray_age_ns: int
+    sim_clock_sequence: int
+    sim_clock_monotonic_ns: int
+    sim_clock_segment_id: int
+    sim_clock_age_ns: int
+    risk_evaluation_ns: int
+    risk_condition_entered_ns: int
+    mode_change_ns: int
     source: int
     controller_active: int
     rl_entered: int
@@ -107,7 +123,19 @@ class RuntimeFrame:
     ray_valid: int
     collision_origin: int
     torque_saturated_computed: int
+    mode_before: int
+    switching_mode: int
+    action_source: int
+    transition_reason: int
+    risk_condition_met: int
+    risk_condition_entered: int
+    policy_mode_changed: int
+    sim_clock_status: int
+    sim_clock_valid: int
     reserved_pad: int
+    sim_time_s: float
+    entry_threshold: float
+    exit_threshold: float
     ra_value: float
     lin_vel: Tuple[float, float, float]
     command: Tuple[float, float, float]
@@ -128,12 +156,19 @@ class RuntimeFrame:
         values = _FRAME_STRUCT.unpack(data)
         (
             magic, version, sequence, monotonic_ns,
-            session_id, rl_step, ray_age_ns,
+            session_id, rl_step, ray_age_ns, sim_clock_sequence,
+            sim_clock_monotonic_ns, sim_clock_segment_id, sim_clock_age_ns,
+            risk_evaluation_ns, risk_condition_entered_ns, mode_change_ns,
             source, controller_active, rl_entered, rl_active, safety_faulted,
             policy_state, ray_origin, ray_valid, collision_origin,
-            torque_saturated_computed, reserved_pad,
-        ) = values[:18]
-        floats = values[18:]
+            torque_saturated_computed, mode_before, switching_mode, action_source,
+            transition_reason, risk_condition_met, risk_condition_entered,
+            policy_mode_changed, sim_clock_status, sim_clock_valid, reserved_pad,
+            sim_time_s,
+        ) = values[:35]
+        floats = values[35:]
+        entry_threshold, exit_threshold = floats[:2]
+        floats = floats[2:]
         ra_value = floats[0]
         lin_vel = tuple(floats[1:4])
         command = tuple(floats[4:7])
@@ -148,10 +183,25 @@ class RuntimeFrame:
         return cls(
             magic=magic, version=version, sequence=sequence, monotonic_ns=monotonic_ns,
             session_id=session_id, rl_step=rl_step, ray_age_ns=ray_age_ns,
+            sim_clock_sequence=sim_clock_sequence,
+            sim_clock_monotonic_ns=sim_clock_monotonic_ns,
+            sim_clock_segment_id=sim_clock_segment_id,
+            sim_clock_age_ns=sim_clock_age_ns,
+            risk_evaluation_ns=risk_evaluation_ns,
+            risk_condition_entered_ns=risk_condition_entered_ns,
+            mode_change_ns=mode_change_ns,
             source=source, controller_active=controller_active, rl_entered=rl_entered,
             rl_active=rl_active, safety_faulted=safety_faulted, policy_state=policy_state,
             ray_origin=ray_origin, ray_valid=ray_valid, collision_origin=collision_origin,
-            torque_saturated_computed=torque_saturated_computed, reserved_pad=reserved_pad,
+            torque_saturated_computed=torque_saturated_computed,
+            mode_before=mode_before, switching_mode=switching_mode,
+            action_source=action_source, transition_reason=transition_reason,
+            risk_condition_met=risk_condition_met,
+            risk_condition_entered=risk_condition_entered,
+            policy_mode_changed=policy_mode_changed,
+            sim_clock_status=sim_clock_status, sim_clock_valid=sim_clock_valid,
+            reserved_pad=reserved_pad, sim_time_s=sim_time_s,
+            entry_threshold=entry_threshold, exit_threshold=exit_threshold,
             ra_value=ra_value, lin_vel=lin_vel, command=command, world_pose=world_pose,
             ray2d=ray2d, action_raw=action_raw, action_clipped=action_clipped,
             joint_target_rad=joint_target_rad, torque_nm=torque_nm,
@@ -162,6 +212,8 @@ class RuntimeFrame:
 def _all_finite(frame: RuntimeFrame) -> bool:
     groups = (
         (frame.ra_value,),
+        (frame.entry_threshold, frame.exit_threshold),
+        (frame.sim_time_s,),
         frame.lin_vel,
         frame.command,
         frame.world_pose,
@@ -225,11 +277,43 @@ def classify_frame(
         return FrameStatus.INVALID, None
     if frame.torque_saturated_computed not in (0, 1):
         return FrameStatus.INVALID, None
+    if frame.risk_condition_met not in (0, 1) or frame.policy_mode_changed not in (0, 1):
+        return FrameStatus.INVALID, None
+    if frame.sim_clock_valid not in (0, 1):
+        return FrameStatus.INVALID, None
     if frame.policy_state not in (POLICY_AGILE, POLICY_RECOVERY, POLICY_FAULTED):
         return FrameStatus.INVALID, None
     if frame.ray_origin not in (RAY_UNAVAILABLE, RAY_SHM_RUNTIME):
         return FrameStatus.INVALID, None
     if frame.collision_origin not in (COLLISION_UNAVAILABLE,):
+        return FrameStatus.INVALID, None
+    if frame.mode_before not in (POLICY_AGILE, POLICY_RECOVERY, POLICY_FAULTED):
+        return FrameStatus.INVALID, None
+    if frame.switching_mode not in (SWITCH_STABILIZED, SWITCH_PAPER_FAITHFUL):
+        return FrameStatus.INVALID, None
+    if frame.action_source not in (ACTION_UNKNOWN, ACTION_AGILE, ACTION_RECOVERY, ACTION_NONE):
+        return FrameStatus.INVALID, None
+    if frame.risk_condition_entered not in (RISK_EDGE_FALSE, RISK_EDGE_TRUE, RISK_EDGE_UNKNOWN):
+        return FrameStatus.INVALID, None
+    if frame.sim_clock_status not in (SIM_CLOCK_UNAVAILABLE, SIM_CLOCK_FRESH,
+                                      SIM_CLOCK_STALE, SIM_CLOCK_RESET,
+                                      SIM_CLOCK_STATIONARY):
+        return FrameStatus.INVALID, None
+    if frame.sim_clock_valid and frame.sim_clock_status not in (SIM_CLOCK_FRESH, SIM_CLOCK_STATIONARY):
+        return FrameStatus.INVALID, None
+    if frame.risk_condition_entered == RISK_EDGE_TRUE:
+        if not frame.risk_condition_met or frame.risk_condition_entered_ns == 0:
+            return FrameStatus.INVALID, None
+    elif frame.risk_condition_entered_ns != 0:
+        return FrameStatus.INVALID, None
+    if frame.policy_mode_changed != (frame.mode_change_ns != 0):
+        return FrameStatus.INVALID, None
+    if frame.sim_clock_valid:
+        if frame.sim_clock_sequence == 0 or frame.sim_clock_monotonic_ns == 0:
+            return FrameStatus.INVALID, None
+        if frame.sim_clock_age_ns > frame.monotonic_ns - frame.sim_clock_monotonic_ns:
+            return FrameStatus.INVALID, None
+    if frame.policy_state != POLICY_FAULTED and frame.policy_mode_changed != int(frame.mode_before != frame.policy_state):
         return FrameStatus.INVALID, None
 
     # Consistency.
@@ -264,7 +348,7 @@ def read_shm_frame(
 ) -> bytes:
     """Read a coherent frame snapshot from the shared-memory file (runtime only).
 
-    Returns the raw 424-byte snapshot, or ``b""`` when the file is missing, too
+    Returns the raw 536-byte snapshot, or ``b""`` when the file is missing, too
     small, or never yields a coherent (even, unchanged) sequence. This mirrors the
     two-read seqlock in ``StateRL::updateRay2d``.
     """

@@ -31,7 +31,8 @@ from typing import Dict, Optional, Tuple
 # ---------------------------------------------------------------- frame layout
 # These MUST stay byte-identical to common/abs_rt_frame_contract.h.
 FRAME_MAGIC = 0x414253525446524D  # mnemonic "ABSRTFRM"
-FRAME_VERSION = 2
+FRAME_VERSION = 3
+FRAME_VERSION_LEGACY = 2
 JOINT_COUNT = 12
 RAY_COUNT = 11
 SHM_NAME = "/mujoco_rt_frame"
@@ -39,8 +40,10 @@ SHM_PATH = "/dev/shm/mujoco_rt_frame"
 
 # Field order mirrors common/abs_rt_frame_contract.h: 14 Q, 20 I, one double,
 # 83 floats, and four explicit ABI pad bytes.
-_FRAME_STRUCT = struct.Struct("<14Q20Id83f4x")
-FRAME_SIZE = _FRAME_STRUCT.size  # 536
+_FRAME_V2_STRUCT = struct.Struct("<14Q20Id83f4x")
+_FRAME_STRUCT = struct.Struct("<14Q20Id83f4xII3d")
+FRAME_SIZE = _FRAME_STRUCT.size  # 568
+FRAME_V2_SIZE = _FRAME_V2_STRUCT.size  # 536
 
 _HEADER_SEQUENCE_OFFSET = 16  # 3rd uint64 in the header
 
@@ -62,6 +65,7 @@ COLLISION_UNAVAILABLE = 0
 
 SWITCH_STABILIZED = 0
 SWITCH_PAPER_FAITHFUL = 1
+SWITCH_HYSTERESIS = 2
 ACTION_UNKNOWN = 0
 ACTION_AGILE = 1
 ACTION_RECOVERY = 2
@@ -74,6 +78,13 @@ SIM_CLOCK_FRESH = 1
 SIM_CLOCK_STALE = 2
 SIM_CLOCK_RESET = 3
 SIM_CLOCK_STATIONARY = 4
+SWITCH_MINIMUM_HOLD = 3
+SWITCH_COMBINED = 4
+HOLD_DISABLED = 0
+HOLD_NOT_IN_RECOVERY = 1
+HOLD_ACTIVE = 2
+HOLD_EXPIRED = 3
+HOLD_CLOCK_INVALID = 4
 
 _POLICY_NAMES = {POLICY_AGILE: "AGILE", POLICY_RECOVERY: "RECOVERY", POLICY_FAULTED: "FAULTED"}
 
@@ -146,14 +157,20 @@ class RuntimeFrame:
     joint_target_rad: Tuple[float, ...]  # 12
     torque_nm: Tuple[float, ...]       # 12
     torque_saturated: Tuple[float, ...]  # 12
+    hold_status: int = HOLD_DISABLED
+    hold_enabled: int = 0
+    recovery_min_hold_s: float = 0.0
+    hold_enter_sim_time_s: float = 0.0
+    hold_elapsed_sim_s: float = 0.0
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "RuntimeFrame":
-        if len(data) != FRAME_SIZE:
-            raise ValueError(
-                f"frame size {len(data)} != {FRAME_SIZE}"
-            )
-        values = _FRAME_STRUCT.unpack(data)
+        if len(data) not in (FRAME_SIZE, FRAME_V2_SIZE):
+            raise ValueError(f"unsupported frame size {len(data)}")
+        frame_struct = _FRAME_STRUCT if len(data) == FRAME_SIZE else _FRAME_V2_STRUCT
+        values = frame_struct.unpack(data)
+        extension = values[-5:] if len(data) == FRAME_SIZE else None
+        base_values = values[:-5] if extension is not None else values
         (
             magic, version, sequence, monotonic_ns,
             session_id, rl_step, ray_age_ns, sim_clock_sequence,
@@ -165,8 +182,8 @@ class RuntimeFrame:
             transition_reason, risk_condition_met, risk_condition_entered,
             policy_mode_changed, sim_clock_status, sim_clock_valid, reserved_pad,
             sim_time_s,
-        ) = values[:35]
-        floats = values[35:]
+        ) = base_values[:35]
+        floats = base_values[35:]
         entry_threshold, exit_threshold = floats[:2]
         floats = floats[2:]
         ra_value = floats[0]
@@ -206,6 +223,11 @@ class RuntimeFrame:
             ray2d=ray2d, action_raw=action_raw, action_clipped=action_clipped,
             joint_target_rad=joint_target_rad, torque_nm=torque_nm,
             torque_saturated=torque_saturated,
+            hold_status=extension[0] if extension is not None else HOLD_DISABLED,
+            hold_enabled=extension[1] if extension is not None else 0,
+            recovery_min_hold_s=extension[2] if extension is not None else 0.0,
+            hold_enter_sim_time_s=extension[3] if extension is not None else 0.0,
+            hold_elapsed_sim_s=extension[4] if extension is not None else 0.0,
         )
 
 
@@ -213,6 +235,7 @@ def _all_finite(frame: RuntimeFrame) -> bool:
     groups = (
         (frame.ra_value,),
         (frame.entry_threshold, frame.exit_threshold),
+        (frame.recovery_min_hold_s, frame.hold_enter_sim_time_s, frame.hold_elapsed_sim_s),
         (frame.sim_time_s,),
         frame.lin_vel,
         frame.command,
@@ -248,7 +271,10 @@ def classify_frame(
     except (ValueError, struct.error):
         return FrameStatus.INVALID, None
 
-    if frame.magic != FRAME_MAGIC or frame.version != FRAME_VERSION:
+    if frame.magic != FRAME_MAGIC or not (
+        (frame.version == FRAME_VERSION and len(data) == FRAME_SIZE) or
+        (frame.version == FRAME_VERSION_LEGACY and len(data) == FRAME_V2_SIZE)
+    ):
         return FrameStatus.INVALID, None
     if frame.sequence == 0 or (frame.sequence & 1):
         return FrameStatus.INVALID, None  # unarmed or writer-in-progress
@@ -289,8 +315,10 @@ def classify_frame(
         return FrameStatus.INVALID, None
     if frame.mode_before not in (POLICY_AGILE, POLICY_RECOVERY, POLICY_FAULTED):
         return FrameStatus.INVALID, None
-    if frame.switching_mode not in (SWITCH_STABILIZED, SWITCH_PAPER_FAITHFUL):
-        return FrameStatus.INVALID, None
+    if frame.switching_mode not in (SWITCH_STABILIZED, SWITCH_PAPER_FAITHFUL, SWITCH_HYSTERESIS,
+                                     SWITCH_MINIMUM_HOLD, SWITCH_COMBINED):
+        if frame.switching_mode != SWITCH_MINIMUM_HOLD:
+            return FrameStatus.INVALID, None
     if frame.action_source not in (ACTION_UNKNOWN, ACTION_AGILE, ACTION_RECOVERY, ACTION_NONE):
         return FrameStatus.INVALID, None
     if frame.risk_condition_entered not in (RISK_EDGE_FALSE, RISK_EDGE_TRUE, RISK_EDGE_UNKNOWN):
@@ -301,6 +329,18 @@ def classify_frame(
         return FrameStatus.INVALID, None
     if frame.sim_clock_valid and frame.sim_clock_status not in (SIM_CLOCK_FRESH, SIM_CLOCK_STATIONARY):
         return FrameStatus.INVALID, None
+    if frame.version >= FRAME_VERSION:
+        if frame.hold_enabled not in (0, 1) or frame.hold_status not in (
+            HOLD_DISABLED, HOLD_NOT_IN_RECOVERY, HOLD_ACTIVE, HOLD_EXPIRED, HOLD_CLOCK_INVALID
+        ):
+            return FrameStatus.INVALID, None
+        if frame.hold_enabled:
+            if frame.switching_mode not in (SWITCH_MINIMUM_HOLD, SWITCH_COMBINED) or frame.recovery_min_hold_s <= 0:
+                return FrameStatus.INVALID, None
+            if frame.hold_status == HOLD_DISABLED:
+                return FrameStatus.INVALID, None
+        elif frame.switching_mode in (SWITCH_MINIMUM_HOLD, SWITCH_COMBINED) or frame.hold_status != HOLD_DISABLED or frame.recovery_min_hold_s != 0.0:
+            return FrameStatus.INVALID, None
     if frame.risk_condition_entered == RISK_EDGE_TRUE:
         if not frame.risk_condition_met or frame.risk_condition_entered_ns == 0:
             return FrameStatus.INVALID, None
@@ -357,15 +397,16 @@ def read_shm_frame(
     except OSError:
         return b""
     try:
-        if os.fstat(fd).st_size < FRAME_SIZE:
+        size = os.fstat(fd).st_size
+        if size not in (FRAME_SIZE, FRAME_V2_SIZE):
             return b""
-        buf = mmap.mmap(fd, FRAME_SIZE, access=mmap.ACCESS_READ)
+        buf = mmap.mmap(fd, size, access=mmap.ACCESS_READ)
         try:
             for _ in range(max_attempts):
                 seq_before = _read_sequence(buf)
                 if seq_before == 0 or (seq_before & 1):
                     continue
-                snapshot = buf[:FRAME_SIZE]
+                snapshot = buf[:size]
                 seq_after = _read_sequence(buf)
                 if seq_before != seq_after or (seq_after & 1):
                     continue
@@ -423,4 +464,15 @@ class HudState:
             "torque_saturated": None,
             # collision_origin == UNAVAILABLE (bridge-side only) → never shown.
             "collision": None,
+            "switching_mode": f.switching_mode,
+            "entry_threshold": f.entry_threshold,
+            "exit_threshold": f.exit_threshold,
+            "hold_enabled": bool(f.hold_enabled),
+            "hold_status": f.hold_status,
+            "recovery_min_hold_s": f.recovery_min_hold_s,
+            "hold_enter_sim_time_s": f.hold_enter_sim_time_s if f.hold_enabled else None,
+            "hold_elapsed_sim_s": f.hold_elapsed_sim_s
+                if f.hold_enabled and f.hold_status in (HOLD_ACTIVE, HOLD_EXPIRED) else None,
+            "hold_remaining_sim_s": max(0.0, f.recovery_min_hold_s - f.hold_elapsed_sim_s)
+                if f.hold_enabled and f.hold_status == HOLD_ACTIVE else None,
         }

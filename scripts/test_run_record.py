@@ -28,6 +28,7 @@ from abs_rt_frame import (  # noqa: E402
 )
 from run_record import (  # noqa: E402
     RunRecordRecorder,
+    _validate_live_payload,
     frame_availability,
     frame_payload,
     load_record,
@@ -60,7 +61,10 @@ def pack_frame(frame: RuntimeFrame) -> bytes:
         *frame.action_raw, *frame.action_clipped,
         *frame.joint_target_rad, *frame.torque_nm, *frame.torque_saturated,
     ]
-    return _FRAME_STRUCT.pack(*ints, *flags, frame.sim_time_s, *floats)
+    return _FRAME_STRUCT.pack(*ints, *flags, frame.sim_time_s, *floats,
+                              frame.hold_status, frame.hold_enabled,
+                              frame.recovery_min_hold_s, frame.hold_enter_sim_time_s,
+                              frame.hold_elapsed_sim_s)
 
 
 def fixture(
@@ -542,6 +546,22 @@ def test_valid_facts_with_proper_types_ok():
         assert summary["termination_reason"] == "FRAMES_ENDED_RC0"
 
 
+def test_optional_startup_observation_summary_is_preserved_in_terminal():
+    with tempfile.TemporaryDirectory() as tmp:
+        path = str(Path(tmp) / "run.jsonl")
+        observation = {"terminal_classification": "STARTUP_OBSERVATION_LIMIT",
+                       "physics_source_status_at_stop": "LIVE",
+                       "strategy_policy_clock_invalid_frame_count": 1,
+                       "recovered": True, "actual_observation_physics_s": 4.0,
+                       "cleanup_result": "all owned run processes exited"}
+        terminal = _record(path, [_fresh(fixture(monotonic_ns=100))],
+                           {"exit_code": 0, "forced_termination": False,
+                            "shutdown_complete": True, "shutdown_request_source": "SIGINT",
+                            "startup_recovery_observation": observation})
+        assert terminal["startup_recovery_observation"] == observation
+        assert summarize_record(path)["record_validity"] == "VALID"
+
+
 # ------------------------------------------------------------------- run identity
 def test_run_identity_mismatch_invalid():
     with tempfile.TemporaryDirectory() as tmp:
@@ -641,6 +661,32 @@ def _live_payload(**overrides: object) -> Dict[str, object]:
     payload: Dict[str, object] = frame_payload(fixture())
     payload.update(overrides)
     return payload
+
+
+def test_d_hold_frame_payload_is_accepted():
+    payload = _live_payload(
+        policy_state=1, policy_state_name="RECOVERY", mode_before=0,
+        switching_mode=4, action_source=2, transition_reason=1,
+        policy_mode_changed=True, mode_change_ns=99,
+        entry_threshold=-0.05, exit_threshold=-0.08,
+        hold_enabled=True, hold_status=2, recovery_min_hold_s=0.30,
+        hold_enter_sim_time_s=0.1, hold_elapsed_sim_s=0.1,
+        sim_time_s=0.2,
+    )
+    assert _validate_live_payload(payload) == []
+
+
+def test_d_hold_frame_payload_is_accepted():
+    payload = _live_payload(
+        policy_state=1, policy_state_name="RECOVERY", mode_before=0,
+        switching_mode=4, action_source=2, transition_reason=1,
+        policy_mode_changed=True, mode_change_ns=99,
+        entry_threshold=-0.05, exit_threshold=-0.08,
+        hold_enabled=True, hold_status=2, recovery_min_hold_s=0.30,
+        hold_enter_sim_time_s=0.1, hold_elapsed_sim_s=0.1,
+        sim_time_s=0.2,
+    )
+    assert _validate_live_payload(payload) == []
 
 
 def _live_line_payload(run_id: str = "r", payload: Optional[Dict[str, object]] = None,

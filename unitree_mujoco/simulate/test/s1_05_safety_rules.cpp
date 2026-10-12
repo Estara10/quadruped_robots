@@ -30,16 +30,21 @@ int main() {
   assert(!fall.candidate && !fall.confirmed);
   assert(!abs_safety::updateFall(fall, h, 0.0, 0.0, 2, 0.01, true, true));
   assert(fall.candidate && !fall.confirmed && fall.start_physics_step == 2);
-  assert(!abs_safety::updateFall(fall, h, 0.0, 0.0, 3, 0.309, true, true)); // < 0.30 s
-  assert(abs_safety::updateFall(fall, h, 0.0, 0.0, 4, 0.31, true, true)); // equality confirms
-  assert(fall.confirmed && fall.confirmed_physics_step == 4);
+  assert(fall.condition_flags == abs_safety::kFallConditionLowHeight);
+  assert(!abs_safety::updateFall(fall, h, abs_safety::kFallTiltRad + 0.01, 0.0,
+                                3, 0.02, true, true));
+  assert(fall.condition_flags == (abs_safety::kFallConditionLowHeight | abs_safety::kFallConditionTilt));
+  assert(!abs_safety::updateFall(fall, h, 0.0, 0.0, 4, 0.309, true, true)); // < 0.30 s
+  assert(abs_safety::updateFall(fall, h, 0.0, 0.0, 5, 0.31, true, true)); // equality confirms
+  assert(fall.confirmed && fall.confirmed_physics_step == 5);
   assert(fall.generation == 1);
-  assert(abs_safety::updateFall(fall, h, 0.0, 0.0, 5, 0.32, true, true));
+  assert(abs_safety::updateFall(fall, h, 0.0, 0.0, 6, 0.32, true, true));
   assert(fall.generation == 1);  // sustained anomaly is still the same event
-  assert(!abs_safety::updateFall(fall, 0.445, 0.0, 0.0, 6, 0.33, true, true));
+  assert(!abs_safety::updateFall(fall, 0.445, 0.0, 0.0, 7, 0.33, true, true));
   assert(!fall.confirmed && !fall.active);  // valid recovery rearms the tracker
-  assert(!abs_safety::updateFall(fall, h, 0.0, 0.0, 7, 0.34, true, true));
-  assert(abs_safety::updateFall(fall, h, 0.0, 0.0, 8, 0.64, true, true));
+  assert(!abs_safety::updateFall(fall, h, 0.0, 0.0, 8, 0.34, true, true));
+  assert(fall.condition_flags == abs_safety::kFallConditionLowHeight);
+  assert(abs_safety::updateFall(fall, h, 0.0, 0.0, 9, 0.64, true, true));
   assert(fall.generation == 2);  // a later fall is a distinct confirmation
 
   abs_safety::FallTracker restarted;

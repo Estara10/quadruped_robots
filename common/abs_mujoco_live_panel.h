@@ -24,7 +24,10 @@ struct Snapshot {
 inline bool finiteFrame(const abs_rt_frame::RuntimeFrame& f) {
   const auto finite = [](float value) { return std::isfinite(value); };
   if (!std::isfinite(f.sim_time_s) || !finite(f.entry_threshold) ||
-      !finite(f.exit_threshold) || !finite(f.ra_value)) return false;
+      !finite(f.exit_threshold) || !finite(f.ra_value) ||
+      !std::isfinite(f.recovery_min_hold_s) ||
+      !std::isfinite(f.hold_enter_sim_time_s) ||
+      !std::isfinite(f.hold_elapsed_sim_s)) return false;
   for (float value : f.lin_vel) if (!finite(value)) return false;
   for (float value : f.command) if (!finite(value)) return false;
   for (float value : f.world_pose) if (!finite(value)) return false;
@@ -62,7 +65,16 @@ inline Snapshot classify(const void* bytes, size_t size, uint64_t now_ns,
       f.ray_origin > abs_rt_frame::kRayShmRuntime ||
       f.collision_origin != abs_rt_frame::kCollisionUnavailable ||
       f.mode_before > abs_rt_frame::kPolicyFaulted ||
-      f.switching_mode > abs_rt_frame::kSwitchPaperFaithful ||
+      f.switching_mode > abs_rt_frame::kSwitchCombined ||
+      f.hold_enabled > 1 || f.hold_status > abs_rt_frame::kHoldClockInvalid ||
+      (f.hold_enabled &&
+       ((f.switching_mode != abs_rt_frame::kSwitchMinimumHold &&
+         f.switching_mode != abs_rt_frame::kSwitchCombined) ||
+        f.recovery_min_hold_s <= 0 || f.hold_status == abs_rt_frame::kHoldDisabled)) ||
+      (!f.hold_enabled &&
+       (f.switching_mode == abs_rt_frame::kSwitchMinimumHold ||
+        f.switching_mode == abs_rt_frame::kSwitchCombined ||
+        f.hold_status != abs_rt_frame::kHoldDisabled || f.recovery_min_hold_s != 0)) ||
       f.action_source > abs_rt_frame::kActionNone ||
       f.risk_condition_entered > abs_rt_frame::kRiskEdgeUnknown ||
       f.sim_clock_status > abs_rt_frame::kSimClockStationary ||
@@ -132,6 +144,14 @@ inline std::string render(const Snapshot& snapshot) {
   // Do not display its last policy values as current in those states.
   if (f.rl_entered && f.rl_active && !f.safety_faulted &&
       f.policy_state != abs_rt_frame::kPolicyFaulted) {
+    out << "\nGroup: ";
+    switch (f.switching_mode) {
+      case abs_rt_frame::kSwitchPaperFaithful: out << "A"; break;
+      case abs_rt_frame::kSwitchHysteresis: out << "B"; break;
+      case abs_rt_frame::kSwitchMinimumHold: out << "C"; break;
+      case abs_rt_frame::kSwitchCombined: out << "D"; break;
+      default: out << "legacy"; break;
+    }
     const double body_xy_speed = std::hypot(f.lin_vel[0], f.lin_vel[1]);
     out << std::fixed << std::setprecision(2)
         << "\nBody XY speed: " << body_xy_speed << " m/s"
@@ -143,6 +163,22 @@ inline std::string render(const Snapshot& snapshot) {
       out << std::setprecision(2) << f.sim_time_s << " s";
     else
       out << "N/A";
+    out << "\nRecovery hold: ";
+    if (!f.hold_enabled) {
+      out << "off";
+    } else {
+      switch (f.hold_status) {
+        case abs_rt_frame::kHoldNotInRecovery: out << "not started"; break;
+        case abs_rt_frame::kHoldActive:
+          out << std::setprecision(3)
+              << std::fmax(0.0, f.recovery_min_hold_s - f.hold_elapsed_sim_s)
+              << " sim s remaining";
+          break;
+        case abs_rt_frame::kHoldExpired: out << "expired"; break;
+        case abs_rt_frame::kHoldClockInvalid: out << "N/A (clock invalid)"; break;
+        default: out << "N/A"; break;
+      }
+    }
   }
   out << "\nFrame age: " << std::fixed << std::setprecision(0)
       << snapshot.age_ns / 1e6 << " ms";

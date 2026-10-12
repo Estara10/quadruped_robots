@@ -83,7 +83,7 @@ from abs_collision import (
 from abs_scene import LEGACY_BINDING, SCENES
 from p1_10_common_start import CommonStartError, validate_anchor
 
-RECORD_FORMAT_VERSION = 2
+RECORD_FORMAT_VERSION = 3
 FRAME_SOURCE_PATH = "/dev/shm/mujoco_rt_frame"
 RUN_RECORD_KIND_META = "meta"
 RUN_RECORD_KIND_FRAME = "frame"
@@ -128,9 +128,9 @@ _INT_ENUM_DOMAINS = {
     "collision_origin": (0,),
     "mode_before": (0, 1, 2),
     "mode_after": (0, 1, 2),
-    "switching_mode": (0, 1),
+    "switching_mode": (0, 1, 2, 3, 4),
     "action_source": (0, 1, 2, 3),
-    "transition_reason": (0, 1, 2, 3, 4),
+    "transition_reason": (0, 1, 2, 3, 4, 5),
     "risk_condition_entered": (0, 1, 2),
     "sim_clock_status": (0, 1, 2, 3, 4),
 }
@@ -176,6 +176,7 @@ def frame_payload(frame: RuntimeFrame) -> Dict[str, Any]:
         "ray_age_ns": frame.ray_age_ns,
         "monotonic_ns": frame.monotonic_ns,
         "policy_cycle_id": frame.rl_step,
+        "runtime_frame_version": frame.version,
         "sim_time_s": frame.sim_time_s if frame.sim_clock_sequence != 0 else None,
         "sim_clock_sequence": frame.sim_clock_sequence,
         "sim_clock_monotonic_ns": frame.sim_clock_monotonic_ns,
@@ -196,6 +197,13 @@ def frame_payload(frame: RuntimeFrame) -> Dict[str, Any]:
         "mode_change_ns": frame.mode_change_ns or None,
         "entry_threshold": float(frame.entry_threshold),
         "exit_threshold": float(frame.exit_threshold),
+        "hold_status": int(frame.hold_status) if frame.version >= 3 else None,
+        "hold_enabled": bool(frame.hold_enabled) if frame.version >= 3 else None,
+        "recovery_min_hold_s": float(frame.recovery_min_hold_s) if frame.version >= 3 else None,
+        "hold_enter_sim_time_s": float(frame.hold_enter_sim_time_s)
+            if frame.version >= 3 and frame.hold_enabled else None,
+        "hold_elapsed_sim_s": float(frame.hold_elapsed_sim_s)
+            if frame.version >= 3 and frame.hold_enabled and frame.hold_status in (2, 3) else None,
         "source": frame.source,
         "controller_active": frame.controller_active,
         "rl_entered": frame.rl_entered,
@@ -235,6 +243,7 @@ def frame_availability(frame: RuntimeFrame) -> Dict[str, bool]:
         "ray_age_ns": True,
         "monotonic_ns": True,
         "policy_cycle_id": True,
+        "runtime_frame_version": True,
         "sim_time_s": bool(frame.sim_clock_sequence),
         "sim_clock_sequence": bool(frame.sim_clock_sequence),
         "sim_clock_monotonic_ns": bool(frame.sim_clock_monotonic_ns),
@@ -255,6 +264,11 @@ def frame_availability(frame: RuntimeFrame) -> Dict[str, bool]:
         "mode_change_ns": frame.mode_change_ns != 0,
         "entry_threshold": True,
         "exit_threshold": True,
+        "hold_status": frame.version >= 3,
+        "hold_enabled": frame.version >= 3,
+        "recovery_min_hold_s": frame.version >= 3,
+        "hold_enter_sim_time_s": frame.version >= 3 and frame.hold_enabled,
+        "hold_elapsed_sim_s": frame.version >= 3 and frame.hold_enabled,
         "ra_value": True,
         "lin_vel": True,
         "command": True,
@@ -315,6 +329,10 @@ def collision_snapshot_payload(status: CollisionStatus,
         "fall_start_sim_time": snapshot.fall_start_sim_time,
         "fall_confirmed_physics_step": snapshot.fall_confirmed_physics_step,
         "fall_confirmed_sim_time": snapshot.fall_confirmed_sim_time,
+        "fall_condition_flags": snapshot.fall_condition_flags,
+        "fall_condition_flag_names": (None if snapshot.fall_condition_flags is None else
+            [name for bit, name in ((1, "low_height"), (2, "tilt"))
+             if snapshot.fall_condition_flags & bit]),
         "unknown_contact_steps": snapshot.unknown_contact_steps,
         "unknown_contact_episodes": snapshot.unknown_contact_episodes,
         "first_unknown_contact_step": snapshot.first_unknown_contact_step,
@@ -444,6 +462,11 @@ def _validate_process_facts(facts: Mapping[str, Any]) -> Tuple[Dict[str, Any], L
         validated["cleanup_events"] = []
     validated["run_terminal_result"] = _strict_str(facts.get("run_terminal_result"), "run_terminal_result", errors)
     validated["run_terminal_monotonic_ns"] = _strict_int(facts.get("run_terminal_monotonic_ns"), "run_terminal_monotonic_ns", errors)
+    validated["startup_recovery_observation"] = facts.get("startup_recovery_observation")
+    if (validated["startup_recovery_observation"] is not None and
+            not isinstance(validated["startup_recovery_observation"], dict)):
+        errors.append("startup_recovery_observation: expected an object when present")
+        validated["startup_recovery_observation"] = None
     return validated, errors
 
 
@@ -865,6 +888,8 @@ class RunRecordRecorder:
         }
         if self.capture_id is not None:
             terminal["capture_id"] = self.capture_id
+        if validated["startup_recovery_observation"] is not None:
+            terminal["startup_recovery_observation"] = validated["startup_recovery_observation"]
         if self.common_start_required:
             terminal["common_start_required"] = True
             terminal["start_anchor"] = self._start_anchor
@@ -1053,6 +1078,22 @@ def _validate_live_payload(payload: Any) -> List[str]:
         value = payload.get(key)
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)):
             reasons.append(f"threshold_invalid:{key}")
+    if payload.get("runtime_frame_version", 2) >= 3:
+        if payload.get("hold_enabled") not in (True, False):
+            reasons.append("hold_enabled_missing_or_invalid")
+        if payload.get("hold_enabled") is True:
+            if payload.get("switching_mode") not in (3, 4):
+                reasons.append("hold_enabled_for_non_C_or_D_group")
+            if not isinstance(payload.get("recovery_min_hold_s"), (int, float)) or payload.get("recovery_min_hold_s", 0) <= 0:
+                reasons.append("hold_duration_invalid")
+            if payload.get("hold_status") not in (1, 2, 3, 4):
+                reasons.append("hold_status_invalid")
+        elif payload.get("switching_mode") in (3, 4) or payload.get("hold_status") != 0 or payload.get("recovery_min_hold_s") != 0:
+            reasons.append("hold_disabled_frame_inconsistent")
+        for key in ("hold_enter_sim_time_s", "hold_elapsed_sim_s"):
+            value = payload.get(key)
+            if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value)):
+                reasons.append(f"hold_value_invalid:{key}")
 
     if not isinstance(payload.get("policy_state_name"), str):
         reasons.append("policy_state_name_not_str")

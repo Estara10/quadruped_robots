@@ -23,6 +23,7 @@ BaseFixedStand::BaseFixedStand(CtrlInterfaces& ctrl_interfaces, const std::vecto
 void BaseFixedStand::enter()
 {
     soft_start_step_ = 0;
+    stand_transition_ready_logged_ = false;
     for (int i = 0; i < 12; i++)
     {
         start_pos_[i] = ctrl_interfaces_.joint_position_state_interface_[i].get().get_value();
@@ -51,6 +52,13 @@ void BaseFixedStand::run(const rclcpp::Time&/*time*/, const rclcpp::Duration&/*p
 
     percent_ += 1 / duration_;
     phase = std::tanh(percent_);
+    if (percent_ >= 1.5 && !stand_transition_ready_logged_)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("BaseFixedStand"),
+                    "[STAND-READY] command3_gate=passed percent=%.6f phase=%.6f",
+                    percent_, phase);
+        stand_transition_ready_logged_ = true;
+    }
     for (int i = 0; i < 12; i++)
     {
         ctrl_interfaces_.joint_position_command_interface_[i].get().set_value(

@@ -379,6 +379,7 @@ class ObstacleCollisionAuthority {
       physics_coverage_complete_ = false;
     }
     updateFallState(model, data, physics_step, local.sim_time, continuous_step, local);
+    local.v5.reserved_flags = fall_tracker_.condition_flags;
     if (fall_tracker_.generation > 0) {
       auto& episode = fall_history_[(fall_tracker_.generation - 1U) % abs_collision::kFallEventCapacity];
       if (episode.start_physics_step != fall_tracker_.start_physics_step) {
@@ -658,6 +659,7 @@ class ObstacleCollisionAuthority {
     abs_safety::updateFall(fall_tracker_, local.base_height_m, local.base_roll_rad,
                            local.base_pitch_rad, physics_step, sim_time, posture_valid,
                            continuous_step);
+    local.v5.reserved_flags = fall_tracker_.condition_flags;
     local.fall_candidate = fall_tracker_.candidate ? 1U : 0U;
     local.fall_confirmed = fall_tracker_.confirmed ? 1U : 0U;
     local.fall_start_sim_time = fall_tracker_.start_sim_time;

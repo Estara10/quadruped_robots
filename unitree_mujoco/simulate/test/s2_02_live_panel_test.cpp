@@ -23,6 +23,7 @@ int main(int argc, char** argv) {
   live.rl_entered = 1;
   live.rl_active = 1;
   live.policy_state = frame::kPolicyAgile;
+  live.switching_mode = frame::kSwitchPaperFaithful;
   live.sim_clock_status = frame::kSimClockFresh;
   live.sim_clock_valid = 1;
   live.sim_clock_sequence = 44;
@@ -46,6 +47,7 @@ int main(int argc, char** argv) {
   assert(live_text.find("RA: -0.200 | enter -0.050 / exit -0.050") != std::string::npos);
   assert(live_text.find("Goal distance: N/A") != std::string::npos);
   assert(live_text.find("Sim time: 12.50 s") != std::string::npos);
+  assert(live_text.find("Group: A") != std::string::npos);
 
   auto no_sim_clock_frame = live;
   no_sim_clock_frame.sim_clock_valid = 0;
@@ -79,6 +81,42 @@ int main(int argc, char** argv) {
   recovery_frame.mode_before = frame::kPolicyRecovery;
   assert(panel::render(panel::classify(&recovery_frame, sizeof(recovery_frame), now))
              .find("Policy: Recovery") != std::string::npos);
+
+  const uint32_t group_modes[] = {frame::kSwitchPaperFaithful, frame::kSwitchHysteresis,
+                                  frame::kSwitchMinimumHold, frame::kSwitchCombined};
+  const char* group_labels[] = {"Group: A", "Group: B", "Group: C", "Group: D"};
+  for (size_t index = 0; index < 4; ++index) {
+    auto group_frame = live;
+    group_frame.switching_mode = group_modes[index];
+    group_frame.entry_threshold = -0.05f;
+    group_frame.exit_threshold = index == 1 || index == 3 ? -0.08f : -0.05f;
+    group_frame.hold_enabled = index == 2 || index == 3 ? 1 : 0;
+    group_frame.recovery_min_hold_s = group_frame.hold_enabled ? 0.30f : 0.0f;
+    group_frame.hold_status = group_frame.hold_enabled ? frame::kHoldNotInRecovery
+                                                       : frame::kHoldDisabled;
+    assert(panel::render(panel::classify(&group_frame, sizeof(group_frame), now))
+               .find(group_labels[index]) != std::string::npos);
+  }
+
+  auto c_hold = recovery_frame;
+  c_hold.switching_mode = frame::kSwitchMinimumHold;
+  c_hold.entry_threshold = -0.05f;
+  c_hold.exit_threshold = -0.05f;
+  c_hold.hold_enabled = 1;
+  c_hold.hold_status = frame::kHoldActive;
+  c_hold.recovery_min_hold_s = 0.30f;
+  c_hold.hold_enter_sim_time_s = 12.30f;
+  c_hold.hold_elapsed_sim_s = 0.10f;
+  const auto c_hold_text = panel::render(panel::classify(&c_hold, sizeof(c_hold), now));
+  assert(c_hold_text.find("Group: C") != std::string::npos);
+  assert(c_hold_text.find("0.200 sim s remaining") != std::string::npos);
+
+  auto d_hold = c_hold;
+  d_hold.switching_mode = frame::kSwitchCombined;
+  d_hold.exit_threshold = -0.08f;
+  const auto d_hold_text = panel::render(panel::classify(&d_hold, sizeof(d_hold), now));
+  assert(d_hold_text.find("Group: D") != std::string::npos);
+  assert(d_hold_text.find("0.200 sim s remaining") != std::string::npos);
   auto faulted_frame = live;
   faulted_frame.policy_state = frame::kPolicyFaulted;
   auto faulted_text = panel::render(panel::classify(&faulted_frame, sizeof(faulted_frame), now));
@@ -98,6 +136,13 @@ int main(int argc, char** argv) {
   auto stopped_text = panel::render(panel::classify(&stopped_frame, sizeof(stopped_frame), now));
   assert(stopped_text.find("Policy: POLICY STOPPED") != std::string::npos);
   assert(stopped_text.find("RA:") == std::string::npos);
+
+  auto stopped_d_frame = d_hold;
+  stopped_d_frame.rl_active = 0;
+  const auto stopped_d_text = panel::render(panel::classify(&stopped_d_frame, sizeof(stopped_d_frame), now));
+  assert(stopped_d_text.find("Policy: POLICY STOPPED") != std::string::npos);
+  assert(stopped_d_text.find("RA:") == std::string::npos);
+  assert(stopped_d_text.find("Recovery hold:") == std::string::npos);
 
   auto invalid_frame = live;
   invalid_frame.ra_value = 0.0f / 0.0f;

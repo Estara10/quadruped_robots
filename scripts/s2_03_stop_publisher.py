@@ -30,7 +30,8 @@ def main() -> int:
             emit(event="NOT_READY", monotonic_ns=time.monotonic_ns(), reason="no /control_input subscriber")
             return 2
 
-        command_map = {"STOP": 1, "HARD_STOP": 9, "NORMAL_SHUTDOWN": 6}
+        command_map = {"STOP": 1, "HARD_STOP": 9, "NORMAL_SHUTDOWN": 6,
+                       "START_RL": 3}
         for line in sys.stdin:
             token = line.strip()
             if token not in command_map:

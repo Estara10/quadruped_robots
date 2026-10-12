@@ -34,7 +34,8 @@ def main() -> None:
     shm_path = Path("/dev/shm") / shm_name.lstrip("/")
     assert not shm_path.exists(), f"test shm unexpectedly exists: {shm_path}"
     evidence: dict = {"test_shm_name": shm_name, "layout": {"version": 4,
-                 "bytes": abs_collision.SNAPSHOT_SIZE, "expected_bytes": 5760,
+                 "bytes": abs_collision.SNAPSHOT_V4_SIZE, "current_v5_bytes": abs_collision.SNAPSHOT_SIZE,
+                 "expected_bytes": 5760,
                  "offsets_bytes": {"version": 8, "sequence": 16, "physics_step": 32,
                                    "sim_time": 40, "ground_contacts": 72,
                                    "foot_ground_contacts": 388, "unknown_contact_steps": 536,

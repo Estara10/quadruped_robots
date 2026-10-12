@@ -139,7 +139,7 @@ struct Snapshot {
     uint32_t foot_contact_history_overflow;
     uint32_t foot_impact_history_count;
     uint32_t foot_impact_history_overflow;
-    uint32_t reserved_flags;
+    uint32_t reserved_flags;              // v5 fall-condition mask: bit0 low-height, bit1 tilt
     uint64_t foot_contact_physics_steps;
     uint64_t foot_contact_episode_count;
     uint64_t foot_contact_first_step;

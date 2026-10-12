@@ -37,4 +37,5 @@ protected:
 
     int soft_start_step_ = 0;
     int soft_start_steps_ = 250;
+    bool stand_transition_ready_logged_ = false;
 };

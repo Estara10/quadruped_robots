@@ -29,7 +29,7 @@ namespace abs_rt_frame {
 
 constexpr const char* kFrameShmName = "/mujoco_rt_frame";
 constexpr uint64_t kMagic = 0x414253525446524DULL;  // mnemonic "ABSRTFRM"
-constexpr uint64_t kVersion = 2;
+constexpr uint64_t kVersion = 3;
 constexpr int kJointCount = 12;
 constexpr int kRayCount = 11;
 
@@ -51,6 +51,9 @@ enum PolicyState : uint32_t {
 enum SwitchingMode : uint32_t {
   kSwitchStabilized = 0,
   kSwitchPaperFaithful = 1,
+  kSwitchHysteresis = 2,
+  kSwitchMinimumHold = 3,
+  kSwitchCombined = 4,
 };
 
 enum ActionSource : uint32_t {
@@ -66,6 +69,15 @@ enum TransitionReason : uint32_t {
   kRiskExitSingle = 2,
   kRiskExitHysteresis = 3,
   kHoldAndRiskExitHysteresis = 4,
+  kHoldAndRiskExitSingle = 5,
+};
+
+enum HoldStatus : uint32_t {
+  kHoldDisabled = 0,
+  kHoldNotInRecovery = 1,
+  kHoldActive = 2,
+  kHoldExpired = 3,
+  kHoldClockInvalid = 4,
 };
 
 enum RiskEdge : uint32_t {
@@ -147,9 +159,16 @@ struct RuntimeFrame {
   float joint_target_rad[12];     // controller order (output_dof_pos_)
   float torque_nm[12];            // controller order (output_torques)
   float torque_saturated[12];     // NOT computed; always 0.0 with flag=0
+  uint32_t v2_abi_pad;             // preserves the v2 536-byte prefix boundary
+  uint32_t hold_status;           // HoldStatus; values meaningful only for C/D
+  uint32_t hold_enabled;          // 0/1
+  double recovery_min_hold_s;     // configured H; zero when disabled
+  double hold_enter_sim_time_s;   // MuJoCo time at the Agile -> Recovery decision
+  double hold_elapsed_sim_s;      // valid current sim_time - t_enter, otherwise zero
 };
 
-static_assert(sizeof(RuntimeFrame) == 536, "unexpected runtime frame layout");
+static_assert(offsetof(RuntimeFrame, hold_status) == 536, "unexpected v3 hold offset");
+static_assert(sizeof(RuntimeFrame) == 568, "unexpected runtime frame layout");
 
 inline uint64_t loadAcquire(const uint64_t* value) {
   return __atomic_load_n(value, __ATOMIC_ACQUIRE);

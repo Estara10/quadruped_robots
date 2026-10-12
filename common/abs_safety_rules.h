@@ -11,11 +11,17 @@ constexpr double kFallHeightM = 0.22;
 constexpr double kFallTiltRad = 1.0471975511965976;  // 60 degrees
 constexpr double kFallHoldSeconds = 0.30;
 
+constexpr uint32_t kFallConditionLowHeight = 1U << 0;
+constexpr uint32_t kFallConditionTilt = 1U << 1;
+
 struct FallTracker {
   bool candidate = false;
   bool confirmed = false;
   bool active = false;
   bool posture_continuous = true;
+  // Conditions observed during the current/latest fall episode. These flags
+  // are diagnostic only and never change the production confirmation rule.
+  uint32_t condition_flags = 0;
   double start_sim_time = 0.0;
   double end_sim_time = 0.0;
   double confirmed_sim_time = 0.0;
@@ -58,9 +64,10 @@ inline bool updateFall(FallTracker& state, double height_m, double roll_rad,
     state.posture_continuous = false;
     return state.confirmed;
   }
-  const bool candidate = height_m < kFallHeightM ||
-                         std::fabs(roll_rad) > kFallTiltRad ||
-                         std::fabs(pitch_rad) > kFallTiltRad;
+  const bool low_height = height_m < kFallHeightM;
+  const bool tilt = std::fabs(roll_rad) > kFallTiltRad ||
+                    std::fabs(pitch_rad) > kFallTiltRad;
+  const bool candidate = low_height || tilt;
   if (!candidate) {
     state.candidate = false;
     state.confirmed = false;  // normal observation rearms the next episode
@@ -69,6 +76,7 @@ inline bool updateFall(FallTracker& state, double height_m, double roll_rad,
   } else if (!state.active) {
     state.active = true;
     state.candidate = true;
+    state.condition_flags = 0;
     state.start_sim_time = sim_time;
     state.start_physics_step = physics_step;
     state.end_sim_time = sim_time;
@@ -93,6 +101,8 @@ inline bool updateFall(FallTracker& state, double height_m, double roll_rad,
     state.candidate = true;
     state.end_sim_time = sim_time;
     state.end_physics_step = physics_step;
+    if (low_height) state.condition_flags |= kFallConditionLowHeight;
+    if (tilt) state.condition_flags |= kFallConditionTilt;
   }
   state.posture_continuous = true;
   return state.confirmed;

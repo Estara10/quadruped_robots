@@ -22,7 +22,7 @@
   "scenes": [
     {
       "name": "random_scene_01",
-      "title": "随机静态场景 1 · 平缓 S 形通道",
+      "title": "随机静态场景 1 · 直线阻挡与上侧绕行",
       "seed": 3101,
       "path_waypoints_m": [
         [
@@ -57,8 +57,8 @@
       "obstacles": [
         {
           "shape": "cylinder",
-          "x": 3.13756395891616,
-          "y": 2.0112182510678207,
+          "x": 2.75,
+          "y": 0.0,
           "radius": 0.2610182027376017,
           "height": 0.41067556223671464
         },
@@ -175,7 +175,7 @@
     },
     {
       "name": "random_scene_02",
-      "title": "随机静态场景 2 · 下侧绕行后回中",
+      "title": "随机静态场景 2 · 直线阻挡与下侧绕行",
       "seed": 3102,
       "path_waypoints_m": [
         [
@@ -226,8 +226,8 @@
         },
         {
           "shape": "box",
-          "x": 1.863052812518069,
-          "y": 0.7352066093523768,
+          "x": 2.8,
+          "y": 0.0,
           "half_x": 0.23852210798004803,
           "half_y": 0.25441510940798323,
           "height": 0.4916150962841512
@@ -341,7 +341,7 @@
     },
     {
       "name": "random_scene_03",
-      "title": "随机静态场景 3 · 上侧宽通道",
+      "title": "随机静态场景 3 · 直线阻挡与上侧绕行",
       "seed": 3103,
       "path_waypoints_m": [
         [
@@ -400,8 +400,8 @@
         },
         {
           "shape": "box",
-          "x": 2.997765478026431,
-          "y": -0.5455418143487827,
+          "x": 3.0,
+          "y": 0.0,
           "half_x": 0.41506187430685926,
           "half_y": 0.3138229826683262,
           "height": 0.30916640297261855
@@ -885,5 +885,7 @@
       ],
       "preview": "random_scene_05.png"
     }
-  ]
+  ],
+  "layout_revision": "S2-08-r1",
+  "revision_note": "Deterministic manual edits from frozen seeds 3101-3105; random_scene_01 obstacle 01, random_scene_02 obstacle 03, and random_scene_03 obstacle 04 moved onto the finite start-goal segment. No rerandomization."
 }

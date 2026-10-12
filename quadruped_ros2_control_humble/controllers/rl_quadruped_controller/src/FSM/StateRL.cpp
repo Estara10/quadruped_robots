@@ -91,19 +91,27 @@ StateRL::StateRL(CtrlInterfaces& ctrl_interfaces,
     // read params from yaml
     loadYaml(model_path);
 
+    const bool hysteresis_enabled = abs_switching::usesHysteresis(switching_mode_);
+    const char* candidate = abs_switching::switchModeName(switching_mode_);
+    const double effective_exit = abs_switching::effectiveExitThreshold(
+        switching_mode_, params_.ra_threshold, switching_exit_threshold_);
     RCLCPP_INFO(node_->get_logger(),
-        "[S1-RUN-SOURCE] pid=%d package_share=%s config=%s agile_model=%s ra_model=%s candidate=%s group=A entry_threshold=%.9g effective_exit_threshold=%.9g hysteresis=false hold=false goal=(%.3f,%.3f)",
+        "[S1-RUN-SOURCE] pid=%d package_share=%s config=%s agile_model=%s ra_model=%s candidate=%s group=%s entry_threshold=%.9g effective_exit_threshold=%.9g hysteresis=%s hold=%s hold_s=%.9g goal=(%.3f,%.3f)",
         static_cast<int>(::getpid()), package_share_directory.c_str(),
         (model_path + "/config.yaml").c_str(), (model_path + "/" + params_.model_name).c_str(),
         (model_path + "/" + params_.ra_model_name).c_str(),
-        abs_switching::switchModeName(switching_mode_), params_.ra_threshold,
-        abs_switching::effectiveExitThreshold(switching_mode_, params_.ra_threshold, params_.ra_threshold - 0.03),
+        candidate, switching_group_.c_str(), params_.ra_threshold, effective_exit,
+        hysteresis_enabled ? "true" : "false", recovery_min_hold_s_ > 0.0 ? "true" : "false",
+        recovery_min_hold_s_,
         goal_x_, goal_y_);
-    const double effective_exit = abs_switching::effectiveExitThreshold(
-        switching_mode_, params_.ra_threshold, params_.ra_threshold - 0.03);
     RCLCPP_INFO(node_->get_logger(),
-        "[S2-SWITCH-CONFIG] group=A entry_threshold=%.9g effective_exit_threshold=%.9g hysteresis=false hold=false",
-        params_.ra_threshold, effective_exit);
+        "[S2-SWITCH-CONFIG] group=%s entry_threshold=%.9g effective_exit_threshold=%.9g hysteresis=%s hold=%s hold_s=%.9g",
+        switching_group_.c_str(), params_.ra_threshold, effective_exit,
+        hysteresis_enabled ? "true" : "false", recovery_min_hold_s_ > 0.0 ? "true" : "false",
+        recovery_min_hold_s_);
+    RCLCPP_INFO(node_->get_logger(),
+        "[S6-05-GAIN-CONFIG] startup_gain_transition_s=%.9g clock=controller_period_seconds shared_groups=A/B/C/D legacy_soft_start_steps=REJECTED",
+        startup_gain_transition_s_);
 
     live_telemetry_enabled_ = envEnabled("ABS_LIVE_TELEMETRY");
     policy_event_trace_enabled_ = envEnabled("ABS_POLICY_EVENT_TRACE");
@@ -303,12 +311,15 @@ StateRL::~StateRL()
 
 void StateRL::enter()
 {
+    initial_policy_state_logged_ = false;
     goal_arrived_ = false;
     normal_shutdown_requested_ = false;
     normal_shutdown_ready_ = false;
     normal_deceleration_failed_logged_ = false;
     normal_shutdown_request_ns_ = 0;
     normal_deceleration_stable_since_ns_ = 0;
+    s6_startup_trace_enabled_ = envEnabled("ABS_S6_STARTUP_GAIN_TRACE") ||
+                                envEnabled("ABS_S6_04_STARTUP_TRACE");
     normal_shutdown_initial_command_ = {0.0, 0.0, 0.0};
     // Init observations
     obs_.lin_vel = torch::tensor({{0.0, 0.0, 0.0}});
@@ -407,7 +418,56 @@ void StateRL::enter()
     episode_timer_ = 0.0;
     rl_step_count_ = 0;
     sync_decimation_counter_ = 0;
-    soft_start_step_ = 0;
+    startup_gain_update_count_ = 0;
+    startup_gain_transition_complete_logged_ = false;
+    abs_startup_gain::Transition::Gains entry_kp{}, entry_kd{}, target_kp{}, target_kd{};
+    for (std::size_t i = 0; i < abs_startup_gain::kJointCount; ++i)
+    {
+        // The previous state has already exited. Read its last value from the
+        // loaned command interface before this state writes any RL command.
+        entry_kp[i] = ctrl_interfaces_.joint_kp_command_interface_[i].get().get_value();
+        entry_kd[i] = ctrl_interfaces_.joint_kd_command_interface_[i].get().get_value();
+        target_kp[i] = params_.rl_kp[0][static_cast<int64_t>(i)].item<double>();
+        target_kd[i] = params_.rl_kd[0][static_cast<int64_t>(i)].item<double>();
+    }
+    startup_gain_transition_initialized_ = startup_gain_transition_.begin(
+        entry_kp, entry_kd, target_kp, target_kd, startup_gain_transition_s_);
+    {
+        std::lock_guard<std::mutex> lock(last_interface_gain_mutex_);
+        last_interface_kp_written_ = entry_kp;
+        last_interface_kd_written_ = entry_kd;
+    }
+    if (s6_startup_trace_enabled_ && startup_gain_transition_initialized_)
+    {
+        auto vector = [](const auto& values) {
+            std::ostringstream output;
+            output << std::fixed << std::setprecision(6);
+            output << '[';
+            for (std::size_t i = 0; i < values.size(); ++i)
+            {
+                if (i) output << ',';
+                output << values[i];
+            }
+            output << ']';
+            return output.str();
+        };
+        std::ostringstream joint_names;
+        joint_names << '[';
+        for (std::size_t i = 0; i < abs_startup_gain::kJointCount; ++i)
+        {
+            if (i) joint_names << ',';
+            joint_names << '\"' << ctrl_interfaces_.joint_kp_command_interface_[i].get().get_prefix_name() << '\"';
+        }
+        joint_names << ']';
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+            "[S6-05-GAIN] {\"schema\":\"s6-05-gain-v1\",\"event\":\"entry\",\"session_id\":%lu,"
+            "\"steady_ns\":%lu,\"source\":\"last_loaned_command_interface_before_RL_write\","
+            "\"transition_s\":%.9f,\"elapsed_s\":0,\"alpha\":0,\"joint_names\":%s,"
+            "\"entry_kp\":%s,\"entry_kd\":%s,\"target_kp\":%s,\"target_kd\":%s}",
+            rt_session_id_, monotonicNowNs(), startup_gain_transition_s_, joint_names.str().c_str(),
+            vector(entry_kp).c_str(), vector(entry_kd).c_str(),
+            vector(target_kp).c_str(), vector(target_kd).c_str());
+    }
     last_ray_stamp_ns_ = 0;
     last_ray_age_ns_ = 0;
     last_ray_reason_ = "not_checked";
@@ -419,6 +479,9 @@ void StateRL::enter()
     sim_clock_segment_id_ = 0;
     sim_clock_mapping_replacement_pending_ = false;
     recovery_episode_id_ = 0;
+    recovery_enter_sim_time_s_ = 0.0;
+    recovery_clock_segment_ = 0;
+    recovery_enter_time_valid_ = false;
     previous_risk_valid_ = false;
     previous_risk_met_ = false;
     previous_risk_session_id_ = 0;
@@ -457,6 +520,12 @@ void StateRL::enter()
     path_start_initialized_ = false;
     in_recovery_ = false;
     rec_hold_left_ = 0;
+    recovery_enter_sim_time_s_ = 0.0;
+    recovery_clock_segment_ = 0;
+    recovery_enter_time_valid_ = false;
+    recovery_enter_sim_time_s_ = 0.0;
+    recovery_clock_segment_ = 0;
+    recovery_enter_time_valid_ = false;
     cached_rec_vx_ = 0.0;
     cached_rec_vy_ = 0.0;
     cached_rec_wz_ = 0.0;
@@ -467,6 +536,16 @@ void StateRL::enter()
     }
 
     running_ = true;
+    s6_last_trace_policy_cycle_ = UINT64_MAX;
+    s6_previous_action_ = torch::zeros({1, params_.num_of_dofs});
+    s6_policy_action_raw_ = torch::zeros({1, params_.num_of_dofs});
+    s6_policy_action_clipped_ = torch::zeros({1, params_.num_of_dofs});
+    if (s6_startup_trace_enabled_)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+            "[S6-04-ENTRY] session_id=%lu steady_ns=%lu state=RL",
+            rt_session_id_, monotonicNowNs());
+    }
     stage_a_common_start_enabled_ = envEnabled("ABS_P1_10_COMMON_START");
     if (stage_a_common_start_enabled_)
     {
@@ -504,10 +583,15 @@ void StateRL::enter()
     }
 }
 
-void StateRL::run(const rclcpp::Time&/*time*/, const rclcpp::Duration&/*period*/)
+void StateRL::run(const rclcpp::Time&/*time*/, const rclcpp::Duration& period)
 {
     getState();
-    if (!use_rl_thread_)
+    const double period_s = period.seconds();
+    if (!startup_gain_transition_initialized_ || !std::isfinite(period_s) || period_s < 0.0)
+    {
+        safetyVeto("invalid startup gain transition period or initialization");
+    }
+    if (!safety_faulted_ && !use_rl_thread_)
     {
         sync_decimation_counter_++;
         if (sync_decimation_counter_ >= params_.decimation)
@@ -516,7 +600,7 @@ void StateRL::run(const rclcpp::Time&/*time*/, const rclcpp::Duration&/*period*/
             runModel();
         }
     }
-    setCommand();
+    setCommand(period_s);
 }
 
 void StateRL::logEvalTelemetry(double robot_wx, double robot_wy, double robot_yaw,
@@ -916,6 +1000,12 @@ void StateRL::emitCommandTelemetry(const char* event, const char* reason) const
     bool kp_zero = true;
     bool kd_zero = true;
     bool tau_zero = true;
+    abs_startup_gain::Transition::Gains last_kp{}, last_kd{};
+    {
+        std::lock_guard<std::mutex> lock(last_interface_gain_mutex_);
+        last_kp = last_interface_kp_written_;
+        last_kd = last_interface_kd_written_;
+    }
     std::ostringstream q, kp, kd, tau;
     q << std::fixed << std::setprecision(4);
     kp << std::fixed << std::setprecision(4);
@@ -925,11 +1015,11 @@ void StateRL::emitCommandTelemetry(const char* event, const char* reason) const
     {
         if (i != 0) { q << ','; kp << ','; kd << ','; tau << ','; }
         q << robot_command_.motor_command.q[i];
-        kp << robot_command_.motor_command.kp[i] * applied_gain_ratio_;
-        kd << robot_command_.motor_command.kd[i] * applied_gain_ratio_;
+        kp << last_kp[static_cast<std::size_t>(i)];
+        kd << last_kd[static_cast<std::size_t>(i)];
         tau << robot_command_.motor_command.tau[i];
-        kp_zero = kp_zero && robot_command_.motor_command.kp[i] * applied_gain_ratio_ == 0.0;
-        kd_zero = kd_zero && robot_command_.motor_command.kd[i] * applied_gain_ratio_ == 0.0;
+        kp_zero = kp_zero && last_kp[static_cast<std::size_t>(i)] == 0.0;
+        kd_zero = kd_zero && last_kd[static_cast<std::size_t>(i)] == 0.0;
         tau_zero = tau_zero && robot_command_.motor_command.tau[i] == 0.0;
     }
     RCLCPP_INFO(rclcpp::get_logger("StateRL"),
@@ -1015,6 +1105,11 @@ void StateRL::writeRtFrame(uint32_t policy_state,
     local.sim_clock_monotonic_ns = cycle_trace_.sim_clock_monotonic_ns;
     local.sim_clock_segment_id = cycle_trace_.sim_clock_segment_id;
     local.sim_clock_age_ns = cycle_trace_.sim_clock_age_ns;
+    local.hold_status = cycle_trace_.hold_status;
+    local.hold_enabled = cycle_trace_.hold_enabled;
+    local.recovery_min_hold_s = cycle_trace_.hold_duration_s;
+    local.hold_enter_sim_time_s = cycle_trace_.hold_enter_sim_time_s;
+    local.hold_elapsed_sim_s = cycle_trace_.hold_elapsed_sim_s;
     if (local.sim_clock_valid)
     {
         if (now_ns < local.sim_clock_monotonic_ns)
@@ -1049,6 +1144,9 @@ void StateRL::writeRtFrame(uint32_t policy_state,
     require_finite(ra_value_);
     require_finite(cycle_trace_.entry_threshold);
     require_finite(cycle_trace_.exit_threshold);
+    require_finite(cycle_trace_.hold_duration_s);
+    require_finite(cycle_trace_.hold_enter_sim_time_s);
+    require_finite(cycle_trace_.hold_elapsed_sim_s);
     if (cycle_trace_.sim_clock_valid) require_finite(cycle_trace_.sim_time_s);
     for (int i = 0; i < 3; ++i)
     {
@@ -1128,6 +1226,80 @@ void StateRL::writeRtFrame(uint32_t policy_state,
     abs_rt_frame::storeRelease(&frame->header.version, abs_rt_frame::kVersion);
     abs_rt_frame::storeRelease(&frame->header.monotonic_ns, now_ns);
     abs_rt_frame::storeRelease(&frame->header.sequence, sequence + 2U);
+
+    // Persist the measured controller inputs from the first accepted active
+    // policy cycle. This is a one-time companion record keyed to the exact
+    // runtime-frame session/cycle/timestamp, not an asynchronous joint-state
+    // subscription or a commanded target.
+    if (!initial_policy_state_logged_ && local.rl_active == 1U && local.rl_step == 0U)
+    {
+        bool measured_state_finite = true;
+        std::ostringstream initial;
+        initial << std::setprecision(9)
+                << "{\"session_id\":" << local.session_id
+                << ",\"cycle_id\":" << local.rl_step
+                << ",\"frame_monotonic_ns\":" << now_ns
+                << ",\"sim_clock_valid\":" << (local.sim_clock_valid ? "true" : "false")
+                << ",\"sim_time_s\":";
+        if (local.sim_clock_valid) initial << local.sim_time_s;
+        else initial << "null";
+        initial << ",\"joint_order\":[";
+        for (int i = 0; i < abs_rt_frame::kJointCount; ++i)
+        {
+            if (i) initial << ',';
+            const auto& interface = ctrl_interfaces_.joint_position_state_interface_[i].get();
+            initial << '\"' << interface.get_prefix_name() << '\"';
+        }
+        initial << "],\"joint_position_rad\":[";
+        for (int i = 0; i < abs_rt_frame::kJointCount; ++i)
+        {
+            const double value = robot_state_.motor_state.q[i];
+            measured_state_finite = measured_state_finite && std::isfinite(value);
+            if (i) initial << ',';
+            initial << value;
+        }
+        initial << "],\"joint_velocity_rad_s\":[";
+        for (int i = 0; i < abs_rt_frame::kJointCount; ++i)
+        {
+            const double value = robot_state_.motor_state.dq[i];
+            measured_state_finite = measured_state_finite && std::isfinite(value);
+            if (i) initial << ',';
+            initial << value;
+        }
+        initial << "],\"imu_quaternion_order\":\"framework-native\",\"imu_quaternion\":[";
+        for (int i = 0; i < 4; ++i)
+        {
+            const double value = robot_state_.imu.quaternion[i];
+            measured_state_finite = measured_state_finite && std::isfinite(value);
+            if (i) initial << ',';
+            initial << value;
+        }
+        initial << "],\"body_angular_velocity_rad_s\":[";
+        for (int i = 0; i < 3; ++i)
+        {
+            const double value = robot_state_.imu.gyroscope[i];
+            measured_state_finite = measured_state_finite && std::isfinite(value);
+            if (i) initial << ',';
+            initial << value;
+        }
+        initial << "],\"body_linear_velocity_m_s\":[";
+        for (int i = 0; i < 3; ++i)
+        {
+            const double value = obs_.lin_vel[0][i].item<double>();
+            measured_state_finite = measured_state_finite && std::isfinite(value);
+            if (i) initial << ',';
+            initial << value;
+        }
+        measured_state_finite = measured_state_finite && std::isfinite(robot_wx) &&
+                                std::isfinite(robot_wy) && std::isfinite(robot_yaw);
+        initial << "],\"world_position_xy_m\":[" << robot_wx << ',' << robot_wy
+                << "],\"world_yaw_rad\":" << robot_yaw << '}';
+        if (measured_state_finite)
+        {
+            RCLCPP_INFO(node_->get_logger(), "[ABS-INITIAL-STATE] %s", initial.str().c_str());
+            initial_policy_state_logged_ = true;
+        }
+    }
 }
 
 void StateRL::invalidateRtFrame()
@@ -1606,9 +1778,8 @@ void StateRL::loadYaml(const std::string& config_path)
         params_.policy_joint_order = config["policy_joint_order"].as<std::string>();
     }
 
-    // ABS-specific parameters. The research-facing switching entry is strictly
-    // abs.switching.group=A plus entry_threshold; legacy parallel authorities
-    // and unsupported groups are rejected by the production parser.
+    // ABS-specific parameters. The research-facing A/B/C/D switching entry is
+    // strict; legacy parallel authorities are rejected.
     if (!config["abs"] || !config["abs"].IsMap())
     {
         RCLCPP_FATAL(rclcpp::get_logger("StateRL"), "[S2-SWITCH-CONFIG] abs mapping is required; refusing to start");
@@ -1616,10 +1787,20 @@ void StateRL::loadYaml(const std::string& config_path)
     }
     {
         auto abs_node = config["abs"];
-        abs_switching::AGroupConfig switching_config;
         try
         {
-            switching_config = abs_switching::parseAGroupConfig(abs_node);
+            startup_gain_transition_s_ = abs_startup_gain::parseTransitionSeconds(abs_node);
+        }
+        catch (const std::exception& e)
+        {
+            RCLCPP_FATAL(rclcpp::get_logger("StateRL"),
+                "[S6-05-GAIN-CONFIG] invalid startup gain handoff configuration: %s", e.what());
+            throw;
+        }
+        abs_switching::SwitchConfig switching_config;
+        try
+        {
+            switching_config = abs_switching::parseSwitchConfig(abs_node);
         }
         catch (const std::exception& e)
         {
@@ -1627,9 +1808,12 @@ void StateRL::loadYaml(const std::string& config_path)
                 "[S2-SWITCH-CONFIG] invalid switching configuration: %s", e.what());
             throw;
         }
+        switching_group_ = switching_config.group;
         params_.ra_threshold = switching_config.entry_threshold;
-        switching_mode_ = abs_switching::SwitchMode::paper_faithful_switch;
+        switching_exit_threshold_ = switching_config.exit_threshold;
+        switching_mode_ = switching_config.mode;
         recovery_hold_steps_ = 0;
+        recovery_min_hold_s_ = switching_config.recovery_min_hold_s;
         params_.abs_max_episode_length_s = abs_node["max_episode_length_s"].as<double>();
         params_.abs_contact_threshold = abs_node["contact_threshold"].as<double>();
         params_.abs_ray2d_count = abs_node["ray2d_count"].as<int>();
@@ -1650,7 +1834,6 @@ void StateRL::loadYaml(const std::string& config_path)
         if (abs_node["twist_wz_min"]) params_.twist_wz_min = abs_node["twist_wz_min"].as<double>();
         if (abs_node["twist_wz_max"]) params_.twist_wz_max = abs_node["twist_wz_max"].as<double>();
         if (abs_node["recovery_steps"]) params_.recovery_steps = abs_node["recovery_steps"].as<int>();
-        if (abs_node["soft_start_steps"]) soft_start_steps_ = abs_node["soft_start_steps"].as<int>();
         if (abs_node["goal_x"]) goal_x_ = abs_node["goal_x"].as<double>();
         if (abs_node["goal_y"]) goal_y_ = abs_node["goal_y"].as<double>();
         if (abs_node["resample_goal_on_arrival"])
@@ -1769,11 +1952,22 @@ void StateRL::runModel()
     cycle_trace_.mode_before = in_recovery_ ? abs_rt_frame::kPolicyRecovery
                                              : abs_rt_frame::kPolicyAgile;
     cycle_trace_.switching_mode = switching_mode_ == abs_switching::SwitchMode::paper_faithful_switch
-        ? abs_rt_frame::kSwitchPaperFaithful : abs_rt_frame::kSwitchStabilized;
+        ? abs_rt_frame::kSwitchPaperFaithful
+        : switching_mode_ == abs_switching::SwitchMode::hysteresis_switch
+            ? abs_rt_frame::kSwitchHysteresis
+            : switching_mode_ == abs_switching::SwitchMode::minimum_hold_switch
+                ? abs_rt_frame::kSwitchMinimumHold : abs_rt_frame::kSwitchStabilized;
+    if (switching_mode_ == abs_switching::SwitchMode::combined_switch)
+        cycle_trace_.switching_mode = abs_rt_frame::kSwitchCombined;
+    cycle_trace_.hold_enabled = recovery_min_hold_s_ > 0.0 ? 1U : 0U;
+    cycle_trace_.hold_duration_s = recovery_min_hold_s_;
+    cycle_trace_.hold_enter_sim_time_s = recovery_enter_time_valid_ ? recovery_enter_sim_time_s_ : 0.0;
+    cycle_trace_.hold_status = cycle_trace_.hold_enabled
+        ? (in_recovery_ ? abs_rt_frame::kHoldClockInvalid : abs_rt_frame::kHoldNotInRecovery)
+        : abs_rt_frame::kHoldDisabled;
     cycle_trace_.entry_threshold = params_.ra_threshold;
     cycle_trace_.exit_threshold = abs_switching::effectiveExitThreshold(
-        switching_mode_, cycle_trace_.entry_threshold,
-        params_.ra_threshold - 0.03);
+        switching_mode_, cycle_trace_.entry_threshold, switching_exit_threshold_);
     cycle_trace_.risk_condition_entered = abs_rt_frame::kRiskEdgeUnknown;
     captureSimClock(policy_start_ns);
 
@@ -1987,9 +2181,9 @@ void StateRL::runModel()
     if (safety_faulted_) return;
 
     cycle_trace_.risk_evaluation_ns = monotonicNowNs();
-    const bool risk_condition_met = switching_mode_ == abs_switching::SwitchMode::paper_faithful_switch
-        ? (ra_value_ >= cycle_trace_.entry_threshold)
-        : (ra_value_ > cycle_trace_.entry_threshold);
+    const bool risk_condition_met = switching_mode_ == abs_switching::SwitchMode::stabilized_switch
+        ? (ra_value_ > cycle_trace_.entry_threshold)
+        : (ra_value_ >= cycle_trace_.entry_threshold);
     cycle_trace_.risk_condition_met = risk_condition_met ? 1U : 0U;
     const bool risk_contiguous = previous_risk_valid_ &&
         previous_risk_session_id_ == rt_session_id_ &&
@@ -2007,18 +2201,14 @@ void StateRL::runModel()
     previous_risk_session_id_ = rt_session_id_;
     previous_risk_step_ = static_cast<uint64_t>(rl_step_count_);
 
-    // === ROS1 lines 495-538: RA-based recovery (inline, per-timestep) ===
-    // Frequency adaptation: ROS1 inference at 12.5Hz (80ms/step), we run at 125Hz (8ms/step).
-    // To match ROS1 effective recovery duration (~250ms), we enforce a minimum hold:
-    //  - On ENTER: compute twist via GD, hold for rec_hold_steps RL steps
-    //  - During hold: reuse cached twist, keep recovery policy active
-    //  - After hold: allow exit if ra < exit_threshold
-    // ROS1: 80ms * 3steps ≈ 240ms.  Ours: 8ms * 30steps ≈ 240ms.
+    // A/B/C/D use the shared RA policy path. C/D Recovery residency gates are
+    // measured in valid MuJoCo simulation seconds, never policy-step counts.
     const int REC_HOLD_STEPS = recovery_hold_steps_;
     torch::Tensor policy_actions;
     torch::Tensor clamped_actions;
     const double ra_entry_thr = cycle_trace_.entry_threshold;
     const double ra_exit_thr = cycle_trace_.exit_threshold;
+    const bool hysteresis_enabled = abs_switching::usesHysteresis(switching_mode_);
 
     // Cache last optimized twist (avoids recomputing GD every 8ms step)
 
@@ -2032,15 +2222,29 @@ void StateRL::runModel()
         // above; the helper additionally refuses any transition on NaN/Inf
         // (invalid=true) so it can never drive the state machine.
         const bool was_in_recovery = in_recovery_;
-        abs_switching::SwitchState sw{in_recovery_, rec_hold_left_};
+        abs_switching::SwitchState sw{in_recovery_, rec_hold_left_, recovery_enter_sim_time_s_,
+                                      recovery_clock_segment_, recovery_enter_time_valid_};
         const abs_switching::SwitchDecision decision =
             abs_switching::stepSwitching(switching_mode_, sw, ra_value_,
-                                         ra_entry_thr, ra_exit_thr, REC_HOLD_STEPS);
+                                         ra_entry_thr, ra_exit_thr, REC_HOLD_STEPS,
+                                         cycle_trace_.sim_time_s, cycle_trace_.sim_clock_valid != 0,
+                                         cycle_trace_.sim_clock_segment_id, recovery_min_hold_s_);
         const uint64_t decision_ns = monotonicNowNs();
         if (!decision.invalid)
         {
             in_recovery_ = decision.state.in_recovery;
             rec_hold_left_ = decision.state.hold_left;
+            recovery_enter_sim_time_s_ = decision.state.recovery_enter_sim_time_s;
+            recovery_clock_segment_ = decision.state.recovery_clock_segment;
+            recovery_enter_time_valid_ = decision.state.recovery_enter_time_valid;
+            cycle_trace_.hold_status = static_cast<uint32_t>(decision.hold_status);
+            cycle_trace_.hold_elapsed_sim_s = decision.hold_elapsed_s;
+            if (recovery_enter_time_valid_)
+                cycle_trace_.hold_enter_sim_time_s = recovery_enter_sim_time_s_;
+            else if (abs_switching::usesMinimumHold(switching_mode_) && was_in_recovery)
+                cycle_trace_.hold_enter_sim_time_s = sw.recovery_enter_sim_time_s;
+            else
+                cycle_trace_.hold_enter_sim_time_s = 0.0;
             cycle_trace_.policy_mode_changed = was_in_recovery != in_recovery_ ? 1U : 0U;
             if (cycle_trace_.policy_mode_changed)
             {
@@ -2054,7 +2258,10 @@ void StateRL::runModel()
                     cycle_trace_.transition_reason =
                         switching_mode_ == abs_switching::SwitchMode::paper_faithful_switch
                             ? abs_rt_frame::kRiskExitSingle
-                            : abs_rt_frame::kHoldAndRiskExitHysteresis;
+                            : abs_switching::usesMinimumHold(switching_mode_)
+                                ? (hysteresis_enabled ? abs_rt_frame::kHoldAndRiskExitHysteresis
+                                                      : abs_rt_frame::kHoldAndRiskExitSingle)
+                                : abs_rt_frame::kRiskExitHysteresis;
                 }
             }
             if (decision.enter_edge)
@@ -2069,17 +2276,22 @@ void StateRL::runModel()
                 cached_rec_vy_ = ctrl_component_.recovery_twist_vy;
                 cached_rec_wz_ = ctrl_component_.recovery_twist_wz;
                 RCLCPP_WARN(rclcpp::get_logger("StateRL"),
-                    "[RA-REC] 进入恢复 | group=A mode=%s ra=%.4f entry=%.4f effective_exit=%.4f hysteresis=false hold=false 恢复速度=[%.2f,%.2f,%.2f]",
-                    abs_switching::switchModeName(switching_mode_), ra_value_,
-                    ra_entry_thr, ra_exit_thr, cached_rec_vx_, cached_rec_vy_, cached_rec_wz_);
+                    "[RA-REC] 进入恢复 | group=%s mode=%s ra=%.4f entry=%.4f effective_exit=%.4f hysteresis=%s hold_s=%.4f sim_time=%.6f sim_clock_valid=%d 恢复速度=[%.2f,%.2f,%.2f]",
+                    switching_group_.c_str(), abs_switching::switchModeName(switching_mode_), ra_value_,
+                    ra_entry_thr, ra_exit_thr, hysteresis_enabled ? "true" : "false",
+                    recovery_min_hold_s_, cycle_trace_.sim_time_s, cycle_trace_.sim_clock_valid,
+                    cached_rec_vx_, cached_rec_vy_, cached_rec_wz_);
             }
             else if (was_in_recovery && !in_recovery_)
             {
-                const double return_thr = (switching_mode_ == abs_switching::SwitchMode::paper_faithful_switch)
+                const double return_thr = (switching_mode_ == abs_switching::SwitchMode::paper_faithful_switch ||
+                                           switching_mode_ == abs_switching::SwitchMode::minimum_hold_switch)
                                               ? ra_entry_thr : ra_exit_thr;
                 RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-                    "[RA-REC] 退出恢复 | group=A mode=%s ra=%.4f < effective_exit=%.4f entry=%.4f hysteresis=false hold=false, 回到敏捷策略",
-                    abs_switching::switchModeName(switching_mode_), ra_value_, return_thr, ra_entry_thr);
+                    "[RA-REC] 退出恢复 | group=%s mode=%s ra=%.4f < effective_exit=%.4f entry=%.4f hysteresis=%s hold_s=%.4f hold_elapsed=%.4f sim_time=%.6f, 回到敏捷策略",
+                    switching_group_.c_str(), abs_switching::switchModeName(switching_mode_), ra_value_, return_thr, ra_entry_thr,
+                    hysteresis_enabled ? "true" : "false", recovery_min_hold_s_,
+                    cycle_trace_.hold_elapsed_sim_s, cycle_trace_.sim_time_s);
             }
         }
     }
@@ -2139,6 +2351,12 @@ void StateRL::runModel()
         clamped_actions = torch::clamp(clamped_actions, -action_output_clip_, action_output_clip_);
     }
 
+    if (s6_startup_trace_enabled_)
+    {
+        s6_previous_action_ = obs_.actions.clone();
+        s6_policy_action_raw_ = policy_actions.clone();
+        s6_policy_action_clipped_ = clamped_actions.clone();
+    }
     obs_.actions = clamped_actions;
 
     const torch::Tensor actions_scaled = clamped_actions * params_.action_scale;
@@ -2202,16 +2420,8 @@ void StateRL::runModel()
     rl_step_count_++;
 }
 
-void StateRL::setCommand() const
+void StateRL::setCommand(double period_s)
 {
-    // Soft start: ramp Kp/Kd from 0 to target over first N RL steps
-    if (soft_start_step_ < soft_start_steps_)
-    {
-        soft_start_step_++;
-    }
-    const double ratio = std::min(1.0, static_cast<double>(soft_start_step_) / soft_start_steps_);
-    applied_gain_ratio_ = ratio;
-
     std::array<double, 12> q{}, dq{}, kp{}, kd{}, tau{};
     CommandTrace source;
     uint64_t write_id = 0;
@@ -2237,6 +2447,26 @@ void StateRL::setCommand() const
         }
     }
 
+    double alpha = 1.0;
+    if (!safety_faulted_ && startup_gain_transition_initialized_ &&
+        !startup_gain_transition_.sample(kp, kd, alpha))
+    {
+        safetyVeto("startup gain transition state invalid");
+    }
+    if (safety_faulted_)
+    {
+        // Veto/hard stop wins over an unfinished gain blend.
+        std::lock_guard<std::mutex> lock(command_mutex_);
+        for (int i = 0; i < 12; ++i)
+        {
+            q[i] = robot_command_.motor_command.q[i];
+            dq[i] = robot_command_.motor_command.dq[i];
+            kp[i] = robot_command_.motor_command.kp[i];
+            kd[i] = robot_command_.motor_command.kd[i];
+            tau[i] = robot_command_.motor_command.tau[i];
+        }
+    }
+
     for (int i = 0; i < 12; i++)
     {
         ctrl_interfaces_.joint_position_command_interface_[i].get().
@@ -2244,13 +2474,56 @@ void StateRL::setCommand() const
                                                                                 q[i]);
         ctrl_interfaces_.joint_velocity_command_interface_[i].get().set_value(
             dq[i]);
-        ctrl_interfaces_.joint_kp_command_interface_[i].get().set_value(
-            kp[i] * ratio);
-        ctrl_interfaces_.joint_kd_command_interface_[i].get().set_value(
-            kd[i] * ratio);
+        ctrl_interfaces_.joint_kp_command_interface_[i].get().set_value(kp[i]);
+        ctrl_interfaces_.joint_kd_command_interface_[i].get().set_value(kd[i]);
         ctrl_interfaces_.joint_torque_command_interface_[i].get().
                                                                           set_value(
                                                                               tau[i]);
+    }
+    {
+        std::lock_guard<std::mutex> lock(last_interface_gain_mutex_);
+        last_interface_kp_written_ = kp;
+        last_interface_kd_written_ = kd;
+    }
+    const double elapsed_s = startup_gain_transition_.elapsedSeconds();
+    const bool transition_endpoint = alpha >= 1.0;
+    if (s6_startup_trace_enabled_ && startup_gain_transition_initialized_ &&
+        (!transition_endpoint || !startup_gain_transition_complete_logged_))
+    {
+        auto vector = [](const auto& values) {
+            std::ostringstream output;
+            output << std::fixed << std::setprecision(6);
+            output << '[';
+            for (std::size_t i = 0; i < values.size(); ++i)
+            {
+                if (i) output << ',';
+                output << values[i];
+            }
+            output << ']';
+            return output.str();
+        };
+        std::ostringstream joint_names;
+        joint_names << '[';
+        for (std::size_t i = 0; i < abs_startup_gain::kJointCount; ++i)
+        {
+            if (i) joint_names << ',';
+            joint_names << '\"' << ctrl_interfaces_.joint_kp_command_interface_[i].get().get_prefix_name() << '\"';
+        }
+        joint_names << ']';
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+            "[S6-05-GAIN] {\"schema\":\"s6-05-gain-v1\",\"event\":\"%s\",\"session_id\":%lu,"
+            "\"steady_ns\":%lu,\"update\":%lu,\"elapsed_s\":%.9f,\"period_s\":%.9f,\"alpha\":%.9f,"
+            "\"joint_names\":%s,\"entry_kp\":%s,\"entry_kd\":%s,\"target_kp\":%s,\"target_kd\":%s,"
+            "\"written_kp\":%s,\"written_kd\":%s}",
+            transition_endpoint ? "transition_complete" : "command_write", rt_session_id_,
+            monotonicNowNs(), static_cast<unsigned long>(startup_gain_update_count_), elapsed_s, period_s, alpha,
+            joint_names.str().c_str(), vector(startup_gain_transition_.entryKp()).c_str(),
+            vector(startup_gain_transition_.entryKd()).c_str(), vector(startup_gain_transition_.targetKp()).c_str(),
+            vector(startup_gain_transition_.targetKd()).c_str(), vector(kp).c_str(), vector(kd).c_str());
+    }
+    if (transition_endpoint)
+    {
+        startup_gain_transition_complete_logged_ = true;
     }
     const uint64_t write_ns = monotonicNowNs();
     if (recovery_candidate)
@@ -2280,5 +2553,82 @@ void StateRL::setCommand() const
             source.action_source, source.transition_reason,
             source.recovery_episode_id, q_values.str().c_str());
     }
+    if (s6_startup_trace_enabled_ &&
+        (startup_gain_update_count_ <= 8 ||
+         (rl_step_count_ > 0 && s6_last_trace_policy_cycle_ !=
+             static_cast<uint64_t>(rl_step_count_ - 1))))
+    {
+        const uint64_t policy_cycle = rl_step_count_ > 0 ? rl_step_count_ - 1 : UINT64_MAX;
+        std::ostringstream trace;
+        trace << std::fixed << std::setprecision(9)
+              << "{\"schema\":\"s6-04-controller-startup-v1\","
+              << "\"controller_update_steady_ns\":" << monotonicNowNs() << ','
+              << "\"session_id\":" << rt_session_id_ << ",\"policy_cycle\":";
+        if (policy_cycle == UINT64_MAX) trace << "null"; else trace << policy_cycle;
+        trace << ",\"controller_update_gain_step\":" << startup_gain_update_count_
+              << ",\"gain_ratio\":" << alpha
+              << ",\"startup_gain_elapsed_s\":" << elapsed_s
+              << ",\"sim_clock_valid\":" << (cycle_trace_.sim_clock_valid ? "true" : "false")
+              << ",\"sim_time_s\":";
+        if (cycle_trace_.sim_clock_valid) trace << cycle_trace_.sim_time_s; else trace << "null";
+        auto vector = [&trace](const char* name, const auto& values, size_t count) {
+            trace << ",\"" << name << "\":[";
+            for (size_t i = 0; i < count; ++i) { if (i) trace << ','; trace << values[i]; }
+            trace << ']';
+        };
+        auto tensor = [&trace](const char* name, const torch::Tensor& values) {
+            trace << ",\"" << name << "\":[";
+            if (values.defined())
+            {
+                auto flat = values.reshape({-1}).to(torch::kCPU).to(torch::kDouble);
+                for (int64_t i = 0; i < flat.numel(); ++i) { if (i) trace << ','; trace << flat[i].item<double>(); }
+            }
+            else trace << "null";
+            trace << ']';
+        };
+        trace << ",\"joint_names\":[";
+        for (int i = 0; i < 12; ++i)
+        {
+            if (i) trace << ',';
+            trace << '\"' << ctrl_interfaces_.joint_position_state_interface_[i].get().get_prefix_name() << '\"';
+        }
+        trace << ']';
+        trace << ",\"foot_contact_interface_names\":[";
+        for (int i = 0; i < 4; ++i)
+        {
+            if (i) trace << ',';
+            trace << '\"' << ctrl_interfaces_.foot_force_state_interface_[i].get().get_prefix_name()
+                  << '/' << ctrl_interfaces_.foot_force_state_interface_[i].get().get_interface_name()
+                  << '\"';
+        }
+        trace << ']';
+        vector("measured_q_rad", robot_state_.motor_state.q, 12);
+        vector("measured_dq_rad_s", robot_state_.motor_state.dq, 12);
+        vector("joint_target_rad", q, 12);
+        vector("joint_velocity_target_rad_s", dq, 12);
+        std::array<double, 12> kp_written{}, kd_written{}, tau_written{};
+        for (int i = 0; i < 12; ++i) { kp_written[i] = kp[i]; kd_written[i] = kd[i]; tau_written[i] = tau[i]; }
+        vector("command_interface_kp_written", kp_written, 12);
+        vector("command_interface_kd_written", kd_written, 12);
+        vector("command_interface_tau_written", tau_written, 12);
+        tensor("previous_action_controller_order", s6_previous_action_);
+        tensor("policy_action_raw_model_order", s6_policy_action_raw_);
+        tensor("policy_action_clipped_controller_order", s6_policy_action_clipped_);
+        tensor("observation_dof_position", obs_.dof_pos);
+        tensor("observation_dof_velocity", obs_.dof_vel);
+        tensor("observation_foot_contact", obs_.contact);
+        tensor("observation_angular_velocity", obs_.ang_vel);
+        tensor("observation_quaternion", obs_.base_quat);
+        trace << ",\"action_source\":" << source.action_source
+              << ",\"policy_state\":" << source.source_mode << '}';
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"), "[S6-04-TRACE] %s", trace.str().c_str());
+        if (policy_cycle != UINT64_MAX) s6_last_trace_policy_cycle_ = policy_cycle;
+    }
     emitCommandTelemetry(safety_faulted_ ? "passive_command_write" : "rl_command_write");
+    if (!safety_faulted_ && startup_gain_transition_initialized_ &&
+        !startup_gain_transition_complete_logged_ && !startup_gain_transition_.advance(period_s))
+    {
+        safetyVeto("invalid startup gain transition period");
+    }
+    ++startup_gain_update_count_;
 }

@@ -1,0 +1,177 @@
+{
+  "layout_revision": "S2-08-r1",
+  "source": "layouts.json (original seeds retained; deterministic obstacle edits, no rerandomization)",
+  "segment_m": [
+    [
+      0.0,
+      0.0
+    ],
+    [
+      7.0,
+      0.0
+    ]
+  ],
+  "line_intersection_rule": "positive-width intersection of exact circle/axis-aligned box XY footprint with finite x=[0,7], y=0 segment",
+  "reserved_corridor_rule": "conservative obstacle circumscribed radius must remain >0.55 m from every path polyline segment",
+  "scenes": [
+    {
+      "scene": "scene_random_01.xml",
+      "scene_id": "random_01",
+      "seed": 3101,
+      "obstacle_count": 15,
+      "manual_edits": [
+        {
+          "obstacle_1based": 1,
+          "from_xy_m": [
+            3.13756395891616,
+            2.0112182510678207
+          ],
+          "to_xy_m": [
+            2.75,
+            0.0
+          ]
+        }
+      ],
+      "direct_start_goal_blockers": [
+        {
+          "obstacle_1based": 1,
+          "shape": "cylinder",
+          "intersection_x_m": [
+            2.488981797262398,
+            3.011018202737602
+          ]
+        }
+      ],
+      "reserved_corridor_width_m": 1.1,
+      "minimum_obstacle_edge_clearance_to_bypass_centerline_m": 0.5889817972623983,
+      "minimum_channel_margin_over_half_width_m": 0.038981797262398254,
+      "start_nearest_obstacle_clearance_m": 1.9456650687857058,
+      "goal_nearest_obstacle_clearance_m": 0.9734086822293714,
+      "obstacle_overlap_pairs": [],
+      "world_bounds_overruns": [],
+      "layout_unchanged_from_previous": false
+    },
+    {
+      "scene": "scene_random_02.xml",
+      "scene_id": "random_02",
+      "seed": 3102,
+      "obstacle_count": 17,
+      "manual_edits": [
+        {
+          "obstacle_1based": 3,
+          "from_xy_m": [
+            1.863052812518069,
+            0.7352066093523768
+          ],
+          "to_xy_m": [
+            2.8,
+            0.0
+          ]
+        }
+      ],
+      "direct_start_goal_blockers": [
+        {
+          "obstacle_1based": 3,
+          "shape": "box",
+          "intersection_x_m": [
+            2.5614778920199517,
+            3.038522107980048
+          ]
+        }
+      ],
+      "reserved_corridor_width_m": 1.1,
+      "minimum_obstacle_edge_clearance_to_bypass_centerline_m": 0.6585648271754434,
+      "minimum_channel_margin_over_half_width_m": 0.10856482717544336,
+      "start_nearest_obstacle_clearance_m": 1.2923480664848077,
+      "goal_nearest_obstacle_clearance_m": 0.9971319275035289,
+      "obstacle_overlap_pairs": [],
+      "world_bounds_overruns": [],
+      "layout_unchanged_from_previous": false
+    },
+    {
+      "scene": "scene_random_03.xml",
+      "scene_id": "random_03",
+      "seed": 3103,
+      "obstacle_count": 18,
+      "manual_edits": [
+        {
+          "obstacle_1based": 4,
+          "from_xy_m": [
+            2.997765478026431,
+            -0.5455418143487827
+          ],
+          "to_xy_m": [
+            3.0,
+            0.0
+          ]
+        }
+      ],
+      "direct_start_goal_blockers": [
+        {
+          "obstacle_1based": 4,
+          "shape": "box",
+          "intersection_x_m": [
+            2.5849381256931405,
+            3.4150618743068595
+          ]
+        }
+      ],
+      "reserved_corridor_width_m": 1.1,
+      "minimum_obstacle_edge_clearance_to_bypass_centerline_m": 0.6979757468555923,
+      "minimum_channel_margin_over_half_width_m": 0.14797574685559223,
+      "start_nearest_obstacle_clearance_m": 1.4438112463266115,
+      "goal_nearest_obstacle_clearance_m": 1.0511559406939748,
+      "obstacle_overlap_pairs": [],
+      "world_bounds_overruns": [],
+      "layout_unchanged_from_previous": false
+    },
+    {
+      "scene": "scene_random_04.xml",
+      "scene_id": "random_04",
+      "seed": 3104,
+      "obstacle_count": 19,
+      "manual_edits": [],
+      "direct_start_goal_blockers": [
+        {
+          "obstacle_1based": 15,
+          "shape": "cylinder",
+          "intersection_x_m": [
+            2.5562160902898943,
+            3.1016306854167817
+          ]
+        }
+      ],
+      "reserved_corridor_width_m": 1.1,
+      "minimum_obstacle_edge_clearance_to_bypass_centerline_m": 0.6503990498927321,
+      "minimum_channel_margin_over_half_width_m": 0.10039904989273207,
+      "start_nearest_obstacle_clearance_m": 1.3559524459770216,
+      "goal_nearest_obstacle_clearance_m": 1.1562960250918224,
+      "obstacle_overlap_pairs": [],
+      "world_bounds_overruns": [
+        {
+          "obstacle_1based": 14,
+          "overrun": {
+            "y_min_m": 0.05637522464399014
+          }
+        }
+      ],
+      "layout_unchanged_from_previous": true
+    },
+    {
+      "scene": "scene_random_05.xml",
+      "scene_id": "random_05",
+      "seed": 3105,
+      "obstacle_count": 20,
+      "manual_edits": [],
+      "direct_start_goal_blockers": [],
+      "reserved_corridor_width_m": 1.1,
+      "minimum_obstacle_edge_clearance_to_bypass_centerline_m": 0.6630752219829098,
+      "minimum_channel_margin_over_half_width_m": 0.11307522198290976,
+      "start_nearest_obstacle_clearance_m": 1.2573669076148302,
+      "goal_nearest_obstacle_clearance_m": 1.1701543684888096,
+      "obstacle_overlap_pairs": [],
+      "world_bounds_overruns": [],
+      "layout_unchanged_from_previous": true
+    }
+  ]
+}

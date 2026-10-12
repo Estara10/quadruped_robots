@@ -23,6 +23,7 @@ from abs_rt_frame import (
     FRAME_MAGIC,
     FRAME_SIZE,
     FRAME_VERSION,
+    FRAME_V2_SIZE,
     JOINT_COUNT,
     POLICY_AGILE,
     POLICY_FAULTED,
@@ -32,6 +33,10 @@ from abs_rt_frame import (
     SOURCE_LEGACY_ONLY,
     SOURCE_SYNTHETIC_TEST,
     SOURCE_UNSET,
+    SWITCH_HYSTERESIS,
+    SWITCH_MINIMUM_HOLD,
+    SWITCH_COMBINED,
+    HOLD_ACTIVE,
     FrameStatus,
     HudState,
     RuntimeFrame,
@@ -91,6 +96,11 @@ def _pack_frame(
     joint_target_rad=None,
     torque_nm=None,
     torque_saturated=None,
+    hold_status=0,
+    hold_enabled=0,
+    recovery_min_hold_s=0.0,
+    hold_enter_sim_time_s=0.0,
+    hold_elapsed_sim_s=0.0,
 ):
     """Build a synthetic frame fixture (default source = SYNTHETIC_TEST)."""
     ray2d = [2.5] * RAY_COUNT if ray2d is None else list(ray2d)
@@ -126,7 +136,8 @@ def _pack_frame(
         + torque_saturated
     )
     assert len(qs) == 14 and len(uints) == 20 and len(floats) == 83
-    return _FRAME_STRUCT.pack(*(qs + uints + [sim_time_s] + floats))
+    return _FRAME_STRUCT.pack(*(qs + uints + [sim_time_s] + floats + [
+        hold_status, hold_enabled, recovery_min_hold_s, hold_enter_sim_time_s, hold_elapsed_sim_s]))
 
 
 def _authoritative_fixture(**kwargs):
@@ -139,8 +150,8 @@ def _authoritative_fixture(**kwargs):
 
 class FrameContractTests(unittest.TestCase):
     def test_frame_size_matches_c_contract(self):
-        self.assertEqual(FRAME_SIZE, 536)
-        self.assertEqual(_FRAME_STRUCT.size, 536)
+        self.assertEqual(FRAME_SIZE, 568)
+        self.assertEqual(_FRAME_STRUCT.size, 568)
 
     def test_default_fixture_is_synthetic_not_authoritative(self):
         # The default fixture source is SYNTHETIC_TEST, so an otherwise valid
@@ -158,6 +169,42 @@ class FrameContractTests(unittest.TestCase):
         self.assertEqual(frame.session_id, 42)
         self.assertEqual(frame.rl_step, 7)
         self.assertEqual(frame.source, SOURCE_AUTHORITATIVE_RUNTIME)
+
+    def test_hysteresis_group_mode_is_valid(self):
+        raw = _pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, switching_mode=SWITCH_HYSTERESIS)
+        status, frame = classify_frame(raw, _NOW_NS)
+        self.assertEqual(status, FrameStatus.LIVE)
+        self.assertEqual(frame.switching_mode, SWITCH_HYSTERESIS)
+        d_raw = _pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, version=3,
+                            switching_mode=SWITCH_COMBINED, policy_state=1, mode_before=0,
+                            action_source=2, policy_mode_changed=1, mode_change_ns=9_999_000_000,
+                            hold_status=HOLD_ACTIVE, hold_enabled=1, recovery_min_hold_s=0.30,
+                            hold_enter_sim_time_s=0.8, hold_elapsed_sim_s=0.1, sim_time_s=0.9)
+        status, frame = classify_frame(d_raw, _NOW_NS)
+        self.assertEqual(status, FrameStatus.LIVE)
+        self.assertEqual(frame.switching_mode, SWITCH_COMBINED)
+        invalid_d = _pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, version=3,
+                                switching_mode=SWITCH_COMBINED, hold_enabled=0)
+        self.assertEqual(classify_frame(invalid_d, _NOW_NS)[0], FrameStatus.INVALID)
+
+    def test_c_hold_frame_and_hud_are_versioned_and_explicit(self):
+        raw = _pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, version=3,
+                          switching_mode=SWITCH_MINIMUM_HOLD, policy_state=1, mode_before=0,
+                          action_source=2, policy_mode_changed=1, mode_change_ns=9_999_000_000,
+                          hold_status=HOLD_ACTIVE, hold_enabled=1, recovery_min_hold_s=0.30,
+                          hold_enter_sim_time_s=0.8, hold_elapsed_sim_s=0.1, sim_time_s=0.9)
+        hud = HudState()
+        self.assertEqual(hud.update(raw, _NOW_NS), FrameStatus.LIVE)
+        shown = hud.display()
+        self.assertEqual(shown["switching_mode"], SWITCH_MINIMUM_HOLD)
+        self.assertAlmostEqual(shown["hold_remaining_sim_s"], 0.2)
+        self.assertAlmostEqual(shown["hold_enter_sim_time_s"], 0.8)
+
+    def test_v2_exact_length_remains_readable_but_mismatch_is_rejected(self):
+        v2 = _pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, version=2)[:FRAME_V2_SIZE]
+        self.assertEqual(classify_frame(v2, _NOW_NS)[0], FrameStatus.LIVE)
+        self.assertEqual(classify_frame(_pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, version=2), _NOW_NS)[0],
+                         FrameStatus.INVALID)
 
     def test_missing_empty_data(self):
         self.assertEqual(classify_frame(None, _NOW_NS), (FrameStatus.MISSING, None))

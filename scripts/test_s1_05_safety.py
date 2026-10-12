@@ -12,7 +12,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import abs_collision
 from abs_collision import CollisionStatus
 from s1_analyze_run import motion_safety
-from s1_run_diagnostic import finalize_run_closeout, select_strategy_terminal
+from s1_run_diagnostic import (extract_first_active_policy_state, finalize_run_closeout,
+                               select_strategy_terminal)
 from run_record import (RunRecordRecorder, collision_snapshot_payload,
                         _validate_collision_payload)
 
@@ -53,7 +54,10 @@ def snapshot_bytes(episode: bool = False, unknown: bool = False, invalid_posture
     raw = base + extension + extra + b"".join(fall_events) + b"".join(events)
     if version == abs_collision.VERSION_V3:
         raw = base + extension + b"".join(events)
-    assert len(raw) == (abs_collision.SNAPSHOT_SIZE if version == 4 else abs_collision.LEGACY_SNAPSHOT_SIZE)
+    expected_size = (abs_collision.SNAPSHOT_V4_SIZE if version == 4 else
+                     abs_collision.LEGACY_SNAPSHOT_SIZE if version == abs_collision.VERSION_V3 else
+                     abs_collision.SNAPSHOT_V5_SIZE)
+    assert len(raw) == expected_size
     return raw
 
 
@@ -100,6 +104,53 @@ def test_v3_legacy_layout_and_rejections() -> None:
         assert abs_collision.classify_snapshot(raw, 110)[0] is CollisionStatus.INVALID
 
 
+def test_reader_distinguishes_absent_truncated_and_stable() -> None:
+    with tempfile.TemporaryDirectory(prefix="s6-02-collision-reader-") as directory:
+        path = Path(directory) / "authority"
+        raw, diagnostic = abs_collision.read_collision_snapshot_diagnostic(str(path), max_attempts=1)
+        assert raw == b"" and diagnostic["read_status"] == "MISSING"
+        path.write_bytes(bytes(abs_collision.SNAPSHOT_V5_SIZE - 1))
+        raw, diagnostic = abs_collision.read_collision_snapshot_diagnostic(str(path), max_attempts=1)
+        assert raw == b"\0" and diagnostic["read_status"] == "INVALID"
+        assert diagnostic["reason"] == "unsupported_shared_memory_size"
+        unstable = bytearray(snapshot_bytes(version=4))
+        unstable[16:24] = (101).to_bytes(8, "little")
+        path.write_bytes(unstable)
+        raw, diagnostic = abs_collision.read_collision_snapshot_diagnostic(str(path), max_attempts=2,
+                                                                             retry_interval_s=0)
+        assert raw == b"\0" and diagnostic["read_status"] == "INVALID"
+        assert diagnostic["reason"] == "seqlock_unstable"
+        path.write_bytes(snapshot_bytes(version=4))
+        raw, diagnostic = abs_collision.read_collision_snapshot_diagnostic(str(path), max_attempts=1)
+        assert len(raw) == abs_collision.SNAPSHOT_V4_SIZE
+        assert diagnostic["read_status"] == "READ"
+
+
+def test_first_active_state_requires_exact_cycle_identity() -> None:
+    state = {"session_id": 77, "cycle_id": 0, "frame_monotonic_ns": 1234,
+             "sim_clock_valid": True, "sim_time_s": 0.01,
+             "joint_order": [f"joint_{i}" for i in range(12)],
+             "joint_position_rad": [float(i) for i in range(12)],
+             "joint_velocity_rad_s": [float(i) / 10 for i in range(12)],
+             "imu_quaternion_order": "framework-native", "imu_quaternion": [1, 0, 0, 0],
+             "body_angular_velocity_rad_s": [0, 0, 0], "body_linear_velocity_m_s": [0, 0, 0],
+             "world_position_xy_m": [0, 0], "world_yaw_rad": 0}
+    frame = {"session_id": 77, "rl_step": 0, "monotonic_ns": 1234,
+             "rl_entered": 1, "rl_active": 1}
+    with tempfile.TemporaryDirectory(prefix="s6-02-initial-state-") as directory:
+        root = Path(directory)
+        (root / "ros.log").write_text("[ABS-INITIAL-STATE] " + __import__("json").dumps(state) + "\n")
+        (root / "runtime.jsonl").write_text(__import__("json").dumps(
+            {"kind": "frame", "status": "LIVE", "payload": frame}) + "\n")
+        paired = extract_first_active_policy_state(root / "ros.log", root / "runtime.jsonl")
+        assert paired["status"] == "CAPTURED" and paired["policy_cycle_id"] == 0
+        frame["monotonic_ns"] = 1235
+        (root / "runtime.jsonl").write_text(__import__("json").dumps(
+            {"kind": "frame", "status": "LIVE", "payload": frame}) + "\n")
+        unpaired = extract_first_active_policy_state(root / "ros.log", root / "runtime.jsonl")
+        assert unpaired["status"] == "UNKNOWN"
+
+
 def test_physics_step_latches_reach_normal_reader() -> None:
     status, snapshot = abs_collision.classify_snapshot(
         snapshot_bytes(unknown=True, invalid_posture=True), 110)
@@ -137,6 +188,9 @@ def test_motion_scope_and_unknown_coverage() -> None:
                 {"collision_snapshot": {**snapshot, "sim_time": 2.0}}]
     safe = motion_safety(covered(clean), 1.0, 2.0)
     assert safe["collision"] is False and safe["fall"] is False
+    assert safe["coverage_complete_for_motion_interval"] is True
+    assert safe["coverage_evidence"]["has_snapshot_at_or_before_motion_start"] is True
+    assert safe["coverage_evidence"]["has_snapshot_at_or_after_terminal"] is True
     startup = motion_safety(covered(startup_contact), 1.0, 2.0)
     assert startup["collision"] is False  # startup episode excluded
     hit = motion_safety(covered(motion_contact), 1.0, 2.0)
@@ -144,6 +198,7 @@ def test_motion_scope_and_unknown_coverage() -> None:
     incomplete = motion_safety([{"collision_snapshot": {**clean, "physics_coverage_complete": False,
                                                          "sim_time": 2.0}}], 1.0, 2.0)
     assert incomplete["collision"] == "UNKNOWN" and incomplete["fall"] == "UNKNOWN"
+    assert incomplete["coverage_complete_for_motion_interval"] is False
     confirmed_fall = {**clean, "fall_confirmed": True,
                       "fall_start_sim_time": 1.2, "fall_confirmed_sim_time": 1.5,
                       "fall_start_physics_step": 50, "fall_confirmed_physics_step": 65,
@@ -242,6 +297,8 @@ def test_terminal_snapshot_preserved_without_policy_frame() -> None:
 if __name__ == "__main__":
     test_v4_decode_and_payload()
     test_v3_legacy_layout_and_rejections()
+    test_reader_distinguishes_absent_truncated_and_stable()
+    test_first_active_state_requires_exact_cycle_identity()
     test_physics_step_latches_reach_normal_reader()
     test_motion_scope_and_unknown_coverage()
     test_same_observation_terminal_priority()

@@ -9,11 +9,11 @@ SOURCE_RE = re.compile(
     r"\[S1-RUN-SOURCE\] pid=(\d+) package_share=(\S+) config=(\S+) "
     r"agile_model=(\S+) ra_model=(\S+) candidate=(\S+) "
     r"group=(\S+) entry_threshold=([-+0-9.eE]+) effective_exit_threshold=([-+0-9.eE]+) "
-    r"hysteresis=(\S+) hold=(\S+) goal=\(([-+0-9.eE]+),([-+0-9.eE]+)\)"
+    r"hysteresis=(\S+) hold=(\S+)(?: hold_s=([-+0-9.eE]+))? goal=\(([-+0-9.eE]+),([-+0-9.eE]+)\)"
 )
 SWITCH_CONFIG_RE = re.compile(
     r"\[S2-SWITCH-CONFIG\] group=(\S+) entry_threshold=([-+0-9.eE]+) "
-    r"effective_exit_threshold=([-+0-9.eE]+) hysteresis=(\S+) hold=(\S+)"
+    r"effective_exit_threshold=([-+0-9.eE]+) hysteresis=(\S+) hold=(\S+)(?: hold_s=([-+0-9.eE]+))?"
 )
 NODE_RE = re.compile(r"^\[([^\]]+)\]")
 WRITER_RE = re.compile(
@@ -72,12 +72,13 @@ def verify_source_binding(
             return _pending("source_event_incomplete", line=line.strip())
         node = _node(line)
         (pid, package_share, config, agile_model, ra_model, candidate, group, entry,
-         exit_threshold, hysteresis, hold, goal_x, goal_y) = match.groups()
+         exit_threshold, hysteresis, hold, hold_s, goal_x, goal_y) = match.groups()
         parsed_sources.append((node, {
             "pid": int(pid), "package_share": package_share, "config": config,
             "agile_model": agile_model, "ra_model": ra_model, "candidate": candidate,
             "group": group, "entry_threshold": float(entry), "exit_threshold": float(exit_threshold),
             "hysteresis": hysteresis, "hold": hold,
+            "hold_s": float(hold_s) if hold_s is not None else None,
             "goal_x": float(goal_x), "goal_y": float(goal_y),
         }))
 
@@ -96,8 +97,8 @@ def verify_source_binding(
         "ra_model": expected["ra_model"],
         "candidate": expected["candidate"],
         "group": expected["group"],
-        "hysteresis": "false",
-        "hold": "false",
+        "hysteresis": str(expected["hysteresis"]).lower(),
+        "hold": str(expected["hold"]).lower(),
     }
     for field, wanted in fields.items():
         if source[field] != wanted:
@@ -106,9 +107,44 @@ def verify_source_binding(
         return _conflict("entry_threshold_mismatch", observed=source["entry_threshold"], expected=expected["entry_threshold"])
     if abs(source["exit_threshold"] - float(expected["exit_threshold"])) > 1e-5:
         return _conflict("exit_threshold_mismatch", observed=source["exit_threshold"], expected=expected["exit_threshold"])
+    if source["hold_s"] is None and float(expected.get("hold_s", 0.0)) > 0:
+        return _pending("source_hold_duration_missing")
+    if source["hold_s"] is not None and abs(source["hold_s"] - float(expected.get("hold_s", 0.0))) > 1e-6:
+        return _conflict("hold_duration_mismatch", observed=source["hold_s"], expected=expected.get("hold_s", 0.0))
     if abs(source["goal_x"] - float(expected["goal_x"])) > 1e-5 or abs(source["goal_y"] - float(expected["goal_y"])) > 1e-5:
         return _conflict("goal_mismatch", observed=[source["goal_x"], source["goal_y"]],
                          expected=[expected["goal_x"], expected["goal_y"]])
+
+    switch_lines = [line for line in lines if "[S2-SWITCH-CONFIG]" in line]
+    if not switch_lines:
+        return _pending("switch_config_event_missing")
+    if len(switch_lines) != 1:
+        return _conflict("multiple_switch_config_events", count=len(switch_lines))
+    switch_match = SWITCH_CONFIG_RE.search(switch_lines[0])
+    switch_node = _node(switch_lines[0])
+    if switch_match is None or switch_node is None:
+        return _pending("switch_config_event_incomplete")
+    if switch_node != source_node:
+        return _conflict("switch_config_from_different_controller", source_node=source_node,
+                         switch_node=switch_node)
+    switch_group, switch_entry, switch_exit, switch_hysteresis, switch_hold, switch_hold_s = switch_match.groups()
+    switch_observed = {"group": switch_group, "entry_threshold": float(switch_entry),
+                       "exit_threshold": float(switch_exit), "hysteresis": switch_hysteresis,
+                       "hold": switch_hold,
+                       "hold_s": float(switch_hold_s) if switch_hold_s is not None else None}
+    for field in ("group", "hysteresis", "hold"):
+        wanted = fields[field]
+        if switch_observed[field] != wanted:
+            return _conflict(f"switch_config_{field}_mismatch", observed=switch_observed[field], expected=wanted)
+    for field in ("entry_threshold", "exit_threshold"):
+        if abs(switch_observed[field] - float(expected[field])) > 1e-5:
+            return _conflict(f"switch_config_{field}_mismatch", observed=switch_observed[field],
+                             expected=expected[field])
+    if switch_observed["hold_s"] is None and float(expected.get("hold_s", 0.0)) > 0:
+        return _pending("switch_config_hold_duration_missing")
+    if switch_observed["hold_s"] is not None and abs(switch_observed["hold_s"] - float(expected.get("hold_s", 0.0))) > 1e-6:
+        return _conflict("switch_config_hold_duration_mismatch", observed=switch_observed["hold_s"],
+                         expected=expected.get("hold_s", 0.0))
 
     path_lines = [line for line in lines if "[PATH]" in line]
     if not path_lines:
@@ -134,6 +170,13 @@ def verify_source_binding(
     for field in ("entry_threshold", "exit_threshold"):
         if abs(float(frame[field]) - float(expected[field])) > 1e-5:
             return _conflict(f"frame_{field}_mismatch", observed=frame[field], expected=expected[field])
+    if bool(frame.get("hold_enabled", False)) != (float(expected.get("hold_s", 0.0)) > 0.0) or \
+       abs(float(frame.get("recovery_min_hold_s", 0.0)) - float(expected.get("hold_s", 0.0))) > 1e-6:
+        return _conflict("frame_hold_config_mismatch", observed={
+            "hold_enabled": frame.get("hold_enabled"),
+            "recovery_min_hold_s": frame.get("recovery_min_hold_s")},
+            expected={"hold_enabled": float(expected.get("hold_s", 0.0)) > 0.0,
+                      "recovery_min_hold_s": expected.get("hold_s", 0.0)})
 
     # Any source/writer record in a second controller launch process is a
     # conflict. We never combine evidence across controller instances.
@@ -192,9 +235,11 @@ def verify_source_binding(
         "config": source["config"], "agile_model": source["agile_model"],
         "ra_model": source["ra_model"], "recovery_model": recovery_path,
         "entry_threshold": source["entry_threshold"], "exit_threshold": float(frame["exit_threshold"]),
+        "recovery_min_hold_s": source["hold_s"],
         "goal_world_m": [source["goal_x"], source["goal_y"]],
         "controller_launch_config": expected["launch_config"],
         "runtime_path_goal_world_m": path_goal,
+        "switch_config_event": switch_observed,
     }}
 
 
@@ -203,7 +248,7 @@ def verify_config_consumption(
     expected: dict[str, Any],
     expected_controller_pid: int | None,
 ) -> dict[str, Any]:
-    """Confirm A config was consumed by this launch before entering RL."""
+    """Confirm the selected A/B/C/D config was consumed before entering RL."""
     if expected_controller_pid is None:
         return _pending("expected_controller_pid_unavailable")
     controller_cmdline = expected.get("controller_cmdline")
@@ -240,11 +285,13 @@ def verify_config_consumption(
         "agile_model": source_values[3], "ra_model": source_values[4], "candidate": source_values[5],
         "group": source_values[6], "entry_threshold": float(source_values[7]),
         "exit_threshold": float(source_values[8]), "hysteresis": source_values[9], "hold": source_values[10],
-        "goal_x": float(source_values[11]), "goal_y": float(source_values[12]),
+        "hold_s": float(source_values[11]) if source_values[11] is not None else None,
+        "goal_x": float(source_values[12]), "goal_y": float(source_values[13]),
     }
-    group, entry, exit_threshold, hysteresis, hold = switch_match.groups()
+    group, entry, exit_threshold, hysteresis, hold, hold_s = switch_match.groups()
     switch = {"group": group, "entry_threshold": float(entry), "exit_threshold": float(exit_threshold),
-              "hysteresis": hysteresis, "hold": hold}
+              "hysteresis": hysteresis, "hold": hold,
+              "hold_s": float(hold_s) if hold_s is not None else None}
     if source["pid"] != expected_controller_pid:
         return _conflict("controller_pid_mismatch", observed=source["pid"], expected=expected_controller_pid)
     for key in ("package_share", "config", "agile_model", "ra_model", "candidate", "group", "hysteresis", "hold"):
@@ -254,6 +301,11 @@ def verify_config_consumption(
     for key in ("entry_threshold", "exit_threshold"):
         if abs(source[key] - float(expected[key])) > 1e-5 or abs(switch[key] - float(expected[key])) > 1e-5:
             return _conflict(f"{key}_mismatch", source=source[key], switch=switch[key], expected=expected[key])
+    if ((source["hold_s"] is not None and abs(source["hold_s"] - float(expected.get("hold_s", 0.0))) > 1e-6) or
+        (switch["hold_s"] is not None and abs(switch["hold_s"] - float(expected.get("hold_s", 0.0))) > 1e-6) or
+        (float(expected.get("hold_s", 0.0)) > 0 and (source["hold_s"] is None or switch["hold_s"] is None))):
+        return _conflict("hold_duration_mismatch", source=source["hold_s"], switch=switch["hold_s"],
+                         expected=expected.get("hold_s", 0.0))
     for key in ("goal_x", "goal_y"):
         if abs(source[key] - float(expected[key])) > 1e-5:
             return _conflict(f"{key}_mismatch", observed=source[key], expected=expected[key])
@@ -274,7 +326,7 @@ def verify_config_consumption(
         return _conflict("recovery_model_source_mismatch", node=rec_node, source_node=source_node,
                          observed=recovery_path, expected=expected["recovery_model"])
 
-    return {"status": "confirmed", "reason": "controller_initialization_consumed_A_config", "evidence": {
+    return {"status": "confirmed", "reason": "controller_initialization_consumed_group_config", "evidence": {
         **source, "effective_exit_threshold": switch["exit_threshold"],
         "goal_world_m": [source["goal_x"], source["goal_y"]],
         "switch_config_event": switch, "launch_node": source_node,

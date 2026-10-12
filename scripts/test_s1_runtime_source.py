@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Focused S1-04 source binding regression against a preserved real launch log."""
+"""Focused runtime source binding checks against preserved real launch logs."""
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
-from s1_runtime_source import verify_source_binding
+from s1_runtime_source import verify_config_consumption, verify_source_binding
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RUN = ROOT / "docs/thesis_project/evidence/S1-04/diagnostic_runs_ray_clock_fix_20261008/6ff88d266e174f71a74b8f2a64f1c651"
+RUN = ROOT / "docs/thesis_project/evidence/S2-08/diagnostic_runs_20261011/scene_random_03/e4a9f73ae2894432b65b5de251f861db"
 
 
 def fixture() -> tuple[str, dict, dict, int]:
@@ -33,7 +34,8 @@ def fixture_for(run_dir: Path) -> tuple[str, dict, dict, int]:
         "ra_model": settings["model_paths"][1],
         "recovery_model": settings["model_paths"][2],
         "candidate": "paper_faithful_switch", "candidate_mode": 1,
-        "entry_threshold": -0.05, "exit_threshold": -0.05,
+        "group": "A", "hysteresis": "false", "hold": "false",
+        "entry_threshold": -0.05, "exit_threshold": -0.05, "hold_s": 0.0,
         "goal_x": settings["goal_world_m"][0], "goal_y": settings["goal_world_m"][1],
     }
     return ((run_dir / "ros_launch.log").read_text(encoding="utf-8", errors="replace"),
@@ -51,8 +53,8 @@ def test_previous_real_log_binds_candidate_models_config_and_writer() -> None:
     assert evidence["ra_model"] == expected["ra_model"]
     assert evidence["recovery_model"] == expected["recovery_model"]
     assert evidence["config"] == expected["config"]
-    assert evidence["goal_world_m"] == [1.0, 0.0]
-    assert evidence["runtime_path_goal_world_m"] == [1.0, 0.0]
+    assert evidence["goal_world_m"] == [expected["goal_x"], expected["goal_y"]]
+    assert evidence["runtime_path_goal_world_m"] == [expected["goal_x"], expected["goal_y"]]
     assert evidence["controller_launch_config"] == expected["launch_config"]
     assert evidence["session_id"] == frame["session_id"]
     assert evidence["controller_pid"] == evidence["writer_pid"] == pid
@@ -62,9 +64,9 @@ def test_candidate_and_goal_mismatch_are_rejected() -> None:
     log, expected, frame, pid = fixture()
     candidate_log = log.replace("candidate=paper_faithful_switch", "candidate=stabilized_switch", 1)
     assert verify_source_binding(candidate_log, expected, frame, pid)["status"] == "conflict"
-    goal_log = log.replace("goal=(1.000,0.000)", "goal=(1.500,0.000)", 1)
+    goal_log = log.replace("goal=(7.000,0.000)", "goal=(7.500,0.000)", 1)
     assert verify_source_binding(goal_log, expected, frame, pid)["reason"] == "goal_mismatch"
-    path_log = log.replace("goal=(1.00,0.00)", "goal=(1.50,0.00)", 1)
+    path_log = log.replace("goal=(7.00,0.00)", "goal=(7.50,0.00)", 1)
     assert verify_source_binding(path_log, expected, frame, pid)["reason"] == "runtime_path_goal_mismatch"
 
 
@@ -95,13 +97,95 @@ def test_multiple_controller_sources_and_missing_evidence_are_not_accepted() -> 
 
 
 def test_both_completed_diagnostic_launches_pass_current_matcher() -> None:
-    root = ROOT / "docs/thesis_project/evidence/S1-04/diagnostic_runs_source_matcher_20261008"
-    runs = [root / "cb47356b98104e40b258b81a8246db17",
-            root / "22e64352d7c042708b96608a16a89221"]
+    root = ROOT / "docs/thesis_project/evidence/S2-08/diagnostic_runs_20261011"
+    runs = [root / "scene_random_01/4af238aeb65845a6967eb23dafac6c51",
+            root / "scene_random_02/cea73ebffa3246438bc1ebf501334630",
+            root / "scene_random_03/e4a9f73ae2894432b65b5de251f861db"]
     for run_dir in runs:
         log, expected, frame, pid = fixture_for(run_dir)
         result = verify_source_binding(log, expected, frame, pid)
         assert result["status"] == "confirmed", (run_dir, result)
+
+
+def test_b_group_source_and_frame_are_bound_without_legacy_aliasing() -> None:
+    log, expected, frame, pid = fixture()
+    b_log = (log.replace("candidate=paper_faithful_switch", "candidate=hysteresis_switch")
+             .replace("group=A", "group=B")
+             .replace("effective_exit_threshold=-0.05", "effective_exit_threshold=-0.08")
+             .replace("hysteresis=false", "hysteresis=true"))
+    b_expected = dict(expected, candidate="hysteresis_switch", candidate_mode=2,
+                      group="B", hysteresis="true", exit_threshold=-0.08)
+    b_frame = dict(frame, switching_mode=2, exit_threshold=-0.08)
+    result = verify_source_binding(b_log, b_expected, b_frame, pid)
+    assert result["status"] == "confirmed", result
+    assert result["evidence"]["group"] == "B"
+    assert result["evidence"]["hysteresis"] == "true"
+    wrong_frame = dict(b_frame, switching_mode=1)
+    assert verify_source_binding(b_log, b_expected, wrong_frame, pid)["reason"] == "frame_candidate_mismatch"
+
+
+def test_c_group_requires_actual_hold_duration_in_source_and_frame() -> None:
+    log, expected, frame, pid = fixture()
+    c_log = (log.replace("candidate=paper_faithful_switch", "candidate=minimum_hold_switch")
+             .replace("group=A", "group=C")
+             .replace("hold=false goal=", "hold=true hold_s=0.3 goal=")
+             .replace("hold=false\n", "hold=true hold_s=0.3\n"))
+    c_expected = dict(expected, candidate="minimum_hold_switch", candidate_mode=3,
+                      group="C", hysteresis="false", hold="true", hold_s=0.30)
+    c_frame = dict(frame, switching_mode=3, hold_enabled=True, recovery_min_hold_s=0.30)
+    assert verify_source_binding(c_log, c_expected, c_frame, pid)["status"] == "confirmed"
+    missing = c_log.replace("hold_s=0.3", "hold_s=0.0")
+    assert verify_source_binding(missing, c_expected, c_frame, pid)["reason"] == "hold_duration_mismatch"
+
+
+def test_d_group_binds_combined_threshold_and_hold_source_to_frame() -> None:
+    log, expected, frame, pid = fixture()
+    d_log = (log.replace("candidate=paper_faithful_switch", "candidate=combined_switch")
+             .replace("group=A", "group=D")
+             .replace("effective_exit_threshold=-0.05", "effective_exit_threshold=-0.08")
+             .replace("hysteresis=false", "hysteresis=true")
+             .replace("hold=false goal=", "hold=true hold_s=0.3 goal=")
+             .replace("hold=false\n", "hold=true hold_s=0.3\n"))
+    d_expected = dict(expected, candidate="combined_switch", candidate_mode=4,
+                      group="D", hysteresis="true", hold="true",
+                      exit_threshold=-0.08, hold_s=0.30)
+    d_frame = dict(frame, switching_mode=4, exit_threshold=-0.08,
+                   hold_enabled=True, recovery_min_hold_s=0.30)
+    result = verify_source_binding(d_log, d_expected, d_frame, pid)
+    assert result["status"] == "confirmed", result
+    assert result["evidence"]["group"] == "D"
+    assert result["evidence"]["hysteresis"] == "true"
+    assert result["evidence"]["hold"] == "true"
+    assert result["evidence"]["recovery_min_hold_s"] == 0.3
+
+
+def test_current_c_initialization_log_binds_config_models_and_controller_pid() -> None:
+    run_dir = ROOT / "logs/manual_ab_compare/20261011_150533_31b9d4/C/e42ac1001777404a941f2708cefd01ad"
+    context = json.loads((run_dir / "run_context.json").read_text(encoding="utf-8"))
+    log = (run_dir / "ros_launch.log").read_text(encoding="utf-8", errors="replace")
+    pid_match = re.search(r"\[S1-RUN-SOURCE\] pid=(\d+)", log)
+    command_match = re.search(r"process has died \[pid \d+, exit code -?\d+, cmd '([^']+)'\]", log)
+    assert pid_match and command_match
+    settings = context["settings"]
+    overlay = Path(settings["overlay"])
+    expected = {
+        "controller_cmdline": command_match.group(1),
+        "launch_config": str(overlay / "share/go2_description/config/robot_control.yaml"),
+        "package_share": str(overlay / "share/go2_description"),
+        "config": settings["controller_config"],
+        "agile_model": settings["model_paths"][0],
+        "ra_model": settings["model_paths"][1],
+        "recovery_model": settings["model_paths"][2],
+        "candidate": settings["candidate"], "group": settings["group"],
+        "entry_threshold": settings["entry_threshold"], "exit_threshold": settings["exit_threshold"],
+        "hysteresis": settings["hysteresis"], "hold": settings["hold"],
+        "hold_s": settings["recovery_min_hold_s"],
+        "goal_x": settings["goal_world_m"][0], "goal_y": settings["goal_world_m"][1],
+    }
+    result = verify_config_consumption(log, expected, int(pid_match.group(1)))
+    assert result["status"] == "confirmed", result
+    assert result["evidence"]["group"] == "C"
+    assert result["evidence"]["hold_s"] == 0.3
 
 
 if __name__ == "__main__":
@@ -110,4 +194,7 @@ if __name__ == "__main__":
     test_full_model_path_and_writer_session_mismatch_are_rejected()
     test_multiple_controller_sources_and_missing_evidence_are_not_accepted()
     test_both_completed_diagnostic_launches_pass_current_matcher()
+    test_b_group_source_and_frame_are_bound_without_legacy_aliasing()
+    test_c_group_requires_actual_hold_duration_in_source_and_frame()
+    test_current_c_initialization_log_binds_config_models_and_controller_pid()
     print("S1 runtime source binding checks PASS")

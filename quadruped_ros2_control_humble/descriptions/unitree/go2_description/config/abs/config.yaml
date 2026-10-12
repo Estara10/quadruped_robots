@@ -80,7 +80,7 @@ abs:
   twist_wz_min: -3.0               # twist_min[2] = -3.0
   twist_wz_max: 3.0                # twist_max[2] = 3.0
   recovery_steps: 250              # for manual RL_REC mode only (FSM switch, not inline RA)
-  soft_start_steps: 250            # Kp/Kd ramp steps (~0.5s at 500Hz controller rate)
+  startup_gain_transition_s: 0.30  # shared A/B/C/D blend from last stand interface gains; controller runtime seconds
   goal_x: 7.0                      # world-frame goal X (forward, matches paper GOAL_XYZ)
   goal_y: 0.0                      # world-frame goal Y (left = positive)
   resample_goal_on_arrival: false   # false: stop at first goal; true: keep sampling new goals

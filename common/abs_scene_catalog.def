@@ -21,17 +21,17 @@ ABS_SCENE("scene_ppt_dense.xml", "ppt_dense", 11, kNamedPptObstacles,
           "127ad7dfa1005eb34a2eeb822d353896d994c7bf59ef37a8b68c26748d9bf6b8",
           "9c6d4aa56dfdb452a8a017d25ee963e3118b9c0bfd7c75fdb1e0fd3357cb5e16")
 ABS_SCENE("scene_random_01.xml", "random_01", 15, kNamedPptObstacles,
-          "57b8577d66cccf2c6fac1ee88024c2a6fa0c8330dfaa9173abca63d7523e9ecd",
-          "5c3917d635df3d2d96e16bf0778937f19c49e626109cf88f19a456aa60881377",
-          "1f787bea62cc15ec7141f8656f5614ffc162880a6e664bec32ccc100049c1418")
+          "1450e0feaecc9bb44c6c2e430da36787a3ed51cbe0a26f507db63b7903288eb7",
+          "2a782b108c4e2166db785147f73bdb82cb848896a85b415d3193bc91ddf9d46a",
+          "0fd0cecde66f8c65b71e2a8a686022a46bf71296b95870eb8e36d94a089e027a")
 ABS_SCENE("scene_random_02.xml", "random_02", 17, kNamedPptObstacles,
-          "d844047dc89b5ec6c5d10a00fdde14924a6a556af448e3526dc5dd1ea2c518ed",
-          "35ac607270894fbcf6c94c9d92428b7a69d63be240de3637d432ad48ef678af0",
-          "71a620878e25374fe702958f42e7622680079a4c96d8a2c641d646db6b01ad18")
+          "8fe7b90c860b8f0662defa6a105b0465e627913963dcbc119fb18ab1afeb77bd",
+          "f1532f768f910e1984494cea1db8c433c9cd3e5b9946ce2765a23acfaba27fa7",
+          "ae6ee3266030fc8f127ec216017dc67278b564651295fa8efe199b1c15287da4")
 ABS_SCENE("scene_random_03.xml", "random_03", 18, kNamedPptObstacles,
-          "b24fd53fada39b983fce09e301558e84716f55bbfe4007fcb38e50c88295de9e",
-          "65c21aff75adeea797934e31fcbe634e2c38d19902a4583eac59f78ee50cb8fb",
-          "ee6ffe7c9448b5b67ea024f9ee7b250ba4d04395b7934190d5eb0c62cba5267a")
+          "16a7bc5922274560e92b305e625ab8b493f7807c1df6f70d6927209c0a54bcbe",
+          "06fa4f230ade721d2871de72466fb9a43899eb9ac4d9853d1e17f39ef5a1f4a1",
+          "40c6a192b2e72b505b168f10dec00e6f8a23bd94438781fabd82c57c5b2aab8a")
 ABS_SCENE("scene_random_04.xml", "random_04", 19, kNamedPptObstacles,
           "4ce8256271b475f21094f3cbdc75be1af73766ab022bb98526bff9229e29bb06",
           "86f0c77c383e731825be8ca1750ff9e2626ada3ed9b51df876a143d98935e022",

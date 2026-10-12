@@ -9,12 +9,14 @@ simulator authority and preserves missing/unknown/stale/invalid states.
 from __future__ import annotations
 
 import enum
+import errno
 import hashlib
 import math
 import mmap
 import os
 import re
 import struct
+import time
 from dataclasses import dataclass, replace
 from typing import Optional, Tuple
 
@@ -168,6 +170,8 @@ class CollisionSnapshot:
     foot_contact_history: tuple = ()
     foot_impact_history: tuple = ()
     nonfoot_collision_bodies: tuple = ()
+    # v5 reserved_flags bits: low-height and tilt conditions seen in the current/latest episode.
+    fall_condition_flags: Optional[int] = None
 
 
 def canonical_model_fingerprint(nbody: int, geoms) -> str:
@@ -322,6 +326,7 @@ def _decode(raw: bytes) -> CollisionSnapshot:
         "foot_impact_first_step": counters[6], "foot_impact_last_step": counters[7],
         "foot_impact_unknown_steps": counters[8], "foot_impact_unknown_first_step": counters[9],
         "foot_impact_unknown_last_step": counters[10],
+        "fall_condition_flags": integers[11],
         "foot_contact_duration_s": values[0], "foot_contact_first_sim_time": values[1],
         "foot_contact_last_sim_time": values[2], "foot_impact_duration_s": values[3],
         "foot_impact_first_sim_time": values[4], "foot_impact_last_sim_time": values[5],
@@ -370,6 +375,9 @@ def _valid(snapshot: CollisionSnapshot, now_ns: int,
     ):
         return False
     if snapshot.foot_ground_contacts + snapshot.nonfoot_ground_contacts != snapshot.ground_contacts:
+        return False
+    if (snapshot.version == VERSION_V5 and
+            (snapshot.fall_condition_flags is None or snapshot.fall_condition_flags & ~0x3)):
         return False
     if snapshot.collision_history_count > COLLISION_EVENT_CAPACITY:
         return False
@@ -546,30 +554,53 @@ def classify_snapshot(raw: Optional[bytes], now_ns: int,
     return CollisionStatus.LIVE, snapshot
 
 
-def read_collision_snapshot(path: str = SHM_PATH, max_attempts: int = 3) -> bytes:
+def read_collision_snapshot_diagnostic(path: str = SHM_PATH, max_attempts: int = 32,
+                                       retry_interval_s: float = 0.00025) -> tuple[bytes, dict]:
+    """Read one stable physics snapshot and preserve absent/contention errors.
+
+    The previous tight three-read loop returned ``b""`` both when the object
+    was absent and when all reads raced the writer's odd seqlock. Callers then
+    mislabeled a transient read collision as MISSING. Retry briefly; if a
+    mapped object remains unstable, return an invalid sentinel and its reason.
+    """
     try:
         fd = os.open(path, os.O_RDONLY)
-    except OSError:
-        return b""
+    except OSError as exc:
+        absent = exc.errno == errno.ENOENT
+        return (b"" if absent else b"\0"), {
+            "read_status": "MISSING" if absent else "INVALID",
+            "reason": "shared_memory_absent" if absent else "shared_memory_open_error",
+            "errno": exc.errno, "error": str(exc),
+        }
     try:
         size = os.fstat(fd).st_size
         if size not in (LEGACY_SNAPSHOT_SIZE, SNAPSHOT_V4_SIZE, SNAPSHOT_V5_SIZE):
             # Path exists but its ABI extent is invalid/truncated. Preserve
             # that distinction from an absent authority so classify_snapshot
             # returns INVALID rather than MISSING.
-            return b"\0"
+            return b"\0", {"read_status": "INVALID", "reason": "unsupported_shared_memory_size",
+                            "size": size}
         buf = mmap.mmap(fd, size, access=mmap.ACCESS_READ)
         try:
-            for _ in range(max_attempts):
+            for attempt in range(1, max_attempts + 1):
                 before = struct.unpack_from("<Q", buf, 16)[0]
-                if before == 0 or before & 1:
-                    continue
-                raw = bytes(buf[:size])
-                after = struct.unpack_from("<Q", buf, 16)[0]
-                if before == after and not after & 1:
-                    return raw
-            return b""
+                if before != 0 and not before & 1:
+                    raw = bytes(buf[:size])
+                    after = struct.unpack_from("<Q", buf, 16)[0]
+                    if before == after and not after & 1:
+                        return raw, {"read_status": "READ", "reason": None,
+                                     "attempts": attempt, "sequence": after, "size": size}
+                if attempt < max_attempts and retry_interval_s > 0:
+                    time.sleep(retry_interval_s)
+            return b"\0", {"read_status": "INVALID", "reason": "seqlock_unstable",
+                            "attempts": max_attempts, "size": size}
         finally:
             buf.close()
     finally:
         os.close(fd)
+
+
+def read_collision_snapshot(path: str = SHM_PATH, max_attempts: int = 32,
+                            retry_interval_s: float = 0.00025) -> bytes:
+    raw, _ = read_collision_snapshot_diagnostic(path, max_attempts, retry_interval_s)
+    return raw

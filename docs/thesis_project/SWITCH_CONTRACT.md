@@ -1,6 +1,6 @@
 # A/B/C/D 策略切换合同（S1-01 已通过）
 
-> 来源：S1-01 步骤 1–5。合同已通过 Director 最终审阅；S1-01 为 COMPLETE。运行时实现和基础仿真核验属于后续任务。
+> 来源：S1-01 步骤 1–5。合同已通过 Director 最终审阅；S1-01 为 COMPLETE。A/B/C 已按后续任务实现；D 的实现状态见 S5-01 执行报告。
 
 ## 1. 符号和风险方向
 
@@ -55,7 +55,7 @@
 
 ## 5. 当前候选实现与合同差异
 
-- `paper_faithful_switch` 使用 `RA >= E` 进入，`RA < E` 退出，无滞回和保持；有限 RA 的比较边界与 A 候选一致，但当前代码没有 A/B/C/D 的独立配置合同。
+- A/B/C/D 通过 `abs.switching` 的严格配置合同选择组别；旧 `paper_faithful_switch` 候选使用 `RA >= E` 进入、`RA < E` 退出，无滞回和保持。
 - `stabilized_switch` 当前使用严格 `RA > E` 进入，Recovery 时无条件递减步数计数，并在计数到期且 `RA < X` 时退出。严格 `>` 与本合同 `>=` 在 `RA == E` 不同；其 `X` 由 `E - 0.03` 推导，且保持按步计，不是本合同当前定义的抽象保持条件。不可直接当作正式 B、C 或 D。
 - 当前控制器在进入 Recovery 边沿执行 `computeRecoveryTwist()` 并缓存 twist，随后在 Recovery 动作路径中复用；本合同要求四组共用该命令路径，避免缓存/优化差异成为第三个研究因素。[StateRL.cpp:1634–1667](../../quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp)
 - 当前 `StateRL::enter()` 会将模式、保持计数和缓存 twist 重置，支持上述重新进入规则的源码意图；首个有效 RA 前的安全故障路径及终止边界仍需在后续基础闭环核验。[StateRL.cpp:400–406](../../quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp)
@@ -75,7 +75,7 @@ abs:
 
 这是符合 A 组字段规则的示例。数值仅示意字段格式，**不是冻结的正式参数值**。每个 run 的研究切换配置唯一从 `abs.switching` 读取；A 的合法入口只含 `group: A` 与 `entry_threshold: E`。有效退出阈值由 E 推导为 E，滞回与保持关闭。不得同时配置 `exit_threshold`、`recovery_min_hold_s` 或 A 不允许的任何字段。不得在 `abs` 根下并列填写 legacy `switching_mode`、`ra_threshold`、`recovery_hold_steps`；它们与新配置同时存在时视为冲突并拒绝。
 
-运行时当前只支持 A。解析器明确拒绝已知但未实现的 B/C/D，并拒绝未知组、缺失/非有限/越界阈值、未知字段、互斥字段和 legacy 并列字段；不静默默认或回退。B/C/D 的后续表格定义是合同规范，不表示当前已实现。
+S5-01 为 D 增加生产支持；D 的构建、定向验证及运行证据见 S5-01 执行报告。解析器拒绝未知组、缺失/非有限/越界参数、未知字段、互斥字段和 legacy 并列字段；不静默默认或回退。
 
 | 组别 | 滞回 | 最小保持 | 必填字段 | 推导/禁止字段 |
 |---|---|---|---|---|
@@ -84,11 +84,32 @@ abs:
 | C | 关闭 | 开启 | `group`, `entry_threshold`, `recovery_min_hold_s` | 有效退出阈值由 `entry_threshold` 推导；不得填写 `exit_threshold` |
 | D | 开启 | 开启 | `group`, `entry_threshold`, `exit_threshold`, `recovery_min_hold_s` | 无 |
 
+S4-01 的 C 功能诊断配置示例（`H=0.30` 秒，仅用于本次诊断，不是正式论文参数）：
+
+```yaml
+abs:
+  switching:
+    group: "C"
+    entry_threshold: -0.05
+    recovery_min_hold_s: 0.30
+```
+
+S5-01 的 D 功能诊断配置为 `E=-0.05`、`X=-0.08`、`H=0.30` 秒；仅为本任务诊断参数，不是正式论文参数：
+
+```yaml
+abs:
+  switching:
+    group: "D"
+    entry_threshold: -0.05
+    exit_threshold: -0.08
+    recovery_min_hold_s: 0.30
+```
+
 `group` 唯一决定滞回和保持是否启用；不得另设可填写的 `enable_hysteresis`、`enable_hold` 布尔权威。A/C 的有效退出阈值是程序按定义取 `E`，不再由第二个配置值重复表达。未知字段、互斥字段、缺字段或非法字段均视为配置错误，拒绝开始该 run，不静默回退。
 
 ### 合法性与跨组一致性
 
-- 合同定义的 `group` 为 `A`、`B`、`C`、`D`，每个 run 只出现一次；当前运行时只接受 A，B/C/D 明确报告 unsupported。
+- 合同定义的 `group` 为 `A`、`B`、`C`、`D`，每个 run 只出现一次；D 的生产解析和组合切换核验见 S5-01。
 - `entry_threshold` 必须存在、为有限标量，且在 RA 模型 `tanh` 输出范围内：`-1 < E < 1`。
 - B/D 的 `exit_threshold` 必须存在、为有限标量、在 `(-1, 1)` 内，并满足 `X < E`。`X >= E` 与“高 RA 更危险、退出阈值低于进入阈值”的滞回方向矛盾，拒绝配置。
 - A/C 不接受显式 `exit_threshold`；其退出规则唯一地使用 `E`。这样不会出现隐藏阈值或阈值冲突。
@@ -99,8 +120,8 @@ abs:
 
 ### `recovery_min_hold_s` 的计时语义
 
-- **仿真时钟：**仿真中的 `H` 按 MuJoCo `mjData.time` 前进的仿真秒数计算。现有 MuJoCo 端会发布 `/mujoco_sim_clock`，包含 `sim_time`；但当前 `StateRL` 控制器没有读取该时钟，时间源尚未接入切换器。后续 S1 需实现并核验当前 run 的 sim-time 读取、有效性和生命周期绑定。[仿真时钟接口](../../common/abs_sim_clock_contract.h) [MuJoCo 发布位置](../../unitree_mujoco/simulate/src/main.cc:702)
-- **实机时钟：**实机中的 `H` 按 `std::chrono::steady_clock` 语义计算单调运行时间，不使用墙上日历时间。控制器已有单调纳秒时间读取函数，但当前没有用于 Recovery hold 计时；该用途同样属于后续 S1 实现。[StateRL.cpp:28–33](../../quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp)
+- **仿真时钟：**仿真中的 `H` 按 MuJoCo `mjData.time` 前进的仿真秒数计算。MuJoCo 通过 `/mujoco_sim_clock` 发布 `sim_time`；`StateRL` 在每个策略周期读取其共享时钟快照并记录序号、有效性及 segment。C/D 的保持到期只使用当前有效周期的仿真时间和本次 Recovery 入口时间，不按策略步数或墙钟计时。S4-01 对 C 路径完成核验；S5-01 对 D 的组合路径作针对性验证。两者均不证明暂停恢复、共享内存同名重连的完整行为或任何实机计时。[仿真时钟接口](../../common/abs_sim_clock_contract.h) [MuJoCo 发布位置](../../unitree_mujoco/simulate/src/main.cc:704)
+- **实机时钟：**实机中的 `H` 按 `std::chrono::steady_clock` 语义计算单调运行时间，不使用墙上日历时间。控制器已有单调纳秒时间读取函数；C/D 实现只接入 MuJoCo 仿真时钟，实机 hold 尚未接线或验证。[StateRL.cpp:28–33](../../quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp)
 - **起算事件：**一次有效 RA 判断使模式从 Agile 转入 Recovery 时，记录本次 `policy_mode_changed` 的时刻 `t_enter`；该周期选择 Recovery 动作。仿真保存 MuJoCo 仿真时刻，实机保存单调运行时刻。C/D 的到期判断为对应时钟的 `now - t_enter >= H`；A/B 不读取或启动该计时。`H` 表示 Recovery 模式最短驻留时间，不保证从首条 Recovery 命令写出或实际生效时起满 `H` 秒；事件周期和时刻定义见第 8 节。
 - **判断周期：**仿真和实机都只在有效策略决策周期检查保持是否到期及执行模式转换。对 C/D，该周期还必须有有效的对应时钟样本；若时钟样本无效，则本周期不执行 RA 驱动的模式转换，保持当前模式并选用其动作，同时记录计时无效。保持到期本身不会在周期之间触发转换；到期周期立即检查 RA 退出条件，满足则本周期选 Agile 动作，否则继续 Recovery。
 - **仿真暂停与速度变化：**在可确认的 MuJoCo 暂停状态下，`sim_time` 不前进，`H` 不消耗；即使暂停期间出现策略决策，C/D 也不得因墙钟经过而退出。若时钟样本陈旧且无法确认是暂停还是来源失效，应按时钟无效处理。仿真运行速度变化时，`H` 仍按仿真秒数计算，因此对应的墙钟持续时间随仿真快慢变化。
@@ -110,15 +131,15 @@ abs:
 
 ### 频率证据与未决实测
 
-- 步骤 1 已查到一次历史仿真捕获的策略/RA 周期均值约 20.014 ms（49.97 Hz，1,249 个间隔）；这是该次捕获的观测，不是当前所有运行或 Recovery 活动态的保证。另有配置及旧注释声称 125 Hz/8 ms，但与该捕获实测不符。持久记录见 [P1-08 v2 计时摘要](../evidence/P1-08/P1-08_v2_baseline_capture_20260902.md) 和 [该次捕获的计时统计](../evidence/P1-08/capture_20260901_v2/timing_stats.json)。
-- 因为仿真按 MuJoCo 仿真时间、实机按单调运行时间计算，保持合同不需要从 30 步、50 Hz 或 125 Hz 推算 `H`。当前计划运行的实际策略/RA 频率仍是 **UNKNOWN**；也没有 Recovery 活动态的保持实测。
-- 后续 S1 最小工作/实测：先把 MuJoCo `sim_time` 时间源接入控制器并确认其对应当前 run；基础仿真中记录连续有效策略决策周期的 RA、策略序号和 `sim_time`，触发一次受控 Recovery 后核对起算、到期判断及退出时刻。另用 `rt_frame` 单调时间戳测策略/RA 的墙钟频率；若开展实机阶段，再用单调运行时钟核实实机保持。以上均不启动正式场景或参数比较。
+- 步骤 1 已查到一次历史仿真捕获的策略/RA 周期均值约 20.014 ms（49.97 Hz，1,249 个间隔）；这是该次捕获的观测，不是当前所有运行或 Recovery 活动态的保证。另有配置及旧注释声称 125 Hz/8 ms，但与该捕获实测不符。持久记录见 [P1-08 v2 计时摘要](../evidence/P1-08/P1-08_v2_baseline_capture_20260902.md) 和 该次捕获的计时统计（原始运行/环境明细保留本地，未纳入分享提交）。
+- 因为仿真按 MuJoCo 仿真时间、实机按单调运行时间计算，保持合同不需要从 30 步、50 Hz 或 125 Hz 推算 `H`。历史捕获的频率和保持边界 UNKNOWN 保持为历史事实；S5-01 已取得本轮 B/D 的具体频率及 D 保持审计，详见 [S5-01 报告](evidence/S5-01/S5-01_EXECUTION_REPORT.md)。单次结果不保证其他运行频率；D 审计的 1/16 episode 覆盖不完整。
+- 后续实机阶段仍须用单调运行时钟核实实机保持。暂停恢复、同名时钟共享内存重连也仍未运行验证；本合同不把仿真诊断外推为这些边界已完成。
 
 ## 7. 本步骤未冻结事项
 
 - `entry_threshold`、B/D 的 `exit_threshold` 和 C/D 的 `recovery_min_hold_s` 具体实验取值：后续参数预实验/正式配置冻结时确定。
-- 当前目标运行环境的实际策略/RA 频率及 Recovery 活动态保持实测：仍为 UNKNOWN，按第 6 节的方法留待 S1 基础仿真实测。
-- 手工序列已完成并见第 10 节；S1-01 是否完成以 Director 最终审阅为准，审阅状态见第 11 节。
+- 其他运行的实际策略/RA 频率不由 S5-01 两次样本代表。D 诊断的 16 个保持 episode 中 15 个完整、1 个覆盖不完整，不能宣称所有 episode 均已验证。
+- 手工序列见第 10 节；S1-01 已由 Director 最终审阅并标记 COMPLETE，历史审阅记录见第 11 节。
 
 ## 8. 事件与策略周期对应（步骤 4）
 

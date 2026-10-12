@@ -2,50 +2,55 @@
 
 从仓库根目录运行。`--scene` 接受以下十个文件名；省略时沿用原来的 `scene_obstacle.xml`：
 
-| 参数 | 场景 ID | 当前 XML 中障碍数 |
-|---|---|---:|
-| `scene_obstacle.xml` | `obstacle_test1` | 7 |
-| `scene_flat.xml` | `flat` | 0 |
-| `scene_ppt_sparse.xml` | `ppt_sparse` | 4 |
-| `scene_ppt_medium.xml` | `ppt_medium` | 7 |
-| `scene_ppt_dense.xml` | `ppt_dense` | 11 |
-| `scene_random_01.xml` | `random_01` | 15 |
-| `scene_random_02.xml` | `random_02` | 17 |
-| `scene_random_03.xml` | `random_03` | 18 |
-| `scene_random_04.xml` | `random_04` | 19 |
-| `scene_random_05.xml` | `random_05` | 20 |
+| 参数 | 场景 ID | 当前 XML 中障碍数 | 起点到目标直线阻挡 |
+|---|---|---:|---|
+| `scene_obstacle.xml` | `obstacle_test1` | 7 | — |
+| `scene_flat.xml` | `flat` | 0 | — |
+| `scene_ppt_sparse.xml` | `ppt_sparse` | 4 | — |
+| `scene_ppt_medium.xml` | `ppt_medium` | 7 | — |
+| `scene_ppt_dense.xml` | `ppt_dense` | 11 | — |
+| `scene_random_01.xml` | `random_01` | 15 | `ppt_obstacle_01`, x=[2.489, 3.011] m |
+| `scene_random_02.xml` | `random_02` | 17 | `ppt_obstacle_03`, x=[2.561, 3.039] m |
+| `scene_random_03.xml` | `random_03` | 18 | `ppt_obstacle_04`, x=[2.585, 3.415] m |
+| `scene_random_04.xml` | `random_04` | 19 | `ppt_obstacle_15`, x=[2.556, 3.102] m |
+| `scene_random_05.xml` | `random_05` | 20 | none |
 
-`scene_random_01.xml` 至 `scene_random_05.xml` 由 `docs/thesis_project/designs/random_static_scenes/layouts.json` 中的固定布局生成；种子和坐标不随诊断结果变化。浅蓝保留通道只用于几何预检，不传给控制器。
+`scene_random_01.xml` 至 `scene_random_05.xml` 由 `docs/thesis_project/designs/random_static_scenes/layouts.json` 中的固定布局生成。当前布局修订为 `S2-08-r1`：保留原种子，以确定性手工编辑将 01 的障碍 01、02 的障碍 03、03 的障碍 04 移到直线阻挡位置；没有重新随机。浅蓝保留通道只用于几何预检，不传给控制器。旧 JSON、预览、XML 和旧场景目录身份保存在 [S2-08 previous_layouts](../S2-08/previous_layouts/)；更早运行仍按各自 `run_context.json` 中保存的旧场景身份解释，不套用本修订坐标。random_04 原有障碍 14 超出声明 y 下界 0.056375 m，本次未移动。
 
 场景路径、根 XML、include/asset closure 和 MuJoCo 编译模型指纹必须与共用目录一致。缺失、未支持或身份不符时会在进入 RL 前拒绝。平地没有障碍是合法输入；地面接触仍单独记为 ground contact。
 
 当前部署配置的目标为 `(7.0, 0.0) m`，到达半径为 `0.5 m`。运行命令显式填写 `--goal-x 7.0`，必须与所选 controller 配置相同。A / `paper_faithful_switch`、模型、阈值和安全规则由当前配置提供；运行期间不热更新。诊断运动上限为 8 仿真秒，墙钟保护为 90 秒。终局按现有 supervisor 规则处理安全中止、机器人—障碍碰撞、跌倒、到达和仿真时限；墙钟保护到期属于不完整运行。
 
-下面是可直接复制的独立运行示例。每个场景使用自己的目录 `logs/manual_scene_runs/<scene-name>`，不要把不同场景写进同一个目录；每次运行仍会在该场景目录下建立独立 run 记录。重复运行同一场景时，可另建带日期或编号的场景目录。普通手动运行记录保存在 `logs/`，不要写入 `docs/thesis_project/evidence/`。这些示例不表示各场景已完成正式测试。桌面会话需允许当前用户使用 `DISPLAY=:0` 和 `/run/user/1000/gdm/Xauthority`。
+下面是可直接复制的独立运行示例。每个场景使用自己的目录 `logs/manual_scene_runs/<scene-name>`，不要把不同场景写进同一个目录；每次运行仍会在该场景目录下建立独立 run 记录。重复运行同一场景时，可另建带日期或编号的场景目录。普通手动运行记录保存在 `logs/`，不要写入 `docs/thesis_project/evidence/`。这些示例不表示各场景已完成正式测试。桌面会话需允许当前用户使用 `DISPLAY` 和当前桌面会话提供的 `XAUTHORITY`。
 
 ```bash
-cd /home/lidio/quadruped_robots
-rtk proxy /usr/bin/python3 scripts/s1_run_diagnostic.py --scene scene_obstacle.xml --goal-x 7.0 --sim-limit-s 20 --wall-cap-s 90 --overlay /home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description --output-root logs/manual_scene_runs/scene_obstacle --display :0 --xauthority /run/user/1000/gdm/Xauthority
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+cd "$PROJECT_ROOT"
+rtk proxy /usr/bin/python3 scripts/s1_run_diagnostic.py --scene scene_obstacle.xml --goal-x 7.0 --sim-limit-s 20 --wall-cap-s 90 --overlay "$PROJECT_ROOT/quadruped_ros2_control_humble/install/go2_description" --output-root logs/manual_scene_runs/scene_obstacle --display "$DISPLAY" --xauthority "$XAUTHORITY"
 ```
 
 ```bash
-cd /home/lidio/quadruped_robots
-rtk proxy /usr/bin/python3 scripts/s1_run_diagnostic.py --scene scene_flat.xml --goal-x 7.0 --sim-limit-s 20 --wall-cap-s 90 --overlay /home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description --output-root logs/manual_scene_runs/scene_flat --display :0 --xauthority /run/user/1000/gdm/Xauthority
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+cd "$PROJECT_ROOT"
+rtk proxy /usr/bin/python3 scripts/s1_run_diagnostic.py --scene scene_flat.xml --goal-x 7.0 --sim-limit-s 20 --wall-cap-s 90 --overlay "$PROJECT_ROOT/quadruped_ros2_control_humble/install/go2_description" --output-root logs/manual_scene_runs/scene_flat --display "$DISPLAY" --xauthority "$XAUTHORITY"
 ```
 
 ```bash
-cd /home/lidio/quadruped_robots
-rtk proxy /usr/bin/python3 scripts/s1_run_diagnostic.py --scene scene_ppt_sparse.xml --goal-x 7.0 --sim-limit-s 20 --wall-cap-s 90 --overlay /home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description --output-root logs/manual_scene_runs/scene_ppt_sparse --display :0 --xauthority /run/user/1000/gdm/Xauthority
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+cd "$PROJECT_ROOT"
+rtk proxy /usr/bin/python3 scripts/s1_run_diagnostic.py --scene scene_ppt_sparse.xml --goal-x 7.0 --sim-limit-s 20 --wall-cap-s 90 --overlay "$PROJECT_ROOT/quadruped_ros2_control_humble/install/go2_description" --output-root logs/manual_scene_runs/scene_ppt_sparse --display "$DISPLAY" --xauthority "$XAUTHORITY"
 ```
 
 ```bash
-cd /home/lidio/quadruped_robots
-rtk proxy /usr/bin/python3 scripts/s1_run_diagnostic.py --scene scene_ppt_medium.xml --goal-x 7.0 --sim-limit-s 20 --wall-cap-s 90 --overlay /home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description --output-root logs/manual_scene_runs/scene_ppt_medium --display :0 --xauthority /run/user/1000/gdm/Xauthority
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+cd "$PROJECT_ROOT"
+rtk proxy /usr/bin/python3 scripts/s1_run_diagnostic.py --scene scene_ppt_medium.xml --goal-x 7.0 --sim-limit-s 20 --wall-cap-s 90 --overlay "$PROJECT_ROOT/quadruped_ros2_control_humble/install/go2_description" --output-root logs/manual_scene_runs/scene_ppt_medium --display "$DISPLAY" --xauthority "$XAUTHORITY"
 ```
 
 ```bash
-cd /home/lidio/quadruped_robots
-rtk proxy /usr/bin/python3 scripts/s1_run_diagnostic.py --scene scene_ppt_dense.xml --goal-x 7.0 --sim-limit-s 20 --wall-cap-s 90 --overlay /home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description --output-root logs/manual_scene_runs/scene_ppt_dense --display :0 --xauthority /run/user/1000/gdm/Xauthority
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+cd "$PROJECT_ROOT"
+rtk proxy /usr/bin/python3 scripts/s1_run_diagnostic.py --scene scene_ppt_dense.xml --goal-x 7.0 --sim-limit-s 20 --wall-cap-s 90 --overlay "$PROJECT_ROOT/quadruped_ros2_control_humble/install/go2_description" --output-root logs/manual_scene_runs/scene_ppt_dense --display "$DISPLAY" --xauthority "$XAUTHORITY"
 ```
 
 每次 run 有自己的 `runtime_record.jsonl`、`run_context.json`、`terminal.json`、进程清理事实和启动日志。执行分析命令会为该目录中的每个 run 生成 `metrics.json`、`timeline.png`，并在指定的场景目录 `analysis/` 子目录汇总结果表；不要把不同场景混放或把不同 run 合并成一个轨迹。
@@ -53,31 +58,48 @@ rtk proxy /usr/bin/python3 scripts/s1_run_diagnostic.py --scene scene_ppt_dense.
 以下以平地和稀疏场景为例。`PYTHONNOUSERSITE=1` 避免用户目录中的 NumPy 覆盖系统 Matplotlib 所需版本；Matplotlib 缓存写入 `/tmp`。
 
 ```bash
-cd /home/lidio/quadruped_robots
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+cd "$PROJECT_ROOT"
 PYTHONNOUSERSITE=1 MPLCONFIGDIR=/tmp/s204-mpl FONTCONFIG_PATH=/tmp/s204-fontconfig rtk proxy /usr/bin/python3 scripts/s1_analyze_run.py --runs-root logs/manual_scene_runs/scene_flat --output-dir logs/manual_scene_runs/scene_flat/analysis --task-label S2-04-flat
 ```
 
 ```bash
-cd /home/lidio/quadruped_robots
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+cd "$PROJECT_ROOT"
 PYTHONNOUSERSITE=1 MPLCONFIGDIR=/tmp/s204-mpl FONTCONFIG_PATH=/tmp/s204-fontconfig rtk proxy /usr/bin/python3 scripts/s1_analyze_run.py --runs-root logs/manual_scene_runs/scene_ppt_sparse --output-dir logs/manual_scene_runs/scene_ppt_sparse/analysis --task-label S2-04-sparse
 ```
 
 ```bash
-cd /home/lidio/quadruped_robots
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+cd "$PROJECT_ROOT"
 PYTHONNOUSERSITE=1 MPLCONFIGDIR=/tmp/s204-mpl FONTCONFIG_PATH=/tmp/s204-fontconfig rtk proxy /usr/bin/python3 scripts/s1_analyze_run.py --runs-root logs/manual_scene_runs/scene_ppt_medium --output-dir logs/manual_scene_runs/scene_ppt_medium/analysis --task-label S2-04-medium
 ```
 
 ```bash
-cd /home/lidio/quadruped_robots
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+cd "$PROJECT_ROOT"
 PYTHONNOUSERSITE=1 MPLCONFIGDIR=/tmp/s204-mpl FONTCONFIG_PATH=/tmp/s204-fontconfig rtk proxy /usr/bin/python3 scripts/s1_analyze_run.py --runs-root logs/manual_scene_runs/scene_ppt_dense --output-dir logs/manual_scene_runs/scene_ppt_dense/analysis --task-label S2-04-dense
 ```
 
 ```bash
-cd /home/lidio/quadruped_robots
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+cd "$PROJECT_ROOT"
 PYTHONNOUSERSITE=1 MPLCONFIGDIR=/tmp/s204-mpl FONTCONFIG_PATH=/tmp/s204-fontconfig rtk proxy /usr/bin/python3 scripts/s1_analyze_run.py --runs-root logs/manual_scene_runs/scene_obstacle --output-dir logs/manual_scene_runs/scene_obstacle/analysis --task-label S2-04-obstacle
 ```
 
 结果表含 scene 与 scene ID；无效时钟、来源错误、终止帧不完整或 coverage 缺口按原分析合同保留，不插值。单次非正式诊断用于核对运行与记录闭环，不代表跨场景可达性或性能结论。
+
+## S2-08 修订地图的单次诊断参数
+
+S2-08 对修改后的 `scene_random_01.xml`、`scene_random_02.xml` 和 `scene_random_03.xml` 各执行一次 A 组非正式诊断：E=-0.05，目标 `(7,0)`，到达半径 0.5 m，运动上限 20 仿真秒、墙钟上限 120 秒，到达后固定站立观察 5 仿真秒。实际命令、run ID、A 配置消费、模型与场景绑定记录见 S2-08 run_invocations.json（原始运行/环境明细保留本地，未纳入分享提交）；三次结果对照见 [S2-08 scene_comparison.md](../S2-08/diagnostic_runs_20261011/scene_comparison.md)。这些单次观察不构成成功率或正式性能结论。
+
+后续对当前布局做单次手动诊断时，场景目录仍分开保存，命令示例如下；对 02/03 替换场景文件名和输出目录。它采用任务诊断上限，与上面通用示例中的 8 秒/90 秒设置不同。
+
+```bash
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+cd "$PROJECT_ROOT"
+rtk proxy /usr/bin/python3 scripts/s1_run_diagnostic.py --scene scene_random_01.xml --goal-x 7.0 --sim-limit-s 20 --wall-cap-s 120 --standing-observation-sim-s 5 --standing-observation-wall-cap-s 30 --overlay "$PROJECT_ROOT/quadruped_ros2_control_humble/install/go2_description" --output-root logs/manual_scene_runs/scene_random_01_s208 --display "$DISPLAY" --xauthority "$XAUTHORITY"
+```
 
 ## S2-05 接触结果的读取方式
 
@@ -86,8 +108,9 @@ PYTHONNOUSERSITE=1 MPLCONFIGDIR=/tmp/s204-mpl FONTCONFIG_PATH=/tmp/s204-fontconf
 S2-05 的有界稀疏场景诊断命令为：
 
 ~~~bash
-cd /home/lidio/quadruped_robots
-rtk proxy /usr/bin/python3 scripts/s1_run_diagnostic.py --scene scene_ppt_sparse.xml --goal-x 7.0 --sim-limit-s 10 --wall-cap-s 120 --overlay /home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description --output-root logs/manual_scene_runs/scene_ppt_sparse --display :0 --xauthority /run/user/1000/gdm/Xauthority
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+cd "$PROJECT_ROOT"
+rtk proxy /usr/bin/python3 scripts/s1_run_diagnostic.py --scene scene_ppt_sparse.xml --goal-x 7.0 --sim-limit-s 10 --wall-cap-s 120 --overlay "$PROJECT_ROOT/quadruped_ros2_control_humble/install/go2_description" --output-root logs/manual_scene_runs/scene_ppt_sparse --display "$DISPLAY" --xauthority "$XAUTHORITY"
 ~~~
 
 逐 run 的 metrics.json 与 run_results.json 分列 navigation_terminal_result、nonfoot_collision_failure、foot contact/impact 次数和持续时间、到达时是否出现足端接触/撞击，以及 abs_reference_collision。ARRIVED 只表示到达目标半径，不自动表示无足端撞击；ABS 参考碰撞可以同时为 true。缺少有效力、物理覆盖或完整事件历史时，对应结论显示 UNKNOWN。v3/v4 历史记录保留旧碰撞字段语义，没有足端力与事件字段，不能补判历史足端撞击。

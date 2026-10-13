@@ -1,0 +1,1274 @@
+{
+  "schema_version": 1,
+  "generator_version": "s6-08-mapgen/1.0",
+  "generation_seeds": {
+    "s6_08_sparse_01": 608001,
+    "s6_08_sparse_02": 608002,
+    "s6_08_medium_01": 608003,
+    "s6_08_medium_02": 608004,
+    "s6_08_dense_01": 608005,
+    "s6_08_dense_02": 608006
+  },
+  "run_seeds": "separate from generation seeds; set per diagnostic run",
+  "robot_center_envelope_basis": {
+    "planar_envelope_radius_m": 0.65,
+    "source": "go2.xml: hip x offset 0.1934 m; thigh/calf link lengths 0.213 m each; foot sphere radius 0.027 m; circular envelope conservatively rounds the approximately 0.646 m straightened leg reach down to 0.65 m and also covers the 0.335 m front trunk/collision extent.",
+    "engineering_margin_m": 0.1,
+    "note": "The envelope is a conservative geometry-based planning assumption, not a validated walking gait footprint."
+  },
+  "obstacle_bounds_m": {
+    "x": [
+      -0.5,
+      7.5
+    ],
+    "y": [
+      -3.0,
+      3.0
+    ]
+  },
+  "default_start_m": [
+    0.0,
+    0.0
+  ],
+  "default_goal_m": [
+    7.0,
+    0.0
+  ],
+  "sample_only": true,
+  "not_for_held_out_test": true,
+  "scenes": [
+    {
+      "scene_id": "s6_08_sparse_01",
+      "filename": "scene_s6_08_sparse_01.xml",
+      "preview": "s6_08_sparse_01.png",
+      "generator_version": "s6-08-mapgen/1.0",
+      "generation_seed": 608001,
+      "run_seed": null,
+      "density": "sparse",
+      "density_definition": {
+        "obstacle_footprint_area_fraction": 0.052569585961883956,
+        "target_area_fraction": [
+          0.05,
+          0.09
+        ],
+        "minimum_obstacle_spacing_m": 0.3269399284604969,
+        "configured_minimum_spacing_m": 0.28,
+        "minimum_reference_corridor_width_m": 1.5195422380361416,
+        "configured_minimum_reference_corridor_width_m": 1.5
+      },
+      "obstacle_bounds_m": {
+        "x": [
+          -0.5,
+          7.5
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "path_search_bounds_m": {
+        "x": [
+          0.0,
+          7.0
+        ],
+        "y": [
+          -2.9,
+          2.9
+        ]
+      },
+      "start_m": [
+        0.0,
+        0.0
+      ],
+      "goal_m": [
+        7.0,
+        0.0
+      ],
+      "route_control_y_m": [
+        -1.7944430464646088,
+        -1.7231446014286043
+      ],
+      "obstacle_count": 8,
+      "obstacles": [
+        {
+          "name": "ppt_obstacle_01",
+          "shape": "rotated_bar",
+          "x": 2.0587129084358553,
+          "y": 0.0,
+          "height_m": 0.419871,
+          "half_x": 0.22,
+          "half_y": 0.07,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_02",
+          "shape": "rotated_bar",
+          "x": 4.985011426234308,
+          "y": 0.0,
+          "height_m": 0.476344,
+          "half_x": 0.22,
+          "half_y": 0.07,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_03",
+          "shape": "rotated_bar",
+          "x": 6.112936,
+          "y": -2.250217,
+          "height_m": 0.58795,
+          "half_x": 0.519302,
+          "half_y": 0.120961,
+          "yaw_rad": -0.046758
+        },
+        {
+          "name": "ppt_obstacle_04",
+          "shape": "box",
+          "x": 1.39541,
+          "y": -2.500622,
+          "height_m": 0.582674,
+          "half_x": 0.422232,
+          "half_y": 0.330686,
+          "yaw_rad": -2.797913
+        },
+        {
+          "name": "ppt_obstacle_05",
+          "shape": "cylinder",
+          "x": 4.377076,
+          "y": -2.66862,
+          "height_m": 0.545643,
+          "radius": 0.302934,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_06",
+          "shape": "rotated_bar",
+          "x": 1.381763,
+          "y": 1.025663,
+          "height_m": 0.555675,
+          "half_x": 0.572632,
+          "half_y": 0.134458,
+          "yaw_rad": 0.323452
+        },
+        {
+          "name": "ppt_obstacle_07",
+          "shape": "box",
+          "x": 5.26202,
+          "y": 0.812109,
+          "height_m": 0.356738,
+          "half_x": 0.403627,
+          "half_y": 0.322636,
+          "yaw_rad": 1.301763
+        },
+        {
+          "name": "ppt_obstacle_08",
+          "shape": "box",
+          "x": 3.329209,
+          "y": 1.270759,
+          "height_m": 0.611349,
+          "half_x": 0.432573,
+          "half_y": 0.273477,
+          "yaw_rad": 1.491361
+        }
+      ],
+      "reference_path_m": [
+        [
+          0.0,
+          4.440892098500626e-16
+        ],
+        [
+          1.8,
+          -0.8999999999999999
+        ],
+        [
+          5.5,
+          -0.8499999999999996
+        ],
+        [
+          7.0,
+          4.440892098500626e-16
+        ]
+      ],
+      "path_check": {
+        "connected": true,
+        "endpoint_tolerance_m": 1e-09,
+        "grid_resolution_m": 0.05,
+        "continuous_path_check_step_m": 0.025,
+        "go2_planar_envelope_radius_m": 0.65,
+        "engineering_clearance_margin_m": 0.1,
+        "required_obstacle_clearance_m": 0.75,
+        "minimum_geometric_obstacle_clearance_m": 0.7597711190180708,
+        "minimum_centerline_corridor_width_m": 1.5195422380361416,
+        "residual_width_after_envelope_margin_m": 0.019542238036141635,
+        "reference_path_length_m": 7.436892967122157,
+        "reference_path_point_count": 4,
+        "start_goal_straight_blocked": true,
+        "start_goal_straight_blocking_obstacles": [
+          "ppt_obstacle_01",
+          "ppt_obstacle_02"
+        ]
+      }
+    },
+    {
+      "scene_id": "s6_08_sparse_02",
+      "filename": "scene_s6_08_sparse_02.xml",
+      "preview": "s6_08_sparse_02.png",
+      "generator_version": "s6-08-mapgen/1.0",
+      "generation_seed": 608002,
+      "run_seed": null,
+      "density": "sparse",
+      "density_definition": {
+        "obstacle_footprint_area_fraction": 0.05058105942685847,
+        "target_area_fraction": [
+          0.05,
+          0.09
+        ],
+        "minimum_obstacle_spacing_m": 0.33667859515626236,
+        "configured_minimum_spacing_m": 0.28,
+        "minimum_reference_corridor_width_m": 1.5331508361345585,
+        "configured_minimum_reference_corridor_width_m": 1.5
+      },
+      "obstacle_bounds_m": {
+        "x": [
+          -0.5,
+          7.5
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "path_search_bounds_m": {
+        "x": [
+          0.0,
+          7.0
+        ],
+        "y": [
+          -2.9,
+          2.9
+        ]
+      },
+      "start_m": [
+        0.0,
+        0.0
+      ],
+      "goal_m": [
+        7.0,
+        0.0
+      ],
+      "route_control_y_m": [
+        -1.811654241228923,
+        -1.842552826685956
+      ],
+      "obstacle_count": 8,
+      "obstacles": [
+        {
+          "name": "ppt_obstacle_01",
+          "shape": "rotated_bar",
+          "x": 2.0322423747388925,
+          "y": 0.0,
+          "height_m": 0.583316,
+          "half_x": 0.22,
+          "half_y": 0.07,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_02",
+          "shape": "rotated_bar",
+          "x": 4.853000193445719,
+          "y": 0.0,
+          "height_m": 0.554544,
+          "half_x": 0.22,
+          "half_y": 0.07,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_03",
+          "shape": "rotated_bar",
+          "x": 1.713944,
+          "y": -2.652652,
+          "height_m": 0.591236,
+          "half_x": 0.450396,
+          "half_y": 0.147371,
+          "yaw_rad": -0.000622
+        },
+        {
+          "name": "ppt_obstacle_04",
+          "shape": "cylinder",
+          "x": 5.36546,
+          "y": -2.4441,
+          "height_m": 0.56096,
+          "radius": 0.309411,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_05",
+          "shape": "rotated_bar",
+          "x": 4.204195,
+          "y": -2.822463,
+          "height_m": 0.395532,
+          "half_x": 0.561211,
+          "half_y": 0.142138,
+          "yaw_rad": -0.033657
+        },
+        {
+          "name": "ppt_obstacle_06",
+          "shape": "box",
+          "x": 4.925979,
+          "y": 0.897148,
+          "height_m": 0.332314,
+          "half_x": 0.374632,
+          "half_y": 0.334563,
+          "yaw_rad": 1.059091
+        },
+        {
+          "name": "ppt_obstacle_07",
+          "shape": "box",
+          "x": 1.09297,
+          "y": 1.92948,
+          "height_m": 0.389556,
+          "half_x": 0.360904,
+          "half_y": 0.298329,
+          "yaw_rad": -0.481902
+        },
+        {
+          "name": "ppt_obstacle_08",
+          "shape": "box",
+          "x": 5.796924,
+          "y": 1.762038,
+          "height_m": 0.522766,
+          "half_x": 0.386404,
+          "half_y": 0.315296,
+          "yaw_rad": -0.242721
+        }
+      ],
+      "reference_path_m": [
+        [
+          0.0,
+          4.440892098500626e-16
+        ],
+        [
+          1.75,
+          -0.8999999999999999
+        ],
+        [
+          5.4,
+          -0.8499999999999996
+        ],
+        [
+          7.0,
+          4.440892098500626e-16
+        ]
+      ],
+      "path_check": {
+        "connected": true,
+        "endpoint_tolerance_m": 1e-09,
+        "grid_resolution_m": 0.05,
+        "continuous_path_check_step_m": 0.025,
+        "go2_planar_envelope_radius_m": 0.65,
+        "engineering_clearance_margin_m": 0.1,
+        "required_obstacle_clearance_m": 0.75,
+        "minimum_geometric_obstacle_clearance_m": 0.7665754180672792,
+        "minimum_centerline_corridor_width_m": 1.5331508361345585,
+        "residual_width_after_envelope_margin_m": 0.03315083613455849,
+        "reference_path_length_m": 7.429976408303583,
+        "reference_path_point_count": 4,
+        "start_goal_straight_blocked": true,
+        "start_goal_straight_blocking_obstacles": [
+          "ppt_obstacle_01",
+          "ppt_obstacle_02"
+        ]
+      }
+    },
+    {
+      "scene_id": "s6_08_medium_01",
+      "filename": "scene_s6_08_medium_01.xml",
+      "preview": "s6_08_medium_01.png",
+      "generator_version": "s6-08-mapgen/1.0",
+      "generation_seed": 608003,
+      "run_seed": null,
+      "density": "medium",
+      "density_definition": {
+        "obstacle_footprint_area_fraction": 0.08986196410301328,
+        "target_area_fraction": [
+          0.085,
+          0.14
+        ],
+        "minimum_obstacle_spacing_m": 0.14811867666273706,
+        "configured_minimum_spacing_m": 0.12,
+        "minimum_reference_corridor_width_m": 1.5207352482143188,
+        "configured_minimum_reference_corridor_width_m": 1.5
+      },
+      "obstacle_bounds_m": {
+        "x": [
+          -0.5,
+          7.5
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "path_search_bounds_m": {
+        "x": [
+          0.0,
+          7.0
+        ],
+        "y": [
+          -2.9,
+          2.9
+        ]
+      },
+      "start_m": [
+        0.0,
+        0.0
+      ],
+      "goal_m": [
+        7.0,
+        0.0
+      ],
+      "route_control_y_m": [
+        -1.651254876316599,
+        -1.864492634358847
+      ],
+      "obstacle_count": 12,
+      "obstacles": [
+        {
+          "name": "ppt_obstacle_01",
+          "shape": "rotated_bar",
+          "x": 2.0818218971668268,
+          "y": 0.0,
+          "height_m": 0.379488,
+          "half_x": 0.23320000000000002,
+          "half_y": 0.07420000000000002,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_02",
+          "shape": "rotated_bar",
+          "x": 4.931980728496277,
+          "y": 0.0,
+          "height_m": 0.357492,
+          "half_x": 0.23320000000000002,
+          "half_y": 0.07420000000000002,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_03",
+          "shape": "rotated_bar",
+          "x": 2.969902,
+          "y": -2.665112,
+          "height_m": 0.37021,
+          "half_x": 0.514983,
+          "half_y": 0.120567,
+          "yaw_rad": 0.077648
+        },
+        {
+          "name": "ppt_obstacle_04",
+          "shape": "cylinder",
+          "x": 5.735318,
+          "y": -2.397661,
+          "height_m": 0.612649,
+          "radius": 0.335339,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_05",
+          "shape": "box",
+          "x": 1.49155,
+          "y": -2.616013,
+          "height_m": 0.59613,
+          "half_x": 0.405129,
+          "half_y": 0.294352,
+          "yaw_rad": -0.006905
+        },
+        {
+          "name": "ppt_obstacle_06",
+          "shape": "cylinder",
+          "x": 4.809609,
+          "y": -2.508842,
+          "height_m": 0.468518,
+          "radius": 0.363738,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_07",
+          "shape": "box",
+          "x": 3.670716,
+          "y": 0.966936,
+          "height_m": 0.441358,
+          "half_x": 0.379953,
+          "half_y": 0.343605,
+          "yaw_rad": -1.221162
+        },
+        {
+          "name": "ppt_obstacle_08",
+          "shape": "box",
+          "x": 1.516249,
+          "y": 0.670977,
+          "height_m": 0.33758,
+          "half_x": 0.431406,
+          "half_y": 0.327262,
+          "yaw_rad": 0.030547
+        },
+        {
+          "name": "ppt_obstacle_09",
+          "shape": "rotated_bar",
+          "x": 5.529494,
+          "y": 1.285744,
+          "height_m": 0.531446,
+          "half_x": 0.525927,
+          "half_y": 0.119177,
+          "yaw_rad": 0.196872
+        },
+        {
+          "name": "ppt_obstacle_10",
+          "shape": "box",
+          "x": 1.501348,
+          "y": 1.722142,
+          "height_m": 0.377498,
+          "half_x": 0.426381,
+          "half_y": 0.33361,
+          "yaw_rad": 1.261429
+        },
+        {
+          "name": "ppt_obstacle_11",
+          "shape": "box",
+          "x": 2.544787,
+          "y": 0.959116,
+          "height_m": 0.58029,
+          "half_x": 0.344602,
+          "half_y": 0.339692,
+          "yaw_rad": -0.052168
+        },
+        {
+          "name": "ppt_obstacle_12",
+          "shape": "rotated_bar",
+          "x": 4.267075,
+          "y": 0.176606,
+          "height_m": 0.411734,
+          "half_x": 0.60674,
+          "half_y": 0.125994,
+          "yaw_rad": 0.433045
+        }
+      ],
+      "reference_path_m": [
+        [
+          0.0,
+          4.440892098500626e-16
+        ],
+        [
+          1.8,
+          -0.8999999999999999
+        ],
+        [
+          4.8500000000000005,
+          -0.9999999999999998
+        ],
+        [
+          5.7,
+          -0.6999999999999997
+        ],
+        [
+          7.0,
+          4.440892098500626e-16
+        ]
+      ],
+      "path_check": {
+        "connected": true,
+        "endpoint_tolerance_m": 1e-09,
+        "grid_resolution_m": 0.05,
+        "continuous_path_check_step_m": 0.025,
+        "go2_planar_envelope_radius_m": 0.65,
+        "engineering_clearance_margin_m": 0.1,
+        "required_obstacle_clearance_m": 0.75,
+        "minimum_geometric_obstacle_clearance_m": 0.7603676241071594,
+        "minimum_centerline_corridor_width_m": 1.5207352482143188,
+        "residual_width_after_envelope_margin_m": 0.020735248214318824,
+        "reference_path_length_m": 7.441970208572575,
+        "reference_path_point_count": 5,
+        "start_goal_straight_blocked": true,
+        "start_goal_straight_blocking_obstacles": [
+          "ppt_obstacle_01",
+          "ppt_obstacle_02",
+          "ppt_obstacle_12"
+        ]
+      }
+    },
+    {
+      "scene_id": "s6_08_medium_02",
+      "filename": "scene_s6_08_medium_02.xml",
+      "preview": "s6_08_medium_02.png",
+      "generator_version": "s6-08-mapgen/1.0",
+      "generation_seed": 608004,
+      "run_seed": null,
+      "density": "medium",
+      "density_definition": {
+        "obstacle_footprint_area_fraction": 0.0867026132853244,
+        "target_area_fraction": [
+          0.085,
+          0.14
+        ],
+        "minimum_obstacle_spacing_m": 0.16525211737870202,
+        "configured_minimum_spacing_m": 0.12,
+        "minimum_reference_corridor_width_m": 1.5171489958434725,
+        "configured_minimum_reference_corridor_width_m": 1.5
+      },
+      "obstacle_bounds_m": {
+        "x": [
+          -0.5,
+          7.5
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "path_search_bounds_m": {
+        "x": [
+          0.0,
+          7.0
+        ],
+        "y": [
+          -2.9,
+          2.9
+        ]
+      },
+      "start_m": [
+        0.0,
+        0.0
+      ],
+      "goal_m": [
+        7.0,
+        0.0
+      ],
+      "route_control_y_m": [
+        -1.80477855523406,
+        -1.7719321452935688
+      ],
+      "obstacle_count": 12,
+      "obstacles": [
+        {
+          "name": "ppt_obstacle_01",
+          "shape": "rotated_bar",
+          "x": 2.0777625705633,
+          "y": 0.0,
+          "height_m": 0.452926,
+          "half_x": 0.23320000000000002,
+          "half_y": 0.07420000000000002,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_02",
+          "shape": "rotated_bar",
+          "x": 5.027180769055729,
+          "y": 0.0,
+          "height_m": 0.493599,
+          "half_x": 0.23320000000000002,
+          "half_y": 0.07420000000000002,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_03",
+          "shape": "rotated_bar",
+          "x": 1.480461,
+          "y": -2.483542,
+          "height_m": 0.457739,
+          "half_x": 0.590623,
+          "half_y": 0.139268,
+          "yaw_rad": 0.675747
+        },
+        {
+          "name": "ppt_obstacle_04",
+          "shape": "cylinder",
+          "x": 5.672933,
+          "y": -2.064251,
+          "height_m": 0.37157,
+          "radius": 0.318815,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_05",
+          "shape": "cylinder",
+          "x": 2.625191,
+          "y": -2.615431,
+          "height_m": 0.342681,
+          "radius": 0.336826,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_06",
+          "shape": "cylinder",
+          "x": 4.710694,
+          "y": -2.524629,
+          "height_m": 0.529915,
+          "radius": 0.386392,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_07",
+          "shape": "rotated_bar",
+          "x": 1.126336,
+          "y": 1.749436,
+          "height_m": 0.336391,
+          "half_x": 0.566309,
+          "half_y": 0.146516,
+          "yaw_rad": 0.554554
+        },
+        {
+          "name": "ppt_obstacle_08",
+          "shape": "box",
+          "x": 4.733329,
+          "y": 1.2659,
+          "height_m": 0.592848,
+          "half_x": 0.455073,
+          "half_y": 0.33788,
+          "yaw_rad": -1.192596
+        },
+        {
+          "name": "ppt_obstacle_09",
+          "shape": "rotated_bar",
+          "x": 1.685777,
+          "y": 1.529109,
+          "height_m": 0.509297,
+          "half_x": 0.486823,
+          "half_y": 0.113411,
+          "yaw_rad": 0.787251
+        },
+        {
+          "name": "ppt_obstacle_10",
+          "shape": "rotated_bar",
+          "x": 3.767715,
+          "y": 0.846573,
+          "height_m": 0.528572,
+          "half_x": 0.578913,
+          "half_y": 0.141523,
+          "yaw_rad": -0.699218
+        },
+        {
+          "name": "ppt_obstacle_11",
+          "shape": "box",
+          "x": 2.522052,
+          "y": 0.810334,
+          "height_m": 0.538545,
+          "half_x": 0.382422,
+          "half_y": 0.359728,
+          "yaw_rad": -0.548276
+        },
+        {
+          "name": "ppt_obstacle_12",
+          "shape": "box",
+          "x": 5.896948,
+          "y": 1.586048,
+          "height_m": 0.617391,
+          "half_x": 0.385413,
+          "half_y": 0.32675,
+          "yaw_rad": -2.474337
+        }
+      ],
+      "reference_path_m": [
+        [
+          0.0,
+          4.440892098500626e-16
+        ],
+        [
+          1.8,
+          -0.8999999999999999
+        ],
+        [
+          5.6000000000000005,
+          -0.8499999999999996
+        ],
+        [
+          7.0,
+          4.440892098500626e-16
+        ]
+      ],
+      "path_check": {
+        "connected": true,
+        "endpoint_tolerance_m": 1e-09,
+        "grid_resolution_m": 0.05,
+        "continuous_path_check_step_m": 0.025,
+        "go2_planar_envelope_radius_m": 0.65,
+        "engineering_clearance_margin_m": 0.1,
+        "required_obstacle_clearance_m": 0.75,
+        "minimum_geometric_obstacle_clearance_m": 0.7585744979217363,
+        "minimum_centerline_corridor_width_m": 1.5171489958434725,
+        "residual_width_after_envelope_margin_m": 0.017148995843472514,
+        "reference_path_length_m": 7.450624048297705,
+        "reference_path_point_count": 4,
+        "start_goal_straight_blocked": true,
+        "start_goal_straight_blocking_obstacles": [
+          "ppt_obstacle_01",
+          "ppt_obstacle_02"
+        ]
+      }
+    },
+    {
+      "scene_id": "s6_08_dense_01",
+      "filename": "scene_s6_08_dense_01.xml",
+      "preview": "s6_08_dense_01.png",
+      "generator_version": "s6-08-mapgen/1.0",
+      "generation_seed": 608005,
+      "run_seed": null,
+      "density": "dense",
+      "density_definition": {
+        "obstacle_footprint_area_fraction": 0.14577827666095153,
+        "target_area_fraction": [
+          0.14,
+          0.22
+        ],
+        "minimum_obstacle_spacing_m": 0.10607456327423045,
+        "configured_minimum_spacing_m": 0.06,
+        "minimum_reference_corridor_width_m": 1.5041725239409116,
+        "configured_minimum_reference_corridor_width_m": 1.5
+      },
+      "obstacle_bounds_m": {
+        "x": [
+          -0.5,
+          7.5
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "path_search_bounds_m": {
+        "x": [
+          0.0,
+          7.0
+        ],
+        "y": [
+          -2.9,
+          2.9
+        ]
+      },
+      "start_m": [
+        0.0,
+        0.0
+      ],
+      "goal_m": [
+        7.0,
+        0.0
+      ],
+      "route_control_y_m": [
+        1.6931594583894305,
+        1.8369129318225268
+      ],
+      "obstacle_count": 14,
+      "obstacles": [
+        {
+          "name": "ppt_obstacle_01",
+          "shape": "rotated_bar",
+          "x": 2.042646630868378,
+          "y": 0.0,
+          "height_m": 0.509737,
+          "half_x": 0.2816,
+          "half_y": 0.08960000000000001,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_02",
+          "shape": "rotated_bar",
+          "x": 4.985270058454491,
+          "y": 0.0,
+          "height_m": 0.387212,
+          "half_x": 0.2816,
+          "half_y": 0.08960000000000001,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_03",
+          "shape": "rotated_bar",
+          "x": 4.884097,
+          "y": 2.63432,
+          "height_m": 0.456226,
+          "half_x": 0.605771,
+          "half_y": 0.158639,
+          "yaw_rad": -0.006955
+        },
+        {
+          "name": "ppt_obstacle_04",
+          "shape": "cylinder",
+          "x": 0.884383,
+          "y": 1.919951,
+          "height_m": 0.54045,
+          "radius": 0.392526,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_05",
+          "shape": "box",
+          "x": 1.78285,
+          "y": 2.649672,
+          "height_m": 0.496536,
+          "half_x": 0.437323,
+          "half_y": 0.328283,
+          "yaw_rad": 3.118016
+        },
+        {
+          "name": "ppt_obstacle_06",
+          "shape": "box",
+          "x": 6.07798,
+          "y": 2.446067,
+          "height_m": 0.389007,
+          "half_x": 0.425749,
+          "half_y": 0.339324,
+          "yaw_rad": 3.062472
+        },
+        {
+          "name": "ppt_obstacle_07",
+          "shape": "box",
+          "x": 5.60161,
+          "y": -0.816999,
+          "height_m": 0.526808,
+          "half_x": 0.424154,
+          "half_y": 0.347406,
+          "yaw_rad": 0.656684
+        },
+        {
+          "name": "ppt_obstacle_08",
+          "shape": "rotated_bar",
+          "x": 3.81524,
+          "y": -0.222713,
+          "height_m": 0.617316,
+          "half_x": 0.707165,
+          "half_y": 0.156335,
+          "yaw_rad": 0.462644
+        },
+        {
+          "name": "ppt_obstacle_09",
+          "shape": "box",
+          "x": 3.834268,
+          "y": -1.206109,
+          "height_m": 0.5072,
+          "half_x": 0.477396,
+          "half_y": 0.357351,
+          "yaw_rad": -1.122424
+        },
+        {
+          "name": "ppt_obstacle_10",
+          "shape": "cylinder",
+          "x": 1.073429,
+          "y": -1.718079,
+          "height_m": 0.33388,
+          "radius": 0.480873,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_11",
+          "shape": "box",
+          "x": 6.016866,
+          "y": -1.570523,
+          "height_m": 0.59595,
+          "half_x": 0.482212,
+          "half_y": 0.344029,
+          "yaw_rad": 0.673424
+        },
+        {
+          "name": "ppt_obstacle_12",
+          "shape": "rotated_bar",
+          "x": 1.669608,
+          "y": -0.895236,
+          "height_m": 0.521418,
+          "half_x": 0.563538,
+          "half_y": 0.18375,
+          "yaw_rad": -0.033791
+        },
+        {
+          "name": "ppt_obstacle_13",
+          "shape": "cylinder",
+          "x": 2.78841,
+          "y": -0.971501,
+          "height_m": 0.549914,
+          "radius": 0.4053,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_14",
+          "shape": "box",
+          "x": 4.735019,
+          "y": -1.202138,
+          "height_m": 0.338353,
+          "half_x": 0.547816,
+          "half_y": 0.337982,
+          "yaw_rad": 1.948249
+        }
+      ],
+      "reference_path_m": [
+        [
+          0.0,
+          4.440892098500626e-16
+        ],
+        [
+          1.6500000000000001,
+          0.9000000000000004
+        ],
+        [
+          4.8500000000000005,
+          1.0000000000000004
+        ],
+        [
+          5.8500000000000005,
+          0.7000000000000002
+        ],
+        [
+          7.0,
+          4.440892098500626e-16
+        ]
+      ],
+      "path_check": {
+        "connected": true,
+        "endpoint_tolerance_m": 1e-09,
+        "grid_resolution_m": 0.05,
+        "continuous_path_check_step_m": 0.025,
+        "go2_planar_envelope_radius_m": 0.65,
+        "engineering_clearance_margin_m": 0.1,
+        "required_obstacle_clearance_m": 0.75,
+        "minimum_geometric_obstacle_clearance_m": 0.7520862619704558,
+        "minimum_centerline_corridor_width_m": 1.5041725239409116,
+        "residual_width_after_envelope_margin_m": 0.00417252394091161,
+        "reference_path_length_m": 7.4713785843123555,
+        "reference_path_point_count": 5,
+        "start_goal_straight_blocked": true,
+        "start_goal_straight_blocking_obstacles": [
+          "ppt_obstacle_01",
+          "ppt_obstacle_02",
+          "ppt_obstacle_08"
+        ]
+      }
+    },
+    {
+      "scene_id": "s6_08_dense_02",
+      "filename": "scene_s6_08_dense_02.xml",
+      "preview": "s6_08_dense_02.png",
+      "generator_version": "s6-08-mapgen/1.0",
+      "generation_seed": 608006,
+      "run_seed": null,
+      "density": "dense",
+      "density_definition": {
+        "obstacle_footprint_area_fraction": 0.1466044982466813,
+        "target_area_fraction": [
+          0.14,
+          0.22
+        ],
+        "minimum_obstacle_spacing_m": 0.06381222547047165,
+        "configured_minimum_spacing_m": 0.06,
+        "minimum_reference_corridor_width_m": 1.5059115932712293,
+        "configured_minimum_reference_corridor_width_m": 1.5
+      },
+      "obstacle_bounds_m": {
+        "x": [
+          -0.5,
+          7.5
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "path_search_bounds_m": {
+        "x": [
+          0.0,
+          7.0
+        ],
+        "y": [
+          -2.9,
+          2.9
+        ]
+      },
+      "start_m": [
+        0.0,
+        0.0
+      ],
+      "goal_m": [
+        7.0,
+        0.0
+      ],
+      "route_control_y_m": [
+        1.708970533083711,
+        1.781848960258095
+      ],
+      "obstacle_count": 14,
+      "obstacles": [
+        {
+          "name": "ppt_obstacle_01",
+          "shape": "rotated_bar",
+          "x": 2.1020548989513763,
+          "y": 0.0,
+          "height_m": 0.330462,
+          "half_x": 0.2816,
+          "half_y": 0.08960000000000001,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_02",
+          "shape": "rotated_bar",
+          "x": 4.923071591093621,
+          "y": 0.0,
+          "height_m": 0.533302,
+          "half_x": 0.2816,
+          "half_y": 0.08960000000000001,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_03",
+          "shape": "rotated_bar",
+          "x": 6.083503,
+          "y": 2.084261,
+          "height_m": 0.506062,
+          "half_x": 0.640228,
+          "half_y": 0.162999,
+          "yaw_rad": -0.623321
+        },
+        {
+          "name": "ppt_obstacle_04",
+          "shape": "box",
+          "x": 1.626332,
+          "y": 2.374155,
+          "height_m": 0.372361,
+          "half_x": 0.425988,
+          "half_y": 0.395323,
+          "yaw_rad": 1.608949
+        },
+        {
+          "name": "ppt_obstacle_05",
+          "shape": "cylinder",
+          "x": 4.264661,
+          "y": 2.551535,
+          "height_m": 0.44311,
+          "radius": 0.385888,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_06",
+          "shape": "cylinder",
+          "x": 2.880482,
+          "y": 2.582329,
+          "height_m": 0.463404,
+          "radius": 0.397337,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_07",
+          "shape": "box",
+          "x": 2.922426,
+          "y": -0.920896,
+          "height_m": 0.57175,
+          "half_x": 0.405061,
+          "half_y": 0.343258,
+          "yaw_rad": 3.054679
+        },
+        {
+          "name": "ppt_obstacle_08",
+          "shape": "box",
+          "x": 5.198192,
+          "y": -1.197991,
+          "height_m": 0.61475,
+          "half_x": 0.533885,
+          "half_y": 0.351609,
+          "yaw_rad": -1.911474
+        },
+        {
+          "name": "ppt_obstacle_09",
+          "shape": "box",
+          "x": 4.227606,
+          "y": -0.482364,
+          "height_m": 0.596992,
+          "half_x": 0.419368,
+          "half_y": 0.372959,
+          "yaw_rad": -0.114493
+        },
+        {
+          "name": "ppt_obstacle_10",
+          "shape": "cylinder",
+          "x": 6.101685,
+          "y": -1.879985,
+          "height_m": 0.561354,
+          "radius": 0.478515,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_11",
+          "shape": "box",
+          "x": 1.598343,
+          "y": -0.76238,
+          "height_m": 0.56032,
+          "half_x": 0.465443,
+          "half_y": 0.345151,
+          "yaw_rad": -2.6145
+        },
+        {
+          "name": "ppt_obstacle_12",
+          "shape": "rotated_bar",
+          "x": 0.798241,
+          "y": -1.692568,
+          "height_m": 0.520434,
+          "half_x": 0.630707,
+          "half_y": 0.188052,
+          "yaw_rad": 0.678605
+        },
+        {
+          "name": "ppt_obstacle_13",
+          "shape": "cylinder",
+          "x": 3.112943,
+          "y": -0.048165,
+          "height_m": 0.540467,
+          "radius": 0.392013,
+          "yaw_rad": 0.0
+        },
+        {
+          "name": "ppt_obstacle_14",
+          "shape": "box",
+          "x": 1.945776,
+          "y": -1.474158,
+          "height_m": 0.504464,
+          "half_x": 0.406134,
+          "half_y": 0.325334,
+          "yaw_rad": -2.728153
+        }
+      ],
+      "reference_path_m": [
+        [
+          0.0,
+          4.440892098500626e-16
+        ],
+        [
+          1.75,
+          0.9000000000000004
+        ],
+        [
+          3.35,
+          1.15
+        ],
+        [
+          5.65,
+          0.8000000000000003
+        ],
+        [
+          7.0,
+          4.440892098500626e-16
+        ]
+      ],
+      "path_check": {
+        "connected": true,
+        "endpoint_tolerance_m": 1e-09,
+        "grid_resolution_m": 0.05,
+        "continuous_path_check_step_m": 0.025,
+        "go2_planar_envelope_radius_m": 0.65,
+        "engineering_clearance_margin_m": 0.1,
+        "required_obstacle_clearance_m": 0.75,
+        "minimum_geometric_obstacle_clearance_m": 0.7529557966356146,
+        "minimum_centerline_corridor_width_m": 1.5059115932712293,
+        "residual_width_after_envelope_margin_m": 0.005911593271229254,
+        "reference_path_length_m": 7.482993846959497,
+        "reference_path_point_count": 5,
+        "start_goal_straight_blocked": true,
+        "start_goal_straight_blocking_obstacles": [
+          "ppt_obstacle_01",
+          "ppt_obstacle_02",
+          "ppt_obstacle_13"
+        ]
+      }
+    }
+  ]
+}

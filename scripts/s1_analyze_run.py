@@ -470,7 +470,8 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
             active_session, active_cycle = active_frame.get("session_id"), active_frame.get("rl_step")
     policy_cycle_frames = []
     policy_boundary_identity_complete = False
-    if (isinstance(active_session, int) and isinstance(active_cycle, int) and
+    if (terminal_frame_payload_complete is True and
+            isinstance(active_session, int) and isinstance(active_cycle, int) and
             terminal_session == active_session and isinstance(terminal_cycle, int) and terminal_cycle >= active_cycle):
         policy_cycle_frames = [p for p in frames if p.get("session_id") == active_session and
                                isinstance(p.get("rl_step"), int) and active_cycle <= p["rl_step"] <= terminal_cycle]

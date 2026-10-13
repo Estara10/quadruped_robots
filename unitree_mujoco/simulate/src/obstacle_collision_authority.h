@@ -39,6 +39,7 @@ class ObstacleCollisionAuthority {
     expected_fingerprint_ = expected == nullptr ? "" : expected;
     scene_spec_ = abs_scene::byId(scenario_id_);
     capture_binding_valid_ = scene_spec_ != nullptr &&
+                             scenario_id_.size() < abs_collision::kScenarioIdBytes &&
                              root_sha256_ == scene_spec_->root_sha256 &&
                              closure_sha256_ == scene_spec_->closure_sha256 &&
                              expected_fingerprint_ == scene_spec_->model_fingerprint &&

@@ -40,3 +40,204 @@ ABS_SCENE("scene_random_05.xml", "random_05", 20, kNamedPptObstacles,
           "ecaaa4d501dea6a7b6e6bbf865e236679ffd3faf1cba0c2e5fee9f4fa41fa07f",
           "4ff729f1871aeb268ed10982ebd6c657647aeba76719baeef9804cad70fa21d8",
           "7a12e1ae949eb4e46f18302356cae00e3155050eb36a9f77b4614f9336d2ea4a")
+ABS_SCENE("scene_s6_08_dense_01.xml", "random_s6_08_dense_01", 14, kNamedPptObstacles,
+          "bdae3f643a8d9e5c075d9e2ca5551493dd49a20404144691ae45cd314f449044", "240d991f2fd2035c2539d17a3da6869a32932de70528a71391e32996ee44d322",
+          "b1252c79b3f784abcc51659bdcee4ff94258e927bceb4d447dbd3c1329f7a045")
+ABS_SCENE("scene_s6_08_dense_02.xml", "random_s6_08_dense_02", 14, kNamedPptObstacles,
+          "21b4b021fa1165ef24bc63d146b6803860d48fb6c73c7d8ec3852458965bf4e2", "a305fa6ea03f6a48c9e92096e3204e279dc4038aa0444ac73cddbf5028a2fb9d",
+          "32a86dd7570b635b532c038fc4cba71d901c6d8150915173ef590418be561da9")
+ABS_SCENE("scene_s6_08_medium_01.xml", "random_s6_08_medium_01", 12, kNamedPptObstacles,
+          "b79adb88d3b0fc8364caf9130120a23592df146bf0ea6930ca7e904b2c04e367", "5cfda9ce01e31a6349bc6b9fffcad51cbdcc71ba509bbea7689d65f03a6f41d7",
+          "70294d447dcf787c03cc00560a707f7efb8e15f953da13484cd6bbd23b4dc2d8")
+ABS_SCENE("scene_s6_08_medium_02.xml", "random_s6_08_medium_02", 12, kNamedPptObstacles,
+          "c4e9fee683fbb51336a642eec7665e4671d641e2f984e4109fe7580ed530c625", "257d8bcbb47b3a58fd317b9aaaee778e24de94d8577e74e5b32e9ec61fea27c1",
+          "46558ba3f16d003cfdc2aec2c5cdf710587d50d136fb9ceb9ab672b9112e37d1")
+ABS_SCENE("scene_s6_08_sparse_01.xml", "random_s6_08_sparse_01", 8, kNamedPptObstacles,
+          "18f96f8db412d8badc029fee6bc38a9ada38cf2f7552594988a1d4bb049f7a50", "17d5bc4e741190dc757fb47173a260ad8e456dc2c8c9ac92b990dad0b78c922c",
+          "9067848d7c8eda0c54a14370bdeb1e600e3b49fdd7e541f1e77abfd6eae02d98")
+ABS_SCENE("scene_s6_08_sparse_02.xml", "random_s6_08_sparse_02", 8, kNamedPptObstacles,
+          "86ff1824ee511d8440a7749bea021f14a46c64799fa6ff8652fdfbc29a9549eb", "21e612d4bfa512b2a72a3b613e3b66e304841031f6de358e2917003fae7859f6",
+          "13acda8126847abd5be3830ded666aa499b848c668f0bd314a59cd3cadf41b34")
+ABS_SCENE("scene_random_s6_09_sparse_single_side_bypass_dev_01.xml", "s609_sb_d01", 8, kNamedPptObstacles,
+          "32edc6ff2dede8760b93aa69f5a7f421e398ae9bffc7b20620ba345640dd85da", "36a54bfb2ad7e9b4b655ab6aecbf8f348ffbdb0defd40f9a0771bd42fe6695a0",
+          "11ca548d8e1789dc962ee8663a9862ddf733456d94e30e9a53cfca1a351b57f0")
+ABS_SCENE("scene_random_s6_09_sparse_single_side_bypass_dev_02.xml", "s609_sb_d02", 7, kNamedPptObstacles,
+          "82c4157bdec12bea5e2fc8792381c00ad451cdb9e7ed94e9595ab7239d6b4bb2", "f1aa709c3fbaa62748954ede30abe05b29b4d136df1d0e05fde52536acfc35c6",
+          "099ab63f3077b44dbac6ce78b18096e0011f6e81955f44445193ead64167e72b")
+ABS_SCENE("scene_random_s6_09_sparse_single_side_bypass_holdout_01.xml", "s609_sb_h01", 8, kNamedPptObstacles,
+          "3e79991d30e158b5b93c205a5aa6c5fae555f7d1d72ae383a4a055f0c219a19c", "ce8c1ba129eeebba941cf4325aed18ec82c4df59385eb7b8e68c0d3f82577df4",
+          "3afa5352ef082dd9516baf920999a0ac37f77695e1eeb756657276eed218d163")
+ABS_SCENE("scene_random_s6_09_sparse_single_side_bypass_holdout_02.xml", "s609_sb_h02", 7, kNamedPptObstacles,
+          "0499a77d2f550c9b78f4db36e6eee48a2c47d254d15a63cf2c9e82bd6b071cd5", "87eca247a311cd880f6fd4da04ba9373090fe410c5d7082cc5e5831ecfd45892",
+          "0efea29d86f8f1fde7c26a37773007a4c0d6d0a82e98687d781f511b4591e54a")
+ABS_SCENE("scene_random_s6_09_sparse_alternating_bypass_dev_01.xml", "s609_sa_d01", 8, kNamedPptObstacles,
+          "3d40fb8e0cd1eadc9c46a06826cfd6583bd1e15bd2cc6a7f88112fae71cb165e", "33408768d068ce014235ca05cb7512bca43dbcbf0f5e8ebd3274ff2f0f5d0064",
+          "9a789b9d276eefc52cd92be2b07bdb56b7fcc88d74711d4a04f084221a84c493")
+ABS_SCENE("scene_random_s6_09_sparse_alternating_bypass_dev_02.xml", "s609_sa_d02", 8, kNamedPptObstacles,
+          "03dca818a1c4d752d7eb34f8d238c5ecf7ff5b4ef417574e41dbeef2eafd78b9", "5cc707aa66e84e7f85fb69a8d0b7967a1abdfc01134f1ab041a9c8b5921e9552",
+          "4cf45ce2d6e8e97280df33d03be294b010e330ec1dc6d849f1bf2cd07cc5f4b3")
+ABS_SCENE("scene_random_s6_09_sparse_alternating_bypass_holdout_01.xml", "s609_sa_h01", 8, kNamedPptObstacles,
+          "2541d7c4506fc624909b562c49e630e0789f5cb88fc7fb8877460f0bb5f5a79e", "b1608c13c809deac61489b67cdb807a3fd3477fd14c3b84bcbe5e5395fcc52dd",
+          "9fe48cfeab17062cf5f569380fd132eb5b476a360d5cbd2570e9e060fa4acb88")
+ABS_SCENE("scene_random_s6_09_sparse_alternating_bypass_holdout_02.xml", "s609_sa_h02", 9, kNamedPptObstacles,
+          "3d4731d32912a247a745da8e20324bc96ded1db0f294ae2cde0c353985e3c5b1", "0bfd48a38e1dd7c36d20d16d68fcc664135ad12c4284ff305d8a06e7d6929819",
+          "9b37e06aff5dcaccb9606d133fb62f29db4b6fdf1c5c1ec2ecef5232045eb257")
+ABS_SCENE("scene_random_s6_09_sparse_offset_gates_dev_01.xml", "s609_so_d01", 8, kNamedPptObstacles,
+          "f1ce041abc98892cd040ed1afa9a8afe40ef1a423ea2125dc52c02af65aef420", "9d551cdb1a59688bf679e0be861352202a95f0e63e272010a03f84f57c6a3ad4",
+          "74cbea937937e4a779eee595c88f216f32c778d1a3828673c5b59431643d620d")
+ABS_SCENE("scene_random_s6_09_sparse_offset_gates_dev_02.xml", "s609_so_d02", 8, kNamedPptObstacles,
+          "60d5e2135785a93b6f29953e943ac44bc37870787e9e6b09a0f0e6c690ad9530", "8a044fa3cab65039d8eb0d2fe6017df16224b38a635a68b2d50bbac7358af197",
+          "53ba2eded6ed0458d177f00ac8b4f864a616fc34af02fd13918edee22a1ef890")
+ABS_SCENE("scene_random_s6_09_sparse_offset_gates_holdout_01.xml", "s609_so_h01", 8, kNamedPptObstacles,
+          "db27a326ed7bded4d114a007c1181d18681e7a243976f45da1ecb6e17e68e551", "8ddc1c078a3365769f81c339668e4959fdf727025a9817c7d72325fa2f86cf4e",
+          "fc48aa081671eedddb4b58838c2d20ec6e40ed729decffcc904b789076ce39b5")
+ABS_SCENE("scene_random_s6_09_sparse_offset_gates_holdout_02.xml", "s609_so_h02", 8, kNamedPptObstacles,
+          "2452120db425766347b861b3f348bda2d1e7e5970d26478ca8e0a1edb72aae77", "cd1dd146737cc6fa8dd21cfaf650b6ab9b50127e8d615c95ed8e03503f66998f",
+          "a2cc1df77e957dd25b602a8782cd8cbb8a0bf34287426bd2be16195b61b2a33b")
+ABS_SCENE("scene_random_s6_09_sparse_route_fork_dev_01.xml", "s609_sf_d01", 7, kNamedPptObstacles,
+          "0510a29cb1d111ed2f39dcbbbded6b0473ec84fcd5be5a13c4085ce1055e5118", "97111e9c7f0606ac6f9985302c6e1dda235e4c6a8e441697f9811a1666000c08",
+          "07f189a12da1643bce429b64f2c3b8ef8b286004e50f1f1523cfe832ee220531")
+ABS_SCENE("scene_random_s6_09_sparse_route_fork_dev_02.xml", "s609_sf_d02", 7, kNamedPptObstacles,
+          "972f0efe25aea57af591b35d38d07964b333da6e9923ec225a5f50046294fdf7", "2e3f1e49b323f2aefc25d3a7854eba46b23acc7e4122678ca78444c05ea5e179",
+          "d962016a75a04e45f5ea4a01240d7f9175964b0c04290da874ba038091938ad5")
+ABS_SCENE("scene_random_s6_09_sparse_route_fork_holdout_01.xml", "s609_sf_h01", 8, kNamedPptObstacles,
+          "af46994f9dfd66c76b2ac5c4b384198ea94091934cc30a5955f265adfe8ba591", "b0edd77070538bbc7bcb2890c71c178838ef96e98d27b31786bec5648a041335",
+          "9a00f39ca7f7d925a088698efe521b7812860876bc3524798fabe2a83251426f")
+ABS_SCENE("scene_random_s6_09_sparse_route_fork_holdout_02.xml", "s609_sf_h02", 7, kNamedPptObstacles,
+          "fec0603a9064fae801c0af74d10a83799523e64a44bc048df5321bf6a3acf50a", "06c783f95b0d26d3bf6ecef765f1f500b83d0dee331006971dee8c8bd5299592",
+          "fee3c64a516767133e78bafb67c7de6cec850d07471389e9d96bb79b4b5e7257")
+ABS_SCENE("scene_random_s6_09_sparse_irregular_cluster_dev_01.xml", "s609_si_d01", 10, kNamedPptObstacles,
+          "b506b2e74e3e42a7617eba6a91c1141eb00149a46ce22ad526b26c6934e7e396", "7767863b28c1b8b678e22bbd97a795ff712d7257aa2e4641e53fe41f3b0d6f43",
+          "48e5f461e0497d0f4136279eaf9ec530d45b530022e85f03ee3dde87288e4716")
+ABS_SCENE("scene_random_s6_09_sparse_irregular_cluster_dev_02.xml", "s609_si_d02", 8, kNamedPptObstacles,
+          "2c56e3a0d2263448d0ba484bfe3a3e734702effde6c898fce472698783080823", "7a165085c3b26088b8127ce02fa1c950f03a4837e903febd2df6f5705c9d9849",
+          "4d326d9706a85a8bce6b4f145c5985197938169019a20e2629a0df5841f1176c")
+ABS_SCENE("scene_random_s6_09_sparse_irregular_cluster_holdout_01.xml", "s609_si_h01", 9, kNamedPptObstacles,
+          "75ced7479daa7177ad06c5e101bc9dcfb03187808ccdf45a4576bb8ddf1d1c03", "f1a8b53ac37f2077ef62e6a29f2c207faa6384cbcbb2edb925b6524e7f2bb5a8",
+          "7a977bc1701c5a617184b0c9afa6d693d08b53b7365b192a9f380834b28cd3e1")
+ABS_SCENE("scene_random_s6_09_sparse_irregular_cluster_holdout_02.xml", "s609_si_h02", 10, kNamedPptObstacles,
+          "9c1553e7bc4a4a5453be3b96c1f768f6ac49a1085a1287b5653a687d63114c50", "5763d004d40b90f145ed88973655ef8870c09085284da9739da39f012046e922",
+          "66985ed061836a20e67ec3c505381416cd9e640b44a9c5a61e40d0621bf9130b")
+ABS_SCENE("scene_random_s6_09_medium_single_side_bypass_dev_01.xml", "s609_mb_d01", 10, kNamedPptObstacles,
+          "ace573ddb326181559229e7cc350ed67345297f523a6e263dabfe127e97597de", "7478d73982c775957d8fc17caf1fa030bcf00bab3c029ae49e96e4c1d5dd8a25",
+          "816e7f2f7df6efa4d6647b1dcbd9700fcfd2aa6a7ab31170aa24f14f93a699de")
+ABS_SCENE("scene_random_s6_09_medium_single_side_bypass_dev_02.xml", "s609_mb_d02", 11, kNamedPptObstacles,
+          "be67462a35a3cd882dd46f466029eba1792083e573e53931f2ceb328f4dbec45", "5903f700023008fbe01a59097de5a63393bef6c7b726a6589498bc40df1c9313",
+          "cd1a8972f15b1a84ca7dfb4254d19838e0d888ab58a1c6855a6b8366556c2e67")
+ABS_SCENE("scene_random_s6_09_medium_single_side_bypass_holdout_01.xml", "s609_mb_h01", 11, kNamedPptObstacles,
+          "fa8411620ff415bb2f4c2720004def2ef5f3d45b85cf91f157326606ffad96c4", "8b620a1fe2b97d2736b9674d49772f4597e78f1766edebe4e13e10c07167fddc",
+          "33fd2bf38137c02b57a57c23d838db1457d16308d0b49674cc54abf9a9fced3b")
+ABS_SCENE("scene_random_s6_09_medium_single_side_bypass_holdout_02.xml", "s609_mb_h02", 9, kNamedPptObstacles,
+          "5409742abf912f2b36c115c63bbc7a4a821c5e9bbf1ea7a02dc55432ca1090fe", "1353cb1cbd335d0944ae3dbc03b2f77d434940cdf9a38b55b2adfcb21733aff6",
+          "dd20ce621288759b349cbe877fd0ef054d50fbad3b9695f30d5da35def0ae3e0")
+ABS_SCENE("scene_random_s6_09_medium_alternating_bypass_dev_01.xml", "s609_ma_d01", 10, kNamedPptObstacles,
+          "26d06264b7c8a76565820118cfa2e4ecf9e27346f07a72dbe8593839db09bf21", "ac2c308487f82915dc3473864d7a53850368a98cfe5c7d820eb01e88b135feb6",
+          "9c9c6124123252e170c4b1c80f7cbda5612dc6011c58c8f5380db5614c604098")
+ABS_SCENE("scene_random_s6_09_medium_alternating_bypass_dev_02.xml", "s609_ma_d02", 10, kNamedPptObstacles,
+          "4dba7ceb1167c05e2ded5a48ea6192b9611c5ba2671b1986929675cd27e9a239", "b347f65664cb882320d3fd7e24317e9d9f2b9259e1733a94620394a9604e4229",
+          "bdd2da5234325b2bb97b4ca9637f740afa35cdd50d9faf3a16f461d454a6fd70")
+ABS_SCENE("scene_random_s6_09_medium_alternating_bypass_holdout_01.xml", "s609_ma_h01", 9, kNamedPptObstacles,
+          "efc2460dd82f21d02049ba2ec414fb3f247664b15e29f73e510637df61825d08", "f8ca92905ddf3e8f5f05f7157b9caf5a66f4eac7f57dd0d93f0d7d006685e241",
+          "5399d17fed3cd306366d553d77f54a24a1af39080e251660195f0aacfdfee324")
+ABS_SCENE("scene_random_s6_09_medium_alternating_bypass_holdout_02.xml", "s609_ma_h02", 10, kNamedPptObstacles,
+          "6bd6963f6a99b0ec4958a6d950dd8d8a83b95fa50f985f13a0c87764de4659bb", "691d6ffbd07f22a1aedf28dda2b53154a9cadb94a8f0d9b40de0efabcfa0eb99",
+          "2b0c6998f939b2e2d2fb20d0510d21bc57a786697e31beeaa80c3208b577ca13")
+ABS_SCENE("scene_random_s6_09_medium_offset_gates_dev_01.xml", "s609_mo_d01", 9, kNamedPptObstacles,
+          "6b5c31352ad3fbf1e1e363c458da803b4aad95e3d04e2f109cdfe07464017ad1", "751c6c88537a11985316bda51a1e029aa38194b7bea409576a4d3aed64d9f579",
+          "0c4a53090a7bb48a9fcdb554d6a93f115cdfc0b3496b39a4b58da00b97d74895")
+ABS_SCENE("scene_random_s6_09_medium_offset_gates_dev_02.xml", "s609_mo_d02", 9, kNamedPptObstacles,
+          "9f059008896eaeb8c8243fbd6ced5adc04abe1393f51e33ae7b029deb8544902", "4bcbb0b88dbec563b7bfe074d139db584ef7e4bd092b932fdcf6a8acbc5ab866",
+          "aa5ca23898d1763d8b5b0111f62fd4518950a2fc235563bd2cb0a10d74b28f32")
+ABS_SCENE("scene_random_s6_09_medium_offset_gates_holdout_01.xml", "s609_mo_h01", 10, kNamedPptObstacles,
+          "fe3ca74239741e24c2d1d7412d8b9b26d8c4fae01d890075c8e8996893da8750", "080400eea8ef148b2e905eed360d08ad560067fdaccbb9c56dffddd423c56c8d",
+          "f29afe688f9eff68b01ab04eadc92475914e3c20dd08549d8ffd2ff44a8628f1")
+ABS_SCENE("scene_random_s6_09_medium_offset_gates_holdout_02.xml", "s609_mo_h02", 9, kNamedPptObstacles,
+          "e3ba923ce114d2635151e80be8a00b60f21fe1fd618686100d6430c2c82a374b", "fb3f6ecfc9f3accbd00aca8600f5a70efa58f80747d0565322d59d670e5cf901",
+          "484188912abd64dcc83cb6acf3a2ace9454f61247e48ad59e4cabf01235b01ca")
+ABS_SCENE("scene_random_s6_09_medium_route_fork_dev_01.xml", "s609_mf_d01", 8, kNamedPptObstacles,
+          "614153149394a4aaaa0419ca89e0b66e0cbd6add967ae4077a33d8bcd2c600ab", "bc9845f1c681548abd6c0e4b5116d434e26ada94fa8031cb79e5ffcd67bd6109",
+          "7390127d4e080872adeac77b5d549debd75b19b35b5969ff2542feb65c14dd6b")
+ABS_SCENE("scene_random_s6_09_medium_route_fork_dev_02.xml", "s609_mf_d02", 8, kNamedPptObstacles,
+          "206cc8571721060129761495559a82236558901c2294cc8b4cb37c2cab1e1032", "8b337af60d4a68c3dbec86e3be921c2da5046477fa98cbcc1cb1c2f9e746e16c",
+          "0253d74e18c80360269152729cd63fe192a28ca56aa5a9c277e24b7e9bd7c4db")
+ABS_SCENE("scene_random_s6_09_medium_route_fork_holdout_01.xml", "s609_mf_h01", 8, kNamedPptObstacles,
+          "2893956df85b090cc423792c4b1577dc7d0f97f8c38e27e03e78ca841b96f887", "fa65c6ff19d3b45718a893064583b805aa0506790887cfac80ca12c9ff4d1184",
+          "3bf847880fd6096a7a4f73e075e78eb2efc5d1b94523377cb4cb40e8dd791524")
+ABS_SCENE("scene_random_s6_09_medium_route_fork_holdout_02.xml", "s609_mf_h02", 9, kNamedPptObstacles,
+          "b61fa4381289926c9a536d284cbe614b9431e3f875101ade9c7c0454073ba7fe", "46f097386281fcfb989ebaaa8d4e6a022f3f9a2fabc902b0a1d5a85c16bdf82f",
+          "505ad81fb89aedefcc0d480b00cca1c0ef5bca2613049006d6764dbe89251414")
+ABS_SCENE("scene_random_s6_09_medium_irregular_cluster_dev_01.xml", "s609_mi_d01", 12, kNamedPptObstacles,
+          "10e04056f2854e45d3a2e592e77edca07926a61c82eaa3eb5b8cd66656bd809b", "16a5597db3069e2f3020fbc39434f1b52b4a6804ad8494e1ac087d92b7fe426e",
+          "2fd0a209d1f278cb3d5ad3a40320224714744b927ecee3037406e18c60652903")
+ABS_SCENE("scene_random_s6_09_medium_irregular_cluster_dev_02.xml", "s609_mi_d02", 12, kNamedPptObstacles,
+          "d5b63ca25b46c8037ac55980a03f688793f2c3324c238b25c789bb1d05c16197", "71ed6513460f6ec5031726b570bd1792e8514456b61419998f58c77d3b2fd8f7",
+          "0a5159445ba6867d608719aa0af5ac8bffcdee19f275959631bd42e6f55cb5fc")
+ABS_SCENE("scene_random_s6_09_medium_irregular_cluster_holdout_01.xml", "s609_mi_h01", 11, kNamedPptObstacles,
+          "f5f17e03ca824ea728d5a5e4da2dd427ca44d443c5c3cb78b894f00e3815c9d2", "ff7dc86a361f706f41f3af007c11b800767aaf05a0f2cc3d58510b3653c2f753",
+          "94355dd4a8d1e1c956c67ff688b79bfa09693fd85fdad6d02393358ef0f6b6c4")
+ABS_SCENE("scene_random_s6_09_medium_irregular_cluster_holdout_02.xml", "s609_mi_h02", 11, kNamedPptObstacles,
+          "287751c3de65500a3ee7be1be7f441723cce821a67d4ae99850378f93bc0aedf", "735143587508228abc19bc332235d0237f3fb4fe44ba5a42aef5cb7a52386749",
+          "7128a394427f9431ece3da1d27c18ebb9df04a0b77d334202b183672c6ec3d9c")
+ABS_SCENE("scene_random_s6_09_dense_single_side_bypass_dev_01.xml", "s609_db_d01", 11, kNamedPptObstacles,
+          "0168930693d2d242fbcb900f7510350408dd02cfe9490a96143c0cf9dd69a86e", "6bb82747faa34568a877eeaeadc3dc4800145a99dd5f4e7d635b3672aefbc26a",
+          "5ffe64ed07b978f984099faebf61a17d6470870edefe738c52ce7adedd3ef92a")
+ABS_SCENE("scene_random_s6_09_dense_single_side_bypass_dev_02.xml", "s609_db_d02", 10, kNamedPptObstacles,
+          "bc6cde63570cbeac57e0ade23279f0951ac7ca3ce05960cb7c4130232beca206", "9e96b7fa53becee65c3698e4606b874d483a4b38a564c5c59e272223e64e7720",
+          "947d222262d6f235c9862712dcfb94cb936d16ec3d22c4b470f57ace78187307")
+ABS_SCENE("scene_random_s6_09_dense_single_side_bypass_holdout_01.xml", "s609_db_h01", 10, kNamedPptObstacles,
+          "7097370f77c88bef05be20b66f10fe5025e781115b2a9dd3c5eb80c2699ae552", "abc7e917a1c3af3693000a1f7b50e27a6c7b0a8c91979e5a6001a1640374aabc",
+          "73860b96f02b7344aaa4b6b674c5cf15c9db06e6c8af9d09a191b06f34b2ab2e")
+ABS_SCENE("scene_random_s6_09_dense_single_side_bypass_holdout_02.xml", "s609_db_h02", 11, kNamedPptObstacles,
+          "9a662cf6fa15187f80458f1971b85140603adb11fd3fdce57c0a9a7f483fe8ad", "2b0c3cd3825d47308067a80ef97b05f7edd289af0f0515e70c1ab2ddd971d7a4",
+          "8b068cdb58dbb9e7363d46652c497c50275a360bbf09253b843fc914dae7858d")
+ABS_SCENE("scene_random_s6_09_dense_alternating_bypass_dev_01.xml", "s609_da_d01", 7, kNamedPptObstacles,
+          "08dce45d890de24e311e9169c1706dce728d357d0693abd5364de5ac58d8437e", "963e7d1a084144ebdbee35059b43429117f31fecb761f3b561e11fea2bf81446",
+          "2e15639b71f7d783b695ddc686c19438641f250ccf370efbe1bd2ab6843a4859")
+ABS_SCENE("scene_random_s6_09_dense_alternating_bypass_dev_02.xml", "s609_da_d02", 7, kNamedPptObstacles,
+          "a239692c45c812a62e803bfe3cdf2ecb86fdece67ff9b5ff828e2109d47d2b55", "d9ca59eebdb25a6ed107a23f517346d12fbcae2793bf80032d254189c333e9ef",
+          "6fa10a5c3114f5646feadaa768981e109512596630d837a4e96ba98441bc13ed")
+ABS_SCENE("scene_random_s6_09_dense_alternating_bypass_holdout_01.xml", "s609_da_h01", 7, kNamedPptObstacles,
+          "9b1eb9abf226336ecf810c91f2b50bab8aaa8fa050c7fa731cf913146aa3fa16", "960eef60f6ce1a5f68db682c55dfec519fe67ec551882fac5de6bbd412f8119f",
+          "a58cb67b288fd602f256606327cda42022939442d551051647426f48c51f0399")
+ABS_SCENE("scene_random_s6_09_dense_alternating_bypass_holdout_02.xml", "s609_da_h02", 7, kNamedPptObstacles,
+          "5cf16432dba0436794c55017cd59f240d460682092563986e00af17ac7949ee5", "70ad9dd547cf01a50cc053fe63a6112aa4c0ca72310f428992ab91c2da0905a3",
+          "cab7ae44d2513c915968dd4dddbd261c8a430095babe4d406fda28b92e39037b")
+ABS_SCENE("scene_random_s6_09_dense_offset_gates_dev_01.xml", "s609_do_d01", 7, kNamedPptObstacles,
+          "fd9d1d899005d4b6144d2660616c3d1d07d58e993c8b534fc30fafa6daf9bbd5", "669d29d08258a4c0484664c72704b518961bec00b7c36bdf5251fd3f07360177",
+          "2a7de246b014f3ed87a0ea240fd12532f29e289d7b71d23fef756e4b927bc98b")
+ABS_SCENE("scene_random_s6_09_dense_offset_gates_dev_02.xml", "s609_do_d02", 7, kNamedPptObstacles,
+          "4fead4ef04a5471b74c870dbcbdf01477746049c4973219fae1e248e03b6f5e4", "d984858783e85538be9686e39a8c086ebad3c3b583e8610b8c6729529ed25c1f",
+          "26c1770338fb5c19b470fc2fb0dfeeed2c0ac8075e485f4d28a5c8a028bdbdce")
+ABS_SCENE("scene_random_s6_09_dense_offset_gates_holdout_01.xml", "s609_do_h01", 7, kNamedPptObstacles,
+          "6236bc449b0adad34b213ad4ad6b37561a8e682572ca88b3a4f4894ff7c9e1a1", "ff1a0e10f3a1e8db02f5de310f19de299b28b19085a603cbce2246b9fe250e5a",
+          "bec1f3f6111c6d675a0b37787f15b59e25aef85ed76cbf09e3db6894b3d55010")
+ABS_SCENE("scene_random_s6_09_dense_offset_gates_holdout_02.xml", "s609_do_h02", 7, kNamedPptObstacles,
+          "a6b1237b417c438bc0cc4c7b26e9c2f955a7b18f9aa8c4101466a443784e57c2", "775625dd00e3615e9c97aff8690cb3ac5bfcc22fde1e5e4dfb3f9e29379f007c",
+          "9a8f1ec5de160f2303126585ea43b9af6fd9ed405ef119ac281e676a2b92f11f")
+ABS_SCENE("scene_random_s6_09_dense_route_fork_dev_01.xml", "s609_df_d01", 6, kNamedPptObstacles,
+          "ccbda6c9fd4e0704b106d483491d5287d2458f6bf9ce8d02a1240288ca386cc3", "33b682a92ed66d6e0fe23abbcf489e01b343c25184476928786e59c4a3758e30",
+          "27c4c9e0f681bac8c2dee2a4e288273432b5df292e1ceb33159401bcd6bdd0c0")
+ABS_SCENE("scene_random_s6_09_dense_route_fork_dev_02.xml", "s609_df_d02", 6, kNamedPptObstacles,
+          "7bd7134844af62e9867ddc955ac60107b324916f428aa7af06dffa6ecb51a897", "cfa4422767793bcfb20743cb9abd792b4082400413be54cfcdabf2ecb942d641",
+          "85d344109e0154f476badc2b8e6c559a3b61ad0b42fe42e1548587d3be49779a")
+ABS_SCENE("scene_random_s6_09_dense_route_fork_holdout_01.xml", "s609_df_h01", 6, kNamedPptObstacles,
+          "439c8bde2d30d3c5b01bbd12717277f0e86dde727990974df8bdfabc62c4526b", "3af524d2f85a48b0cb97f4122bf435e1fd47cf258722d0373f07d100edd883fa",
+          "bc6ad71936cb7d74d41f09aa47366e87413de316ed4465df168d76a3faea8be7")
+ABS_SCENE("scene_random_s6_09_dense_route_fork_holdout_02.xml", "s609_df_h02", 6, kNamedPptObstacles,
+          "a8563291b9d98f8de9e0d3f95468ac8cd05db15c4b22336154995b4350ea7725", "173dddc009e6235d4af57cdeab00488ef1a6f159341564d97d7859de9ed465c6",
+          "979ad37f22a6fa23b3a0cf2fdea52331610c43dfdbd9aa18ef3e9c8988f8fcc3")
+ABS_SCENE("scene_random_s6_09_dense_irregular_cluster_dev_01.xml", "s609_di_d01", 10, kNamedPptObstacles,
+          "6713574eac123df2fbd0035c67a18e2dcae5194bb4fe4074e0d4381827fdd758", "03749e6bc62deaa629831f76c479130a2d9c41115420d30c71cc2c9fca11e10b",
+          "c946a4796fb25edea5927fec1a69057523d0dc3eb7a6f5bc44870ec2b8100e68")
+ABS_SCENE("scene_random_s6_09_dense_irregular_cluster_dev_02.xml", "s609_di_d02", 10, kNamedPptObstacles,
+          "b1f5421591455beb81b31e1c04fb1f376563ddd1dd1420c9712ef4625980c8c5", "f91c81248760baa210c4fbd641e0bf1d8cd314392dd16307a51018afcdcd9d93",
+          "13b6b64c6c14d6f251f8ce77962cb71cc38118420f1c1e0d4210719197229360")
+ABS_SCENE("scene_random_s6_09_dense_irregular_cluster_holdout_01.xml", "s609_di_h01", 10, kNamedPptObstacles,
+          "41ddeb1970baf28a3b46c68356af203f125277e21c354004cdf9578933c29334", "e7935f09dfb834377e164db1ed52209747db969d11f083f1eec94760daceac1c",
+          "86c005bb6dd8acfe78caaec79e794a06be0d0846bd9f4c0a23bca4e41c0d56fe")
+ABS_SCENE("scene_random_s6_09_dense_irregular_cluster_holdout_02.xml", "s609_di_h02", 10, kNamedPptObstacles,
+          "5e216f5c72292afa060d68e92a587178392243f0f2ebdf428db1d6d63d863d73", "c78444607e9a967648cefa7415a3f8fa987e3465c95f682ee43ef2dfecffc356",
+          "54a85d50e2dc23400f0d45a552f72a9d9f5ab47e2767572b3166d7197de7a71b")
+ABS_SCENE("scene_random_s6_10_dense_alternating_relaxed_dev_01.xml", "s610_dar_d01", 7, kNamedPptObstacles,
+          "3a8de5f04d99f76fa7533d6baeb8b0b8b55574f58108d67c5deb0334876368c2", "6b283659a0b4cfe55a5715c0082c9eb9c41b13d450f2b98ad10ce0f2cf577c90",
+          "a94d4d5b11db0920557978a17275c611183bc93c03140979000233f1e9c4e783")

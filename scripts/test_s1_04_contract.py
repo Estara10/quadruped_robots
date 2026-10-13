@@ -20,6 +20,13 @@ from s1_analyze_run import calculate  # noqa: E402
 from test_run_record import fixture, pack_frame  # noqa: E402
 
 
+def _capture(path: Path, run_id: str, capture_id: str, run_start_ns: int = 0) -> FrameCapture:
+    """Build the production recorder with the current required source/config binding."""
+    return FrameCapture(path, run_id, capture_id, run_start_ns,
+                        resolve_scene("scene_obstacle.xml"), candidate_mode=1,
+                        entry_threshold=-0.05, exit_threshold=-0.08, hold_duration_s=0.0)
+
+
 def test_external_safety_event_has_terminal_priority() -> None:
     assert run_record._compute_terminal(exit_code=0, forced=False, shutdown_complete=True,
                                         safety_fault_seen=True, frames_observed=1)[1] == "SAFETY_FAULT"
@@ -85,9 +92,14 @@ def test_step_gap_is_not_bridged_into_recovery_dwell() -> None:
             assert result["frame_count"] == 4
             assert result["rl_step_gaps"] == 1
             assert result["mode_transitions"] == 2
-            assert math.isclose(result["valid_motion_duration_s"], 0.4)
+            # The current primary window starts at the first active policy cycle,
+            # not at the historical 0.10 m displacement threshold. Step 1->2
+            # and step 4->5 are the only valid adjacent intervals: 0.2 + 0.4 s.
+            assert math.isclose(result["valid_motion_duration_s"], 0.6)
             assert math.isclose(result["recovery_sim_duration_s"], 0.4)
-            assert result["recovery_share_valid_motion_time"] == 1.0
+            assert math.isclose(result["recovery_share_valid_motion_time"], 2.0 / 3.0)
+            assert math.isclose(result["legacy_displacement_window_metrics"]["valid_continuous_s"], 0.4)
+            assert result["legacy_displacement_window_scope"].startswith("historical auxiliary window")
             assert any(item["censored"] for item in result["recovery_intervals"])
     finally:
         run_record.read_collision_snapshot = original
@@ -130,7 +142,8 @@ def test_exit_cycle_closes_recovery_and_cleanup_tail_is_excluded() -> None:
             assert result["cleanup_events"][0]["event"] == "LATE_SAFETY_EVENT"
             assert result["motion_metric_time_boundary"]["end_cycle"] == 2
             assert result["motion_metric_time_boundary"]["terminal_frame_payload_complete"] is True
-            assert math.isclose(result["path_length_m"], 0.1, abs_tol=1e-6), result
+            assert math.isclose(result["path_length_m"], 0.2, abs_tol=1e-6), result
+            assert math.isclose(result["legacy_displacement_window_metrics"]["path_length_m"], 0.1, abs_tol=1e-6)
     finally:
         run_record.read_collision_snapshot = original
 
@@ -207,7 +220,9 @@ def test_terminal_snapshot_is_synchronously_persisted_once_with_full_payload() -
     try:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "runtime_record.jsonl"
-            capture = FrameCapture(path, "terminal-capture", "p1-10-capture-" + "a" * 32, run_start_ns=0)
+            capture = FrameCapture(path, "terminal-capture", "p1-10-capture-" + "a" * 32, 0,
+                resolve_scene("scene_obstacle.xml"), candidate_mode=1,
+                entry_threshold=-0.05, exit_threshold=-0.05, hold_duration_s=0.0)
             capture.start()
             # The sampling worker has not seen this cycle; the supervisor's
             # terminal-triggering raw snapshot must still be written now.
@@ -232,7 +247,9 @@ def test_terminal_snapshot_is_synchronously_persisted_once_with_full_payload() -
             assert capture.unique_frames == 1
 
             session_path = Path(tmp) / "session-mismatch.jsonl"
-            session_capture = FrameCapture(session_path, "session-capture", "p1-10-capture-" + "b" * 32, run_start_ns=0)
+            session_capture = FrameCapture(session_path, "session-capture", "p1-10-capture-" + "b" * 32, 0,
+                resolve_scene("scene_obstacle.xml"), candidate_mode=1,
+                entry_threshold=-0.05, exit_threshold=-0.05, hold_duration_s=0.0)
             session_capture.start()
             session_capture.observe(raw, status, observed, sampled_ns)
             next_cycle = dataclasses.replace(terminal, sequence=84, rl_step=10, session_id=772,
@@ -242,15 +259,16 @@ def test_terminal_snapshot_is_synchronously_persisted_once_with_full_payload() -
             # A changed writer session is retained as raw evidence but rejected
             # for run validity, preserving the one-session binding rule.
             session_capture.observe(next_raw, next_status, next_frame, base_ns + 20_000_001)
-            assert session_capture.source_mismatch == "runtime session changed 771->772"
+            assert session_capture.source_mismatch == "runtime session changed 771->772", session_capture.source_mismatch
             session_capture.recorder.stop_sampling()
             session_capture.recorder.finalize({"exit_code": 0, "forced_termination": False,
                 "shutdown_complete": True, "shutdown_request_source": "offline session binding test"})
             assert run_record.summarize_record(str(session_path))["record_validity"] == "INVALID"
 
             order_path = Path(tmp) / "cycle-order-mismatch.jsonl"
-            order_capture = FrameCapture(order_path, "cycle-order-capture", "p1-10-capture-" + "d" * 32,
-                                         run_start_ns=0)
+            order_capture = FrameCapture(order_path, "cycle-order-capture", "p1-10-capture-" + "d" * 32, 0,
+                resolve_scene("scene_obstacle.xml"), candidate_mode=1,
+                entry_threshold=-0.05, exit_threshold=-0.05, hold_duration_s=0.0)
             order_capture.start()
             order_capture.observe(raw, status, observed, sampled_ns)
             reversed_cycle = dataclasses.replace(terminal, sequence=84, rl_step=8,
@@ -277,7 +295,7 @@ def test_missing_terminal_frame_payload_is_rejected() -> None:
     try:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp); record = root / "runtime_record.jsonl"
-            capture = FrameCapture(record, "terminal-write-failure", "p1-10-capture-" + "c" * 32, run_start_ns=0)
+            capture = _capture(record, "terminal-write-failure", "p1-10-capture-" + "c" * 32)
             capture.start()
             prior_raw = pack_frame(prior)
             prior_status, prior_frame = classify_frame(prior_raw, base_ns + 1)
@@ -322,8 +340,7 @@ def test_production_closeout_end_to_end_and_failure_keeps_cleanup() -> None:
             root = Path(tmp)
             run_id = "closeout-e2e"
             capture_id = "p1-10-capture-" + "e" * 32
-            capture = FrameCapture(root / "runtime_record.jsonl", run_id, capture_id,
-                                   run_start_ns=0, scene=resolve_scene("scene_obstacle.xml"))
+            capture = _capture(root / "runtime_record.jsonl", run_id, capture_id)
             capture.start()
             persisted_refs = []
             frames = [
@@ -397,8 +414,8 @@ def test_production_closeout_end_to_end_and_failure_keeps_cleanup() -> None:
         # cleanup still runs and the analyzer refuses to call the result complete.
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            failed_capture = FrameCapture(root / "runtime_record.jsonl", "closeout-error",
-                "p1-10-capture-" + "f" * 32, 0, resolve_scene("scene_obstacle.xml"))
+            failed_capture = _capture(root / "runtime_record.jsonl", "closeout-error",
+                "p1-10-capture-" + "f" * 32)
             failed_capture.start()
             frame = dataclasses.replace(fixture(sequence=202, rl_step=0, session_id=446, monotonic_ns=base_ns+300_000_000),
                 sim_time_s=4.0, world_pose=(0.0, 0.0, 0.0), mode_before=0, policy_state=0)

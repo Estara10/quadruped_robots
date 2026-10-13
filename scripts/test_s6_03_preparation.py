@@ -101,7 +101,8 @@ def test_task_window_runtime_history_uses_active_boundary() -> None:
 
 
 def test_any_failed_preparation_gate_refuses_rl_entry() -> None:
-    ready = {"recorder_ready": True, "standing_confirmed": True,
+    ready = {"controller_readiness_fresh": True,
+             "recorder_ready": True, "standing_confirmed": True,
              "joint_sample_valid": True, "joint_velocity_within_limit": True,
              "pre_task_safety_boundary_live": True}
     assert rl_entry_precondition_failure(ready) is None

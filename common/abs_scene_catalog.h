@@ -22,7 +22,9 @@ struct SceneSpec {
   const char* model_fingerprint;
 };
 
-inline constexpr std::array<SceneSpec, 10> kScenes = {{
+// Infer the catalog size from the shared .def file so generated scene families
+// can be registered without editing a parallel count or per-scene branch.
+inline constexpr SceneSpec kScenes[] = {
 #define kLegacySignatures ObstacleKind::kLegacySignatures
 #define kNoObstacles ObstacleKind::kNoObstacles
 #define kNamedPptObstacles ObstacleKind::kNamedPptObstacles
@@ -33,7 +35,7 @@ inline constexpr std::array<SceneSpec, 10> kScenes = {{
 #undef kLegacySignatures
 #undef kNoObstacles
 #undef kNamedPptObstacles
-}};
+};
 
 struct Signature { int type; double pos[3]; double size[3]; };
 inline constexpr std::array<Signature, 7> kLegacyObstacleSignatures = {{

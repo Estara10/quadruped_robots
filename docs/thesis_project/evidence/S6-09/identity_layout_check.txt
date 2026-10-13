@@ -1,0 +1,1 @@
+geometry_preserved=60/60 unique_internal_ids=60/60 max_id_bytes=11 filenames_preserved=60/60

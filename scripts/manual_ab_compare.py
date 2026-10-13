@@ -29,11 +29,11 @@ def validate_switch_parameters(entry_threshold: float, exit_threshold: float,
         raise ValueError("C/D hold H must be greater than zero")
 
 
-def execute(command, log_path):
+def execute(command, log_path, env=None):
     """保留实时终端输出；中断时让诊断器执行自身的进程清理。"""
     last_result = None
     with log_path.open("w", encoding="utf-8") as log:
-        child = subprocess.Popen(command, cwd=PROJECT, stdout=subprocess.PIPE,
+        child = subprocess.Popen(command, cwd=PROJECT, env=env, stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT, text=True, bufsize=1)
         try:
             for line in child.stdout:
@@ -83,6 +83,25 @@ def prepare_overlay(source, destination, group, entry_threshold, exit_threshold,
     config.write_text(text, encoding="utf-8")
 
 
+def verify_overlay_detached(source, destination):
+    """Ensure effective config and all three deployed artifacts are copied files."""
+    relative = (
+        "share/go2_description/config/abs/config.yaml",
+        "share/go2_description/config/abs/policy.pt",
+        "share/go2_description/config/abs/ra_value.pt",
+        "share/go2_description/config/rec/policy.pt",
+    )
+    checked = []
+    for item in relative:
+        original = source / item
+        copied = destination / item
+        if (not original.is_file() or not copied.is_file() or copied.is_symlink() or
+                os.path.samefile(original, copied)):
+            raise RuntimeError(f"overlay is not an independent file copy: {item}")
+        checked.append(item)
+    return checked
+
+
 def show(value):
     return "UNKNOWN" if value is None else f"{value:.3f}" if isinstance(value, float) else str(value)
 
@@ -107,7 +126,48 @@ def summarize_startup_without_runtime_record(result: dict, context: dict,
             "task_metrics": "UNKNOWN: strategy recorder never started"}
 
 
-def save_comparison(root, rows, groups, parameters=None):
+def enrich_run_metrics(metric: dict, run_directory: Path, facts: dict) -> dict:
+    """Join analyzer metrics with closeout and actual gain-trace evidence."""
+    try:
+        context = json.loads((run_directory / "run_context.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        context = {}
+    lifecycle = context.get("lifecycle", {})
+    standing = lifecycle.get("standing_observation") or {}
+    metric["standing_observation_status"] = (
+        "COMPLETE" if standing.get("complete") is True else
+        "INCOMPLETE" if standing else "NOT_REACHED_OR_UNKNOWN")
+    stop = lifecycle.get("post_terminal_strategy_stop") or {}
+    metric["passive_controller_transition_confirmed"] = stop.get("controller_transition_confirmed")
+    metric["process_shutdown_complete"] = facts.get("shutdown_complete")
+    metric["closeout_complete"] = facts.get("closeout_complete")
+
+    audit = metric.get("recovery_hold_audit") or {}
+    episodes = audit.get("episodes", [])
+    metric["recovery_hold_audit_status"] = audit.get("status", "UNKNOWN")
+    metric["recovery_hold_episodes_complete"] = sum(
+        episode.get("censored") is False and episode.get("clock_coverage") == "complete"
+        for episode in episodes)
+    metric["recovery_hold_episodes_incomplete"] = (
+        len(episodes) - metric["recovery_hold_episodes_complete"])
+    metric["recovery_hold_violations"] = len(audit.get("violations", []))
+
+    trace_path = run_directory / "startup_gain_transition.jsonl"
+    trace_events = []
+    if trace_path.is_file():
+        for line in trace_path.read_text(encoding="utf-8").splitlines():
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(event, dict):
+                trace_events.append(event)
+    metric["startup_gain_trace_status"] = "CAPTURED" if trace_events else "MISSING"
+    metric["startup_gain_trace_event_count"] = len(trace_events)
+    return metric
+
+
+def save_comparison(root, rows, groups, parameters=None, classification=None):
     plan_path = root / "batch_plan.json"
     try:
         plan = json.loads(plan_path.read_text(encoding="utf-8"))
@@ -136,6 +196,7 @@ def save_comparison(root, rows, groups, parameters=None):
               ("rl_task_metric_boundary.valid_continuous_sim_s", "RL活跃窗口有效连续时间/s"),
               ("rl_task_metric_boundary.valid_continuous_path_length_m", "RL活跃窗口有效路径/m"),
               ("rl_task_metric_boundary.mean_valid_continuous_speed_mps", "RL活跃窗口有效平均速度/(m/s)"),
+              ("task_valid_time_coverage_fraction", "任务窗口有效仿真时间覆盖率"),
               ("rl_task_metric_boundary.mode_transition_count_all_cycles", "RL活跃窗口模式边沿数"),
               ("risk_to_recovery_response.paired_Agile_to_Recovery_count", "配对风险→Recovery事件数"),
               ("risk_to_recovery_response.median_ns", "风险→模式决定延迟中位数/ns"),
@@ -144,12 +205,25 @@ def save_comparison(root, rows, groups, parameters=None):
               ("path_length_m", "有效片段路径/m"),
               ("mean_path_speed_mps", "有效片段平均速度/(m/s)"),
               ("peak_interval_path_speed_mps", "有效区间峰值路径速度/(m/s)")]
+    fields.extend([
+        ("recovery_share_valid_motion_time", "Recovery/有效连续运动时间占比"),
+        ("recovery_hold_audit_status", "Recovery保持审计状态"),
+        ("recovery_hold_episodes_complete", "保持审计完整episode数"),
+        ("recovery_hold_episodes_incomplete", "保持审计不完整episode数"),
+        ("recovery_hold_violations", "保持规则违规数"),
+        ("startup_gain_trace_status", "实际启动增益轨迹"),
+        ("startup_gain_trace_event_count", "实际增益记录事件数"),
+        ("standing_observation_status", "到达后站立观察"),
+        ("passive_controller_transition_confirmed", "PASSIVE控制器转换确认"),
+        ("process_shutdown_complete", "本次进程退出确认"),
+        ("closeout_complete", "收尾记录完整"),
+    ])
     lines = [f"# 手动 {'/'.join(groups)} 运行汇总", "",
              f"计划参数：{json.dumps(parameters or {}, ensure_ascii=False, sort_keys=True)}。",
              "预实验准备批次不是正式实验。各组样本数、INVALID、未运行及合法终局单独计数；UNKNOWN 不按零处理。",
              "任务主窗口从首个 rl_entered=1 且 rl_active=1 周期到真实终局（含终止周期）；历史0.10m位移窗口仅作辅助。有效连续时间、路径和速度不冒充完整经过时间。", "",
              "| 指标 | " + " | ".join(groups) + " |", "|---|" + "---|" * len(groups)]
-    summary = {"classification": "preparation verification; not formal experiment",
+    summary = {"classification": classification or plan.get("classification", "manual diagnostic; not a formal experiment"),
                "parameters": parameters or {}, "groups": {}}
     for group in groups:
         items = rows.get(group, [])
@@ -181,11 +255,11 @@ def save_comparison(root, rows, groups, parameters=None):
             "invalid": sum(item.get("record_validity") == "INVALID" for item in items),
             "validity_unknown": sum(item.get("record_validity") not in ("VALID", "INVALID") for item in items),
             "preparation_ready": sum(
-                all(item.get("s6_preparation_readiness", {}).get(key) is True for key in (
+                all((item.get("s6_preparation_readiness") or {}).get(key) is True for key in (
                     "first_active_policy_frame_exactly_persisted", "recorder_ready_before_rl",
                     "pre_rl_standing_confirmed", "pre_task_safety_boundary_live")) for item in items),
             "preparation_not_confirmed": sum(
-                not all(item.get("s6_preparation_readiness", {}).get(key) is True for key in (
+                not all((item.get("s6_preparation_readiness") or {}).get(key) is True for key in (
                     "first_active_policy_frame_exactly_persisted", "recorder_ready_before_rl",
                     "pre_rl_standing_confirmed", "pre_task_safety_boundary_live")) for item in items),
             "terminal_counts": terminals, "record_validity_counts": validity,
@@ -228,6 +302,8 @@ def main():
     parser.add_argument("--xauthority", default=default_xauthority)
     parser.add_argument("--plot-python", default=os.environ.get("ABS_PLOT_PYTHON", sys.executable),
                         help="绘图解释器；可用 ABS_PLOT_PYTHON 覆盖")
+    parser.add_argument("--classification", default="S6-06 four-group workflow verification; not a formal experiment",
+                        help="run classification recorded in each output; not a formal experiment")
     parser.add_argument("--groups", nargs="+", choices=("A", "B", "C", "D"),
                         default=("A", "B", "C", "D"), help="运行组及顺序，默认 A B C D")
     parser.add_argument("--repeats", type=int, default=1,
@@ -257,7 +333,7 @@ def main():
     parameters = {"entry_threshold_E": args.entry_threshold,
                   "exit_threshold_X_BD": args.exit_threshold,
                   "recovery_min_hold_H_CD_sim_s": args.hold_s}
-    plan = {"classification": "S6-03 preparation verification; not formal experiment",
+    plan = {"classification": args.classification,
             "scene": args.scene, "goal_world_m": [7.0, 0.0], "arrival_radius_m": 0.5,
             "sim_limit_s": 20.0, "wall_cap_s": 120.0,
             "standing_observation_sim_s": 5.0, "standing_wall_cap_s": 30.0,
@@ -275,6 +351,7 @@ def main():
             overlay = root / "overlays" / group
             prepare_overlay(source, overlay, group, args.entry_threshold,
                             args.exit_threshold, args.hold_s)
+            detached_files = verify_overlay_detached(source, overlay)
             config_path = overlay / "share/go2_description/config/abs/config.yaml"
             config_text = config_path.read_text(encoding="utf-8")
             if not overlay_configuration_matches(config_text, group, args.entry_threshold,
@@ -289,6 +366,7 @@ def main():
                 "hold_H_sim_s": args.hold_s if group in ("C", "D") else None,
                 "goal_world_m": [7.0, 0.0],
                 "overlay_is_independent_tree": True,
+                "independent_regular_files": detached_files,
             }
             (root / "batch_plan.json").write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         for group in groups:
@@ -310,10 +388,11 @@ def main():
                            "--hold-s", f"{args.hold_s:.17g}",
                            "--sim-limit-s", "20", "--wall-cap-s", "120",
                            "--standing-observation-sim-s", "5", "--standing-observation-wall-cap-s", "30",
+                           "--startup-gain-trace",
                            "--overlay", str(root / "overlays" / group),
                            "--output-root", str(run_out), "--display", args.display,
                            "--xauthority", args.xauthority,
-                           "--classification", "S6-03 preparation verification; not a formal experiment"]
+                           "--classification", args.classification]
                 try:
                     result = execute(command, root / f"{group}_rep_{repeat_index:02d}_console.log")
                 except Exception as error:
@@ -337,10 +416,16 @@ def main():
                                     "output_directory": str(run_directory)})
                 (root / "batch_plan.json").write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
                 if runtime_record.is_file():
+                    plot_env = os.environ.copy()
+                    # The workstation user site may provide NumPy 2 while the
+                    # system Matplotlib extension was built against NumPy 1.
+                    # Keep this compatibility choice local to analysis only.
+                    plot_env["PYTHONNOUSERSITE"] = "1"
+                    plot_env.setdefault("MPLCONFIGDIR", "/tmp/manual_ab_compare_mpl")
                     execute([args.plot_python, str(PROJECT / "scripts/s1_analyze_run.py"),
                              "--runs-root", str(run_out), "--output-dir", str(analysis_root),
-                             "--task-label", f"S6-03-{group}-rep-{repeat_index:02d}"],
-                            root / f"{group}_rep_{repeat_index:02d}_analysis.log")
+                             "--task-label", f"S6-06-{group}-rep-{repeat_index:02d}"],
+                            root / f"{group}_rep_{repeat_index:02d}_analysis.log", env=plot_env)
                     metrics = run_directory / "metrics.json"
                     metric = json.loads(metrics.read_text(encoding="utf-8"))
                 else:
@@ -352,6 +437,7 @@ def main():
                     run_directory.mkdir(parents=True, exist_ok=True)
                     (run_directory / "metrics.json").write_text(
                         json.dumps(metric, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+                metric = enrich_run_metrics(metric, run_directory, facts)
                 metric["supervisor_terminal_result"] = (result.get("result") or
                     metric.get("run_terminal_result_context") or "UNKNOWN")
                 metric["supervisor_terminal_source"] = "s1_run_diagnostic stdout result, cross-checked with run_context/terminal when available"
@@ -360,18 +446,18 @@ def main():
                 rows[group].append(metric)
                 status_item["record_validity"] = metric.get("record_validity")
                 (root / "batch_plan.json").write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-                save_comparison(root, rows, groups, parameters)
+                save_comparison(root, rows, groups, parameters, args.classification)
                 print(f"{group}组第 {repeat_index} 次结束：{result.get('result')}；本次运行进程已由诊断器确认退出。", flush=True)
                 if result.get("startup_error") or metric.get("record_validity") != "VALID":
                     raise RuntimeError(f"{group} 组记录无效，停止后续运行；保留原始记录。")
                 if metric.get("s6_preparation_readiness", {}).get("first_active_policy_frame_exactly_persisted") is not True:
                     raise RuntimeError(f"{group} 首个活跃策略周期未与 companion 精确配对持久化，停止后续组；保留原始记录。")
     except KeyboardInterrupt:
-        save_comparison(root, rows, groups, parameters)
+        save_comparison(root, rows, groups, parameters, args.classification)
         print(f"对比已中断，已有记录保留：{root}")
         return 130
     except Exception as error:
-        save_comparison(root, rows, groups, parameters)
+        save_comparison(root, rows, groups, parameters, args.classification)
         print(f"对比停止：{error}\n已有记录保留：{root}", file=sys.stderr)
         return 1
     print(f"\n{'/'.join(groups)} 批次诊断及绘图已完成。\n对照表：{root / 'comparison.md'}\n机器可读汇总：{root / 'batch_summary.json'}")

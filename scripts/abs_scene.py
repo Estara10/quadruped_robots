@@ -47,8 +47,8 @@ def scene_catalog() -> dict[str, SceneSpec]:
         if filename in entries or scene_id in {item.scene_id for item in entries.values()}:
             raise ValueError("duplicate scene catalog identity")
         entries[filename] = spec
-    if len(entries) != 10:
-        raise ValueError(f"expected ten supported scenes, found {len(entries)}")
+    if len(entries) < 10:
+        raise ValueError(f"supported-scene catalog is incomplete: found {len(entries)} entries")
     return entries
 
 

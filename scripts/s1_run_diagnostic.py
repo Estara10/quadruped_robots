@@ -23,7 +23,7 @@ from abs_rt_frame import (  # noqa: E402
     FRAME_VERSION, SIM_CLOCK_STALE, FrameStatus, classify_frame, read_shm_frame,
 )
 from abs_collision import (  # noqa: E402
-    CollisionStatus, classify_snapshot, read_collision_snapshot,
+    CollisionStatus, classify_snapshot, classify_snapshot_diagnostic, read_collision_snapshot,
     read_collision_snapshot_diagnostic,
 )
 from abs_scene import resolve_scene  # noqa: E402
@@ -551,6 +551,7 @@ def parse_startup_gain_trace_lines(log_text: str) -> list[dict]:
 def rl_entry_precondition_failure(readiness: dict) -> str | None:
     """Fail closed unless the shared recorder, standing, joint, and safety gates are ready."""
     required = {
+        "controller_readiness_fresh": readiness.get("controller_readiness_fresh") is True,
         "recorder_ready": readiness.get("recorder_ready") is True,
         "standing_confirmed": readiness.get("standing_confirmed") is True,
         "joint_sample_valid": readiness.get("joint_sample_valid") is True,
@@ -620,6 +621,115 @@ def controller_node_inventory(node_list_output: str, source: str = "ros2 node li
         "duplicates": [name for name in expected if counts[name] > 1],
         "missing": [name for name in expected if counts[name] == 0],
     }
+
+
+def startup_deadline_remaining(deadline: float, now: float | None = None) -> float:
+    """Return the remaining time from one absolute startup deadline."""
+    current = time.monotonic() if now is None else now
+    return max(0.0, deadline - current)
+
+
+def startup_physics_snapshot_is_current(snapshot: dict | None, *, status: str,
+                                        capture_id: str, model_fingerprint: str,
+                                        scenario_id: str, process_started_ns: int,
+                                        now_monotonic_ns: int,
+                                        max_age_ns: int = 250_000_000) -> tuple[bool, str]:
+    """Reject pre-run/stale physical authority even if it still says LIVE."""
+    if status != CollisionStatus.LIVE.value or not isinstance(snapshot, dict):
+        return False, f"physical authority status is {status}"
+    if snapshot.get("capture_id") != capture_id:
+        return False, "capture_id does not identify this run"
+    if snapshot.get("runtime_model_fingerprint") != model_fingerprint or snapshot.get("scenario_id") != scenario_id:
+        return False, "physical authority model/scenario identity mismatch"
+    source_ns = snapshot.get("monotonic_ns")
+    sim_time = snapshot.get("sim_time")
+    sequence = snapshot.get("sequence")
+    physics_step = snapshot.get("physics_step")
+    if (not isinstance(source_ns, int) or source_ns < process_started_ns or
+            source_ns > now_monotonic_ns or now_monotonic_ns - source_ns > max_age_ns):
+        return False, "physical authority timestamp is pre-run, future, or stale"
+    if (not isinstance(sim_time, (int, float)) or not math.isfinite(float(sim_time)) or
+            float(sim_time) < 0.0 or not isinstance(sequence, int) or
+            not isinstance(physics_step, int)):
+        return False, "physical authority time/sequence fields are invalid"
+    return True, "current run physical authority is fresh"
+
+
+def startup_controller_gate(query: dict, *, launch_alive: bool,
+                            manager_pids: list[int], launch_pgid: int | None,
+                            config_status: str, mapped_libraries: list[str],
+                            expected_library: str, environment_matches: bool) -> dict:
+    """Classify one same-session readiness snapshot without hiding duplicates."""
+    if not launch_alive:
+        return {"status": "failed", "reason": "launch process exited"}
+    if not isinstance(query, dict) or query.get("event") != "STATUS":
+        return {"status": "pending", "reason": "no complete status response"}
+    counts = query.get("expected_node_counts")
+    if not isinstance(counts, dict):
+        return {"status": "pending", "reason": "graph snapshot missing"}
+    if any(type(counts.get(name)) is int and counts[name] > 1
+           for name in ("/controller_manager", "/rl_quadruped_controller")):
+        return {"status": "failed", "reason": "duplicate expected ROS graph node"}
+    if len(manager_pids) > 1:
+        return {"status": "failed", "reason": "multiple manager/writer processes"}
+    if manager_pids and launch_pgid is not None:
+        if len(manager_pids) != 1:
+            return {"status": "failed", "reason": "manager/writer count is ambiguous"}
+        if manager_pids[0] <= 0:
+            return {"status": "failed", "reason": "manager/writer PID is invalid"}
+    if not manager_pids or not all(counts.get(name) == 1
+                                   for name in ("/controller_manager", "/rl_quadruped_controller")):
+        return {"status": "pending", "reason": "manager/controller graph discovery incomplete"}
+    joint_publishers = query.get("joint_state_publishers")
+    if not isinstance(joint_publishers, list):
+        return {"status": "pending", "reason": "/joint_states publisher graph has not been observed"}
+    if len(joint_publishers) > 1:
+        return {"status": "failed", "reason": "multiple /joint_states publishers"}
+    if not joint_publishers:
+        return {"status": "pending", "reason": "/joint_states publisher discovery incomplete"}
+    joint_publisher = joint_publishers[0]
+    if (not isinstance(joint_publisher, dict) or
+            joint_publisher.get("topic_type") != "sensor_msgs/msg/JointState" or
+            joint_publisher.get("node_name") != "joint_state_broadcaster"):
+        return {"status": "failed", "reason": "/joint_states publisher identity or message type mismatch"}
+    if query.get("list_controllers_status") != "completed":
+        return {"status": "pending", "reason": "controller-manager service response incomplete"}
+    controllers = query.get("controllers")
+    if not isinstance(controllers, list):
+        return {"status": "pending", "reason": "controller list missing"}
+    matches = [item for item in controllers if isinstance(item, dict) and
+               item.get("name") == "rl_quadruped_controller"]
+    if len(matches) > 1:
+        return {"status": "failed", "reason": "controller-manager returned duplicate controller entries"}
+    if len(matches) != 1 or matches[0].get("state") != "active":
+        return {"status": "pending", "reason": "expected controller is not uniquely active"}
+    if not environment_matches:
+        return {"status": "failed", "reason": "query node ROS communication environment differs from controller"}
+    if mapped_libraries != [expected_library]:
+        return {"status": "failed" if mapped_libraries else "pending",
+                "reason": "controller loaded library is missing or mismatched"}
+    if config_status not in {"confirmed", "pending"}:
+        return {"status": "failed", "reason": f"actual runtime configuration {config_status}"}
+    if config_status != "confirmed":
+        return {"status": "pending", "reason": "actual runtime configuration source is not confirmed"}
+    if query.get("control_input_subscribers", 0) <= 0:
+        return {"status": "pending", "reason": "control publisher has no subscriber"}
+    return {"status": "ready", "reason": None}
+
+
+def ros_communication_environment_matches(query_identity: dict,
+                                          controller_identity: dict) -> bool:
+    """Compare active ROS domain/RMW settings and the actually mapped RMW library."""
+    query_env = query_identity.get("process_environment", {})
+    controller_env = controller_identity.get("process_environment", {})
+    if query_env.get("status") == "unavailable" or controller_env.get("status") == "unavailable":
+        return False
+    keys = ("ROS_DOMAIN_ID", "RMW_IMPLEMENTATION", "ROS_LOCALHOST_ONLY")
+    if any(query_env.get(key, "<unset>") != controller_env.get(key, "<unset>") for key in keys):
+        return False
+    query_rmw = query_identity.get("rmw_libraries", [])
+    controller_rmw = controller_identity.get("rmw_libraries", [])
+    return bool(query_rmw) and query_rmw == controller_rmw
 
 
 def proc_environment(pid: int) -> dict[str, str]:
@@ -1101,23 +1211,33 @@ def ros_command(command: str, env: dict[str, str], timeout: float = 12.0) -> sub
                           timeout=timeout, check=False)
 
 
-def publish(env: dict[str, str], command: int, lx: float = 0.0, ly: float = 0.0) -> dict:
-    msg = f"{{command: {command}, lx: {lx}, ly: {ly}, rx: 0.0, ry: 0.0}}"
-    result = ros_command(f"ros2 topic pub --once /control_input control_input_msgs/msg/Inputs '{msg}'", env)
-    return {"command": command, "monotonic_ns": now_ns(), "returncode": result.returncode,
-            "output": result.stdout[-1200:]}
+def startup_ros_session_node_name() -> str:
+    """Return the unique name used by the production startup query/publish node."""
+    return "s6_07_startup_session_" + uuid.uuid4().hex[:10]
 
 
-def start_prepared_stop_publisher(env: dict[str, str]) -> tuple[subprocess.Popen[str], dict]:
+def startup_ros_session_command(env: dict[str, str], node_name: str) -> list[str]:
+    """Build the exact ROS environment and exec command for the owned session."""
+    if not re.fullmatch(r"[a-zA-Z_][a-zA-Z0-9_]*", node_name):
+        raise ValueError(f"invalid startup ROS node name: {node_name!r}")
+    overlay = env.get("S1_04_OVERLAY")
+    if not overlay:
+        raise ValueError("S1_04_OVERLAY is required for the startup ROS session")
     helper = ROOT / "scripts/s2_03_stop_publisher.py"
     shell = (f"source /opt/ros/humble/setup.bash && source {ROS_WS}/install/setup.bash && "
-             f"export AMENT_PREFIX_PATH={shlex.quote(env['S1_04_OVERLAY'])}:$AMENT_PREFIX_PATH && "
-             f"/usr/bin/python3 -u {shlex.quote(str(helper))}")
-    proc = subprocess.Popen(["bash", "-lc", shell], cwd=ROS_WS, env=env, text=True,
+             f"export AMENT_PREFIX_PATH={shlex.quote(overlay)}:$AMENT_PREFIX_PATH && "
+             f"exec /usr/bin/python3 -u {shlex.quote(str(helper))} --node-name {shlex.quote(node_name)}")
+    return ["bash", "-lc", shell]
+
+
+def start_prepared_stop_publisher(env: dict[str, str], node_name: str,
+                                 timeout_s: float = 5.0) -> tuple[subprocess.Popen[str], dict]:
+    """Start one owned ROS node for bounded controller queries and all commands."""
+    proc = subprocess.Popen(startup_ros_session_command(env, node_name), cwd=ROS_WS, env=env, text=True,
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT, start_new_session=True)
     try:
-        deadline = time.monotonic() + 10.0
+        deadline = time.monotonic() + max(0.0, min(5.0, timeout_s))
         while time.monotonic() < deadline:
             if proc.stdout is not None and select.select([proc.stdout], [], [], 0.1)[0]:
                 line = proc.stdout.readline()
@@ -1125,13 +1245,20 @@ def start_prepared_stop_publisher(env: dict[str, str]) -> tuple[subprocess.Popen
                     event = json.loads(line)
                 except json.JSONDecodeError:
                     continue
+                if not isinstance(event, dict):
+                    continue
                 if event.get("event") == "READY":
+                    if (event.get("node_name") != node_name or
+                            event.get("topic") != "/control_input" or
+                            event.get("service") != "/controller_manager/list_controllers" or
+                            event.get("joint_state_topic") != "/joint_states"):
+                        raise RuntimeError(f"startup ROS session READY identity mismatch: {event}")
                     return proc, event
-                if event.get("event") == "NOT_READY":
-                    raise RuntimeError(f"prepared PASSIVE publisher did not become ready: {event}")
+                if event.get("event") in {"NOT_READY", "EOF", "FAILED"}:
+                    raise RuntimeError(f"startup ROS query/control session did not become ready: {event}")
             if proc.poll() is not None:
-                raise RuntimeError(f"prepared PASSIVE publisher exited before READY: rc={proc.returncode}")
-        raise TimeoutError("prepared PASSIVE publisher READY timeout")
+                raise RuntimeError(f"startup ROS query/control session exited before READY: rc={proc.returncode}")
+        raise TimeoutError("startup ROS query/control session READY timeout")
     except Exception:
         if proc.poll() is None:
             try:
@@ -1141,6 +1268,123 @@ def start_prepared_stop_publisher(env: dict[str, str]) -> tuple[subprocess.Popen
                 proc.kill()
                 proc.wait(timeout=2.0)
         raise
+
+
+def query_startup_session(proc: subprocess.Popen[str], timeout_s: float) -> dict:
+    if proc.poll() is not None or proc.stdin is None or proc.stdout is None:
+        raise RuntimeError("startup ROS query/control session is not alive")
+    request_ns = now_ns()
+    bounded_timeout = max(0.02, min(0.50, timeout_s * 0.5))
+    proc.stdin.write(f"STATUS {bounded_timeout:.6f}\n")
+    proc.stdin.flush()
+    deadline = time.monotonic() + max(0.02, timeout_s)
+    while time.monotonic() < deadline:
+        if select.select([proc.stdout], [], [], min(0.05, max(0.0, deadline-time.monotonic())))[0]:
+            line = proc.stdout.readline()
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(event, dict):
+                continue
+            if event.get("event") == "STATUS":
+                event["supervisor_query_request_monotonic_ns"] = request_ns
+                event["supervisor_query_response_monotonic_ns"] = now_ns()
+                return event
+    raise TimeoutError("startup ROS status query exceeded its bounded response time")
+
+
+def capture_joint_state_from_startup_session(proc: subprocess.Popen[str], timeout_s: float = 4.0) -> dict:
+    """Capture a fresh named q/dq sample from the already-owned startup ROS node."""
+    started_ns = now_ns()
+    deadline = time.monotonic() + max(0.02, timeout_s)
+    last_status: dict = {}
+    rejections: list[dict] = []
+    expected_names = {f"{leg}_{joint}_joint" for leg in ("FR", "FL", "RR", "RL")
+                      for joint in ("hip", "thigh", "calf")}
+    while time.monotonic() < deadline:
+        remaining = deadline - time.monotonic()
+        last_status = query_startup_session(proc, min(0.75, remaining))
+        sample = last_status.get("latest_joint_state")
+        captured_ns = sample.get("capture_monotonic_ns") if isinstance(sample, dict) else None
+        if isinstance(sample, dict):
+            reason = None
+            publishers = last_status.get("joint_state_publishers")
+            if not isinstance(publishers, list) or len(publishers) != 1:
+                reason = "/joint_states publisher source is missing or ambiguous"
+            elif (publishers[0].get("node_name") != "joint_state_broadcaster" or
+                  publishers[0].get("topic_type") != "sensor_msgs/msg/JointState"):
+                reason = "/joint_states publisher source/type does not match joint_state_broadcaster"
+            if not isinstance(captured_ns, int):
+                reason = reason or "sample capture monotonic timestamp is missing/invalid"
+            elif captured_ns < started_ns:
+                reason = reason or "sample predates this q/dq request"
+            elif captured_ns > int(last_status.get("response_monotonic_ns", now_ns())):
+                reason = reason or "sample timestamp is later than its ROS status response"
+            if reason is None:
+                names = sample.get("name")
+                position = sample.get("position_rad")
+                velocity = sample.get("velocity_rad_s")
+                if not isinstance(names, list) or any(not isinstance(name, str) for name in names):
+                    reason = "joint names are missing or not strings"
+                elif len(names) != 12 or len(set(names)) != 12 or set(names) != expected_names:
+                    reason = "joint names are not exactly the 12 FR/FL/RR/RL hip/thigh/calf joints"
+                elif not isinstance(position, list) or len(position) != 12:
+                    reason = "position vector is missing or not exactly length 12"
+                elif not isinstance(velocity, list) or len(velocity) != 12:
+                    reason = "velocity vector is missing or not exactly length 12"
+                elif any(not isinstance(value, (int, float)) or not math.isfinite(float(value))
+                         for value in position + velocity):
+                    reason = "position or velocity contains a non-finite/non-numeric value"
+                elif now_ns() - captured_ns > 1_000_000_000:
+                    reason = "sample became stale before acceptance (age > 1 second)"
+            if reason:
+                rejections.append({"capture_monotonic_ns": captured_ns,
+                                   "reason": reason, "sample_names": sample.get("name"),
+                                   "source": sample.get("source")})
+            else:
+                return {"status": "captured", "sample": sample,
+                        "capture_command_monotonic_ns": [started_ns, now_ns()],
+                        "sample_age_ms_at_response": max(0.0, (now_ns() - captured_ns) / 1e6),
+                        "capture_session_node": last_status.get("node_name"),
+                        "publisher_endpoints": last_status.get("joint_state_publishers"),
+                        "rejected_samples": rejections}
+    return {"status": "invalid" if rejections else "unavailable",
+            "reason": ("fresh /joint_states messages were rejected by the named finite q/dq contract"
+                       if rejections else "no fresh /joint_states sample arrived through startup ROS session before timeout"),
+            "capture_command_monotonic_ns": [started_ns, now_ns()],
+            "rejected_samples": rejections,
+            "last_session_status": last_status}
+
+
+def stop_prepared_ros_session(proc: subprocess.Popen[str], *, graceful_timeout_s: float = 2.0) -> dict:
+    """Close the owned ROS helper by EOF first; signal only if graceful close stalls."""
+    if proc.poll() is not None:
+        return {"status": "already_exited", "exit_code": proc.returncode,
+                "forced": False, "request": "none; process had already exited"}
+    if proc.stdin is not None and not proc.stdin.closed:
+        proc.stdin.close()
+    try:
+        code = proc.wait(timeout=max(0.1, graceful_timeout_s))
+        return {"status": "closed", "exit_code": code, "forced": False,
+                "request": "stdin EOF; helper emitted EOF and shut down ROS node"}
+    except subprocess.TimeoutExpired:
+        os.killpg(proc.pid, signal.SIGINT)
+        try:
+            code = proc.wait(timeout=2.0)
+            return {"status": "closed_after_signal", "exit_code": code, "forced": False,
+                    "request": "SIGINT fallback after EOF timeout"}
+        except subprocess.TimeoutExpired:
+            os.killpg(proc.pid, signal.SIGTERM)
+            try:
+                code = proc.wait(timeout=2.0)
+                return {"status": "closed_after_term", "exit_code": code, "forced": True,
+                        "request": "SIGTERM fallback after EOF and SIGINT timed out"}
+            except subprocess.TimeoutExpired:
+                os.killpg(proc.pid, signal.SIGKILL)
+                code = proc.wait(timeout=2.0)
+                return {"status": "closed_after_kill", "exit_code": code, "forced": True,
+                        "request": "SIGKILL fallback after EOF, SIGINT, and SIGTERM timed out"}
 
 
 def publish_prepared_command(proc: subprocess.Popen[str], token: str) -> dict:
@@ -1157,12 +1401,14 @@ def publish_prepared_command(proc: subprocess.Popen[str], token: str) -> dict:
                 event = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            if not isinstance(event, dict):
+                continue
             if event.get("event") == "PUBLISHED" and event.get("token") == token:
                 event["supervisor_invoked_monotonic_ns"] = invoked_ns
                 event["supervisor_ack_received_monotonic_ns"] = now_ns()
                 return event
-            if event.get("event") in {"EOF", "NOT_READY"}:
-                raise RuntimeError(f"prepared PASSIVE publisher failed: {event}")
+            if event.get("event") in {"EOF", "NOT_READY", "FAILED"}:
+                raise RuntimeError(f"startup ROS publisher failed: {event}")
     raise TimeoutError(f"prepared {token} publish acknowledgement timeout")
 
 
@@ -1765,6 +2011,17 @@ def run(args: argparse.Namespace) -> int:
         },
         "lifecycle": {"task_start_event": "first active policy decision frame with rl_entered=1 and rl_active=1",
                       "task_start": None,
+                      "mujoco_process_started_monotonic_ns": None,
+                      "mujoco_authority_live_monotonic_ns": None,
+                      "ros_launch_started_monotonic_ns": None,
+                      "ros_query_session_started_monotonic_ns": None,
+                      "controller_active_observed_monotonic_ns": None,
+                      "controller_readiness_confirmed_monotonic_ns": None,
+                      "command_publisher_ready_monotonic_ns": None,
+                      "standing_admission_monotonic_ns": None,
+                      "initial_state_capture_monotonic_ns": None,
+                      "rl_entry_request_monotonic_ns": None,
+                      "first_policy_cycle_monotonic_ns": None,
                       "motion_start_event": "first observed base displacement >=0.10m from first valid strategy-frame pose; auxiliary historical boundary",
                       "motion_start_sim_time_s": None,
                       "motion_start_interval_s": None,
@@ -1836,12 +2093,24 @@ def run(args: argparse.Namespace) -> int:
         lifecycle_events.append({"phase": "startup_preparation", "event": "recorder_ready",
                                  "monotonic_ns": context["preflight"]["recorder_readiness"]["monotonic_ns"],
                                  "evidence": recorder_readiness})
+        lifecycle_events.append({"phase": "startup_preparation", "event": "mujoco_start_requested",
+                                 "monotonic_ns": now_ns(), "executable": str(MUJOCO_BIN.resolve()),
+                                 "scene": scene_spec.filename})
+        mujoco_spawn_requested_ns = now_ns()
         mujoco = subprocess.Popen([str(MUJOCO_BIN), "-s", scene_spec.filename], cwd=MUJOCO_DIR,
                                   env=env, stdout=mujoco_log, stderr=subprocess.STDOUT,
                                   start_new_session=True)
-        time.sleep(3.0)
+        mujoco_started_ns = now_ns()
+        context["lifecycle"]["mujoco_process_started_monotonic_ns"] = mujoco_started_ns
+        context["lifecycle"]["mujoco_started_monotonic_ns"] = mujoco_started_ns
+        context["lifecycle"]["mujoco_start_request_interval_monotonic_ns"] = [mujoco_spawn_requested_ns,
+                                                                                mujoco_started_ns]
+        lifecycle_events.append({"phase": "startup_preparation", "event": "mujoco_process_started",
+                                 "monotonic_ns": mujoco_started_ns, "pid": mujoco.pid,
+                                 "executable": str(MUJOCO_BIN.resolve()),
+                                 "scene": scene_spec.filename})
         if mujoco.poll() is not None:
-            raise RuntimeError(f"MuJoCo exited at startup with code {mujoco.returncode}")
+            raise RuntimeError(f"MuJoCo exited immediately after launch with code {mujoco.returncode}")
         observed_mujoco_exe = os.readlink(f"/proc/{mujoco.pid}/exe")
         context["preflight"]["mujoco_executable"] = {
             "launch_path": str(MUJOCO_BIN.resolve()), "pid": mujoco.pid,
@@ -1851,20 +2120,67 @@ def run(args: argparse.Namespace) -> int:
         if not context["preflight"]["mujoco_executable"]["matches_expected_build"]:
             raise RuntimeError("running MuJoCo executable differs from expected build2 binary")
         write_json(out / "run_context.json", context)
-        lifecycle_events.append({"phase": "startup_preparation", "event": "mujoco_started", "monotonic_ns": now_ns()})
-        # Require a correctly bound LIVE collision authority before controller/motion startup.
-        deadline = time.monotonic() + 8.0
-        while time.monotonic() < deadline:
-            status, snap = classify_snapshot(read_collision_snapshot(), now_ns(),
-                                             expected_capture_id=capture_id,
-                                             expected_fingerprint=scene_spec.model_fingerprint,
-                                             expected_scene_binding=scene_spec.binding())
-            if status is CollisionStatus.LIVE and snap is not None:
-                collision_live_seen = True
-                break
-            time.sleep(0.02)
+        # Require two advancing, fresh snapshots from this capture. A stale LIVE
+        # shared block from a prior run cannot satisfy the run-ID/time checks.
+        mujoco_ready_deadline = time.monotonic() + 8.0
+        prior_startup_snapshot: dict | None = None
+        startup_physics_observations: list[dict] = []
+        mujoco_exe_checked = True
+        while startup_deadline_remaining(mujoco_ready_deadline) > 0.0:
+            if mujoco.poll() is not None:
+                raise RuntimeError(f"MuJoCo exited while waiting for current physics authority: code={mujoco.returncode}")
+            observed_now_ns = now_ns()
+            physics_raw, physics_reader_diagnostic = read_collision_snapshot_diagnostic()
+            status, snap, first_rejection = classify_snapshot_diagnostic(
+                physics_raw, observed_now_ns,
+                expected_capture_id=capture_id,
+                expected_fingerprint=scene_spec.model_fingerprint,
+                expected_scene_binding=scene_spec.binding())
+            payload = collision_snapshot_payload(status, snap) if snap is not None else None
+            current, reason = startup_physics_snapshot_is_current(
+                payload, status=status.value, capture_id=capture_id,
+                model_fingerprint=scene_spec.model_fingerprint,
+                scenario_id=scene_spec.scene_id, process_started_ns=mujoco_started_ns,
+                now_monotonic_ns=observed_now_ns)
+            startup_physics_observations.append({"monotonic_ns": observed_now_ns,
+                                                 "status": status.value, "current": current,
+                                                 "reason": reason,
+                                                 "reader": physics_reader_diagnostic,
+                                                 "first_rejection": first_rejection,
+                                                 "sequence": snap.sequence if snap else None,
+                                                 "physics_step": snap.physics_step if snap else None,
+                                                 "sim_time_s": snap.sim_time if snap else None})
+            if current and snap is not None:
+                now_snapshot = {"sequence": snap.sequence, "physics_step": snap.physics_step,
+                                "sim_time": snap.sim_time, "monotonic_ns": snap.monotonic_ns}
+                if (prior_startup_snapshot is not None and
+                        now_snapshot["sequence"] > prior_startup_snapshot["sequence"] and
+                        now_snapshot["physics_step"] > prior_startup_snapshot["physics_step"] and
+                        now_snapshot["sim_time"] > prior_startup_snapshot["sim_time"]):
+                    collision_live_seen = True
+                    context["lifecycle"]["mujoco_authority_live_monotonic_ns"] = observed_now_ns
+                    context["preflight"]["mujoco_authority_readiness"] = {
+                        "status": "LIVE_AND_ADVANCING", "first_sample": prior_startup_snapshot,
+                        "confirming_sample": now_snapshot,
+                        "poll_count": len(startup_physics_observations),
+                        "wait_limit_s": 8.0, "started_after_process_start": True}
+                    lifecycle_events.append({"phase": "startup_preparation", "event": "mujoco_authority_live",
+                                             "monotonic_ns": observed_now_ns,
+                                             "sequence": snap.sequence, "physics_step": snap.physics_step,
+                                             "sim_time_s": snap.sim_time})
+                    break
+                prior_startup_snapshot = now_snapshot
+            time.sleep(min(0.02, startup_deadline_remaining(mujoco_ready_deadline)))
         if not collision_live_seen:
-            raise RuntimeError("collision authority did not become LIVE for this capture/model; no motion started")
+            first_rejected = next((item["first_rejection"] for item in startup_physics_observations
+                                   if item.get("first_rejection") is not None), None)
+            context["preflight"]["mujoco_authority_readiness"] = {
+                "status": "TIMEOUT", "wait_limit_s": 8.0,
+                "observations": startup_physics_observations,
+                "first_rejection": first_rejected,
+                "process_alive_at_timeout": mujoco.poll() is None}
+            write_json(out / "run_context.json", context)
+            raise RuntimeError("MuJoCo current-run physics authority did not become LIVE and advance before timeout; no motion started")
         context["preflight"]["loaded_mujoco_scene_authority"] = verify_scene_authority_log(
             mujoco_log_path.read_text(encoding="utf-8", errors="replace"), scene_spec)
         context["preflight"]["collision_reader_scene_binding"] = {
@@ -1874,101 +2190,169 @@ def run(args: argparse.Namespace) -> int:
             "runtime_model_fingerprint": snap.runtime_model_fingerprint,
             "obstacle_count": scene_spec.obstacle_count}
         write_json(out / "run_context.json", context)
-        lifecycle_events.append({"phase": "startup_preparation", "event": "collision_source_live", "monotonic_ns": now_ns()})
+        lifecycle_events.append({"phase": "startup_preparation", "event": "collision_source_live_confirmed",
+                                 "monotonic_ns": context["lifecycle"]["mujoco_authority_live_monotonic_ns"]})
+        ros_start_requested_ns = now_ns()
         launch_shell = (f"source /opt/ros/humble/setup.bash && source {ROS_WS}/install/setup.bash && "
                         f"export AMENT_PREFIX_PATH={shlex.quote(env['S1_04_OVERLAY'])}:$AMENT_PREFIX_PATH && "
                         "ros2 launch rl_quadruped_controller mujoco.launch.py simulation_test:=false")
         ros = subprocess.Popen(["bash", "-lc", launch_shell],
                                cwd=ROS_WS, env=env, stdout=ros_log, stderr=subprocess.STDOUT,
                                start_new_session=True)
-        time.sleep(8.0)
-        if ros.poll() is not None:
-            raise RuntimeError(f"ROS launch exited at startup with code {ros.returncode}")
-        ready = False
-        ready_queries: list[dict] = []
-        ready_deadline = time.monotonic() + 15.0
-        while time.monotonic() < ready_deadline:
-            check = ros_query_observed("ros2 control list_controllers", env, timeout=6.0)
-            ready_queries.append(check)
-            clean_controller_output = re.sub(r"\x1b\[[0-9;]*m", "", check.get("output", ""))
-            controller_lines = [line.strip() for line in clean_controller_output.splitlines()
-                                if re.match(r"^rl_quadruped_controller\b", line.strip())]
-            if (check.get("status") == "completed" and len(controller_lines) == 1 and
-                    re.search(r"\bactive\b", controller_lines[0])):
-                ready = True
-                break
-            if ros.poll() is not None:
-                break
-            time.sleep(1.0)
-        context["preflight"]["controller_ready_queries"] = ready_queries
-        if not ready:
-            write_json(out / "run_context.json", context)
-            raise RuntimeError("controller did not become active within 15 seconds")
-        lifecycle_events.append({"phase": "startup_preparation", "event": "controller_active", "monotonic_ns": now_ns()})
-        # The daemon view is diagnostic only. Gate startup on a fresh direct
-        # view, retrying missing discovery for a bounded interval while still
-        # rejecting any duplicate names or command failures immediately.
-        graph_queries = bounded_controller_graph_queries(env)
-        context["preflight"]["controller_node_graph_queries"] = graph_queries
-        accepted_direct = graph_queries.get("accepted_direct_attempt")
-        node_inventory = accepted_direct.get("inventory", {}) if accepted_direct else {}
-        controller_nodes = node_inventory.get("observed_expected_names", [])
-        context["preflight"]["controller_environment"] = None
+        ros_launch_started_ns = now_ns()
+        context["lifecycle"]["ros_launch_started_monotonic_ns"] = ros_launch_started_ns
+        context["lifecycle"]["ros_launch_start_request_interval_monotonic_ns"] = [ros_start_requested_ns,
+                                                                                   ros_launch_started_ns]
+        lifecycle_events.append({"phase": "startup_preparation", "event": "ros_launch_started",
+                                 "monotonic_ns": ros_launch_started_ns, "pid": ros.pid,
+                                 "command": "ros2 launch rl_quadruped_controller mujoco.launch.py simulation_test:=false"})
+        ros_startup_deadline = time.monotonic() + 15.0
+        query_node_name = startup_ros_session_node_name()
+        stop_publisher, session_ready = start_prepared_stop_publisher(
+            env, query_node_name, timeout_s=startup_deadline_remaining(ros_startup_deadline))
+        session_started_ns = int(session_ready.get("monotonic_ns", now_ns()))
+        context["lifecycle"]["ros_query_session_started_monotonic_ns"] = session_started_ns
+        query_identity = proc_identity(stop_publisher.pid)
+        if (not query_identity.get("executable") or
+                Path(query_identity["executable"]).resolve() != Path("/usr/bin/python3").resolve()):
+            raise RuntimeError(f"startup ROS session is not running /usr/bin/python3: {query_identity.get('executable')!r}")
+        context["preflight"]["startup_ros_query_control_session"] = {
+            "status": "running", "pid": stop_publisher.pid, "node_name": session_ready.get("node_name"),
+            "namespace": session_ready.get("node_namespace"), "process_identity": query_identity,
+            "uses_ros_cli_daemon": False, "owns_only_this_node": True,
+            "topic": "/control_input", "message_type": "control_input_msgs/msg/Inputs",
+            "publisher_qos": "reliable, volatile, keep-last depth 10 (rclpy default depth-10 profile)"}
+        context["preflight"]["controller_readiness_queries"] = []
+        manager_names = {"ros2_control_node", "ros2_control_no", "controller_manager"}
         launch_pgid = os.getpgid(ros.pid) if ros.pid is not None else None
-        launched_cm = [proc for proc in matching_processes({"ros2_control_node", "ros2_control_no", "controller_manager"})
-                       if proc["pgid"] == launch_pgid]
-        if len(launched_cm) != 1:
-            write_json(out / "run_context.json", context)
-            raise RuntimeError(f"expected one controller-manager writer process in this launch group, found {launched_cm!r}")
-        controller_pid = int(launched_cm[0]["pid"])
-        controller_identity = proc_identity(controller_pid)
-        context["preflight"]["controller_environment"] = controller_identity
         expected_controller_library = str((ROS_WS / "install/rl_quadruped_controller/lib/rl_quadruped_controller/librl_quadruped_controller.so").resolve())
-        mapped_controller_libraries = mapped_library_paths(controller_pid, "librl_quadruped_controller.so")
-        if mapped_controller_libraries != [expected_controller_library]:
-            raise RuntimeError(
-                "controller loaded library path mismatch or ambiguity: "
-                f"observed={mapped_controller_libraries!r}, expected={[expected_controller_library]!r}"
-            )
-        context["preflight"]["controller_library_mapping"] = {
-            "pid": controller_pid,
-            "expected_path": expected_controller_library,
-            "observed_paths": mapped_controller_libraries,
-            "status": "confirmed",
+        controller_source_expected_base = {
+            "package_share": str(overlay / "share/go2_description"),
+            "config": context["settings"]["controller_config"],
+            "launch_config": str(overlay / "share/go2_description/config/robot_control.yaml"),
+            "agile_model": context["settings"]["model_paths"][0],
+            "ra_model": context["settings"]["model_paths"][1],
+            "recovery_model": context["settings"]["model_paths"][2],
+            "candidate": candidate, "group": group,
+            "entry_threshold": entry_threshold, "exit_threshold": exit_threshold,
+            "hysteresis": hysteresis, "hold": hold, "hold_s": hold_duration_s,
+            "goal_x": args.goal_x, "goal_y": 0.0,
         }
-        write_json(out / "run_context.json", context)
-        controller_list = ros_query_observed("ros2 control list_controllers", env)
-        clean_controller_list = re.sub(r"\x1b\[[0-9;]*m", "", controller_list.get("output", ""))
-        rl_controller_lines = [line.strip() for line in clean_controller_list.splitlines()
-                               if re.match(r"^rl_quadruped_controller\b", line.strip())]
-        if (graph_queries.get("status") != "confirmed_unique" or
-                controller_list.get("status") != "completed" or len(rl_controller_lines) != 1 or
-                not re.search(r"\bactive\b", rl_controller_lines[0])):
-            context["preflight"]["controller_list_after_graph"] = controller_list
+        active_observed_recorded = False
+        controller_ready = False
+        controller_gate_last: dict = {"status": "pending", "reason": "not queried"}
+        while startup_deadline_remaining(ros_startup_deadline) > 0.0:
+            if ros.poll() is not None:
+                raise RuntimeError(f"ROS launch exited while waiting for controller readiness: code={ros.returncode}")
+            remaining = startup_deadline_remaining(ros_startup_deadline)
+            try:
+                query = query_startup_session(stop_publisher, min(0.75, remaining))
+            except TimeoutError as exc:
+                query = {"event": "STATUS", "expected_node_counts": None,
+                         "list_controllers_status": "timeout", "controllers": None,
+                         "control_input_subscribers": 0, "query_error": str(exc),
+                         "supervisor_query_response_monotonic_ns": now_ns()}
+            all_managers = matching_processes(manager_names)
+            outside_managers = [item for item in all_managers if item.get("pgid") != launch_pgid]
+            launched_cm = [item for item in all_managers if item.get("pgid") == launch_pgid]
+            manager_pids = [int(item["pid"]) for item in launched_cm]
+            controller_pid = manager_pids[0] if len(manager_pids) == 1 else None
+            controller_identity = proc_identity(controller_pid) if controller_pid else {}
+            mapped_controller_libraries = (mapped_library_paths(controller_pid, "librl_quadruped_controller.so")
+                                           if controller_pid else [])
+            helper_identity_now = proc_identity(stop_publisher.pid)
+            environment_matches = (not outside_managers and controller_pid is not None and
+                                   ros_communication_environment_matches(helper_identity_now, controller_identity))
+            config_binding = {"status": "pending", "reason": "manager not discovered"}
+            if controller_pid is not None:
+                ros_log.flush()
+                source_expected = {**controller_source_expected_base,
+                                   "controller_cmdline": controller_identity.get("cmdline", "")}
+                config_binding = verify_config_consumption(
+                    log_path.read_text(encoding="utf-8", errors="replace"),
+                    source_expected, controller_pid)
+            controller_gate_last = startup_controller_gate(
+                query, launch_alive=ros.poll() is None,
+                manager_pids=manager_pids, launch_pgid=launch_pgid,
+                config_status=config_binding.get("status", "pending"),
+                mapped_libraries=mapped_controller_libraries,
+                expected_library=expected_controller_library,
+                environment_matches=environment_matches)
+            if outside_managers:
+                controller_gate_last = {"status": "failed", "reason": "manager/writer process exists outside this launch group",
+                                        "outside_processes": outside_managers}
+            query_record = {"snapshot": query, "manager_processes": all_managers,
+                            "launched_manager_processes": launched_cm,
+                            "controller_identity": controller_identity,
+                            "query_process_identity": helper_identity_now,
+                            "mapped_controller_libraries": mapped_controller_libraries,
+                            "expected_controller_library": expected_controller_library,
+                            "ros_communication_environment_matches": environment_matches,
+                            "runtime_config_binding": config_binding,
+                            "gate": controller_gate_last,
+                            "observed_monotonic_ns": now_ns()}
+            context["preflight"]["controller_readiness_queries"].append(query_record)
+            counts = query.get("expected_node_counts")
+            controller_rows = query.get("controllers") or []
+            active_rows = [item for item in controller_rows if isinstance(item, dict) and
+                           item.get("name") == "rl_quadruped_controller" and item.get("state") == "active"]
+            if (not active_observed_recorded and query.get("list_controllers_status") == "completed" and
+                    len(active_rows) == 1):
+                active_ns = int(query.get("supervisor_query_response_monotonic_ns", now_ns()))
+                context["lifecycle"]["controller_active_observed_monotonic_ns"] = active_ns
+                lifecycle_events.append({"phase": "startup_preparation", "event": "controller_active_observed",
+                                         "monotonic_ns": active_ns, "query_node": query_node_name,
+                                         "active_controller_count": 1})
+                active_observed_recorded = True
+            if controller_gate_last["status"] == "failed":
+                context["preflight"]["controller_readiness_status"] = controller_gate_last
+                write_json(out / "run_context.json", context)
+                raise RuntimeError(f"controller startup source/uniqueness check failed: {controller_gate_last}")
+            if controller_gate_last["status"] == "ready":
+                controller_ready = True
+                controller_ready_ns = int(query.get("supervisor_query_response_monotonic_ns", now_ns()))
+                context["lifecycle"]["controller_ready_monotonic_ns"] = controller_ready_ns
+                context["lifecycle"]["controller_readiness_confirmed_monotonic_ns"] = controller_ready_ns
+                context["preflight"].update({"controller_nodes": query.get("graph_nodes"),
+                                             "active_controller_list": controller_rows,
+                                             "controller_environment": controller_identity,
+                                             "controller_library_mapping": {
+                                                 "pid": controller_pid,
+                                                 "expected_path": expected_controller_library,
+                                                 "observed_paths": mapped_controller_libraries,
+                                                 "status": "confirmed"},
+                                             "controller_config_binding": config_binding,
+                                             "launched_manager_process_evidence": launched_cm,
+                                             "controller_readiness_status": controller_gate_last,
+                                             "startup_ros_session_status_at_ready": query})
+                lifecycle_events.append({"phase": "startup_preparation", "event": "controller_readiness_confirmed",
+                                         "monotonic_ns": controller_ready_ns,
+                                         "manager_pid": controller_pid,
+                                         "controller_active": True, "unique_writer": True,
+                                         "runtime_configuration": "confirmed",
+                                         "library_mapping": "confirmed"})
+                context["preflight"]["startup_ros_query_control_session"]["status"] = "ready_before_stand"
+                context["preflight"]["startup_ros_query_control_session"]["publisher_ready_monotonic_ns"] = controller_ready_ns
+                context["preflight"]["startup_ros_query_control_session"]["subscriber_count"] = query.get("control_input_subscribers")
+                context["lifecycle"]["command_publisher_ready_monotonic_ns"] = controller_ready_ns
+                lifecycle_events.append({"phase": "startup_preparation", "event": "command_publisher_ready",
+                                         "monotonic_ns": controller_ready_ns,
+                                         "session_pid": stop_publisher.pid,
+                                         "subscriber_count": query.get("control_input_subscribers")})
+                break
+            remaining = startup_deadline_remaining(ros_startup_deadline)
+            if remaining > 0.0:
+                time.sleep(min(0.20, remaining))
+        if not controller_ready:
+            context["preflight"]["controller_readiness_status"] = {
+                "status": "timeout", "reason": controller_gate_last.get("reason"),
+                "total_timeout_s": 15.0,
+                "query_count": len(context["preflight"]["controller_readiness_queries"]),
+                "last_gate": controller_gate_last,
+                "query_deadline_was_not_reset": True}
             write_json(out / "run_context.json", context)
-            raise RuntimeError(
-                "bounded direct graph/controller checks did not confirm one active manager and controller: "
-                f"graph_status={graph_queries.get('status')!r}; controller_list={controller_list.get('output')!r}"
-            )
-        context["preflight"].update({"controller_nodes": controller_nodes,
-                                      "active_controller_list": controller_list.get("output", "").strip(),
-                                      "controller_list_after_graph": controller_list,
-                                      "launched_manager_process_evidence": launched_cm})
-        stop_publisher, publisher_ready = start_prepared_stop_publisher(env)
-        context["preflight"]["prepared_passive_publisher"] = {
-            "status": "ready_before_rl", "helper_pid": stop_publisher.pid,
-            "ready_monotonic_ns": publisher_ready.get("monotonic_ns"),
-            "subscriber_count": publisher_ready.get("subscribers"),
-            "topic": "/control_input", "command": 1,
-        }
-        lifecycle_events.append({"phase": "startup_preparation", "event": "passive_publisher_ready",
-                                 "monotonic_ns": publisher_ready.get("monotonic_ns"),
-                                 "helper_pid": stop_publisher.pid,
-                                 "subscriber_count": publisher_ready.get("subscribers")})
+            raise RuntimeError(f"controller did not become uniquely active and source-confirmed before total 15s deadline: {controller_gate_last}")
         write_json(out / "run_context.json", context)
-        context["lifecycle"].update({"mujoco_started_monotonic_ns": now_ns(),
-                                      "ros_launch_started_monotonic_ns": now_ns(),
-                                      "controller_ready_monotonic_ns": now_ns()})
         if args.config_only:
             managers = context["preflight"].get("launched_manager_process_evidence", [])
             expected_pid = int(managers[0]["pid"]) if len(managers) == 1 else None
@@ -2009,9 +2393,9 @@ def run(args: argparse.Namespace) -> int:
             lifecycle_events.append({"phase": "startup_preparation", "event": "A_config_consumption_confirmed",
                                      "monotonic_ns": finish_event_ns, "evidence": binding["evidence"]})
             raise ConfigOnlyComplete()
-        controls.append(publish(env, 2))
+        controls.append(publish_prepared_command(stop_publisher, "STAND_STEP"))
         wait_controller_transition(ros_log, ros, "Switched from passive to fixed down", 20.0)
-        controls.append(publish(env, 2))
+        controls.append(publish_prepared_command(stop_publisher, "STAND_STEP"))
         wait_controller_transition(ros_log, ros, "Switched from fixed down to fixed stand", 20.0)
         # The switch log is emitted when the old state's checkChange chooses
         # the next state, one controller cycle before FIXEDSTAND.enter() clears
@@ -2075,6 +2459,8 @@ def run(args: argparse.Namespace) -> int:
             wall_cap_s=(args.prepare_observation_wall_cap_s if args.prepare_only else 20.0),
             stable_sim_s=0.50, ros_log_path=log_path, last_command=2)
         context["initial_state"]["pre_rl_standing_preparation"] = standing_preparation
+        if standing_preparation.get("status") == "STABLE":
+            context["lifecycle"]["standing_admission_monotonic_ns"] = standing_preparation.get("finished_monotonic_ns")
         lifecycle_events.append({"phase": "startup_preparation", "event": "pre_rl_standing_confirmed",
                                  "status": standing_preparation.get("status"),
                                  "sim_time_interval_s": standing_preparation.get("stable_sim_time_s"),
@@ -2095,7 +2481,7 @@ def run(args: argparse.Namespace) -> int:
         if standing_preparation.get("status") != "STABLE":
             terminal_cause = "PREPARATION_FAILURE"
             raise RuntimeError("pre-RL standing preparation failed: " + str(standing_preparation.get("reason")))
-        pre_rl_capture = capture_one_joint_state(env)
+        pre_rl_capture = capture_joint_state_from_startup_session(stop_publisher, timeout_s=4.0)
         pre_rl_capture["capture_phase"] = "after confirmed PASSIVE/FIXEDSTAND stable interval, before command 3"
         pre_rl_capture["rl_entry_command_monotonic_ns"] = None
         pre_rl_capture["relation_to_rl_entry"] = "named asynchronous ROS joint-state sample taken after the stable interval; exact same-cycle alignment is not assumed"
@@ -2108,6 +2494,7 @@ def run(args: argparse.Namespace) -> int:
                                                       "limit_rad_s": 0.50,
                                                       "passed": max_abs_joint_velocity <= 0.50}
         context["initial_state"]["pre_rl_joint_state"] = pre_rl_capture
+        context["lifecycle"]["initial_state_capture_monotonic_ns"] = sample.get("capture_monotonic_ns")
         lifecycle_events.append({"phase": "startup_preparation", "event": "pre_rl_joint_state_sampled",
                                  "monotonic_ns": (sample or {}).get("capture_monotonic_ns"),
                                  "status": pre_rl_capture.get("status"),
@@ -2163,7 +2550,63 @@ def run(args: argparse.Namespace) -> int:
             "reader": pre_task_diagnostic, "observed_monotonic_ns": pre_task_validation_ns,
             "scope": "last authoritative physics snapshot before RL command; retained as the task-start coverage boundary"}
         write_json(out / "run_context.json", context)
+        # Re-query through the already-owned ROS session after all potentially
+        # long standing/state preparation; never rely on the old active result.
+        if ros is None or ros.poll() is not None or stop_publisher is None or stop_publisher.poll() is not None:
+            raise RuntimeError("fresh controller readiness cannot be confirmed; command 3 refused")
+        final_query = query_startup_session(stop_publisher, 0.75)
+        final_managers = matching_processes(manager_names)
+        final_launch_pgid = os.getpgid(ros.pid) if ros.pid is not None else None
+        final_outside = [item for item in final_managers if item.get("pgid") != final_launch_pgid]
+        final_launched = [item for item in final_managers if item.get("pgid") == final_launch_pgid]
+        final_manager_pids = [int(item["pid"]) for item in final_launched]
+        final_controller_pid = final_manager_pids[0] if len(final_manager_pids) == 1 else None
+        final_controller_identity = proc_identity(final_controller_pid) if final_controller_pid else {}
+        final_mapped_libraries = (mapped_library_paths(final_controller_pid, "librl_quadruped_controller.so")
+                                  if final_controller_pid else [])
+        final_ros_text = log_path.read_text(encoding="utf-8", errors="replace")
+        final_source_expected = {**controller_source_expected_base,
+                                 "controller_cmdline": final_controller_identity.get("cmdline", "")}
+        final_config_binding = (verify_config_consumption(final_ros_text, final_source_expected,
+                                                            final_controller_pid)
+                                if final_controller_pid else {"status": "pending", "reason": "manager missing"})
+        final_helper_identity = proc_identity(stop_publisher.pid)
+        final_env_matches = (not final_outside and final_controller_pid is not None and
+                             ros_communication_environment_matches(final_helper_identity,
+                                                                   final_controller_identity))
+        final_controller_gate = startup_controller_gate(
+            final_query, launch_alive=ros.poll() is None,
+            manager_pids=final_manager_pids, launch_pgid=final_launch_pgid,
+            config_status=final_config_binding.get("status", "pending"),
+            mapped_libraries=final_mapped_libraries,
+            expected_library=expected_controller_library,
+            environment_matches=final_env_matches)
+        if final_outside:
+            final_controller_gate = {"status": "failed", "reason": "manager/writer process exists outside this launch group",
+                                     "outside_processes": final_outside}
+        final_controller_check = {
+            "status": final_controller_gate["status"], "reason": final_controller_gate.get("reason"),
+            "query": final_query, "manager_processes": final_managers,
+            "launch_manager_processes": final_launched,
+            "controller_identity": final_controller_identity,
+            "query_process_identity": final_helper_identity,
+            "mapped_libraries": final_mapped_libraries,
+            "runtime_config_binding": final_config_binding,
+            "ros_communication_environment_matches": final_env_matches,
+            "checked_monotonic_ns": now_ns(),
+            "same_long_lived_session": True,
+        }
+        context["preflight"]["rl_entry_controller_revalidation"] = final_controller_check
+        lifecycle_events.append({"phase": "startup_preparation", "event": "rl_entry_controller_revalidated",
+                                 "monotonic_ns": final_controller_check["checked_monotonic_ns"],
+                                 "status": final_controller_gate["status"],
+                                 "same_ros_session": True})
+        if final_controller_gate["status"] != "ready":
+            write_json(out / "run_context.json", context)
+            terminal_cause = "PREPARATION_FAILURE"
+            raise RuntimeError(f"fresh controller readiness failed before command 3: {final_controller_gate}")
         entry_readiness = {
+            "controller_readiness_fresh": True,
             "recorder_ready": context["preflight"].get("recorder_readiness", {}).get("status") == "ready_readable_and_writable",
             "standing_confirmed": standing_preparation.get("status") == "STABLE",
             "joint_sample_valid": pre_rl_capture.get("status") == "captured",
@@ -2179,6 +2622,7 @@ def run(args: argparse.Namespace) -> int:
             terminal_cause = "PREPARATION_FAILURE"
             raise RuntimeError(entry_failure)
         rl_entry_publish_start_ns = now_ns()
+        context["lifecycle"]["rl_entry_request_monotonic_ns"] = rl_entry_publish_start_ns
         lifecycle_events.append({"phase": "motion", "event": "rl_policy_request_started",
                                  "monotonic_ns": rl_entry_publish_start_ns, "command": 3})
         controls.append(publish_prepared_command(stop_publisher, "START_RL"))
@@ -2427,6 +2871,7 @@ def run(args: argparse.Namespace) -> int:
                                         "sim_clock_valid": bool(frame.sim_clock_valid),
                                         "monotonic_ns": frame.monotonic_ns,
                                         "boundary": "first persisted policy frame with rl_entered=1 and rl_active=1"}
+                        context["lifecycle"]["first_policy_cycle_monotonic_ns"] = frame.monotonic_ns
                         context["lifecycle"]["policy_active_start"] = active_start
                         context["lifecycle"]["task_start"] = {
                             "session_id": frame.session_id, "rl_step": frame.rl_step,
@@ -2924,10 +3369,20 @@ def run(args: argparse.Namespace) -> int:
             # then its controller launch, then the prepared stop publisher.
             stop_results = []
             owned_processes = (("mujoco", mujoco), ("ros2_launch", ros),
-                               ("prepared_stop_publisher", stop_publisher))
+                               ("startup_ros_query_control_session", stop_publisher))
             for name, proc in owned_processes:
                 if proc is None:
                     stop_results.append({"name": name, "started": False, "exit_code": None, "forced": False})
+                    continue
+                if name == "startup_ros_query_control_session":
+                    try:
+                        session_stop = stop_prepared_ros_session(proc)
+                        stop_results.append({"name": name, "started": True, **session_stop})
+                    except Exception as exc:
+                        stop_results.append({"name": name, "started": True,
+                                             "exit_code": proc.poll(), "forced": False,
+                                             "shutdown_status": "error",
+                                             "cleanup_error": f"{type(exc).__name__}: {exc}"})
                     continue
                 forced = False
                 try:
@@ -2947,7 +3402,7 @@ def run(args: argparse.Namespace) -> int:
                             pass
                     stop_results.append({"name": name, "started": True, "exit_code": proc.poll(), "forced": forced})
                     if name == "mujoco" and proc.poll() is not None:
-                        stop_evidence = context.get("lifecycle", {}).get("post_terminal_strategy_stop", {})
+                        stop_evidence = context.get("lifecycle", {}).get("post_terminal_strategy_stop") or {}
                         confirmation = stop_evidence.get("controller_confirmation", {})
                         controller_state = confirmation.get("state") or (
                             "FIXEDSTAND" if context.get("lifecycle", {}).get("standing_observation", {}).get("complete")
@@ -3104,7 +3559,7 @@ def run(args: argparse.Namespace) -> int:
     if process_facts.get("shutdown_complete") is False:
         cleanup_summary = "未确认全部本次进程退出"
     else:
-        cleanup_summary = "本次 ROS、MuJoCo 与停止发布器进程均已退出"
+        cleanup_summary = "本次 ROS、MuJoCo 与查询/命令会话进程均已退出"
     lifecycle = context.get("lifecycle") or {}
     normal_shutdown = lifecycle.get("normal_shutdown") or {}
     strategy_stop = lifecycle.get("post_terminal_strategy_stop") or {}

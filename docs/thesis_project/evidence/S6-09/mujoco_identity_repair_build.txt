@@ -1,0 +1,3 @@
+[ 14%] Building CXX object CMakeFiles/unitree_mujoco.dir/src/main.cc.o
+[ 28%] Linking CXX executable unitree_mujoco
+[100%] Built target unitree_mujoco

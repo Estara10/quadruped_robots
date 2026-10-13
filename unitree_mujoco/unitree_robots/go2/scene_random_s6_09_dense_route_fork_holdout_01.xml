@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="go2 random_s6_09_dense_route_fork_holdout_01">
+  <include file="go2.xml" />
+  <statistic center="3.5 0 0.1" extent="8" />
+  <visual><headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0" />
+    <rgba haze="0.15 0.25 0.35 1" /><global azimuth="135" elevation="-40" /></visual>
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072" />
+    <texture type="2d" name="s6_08_groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300" />
+    <material name="s6_08_groundplane" texture="s6_08_groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2" />
+  </asset>
+  <worldbody><light pos="1 0 7" dir="0 0 -1" directional="true" />
+    <geom name="floor" type="plane" pos="3.5 0 0" size="4 3.5 0.05" material="s6_08_groundplane" />
+    <geom name="ppt_obstacle_01" type="box" pos="2.2999999999999998 0 0.28866000000000003" euler="0 0 0" size="0.94999999999999996 0.59999999999999998 0.28866000000000003" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_02" type="box" pos="4.7000000000000002 0 0.28385450000000001" euler="0 0 0" size="0.94999999999999996 0.59999999999999998 0.28385450000000001" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_03" type="box" pos="1.751781274234308 2.5839345462428329 0.22874700000000001" euler="0 0 -3.060292" size="0.47318500000000002 0.359153 0.22874700000000001" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_04" type="box" pos="4.1845023057009536 2.5566667703394192 0.20493600000000001" euler="0 0 -0.099548999999999999" size="0.73146800000000001 0.16602 0.20493600000000001" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_05" type="cylinder" pos="5.3082801543305571 -2.5912889063232298 0.1737515" size="0.397482 0.1737515" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_06" type="box" pos="2.6488634374225706 -2.7146552109593145 0.27515849999999997" euler="0 0 0.095846000000000001" size="0.641455 0.177844 0.27515849999999997" rgba="0.26 0.28 0.31 1" />
+  </worldbody>
+</mujoco>

@@ -256,13 +256,14 @@ def test_terminal_snapshot_is_synchronously_persisted_once_with_full_payload() -
                                               monotonic_ns=base_ns + 20_000_000)
             next_raw = pack_frame(next_cycle)
             next_status, next_frame = classify_frame(next_raw, base_ns + 20_000_001)
-            # A changed writer session is retained as raw evidence but rejected
-            # for run validity, preserving the one-session binding rule.
-            session_capture.observe(next_raw, next_status, next_frame, base_ns + 20_000_001)
+            # A changed writer session is rejected before it can be appended to
+            # this run's record, and the closeout carries the merge failure.
+            rejected = session_capture.observe(next_raw, next_status, next_frame, base_ns + 20_000_001)
+            assert rejected["status"] == "failed" and "runtime_session_changed" in rejected["reason"]
             assert session_capture.source_mismatch == "runtime session changed 771->772", session_capture.source_mismatch
-            session_capture.recorder.stop_sampling()
-            session_capture.recorder.finalize({"exit_code": 0, "forced_termination": False,
+            session_capture.finish({"exit_code": 0, "forced_termination": False,
                 "shutdown_complete": True, "shutdown_request_source": "offline session binding test"})
+            assert len(run_record.load_record(str(session_path)).frames) == 1
             assert run_record.summarize_record(str(session_path))["record_validity"] == "INVALID"
 
             order_path = Path(tmp) / "cycle-order-mismatch.jsonl"
@@ -275,10 +276,11 @@ def test_terminal_snapshot_is_synchronously_persisted_once_with_full_payload() -
                                                  monotonic_ns=base_ns + 20_000_000)
             reversed_raw = pack_frame(reversed_cycle)
             reversed_status, reversed_frame = classify_frame(reversed_raw, base_ns + 20_000_001)
-            order_capture.observe(reversed_raw, reversed_status, reversed_frame, base_ns + 20_000_001)
-            order_capture.recorder.stop_sampling()
-            order_capture.recorder.finalize({"exit_code": 0, "forced_termination": False,
+            rejected = order_capture.observe(reversed_raw, reversed_status, reversed_frame, base_ns + 20_000_001)
+            assert rejected["status"] == "failed" and "active_policy_cycle_not_increasing" in rejected["reason"]
+            order_capture.finish({"exit_code": 0, "forced_termination": False,
                 "shutdown_complete": True, "shutdown_request_source": "offline cycle order test"})
+            assert len(run_record.load_record(str(order_path)).frames) == 1
             assert run_record.summarize_record(str(order_path))["record_validity"] == "INVALID"
     finally:
         run_record.read_collision_snapshot = original
@@ -334,6 +336,7 @@ def test_missing_terminal_frame_payload_is_rejected() -> None:
 def test_production_closeout_end_to_end_and_failure_keeps_cleanup() -> None:
     base_ns = time.monotonic_ns()
     original_collision_reader = run_record.read_collision_snapshot
+    original_history_reader = s1_run_diagnostic.read_shm_history
     run_record.read_collision_snapshot = lambda: b""
     try:
         with tempfile.TemporaryDirectory() as tmp:
@@ -352,6 +355,26 @@ def test_production_closeout_end_to_end_and_failure_keeps_cleanup() -> None:
                 dataclasses.replace(fixture(sequence=106, rl_step=2, session_id=445, monotonic_ns=base_ns+200_000_000),
                     sim_time_s=10.2, world_pose=(0.7, 0.0, 0.0), mode_before=0, policy_state=0),
             ]
+            # This synthetic production-path case must model the current
+            # producer-history contract as well as the direct live snapshots.
+            # The old fixture omitted the ring entirely, which correctly made
+            # FrameCapture fail closed with policy_cycle_history_incomplete.
+            history_frames = [(index, pack_frame(frame)) for index, frame in enumerate(frames)]
+            def read_fixture_history(*, cursor: int = 0, expected_session: int | None = None,
+                                     max_source_sequence: int | None = None, **_kwargs: object) -> dict:
+                selected = []
+                for index, raw in history_frames:
+                    source_frame = frames[index]
+                    if index < cursor:
+                        continue
+                    if expected_session is not None and source_frame.session_id != expected_session:
+                        continue
+                    if max_source_sequence is not None and source_frame.sequence > max_source_sequence:
+                        continue
+                    selected.append((index, raw))
+                return {"status": "OK", "session_id": 445, "produced_count": len(history_frames),
+                        "overwritten_count": 0, "frames": selected, "cursor": cursor}
+            s1_run_diagnostic.read_shm_history = read_fixture_history
             terminal_ref = None
             for index, frame in enumerate(frames):
                 raw = pack_frame(frame)
@@ -409,6 +432,7 @@ def test_production_closeout_end_to_end_and_failure_keeps_cleanup() -> None:
             assert math.isclose(metrics["path_length_m"], 0.1, abs_tol=1e-6)
             s1_run_diagnostic.write_json(root / "metrics.json", metrics)
             assert json.loads((root / "metrics.json").read_text())["record_validity"] == "VALID"
+            s1_run_diagnostic.read_shm_history = original_history_reader
 
         # An artifact error after the process-cleanup callback is reported, while
         # cleanup still runs and the analyzer refuses to call the result complete.

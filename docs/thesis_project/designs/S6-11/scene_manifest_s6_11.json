@@ -1,0 +1,652 @@
+{
+  "schema_version": 1,
+  "library_version": "s6-11-mapset/1.0",
+  "generator_version": "s6-11-local-obstacles/1.0",
+  "scene_count": 60,
+  "development_count": 30,
+  "held_out_count": 30,
+  "stratification": {
+    "density": [
+      "sparse",
+      "medium",
+      "dense"
+    ],
+    "route_structure": [
+      "single_side_bypass",
+      "alternating_bypass",
+      "offset_gates",
+      "short_local_bypass",
+      "forward_offset_short_obstacles"
+    ],
+    "replicas_per_density_structure": 4,
+    "development_per_cell": 2,
+    "held_out_per_cell": 2
+  },
+  "generation_seed_namespaces": {
+    "new_development": "9110000-9130999",
+    "new_held_out": "9210000-9230999"
+  },
+  "run_seeds": "independent from generation seeds; no policy run is authorized by S6-11",
+  "density_bands_exclusive": {
+    "sparse": [
+      0.06,
+      0.09
+    ],
+    "medium": [
+      0.095,
+      0.12
+    ],
+    "dense": [
+      0.13,
+      0.2
+    ]
+  },
+  "bounds_m": {
+    "obstacle": {
+      "x": [
+        -0.5,
+        7.5
+      ],
+      "y": [
+        -3.0,
+        3.0
+      ]
+    },
+    "path_search": {
+      "x": [
+        0.0,
+        7.0
+      ],
+      "y": [
+        -2.9,
+        2.9
+      ]
+    }
+  },
+  "start_m": [
+    0.0,
+    0.0
+  ],
+  "goal_m": [
+    7.0,
+    0.0
+  ],
+  "go2_planar_envelope_radius_m": 0.65,
+  "engineering_margin_m": 0.1,
+  "required_centerline_clearance_m": 0.75,
+  "local_obstacle_limits": {
+    "forward_projected_length_max_m": 0.85,
+    "lateral_projected_length_max_m": 0.75,
+    "reference_lateral_offset_max_m": 1.55,
+    "reference_heading_change_max_deg": 50.0
+  },
+  "s6_09_source_generator_version": "s6-09-mapgen/1.1",
+  "history_excluded_scene_ids": [
+    "s609_sf_d01",
+    "s609_sf_d02",
+    "s609_sf_h01",
+    "s609_sf_h02",
+    "s609_si_d01",
+    "s609_si_d02",
+    "s609_si_h01",
+    "s609_si_h02",
+    "s609_mf_d01",
+    "s609_mf_d02",
+    "s609_mf_h01",
+    "s609_mf_h02",
+    "s609_mi_d01",
+    "s609_mi_d02",
+    "s609_mi_h01",
+    "s609_mi_h02",
+    "s609_df_d01",
+    "s609_df_d02",
+    "s609_df_h01",
+    "s609_df_h02",
+    "s609_di_d01",
+    "s609_di_d02",
+    "s609_di_h01",
+    "s609_di_h02"
+  ],
+  "active_scenes": [
+    {
+      "scene_id": "s609_sb_d01",
+      "filename": "scene_random_s6_09_sparse_single_side_bypass_dev_01.xml",
+      "preview": "random_s6_09_sparse_single_side_bypass_dev_01.png",
+      "density": "sparse",
+      "route_structure": "single_side_bypass",
+      "split": "development",
+      "generation_seed": 6900001
+    },
+    {
+      "scene_id": "s609_sb_d02",
+      "filename": "scene_random_s6_09_sparse_single_side_bypass_dev_02.xml",
+      "preview": "random_s6_09_sparse_single_side_bypass_dev_02.png",
+      "density": "sparse",
+      "route_structure": "single_side_bypass",
+      "split": "development",
+      "generation_seed": 6900002
+    },
+    {
+      "scene_id": "s609_sb_h01",
+      "filename": "scene_random_s6_09_sparse_single_side_bypass_holdout_01.xml",
+      "preview": "random_s6_09_sparse_single_side_bypass_holdout_01.png",
+      "density": "sparse",
+      "route_structure": "single_side_bypass",
+      "split": "held_out",
+      "generation_seed": 7900001
+    },
+    {
+      "scene_id": "s609_sb_h02",
+      "filename": "scene_random_s6_09_sparse_single_side_bypass_holdout_02.xml",
+      "preview": "random_s6_09_sparse_single_side_bypass_holdout_02.png",
+      "density": "sparse",
+      "route_structure": "single_side_bypass",
+      "split": "held_out",
+      "generation_seed": 7900002
+    },
+    {
+      "scene_id": "s609_sa_d01",
+      "filename": "scene_random_s6_09_sparse_alternating_bypass_dev_01.xml",
+      "preview": "random_s6_09_sparse_alternating_bypass_dev_01.png",
+      "density": "sparse",
+      "route_structure": "alternating_bypass",
+      "split": "development",
+      "generation_seed": 6901001
+    },
+    {
+      "scene_id": "s609_sa_d02",
+      "filename": "scene_random_s6_09_sparse_alternating_bypass_dev_02.xml",
+      "preview": "random_s6_09_sparse_alternating_bypass_dev_02.png",
+      "density": "sparse",
+      "route_structure": "alternating_bypass",
+      "split": "development",
+      "generation_seed": 6901002
+    },
+    {
+      "scene_id": "s609_sa_h01",
+      "filename": "scene_random_s6_09_sparse_alternating_bypass_holdout_01.xml",
+      "preview": "random_s6_09_sparse_alternating_bypass_holdout_01.png",
+      "density": "sparse",
+      "route_structure": "alternating_bypass",
+      "split": "held_out",
+      "generation_seed": 7901001
+    },
+    {
+      "scene_id": "s609_sa_h02",
+      "filename": "scene_random_s6_09_sparse_alternating_bypass_holdout_02.xml",
+      "preview": "random_s6_09_sparse_alternating_bypass_holdout_02.png",
+      "density": "sparse",
+      "route_structure": "alternating_bypass",
+      "split": "held_out",
+      "generation_seed": 7901002
+    },
+    {
+      "scene_id": "s609_so_d01",
+      "filename": "scene_random_s6_09_sparse_offset_gates_dev_01.xml",
+      "preview": "random_s6_09_sparse_offset_gates_dev_01.png",
+      "density": "sparse",
+      "route_structure": "offset_gates",
+      "split": "development",
+      "generation_seed": 6902001
+    },
+    {
+      "scene_id": "s609_so_d02",
+      "filename": "scene_random_s6_09_sparse_offset_gates_dev_02.xml",
+      "preview": "random_s6_09_sparse_offset_gates_dev_02.png",
+      "density": "sparse",
+      "route_structure": "offset_gates",
+      "split": "development",
+      "generation_seed": 6902002
+    },
+    {
+      "scene_id": "s609_so_h01",
+      "filename": "scene_random_s6_09_sparse_offset_gates_holdout_01.xml",
+      "preview": "random_s6_09_sparse_offset_gates_holdout_01.png",
+      "density": "sparse",
+      "route_structure": "offset_gates",
+      "split": "held_out",
+      "generation_seed": 7902001
+    },
+    {
+      "scene_id": "s609_so_h02",
+      "filename": "scene_random_s6_09_sparse_offset_gates_holdout_02.xml",
+      "preview": "random_s6_09_sparse_offset_gates_holdout_02.png",
+      "density": "sparse",
+      "route_structure": "offset_gates",
+      "split": "held_out",
+      "generation_seed": 7902002
+    },
+    {
+      "scene_id": "s609_mb_d01",
+      "filename": "scene_random_s6_09_medium_single_side_bypass_dev_01.xml",
+      "preview": "random_s6_09_medium_single_side_bypass_dev_01.png",
+      "density": "medium",
+      "route_structure": "single_side_bypass",
+      "split": "development",
+      "generation_seed": 7000001
+    },
+    {
+      "scene_id": "s609_mb_d02",
+      "filename": "scene_random_s6_09_medium_single_side_bypass_dev_02.xml",
+      "preview": "random_s6_09_medium_single_side_bypass_dev_02.png",
+      "density": "medium",
+      "route_structure": "single_side_bypass",
+      "split": "development",
+      "generation_seed": 7000002
+    },
+    {
+      "scene_id": "s609_mb_h01",
+      "filename": "scene_random_s6_09_medium_single_side_bypass_holdout_01.xml",
+      "preview": "random_s6_09_medium_single_side_bypass_holdout_01.png",
+      "density": "medium",
+      "route_structure": "single_side_bypass",
+      "split": "held_out",
+      "generation_seed": 8000001
+    },
+    {
+      "scene_id": "s609_mb_h02",
+      "filename": "scene_random_s6_09_medium_single_side_bypass_holdout_02.xml",
+      "preview": "random_s6_09_medium_single_side_bypass_holdout_02.png",
+      "density": "medium",
+      "route_structure": "single_side_bypass",
+      "split": "held_out",
+      "generation_seed": 8000002
+    },
+    {
+      "scene_id": "s609_ma_d01",
+      "filename": "scene_random_s6_09_medium_alternating_bypass_dev_01.xml",
+      "preview": "random_s6_09_medium_alternating_bypass_dev_01.png",
+      "density": "medium",
+      "route_structure": "alternating_bypass",
+      "split": "development",
+      "generation_seed": 7001001
+    },
+    {
+      "scene_id": "s609_ma_d02",
+      "filename": "scene_random_s6_09_medium_alternating_bypass_dev_02.xml",
+      "preview": "random_s6_09_medium_alternating_bypass_dev_02.png",
+      "density": "medium",
+      "route_structure": "alternating_bypass",
+      "split": "development",
+      "generation_seed": 7001002
+    },
+    {
+      "scene_id": "s609_ma_h01",
+      "filename": "scene_random_s6_09_medium_alternating_bypass_holdout_01.xml",
+      "preview": "random_s6_09_medium_alternating_bypass_holdout_01.png",
+      "density": "medium",
+      "route_structure": "alternating_bypass",
+      "split": "held_out",
+      "generation_seed": 8001001
+    },
+    {
+      "scene_id": "s609_ma_h02",
+      "filename": "scene_random_s6_09_medium_alternating_bypass_holdout_02.xml",
+      "preview": "random_s6_09_medium_alternating_bypass_holdout_02.png",
+      "density": "medium",
+      "route_structure": "alternating_bypass",
+      "split": "held_out",
+      "generation_seed": 8001002
+    },
+    {
+      "scene_id": "s609_mo_d01",
+      "filename": "scene_random_s6_09_medium_offset_gates_dev_01.xml",
+      "preview": "random_s6_09_medium_offset_gates_dev_01.png",
+      "density": "medium",
+      "route_structure": "offset_gates",
+      "split": "development",
+      "generation_seed": 7002001
+    },
+    {
+      "scene_id": "s609_mo_d02",
+      "filename": "scene_random_s6_09_medium_offset_gates_dev_02.xml",
+      "preview": "random_s6_09_medium_offset_gates_dev_02.png",
+      "density": "medium",
+      "route_structure": "offset_gates",
+      "split": "development",
+      "generation_seed": 7002002
+    },
+    {
+      "scene_id": "s609_mo_h01",
+      "filename": "scene_random_s6_09_medium_offset_gates_holdout_01.xml",
+      "preview": "random_s6_09_medium_offset_gates_holdout_01.png",
+      "density": "medium",
+      "route_structure": "offset_gates",
+      "split": "held_out",
+      "generation_seed": 8002001
+    },
+    {
+      "scene_id": "s609_mo_h02",
+      "filename": "scene_random_s6_09_medium_offset_gates_holdout_02.xml",
+      "preview": "random_s6_09_medium_offset_gates_holdout_02.png",
+      "density": "medium",
+      "route_structure": "offset_gates",
+      "split": "held_out",
+      "generation_seed": 8002002
+    },
+    {
+      "scene_id": "s609_db_d01",
+      "filename": "scene_random_s6_09_dense_single_side_bypass_dev_01.xml",
+      "preview": "random_s6_09_dense_single_side_bypass_dev_01.png",
+      "density": "dense",
+      "route_structure": "single_side_bypass",
+      "split": "development",
+      "generation_seed": 7100001
+    },
+    {
+      "scene_id": "s609_db_d02",
+      "filename": "scene_random_s6_09_dense_single_side_bypass_dev_02.xml",
+      "preview": "random_s6_09_dense_single_side_bypass_dev_02.png",
+      "density": "dense",
+      "route_structure": "single_side_bypass",
+      "split": "development",
+      "generation_seed": 7100002
+    },
+    {
+      "scene_id": "s609_db_h01",
+      "filename": "scene_random_s6_09_dense_single_side_bypass_holdout_01.xml",
+      "preview": "random_s6_09_dense_single_side_bypass_holdout_01.png",
+      "density": "dense",
+      "route_structure": "single_side_bypass",
+      "split": "held_out",
+      "generation_seed": 8100001
+    },
+    {
+      "scene_id": "s609_db_h02",
+      "filename": "scene_random_s6_09_dense_single_side_bypass_holdout_02.xml",
+      "preview": "random_s6_09_dense_single_side_bypass_holdout_02.png",
+      "density": "dense",
+      "route_structure": "single_side_bypass",
+      "split": "held_out",
+      "generation_seed": 8100002
+    },
+    {
+      "scene_id": "s609_da_d01",
+      "filename": "scene_random_s6_09_dense_alternating_bypass_dev_01.xml",
+      "preview": "random_s6_09_dense_alternating_bypass_dev_01.png",
+      "density": "dense",
+      "route_structure": "alternating_bypass",
+      "split": "development",
+      "generation_seed": 7101001
+    },
+    {
+      "scene_id": "s609_da_d02",
+      "filename": "scene_random_s6_09_dense_alternating_bypass_dev_02.xml",
+      "preview": "random_s6_09_dense_alternating_bypass_dev_02.png",
+      "density": "dense",
+      "route_structure": "alternating_bypass",
+      "split": "development",
+      "generation_seed": 7101002
+    },
+    {
+      "scene_id": "s609_da_h01",
+      "filename": "scene_random_s6_09_dense_alternating_bypass_holdout_01.xml",
+      "preview": "random_s6_09_dense_alternating_bypass_holdout_01.png",
+      "density": "dense",
+      "route_structure": "alternating_bypass",
+      "split": "held_out",
+      "generation_seed": 8101001
+    },
+    {
+      "scene_id": "s609_da_h02",
+      "filename": "scene_random_s6_09_dense_alternating_bypass_holdout_02.xml",
+      "preview": "random_s6_09_dense_alternating_bypass_holdout_02.png",
+      "density": "dense",
+      "route_structure": "alternating_bypass",
+      "split": "held_out",
+      "generation_seed": 8101002
+    },
+    {
+      "scene_id": "s609_do_d01",
+      "filename": "scene_random_s6_09_dense_offset_gates_dev_01.xml",
+      "preview": "random_s6_09_dense_offset_gates_dev_01.png",
+      "density": "dense",
+      "route_structure": "offset_gates",
+      "split": "development",
+      "generation_seed": 7102001
+    },
+    {
+      "scene_id": "s609_do_d02",
+      "filename": "scene_random_s6_09_dense_offset_gates_dev_02.xml",
+      "preview": "random_s6_09_dense_offset_gates_dev_02.png",
+      "density": "dense",
+      "route_structure": "offset_gates",
+      "split": "development",
+      "generation_seed": 7102002
+    },
+    {
+      "scene_id": "s609_do_h01",
+      "filename": "scene_random_s6_09_dense_offset_gates_holdout_01.xml",
+      "preview": "random_s6_09_dense_offset_gates_holdout_01.png",
+      "density": "dense",
+      "route_structure": "offset_gates",
+      "split": "held_out",
+      "generation_seed": 8102001
+    },
+    {
+      "scene_id": "s609_do_h02",
+      "filename": "scene_random_s6_09_dense_offset_gates_holdout_02.xml",
+      "preview": "random_s6_09_dense_offset_gates_holdout_02.png",
+      "density": "dense",
+      "route_structure": "offset_gates",
+      "split": "held_out",
+      "generation_seed": 8102002
+    },
+    {
+      "scene_id": "s611_sl_d01",
+      "filename": "scene_random_s6_11_sparse_short_local_bypass_dev_01.xml",
+      "preview": "random_s6_11_sparse_short_local_bypass_dev_01.png",
+      "density": "sparse",
+      "route_structure": "short_local_bypass",
+      "split": "development",
+      "generation_seed": 9110001
+    },
+    {
+      "scene_id": "s611_sl_d02",
+      "filename": "scene_random_s6_11_sparse_short_local_bypass_dev_02.xml",
+      "preview": "random_s6_11_sparse_short_local_bypass_dev_02.png",
+      "density": "sparse",
+      "route_structure": "short_local_bypass",
+      "split": "development",
+      "generation_seed": 9110002
+    },
+    {
+      "scene_id": "s611_sl_h01",
+      "filename": "scene_random_s6_11_sparse_short_local_bypass_holdout_01.xml",
+      "preview": "random_s6_11_sparse_short_local_bypass_holdout_01.png",
+      "density": "sparse",
+      "route_structure": "short_local_bypass",
+      "split": "held_out",
+      "generation_seed": 9210001
+    },
+    {
+      "scene_id": "s611_sl_h02",
+      "filename": "scene_random_s6_11_sparse_short_local_bypass_holdout_02.xml",
+      "preview": "random_s6_11_sparse_short_local_bypass_holdout_02.png",
+      "density": "sparse",
+      "route_structure": "short_local_bypass",
+      "split": "held_out",
+      "generation_seed": 9210002
+    },
+    {
+      "scene_id": "s611_sq_d01",
+      "filename": "scene_random_s6_11_sparse_forward_offset_short_obstacles_dev_01.xml",
+      "preview": "random_s6_11_sparse_forward_offset_short_obstacles_dev_01.png",
+      "density": "sparse",
+      "route_structure": "forward_offset_short_obstacles",
+      "split": "development",
+      "generation_seed": 9111001
+    },
+    {
+      "scene_id": "s611_sq_d02",
+      "filename": "scene_random_s6_11_sparse_forward_offset_short_obstacles_dev_02.xml",
+      "preview": "random_s6_11_sparse_forward_offset_short_obstacles_dev_02.png",
+      "density": "sparse",
+      "route_structure": "forward_offset_short_obstacles",
+      "split": "development",
+      "generation_seed": 9111002
+    },
+    {
+      "scene_id": "s611_sq_h01",
+      "filename": "scene_random_s6_11_sparse_forward_offset_short_obstacles_holdout_01.xml",
+      "preview": "random_s6_11_sparse_forward_offset_short_obstacles_holdout_01.png",
+      "density": "sparse",
+      "route_structure": "forward_offset_short_obstacles",
+      "split": "held_out",
+      "generation_seed": 9211001
+    },
+    {
+      "scene_id": "s611_sq_h02",
+      "filename": "scene_random_s6_11_sparse_forward_offset_short_obstacles_holdout_02.xml",
+      "preview": "random_s6_11_sparse_forward_offset_short_obstacles_holdout_02.png",
+      "density": "sparse",
+      "route_structure": "forward_offset_short_obstacles",
+      "split": "held_out",
+      "generation_seed": 9211002
+    },
+    {
+      "scene_id": "s611_ml_d01",
+      "filename": "scene_random_s6_11_medium_short_local_bypass_dev_01.xml",
+      "preview": "random_s6_11_medium_short_local_bypass_dev_01.png",
+      "density": "medium",
+      "route_structure": "short_local_bypass",
+      "split": "development",
+      "generation_seed": 9120001
+    },
+    {
+      "scene_id": "s611_ml_d02",
+      "filename": "scene_random_s6_11_medium_short_local_bypass_dev_02.xml",
+      "preview": "random_s6_11_medium_short_local_bypass_dev_02.png",
+      "density": "medium",
+      "route_structure": "short_local_bypass",
+      "split": "development",
+      "generation_seed": 9120002
+    },
+    {
+      "scene_id": "s611_ml_h01",
+      "filename": "scene_random_s6_11_medium_short_local_bypass_holdout_01.xml",
+      "preview": "random_s6_11_medium_short_local_bypass_holdout_01.png",
+      "density": "medium",
+      "route_structure": "short_local_bypass",
+      "split": "held_out",
+      "generation_seed": 9220001
+    },
+    {
+      "scene_id": "s611_ml_h02",
+      "filename": "scene_random_s6_11_medium_short_local_bypass_holdout_02.xml",
+      "preview": "random_s6_11_medium_short_local_bypass_holdout_02.png",
+      "density": "medium",
+      "route_structure": "short_local_bypass",
+      "split": "held_out",
+      "generation_seed": 9220002
+    },
+    {
+      "scene_id": "s611_mq_d01",
+      "filename": "scene_random_s6_11_medium_forward_offset_short_obstacles_dev_01.xml",
+      "preview": "random_s6_11_medium_forward_offset_short_obstacles_dev_01.png",
+      "density": "medium",
+      "route_structure": "forward_offset_short_obstacles",
+      "split": "development",
+      "generation_seed": 9121001
+    },
+    {
+      "scene_id": "s611_mq_d02",
+      "filename": "scene_random_s6_11_medium_forward_offset_short_obstacles_dev_02.xml",
+      "preview": "random_s6_11_medium_forward_offset_short_obstacles_dev_02.png",
+      "density": "medium",
+      "route_structure": "forward_offset_short_obstacles",
+      "split": "development",
+      "generation_seed": 9121002
+    },
+    {
+      "scene_id": "s611_mq_h01",
+      "filename": "scene_random_s6_11_medium_forward_offset_short_obstacles_holdout_01.xml",
+      "preview": "random_s6_11_medium_forward_offset_short_obstacles_holdout_01.png",
+      "density": "medium",
+      "route_structure": "forward_offset_short_obstacles",
+      "split": "held_out",
+      "generation_seed": 9221001
+    },
+    {
+      "scene_id": "s611_mq_h02",
+      "filename": "scene_random_s6_11_medium_forward_offset_short_obstacles_holdout_02.xml",
+      "preview": "random_s6_11_medium_forward_offset_short_obstacles_holdout_02.png",
+      "density": "medium",
+      "route_structure": "forward_offset_short_obstacles",
+      "split": "held_out",
+      "generation_seed": 9221002
+    },
+    {
+      "scene_id": "s611_dl_d01",
+      "filename": "scene_random_s6_11_dense_short_local_bypass_dev_01.xml",
+      "preview": "random_s6_11_dense_short_local_bypass_dev_01.png",
+      "density": "dense",
+      "route_structure": "short_local_bypass",
+      "split": "development",
+      "generation_seed": 9130001
+    },
+    {
+      "scene_id": "s611_dl_d02",
+      "filename": "scene_random_s6_11_dense_short_local_bypass_dev_02.xml",
+      "preview": "random_s6_11_dense_short_local_bypass_dev_02.png",
+      "density": "dense",
+      "route_structure": "short_local_bypass",
+      "split": "development",
+      "generation_seed": 9130002
+    },
+    {
+      "scene_id": "s611_dl_h01",
+      "filename": "scene_random_s6_11_dense_short_local_bypass_holdout_01.xml",
+      "preview": "random_s6_11_dense_short_local_bypass_holdout_01.png",
+      "density": "dense",
+      "route_structure": "short_local_bypass",
+      "split": "held_out",
+      "generation_seed": 9230001
+    },
+    {
+      "scene_id": "s611_dl_h02",
+      "filename": "scene_random_s6_11_dense_short_local_bypass_holdout_02.xml",
+      "preview": "random_s6_11_dense_short_local_bypass_holdout_02.png",
+      "density": "dense",
+      "route_structure": "short_local_bypass",
+      "split": "held_out",
+      "generation_seed": 9230002
+    },
+    {
+      "scene_id": "s611_dq_d01",
+      "filename": "scene_random_s6_11_dense_forward_offset_short_obstacles_dev_01.xml",
+      "preview": "random_s6_11_dense_forward_offset_short_obstacles_dev_01.png",
+      "density": "dense",
+      "route_structure": "forward_offset_short_obstacles",
+      "split": "development",
+      "generation_seed": 9131001
+    },
+    {
+      "scene_id": "s611_dq_d02",
+      "filename": "scene_random_s6_11_dense_forward_offset_short_obstacles_dev_02.xml",
+      "preview": "random_s6_11_dense_forward_offset_short_obstacles_dev_02.png",
+      "density": "dense",
+      "route_structure": "forward_offset_short_obstacles",
+      "split": "development",
+      "generation_seed": 9131002
+    },
+    {
+      "scene_id": "s611_dq_h01",
+      "filename": "scene_random_s6_11_dense_forward_offset_short_obstacles_holdout_01.xml",
+      "preview": "random_s6_11_dense_forward_offset_short_obstacles_holdout_01.png",
+      "density": "dense",
+      "route_structure": "forward_offset_short_obstacles",
+      "split": "held_out",
+      "generation_seed": 9231001
+    },
+    {
+      "scene_id": "s611_dq_h02",
+      "filename": "scene_random_s6_11_dense_forward_offset_short_obstacles_holdout_02.xml",
+      "preview": "random_s6_11_dense_forward_offset_short_obstacles_holdout_02.png",
+      "density": "dense",
+      "route_structure": "forward_offset_short_obstacles",
+      "split": "held_out",
+      "generation_seed": 9231002
+    }
+  ]
+}

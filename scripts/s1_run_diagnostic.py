@@ -20,14 +20,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from abs_rt_frame import (  # noqa: E402
-    FRAME_VERSION, SIM_CLOCK_STALE, FrameStatus, classify_frame, read_shm_frame,
+    FRAME_VERSION, SIM_CLOCK_STALE, FrameStatus, RuntimeFrame, classify_frame,
+    read_shm_frame, read_shm_history,
 )
 from abs_collision import (  # noqa: E402
     CollisionStatus, classify_snapshot, classify_snapshot_diagnostic, read_collision_snapshot,
     read_collision_snapshot_diagnostic,
 )
 from abs_scene import resolve_scene  # noqa: E402
-from run_record import RunRecordRecorder, collision_snapshot_payload  # noqa: E402
+from run_record import (RunRecordRecorder, collision_snapshot_payload,
+                        base_bounds_snapshot_payload)  # noqa: E402
+from abs_base_bounds import read_snapshot as read_base_bounds_snapshot  # noqa: E402
 from s1_runtime_source import verify_config_consumption, verify_source_binding  # noqa: E402
 
 MUJOCO_DIR = ROOT / "unitree_mujoco"
@@ -59,6 +62,11 @@ class PreparationOnlyComplete(Exception):
 
 def now_ns() -> int:
     return time.monotonic_ns()
+
+
+def history_drain_limit(status: FrameStatus, frame: RuntimeFrame | None) -> int | None:
+    """Cap ring draining at the exact live single-slot snapshot we may append next."""
+    return frame.sequence if status is FrameStatus.LIVE and frame is not None else None
 
 
 def select_strategy_terminal(safety_abort: bool, collision: bool, fall: bool,
@@ -562,6 +570,21 @@ def rl_entry_precondition_failure(readiness: dict) -> str | None:
     return "RL entry refused; preparation gates failed: " + ", ".join(missing) if missing else None
 
 
+def base_bounds_gate_failure(result: object) -> str | None:
+    """Keep the pre-RL field-boundary gate tied to one valid reader result."""
+    if not isinstance(result, dict) or result.get("status") != "LIVE":
+        status = result.get("status", "MISSING") if isinstance(result, dict) else "INVALID_RESULT"
+        return f"field-boundary authority is {status}"
+    snapshot = result.get("snapshot")
+    if not isinstance(snapshot, dict):
+        return "field-boundary snapshot payload is missing"
+    if snapshot.get("bounds_valid") != 1:
+        return "field-boundary bounds_valid is not set"
+    if snapshot.get("physics_coverage_complete") != 1:
+        return "field-boundary physics coverage is incomplete"
+    return None
+
+
 def task_window_history_events(snapshot_payload: object, task_start_sim_s: float | None,
                                current_sim_s: float | None,
                                pre_task_physics_step: int | None) -> tuple[list[dict], list[dict]]:
@@ -909,7 +932,8 @@ def write_json(path: Path, value: object) -> None:
 
 
 def build_env(capture_id: str, overlay: Path, display: str, xauthority: str,
-              scene: object, run_dir: Path) -> dict[str, str]:
+              scene: object, run_dir: Path,
+              field_bounds_m: dict | None = None) -> dict[str, str]:
     env = os.environ.copy()
     env["DISPLAY"] = display
     env["XAUTHORITY"] = xauthority
@@ -921,6 +945,11 @@ def build_env(capture_id: str, overlay: Path, display: str, xauthority: str,
     env["ABS_P1_10_MODEL_CLOSURE_SHA256"] = scene.closure_sha256
     env["ABS_P1_10_CAPTURE_ID"] = capture_id
     env["ABS_P1_10_EXPECTED_MODEL_FINGERPRINT"] = scene.model_fingerprint
+    if field_bounds_m is not None:
+        env["ABS_FIELD_BOUNDS_X_MIN"] = str(field_bounds_m["x"][0])
+        env["ABS_FIELD_BOUNDS_X_MAX"] = str(field_bounds_m["x"][1])
+        env["ABS_FIELD_BOUNDS_Y_MIN"] = str(field_bounds_m["y"][0])
+        env["ABS_FIELD_BOUNDS_Y_MAX"] = str(field_bounds_m["y"][1])
     resolved_run_dir = run_dir.resolve()
     env["ABS_MUJOCO_STANDING_PROMPT_MARKER"] = str(resolved_run_dir / "standing_prompt.marker")
     env["ABS_MUJOCO_STANDING_FRAMEBUFFER_CAPTURE"] = str(resolved_run_dir / "standing_hold.ppm")
@@ -1636,12 +1665,37 @@ class FrameCapture:
         self.bound_session_id: int | None = None
         self.source_mismatch: str | None = None
         self.last_frame_metadata: dict | None = None
+        # The collision authority snapshot is serialized inside the same
+        # immutable policy-frame line. Keep it alongside the identity so an
+        # identical history/live duplicate can still feed the supervisor.
+        self.last_frame_collision_snapshot: dict | None = None
         self.run_start_ns = run_start_ns
         self.pre_run_frames_ignored = 0
         self.candidate_mode = candidate_mode
         self.entry_threshold = entry_threshold
         self.exit_threshold = exit_threshold
         self.hold_duration_s = hold_duration_s
+        self.history_cursor = 0
+        self.history_session_id: int | None = None
+        self.history_produced_count: int | None = None
+        self.history_overwritten_count: int | None = None
+        self.history_status = "NOT_READ"
+        self.history_error: str | None = None
+        self.merge_error: str | None = None
+        self.history_read_retries = 0
+        self.identity_duplicate_count = 0
+        self.identity_conflict_count = 0
+        self.consumer_unread_loss_count = 0
+        self.consumer_unread_loss_ranges: list[list[int]] = []
+        self.consumer_unread_loss_through = self.history_cursor
+        self.history_persisted_frames = 0
+        self.last_frame_raw: bytes | None = None
+        self.first_active_policy_cycle: int | None = None
+        self.last_active_policy_cycle: int | None = None
+        self.active_policy_cycle_gap_count = 0
+        self.active_policy_cycle_gap_ranges: list[list[int]] = []
+        self.task_terminal_boundary: dict | None = None
+        self._draining_history = False
 
     def start(self) -> None:
         self.recorder.start()
@@ -1665,6 +1719,13 @@ class FrameCapture:
         """Persist the exact supervisor snapshot once, before terminal evaluation."""
         if status is not FrameStatus.LIVE or frame is None:
             return {"status": "not_live", "persisted": False}
+        # Drain the producer ring before handling the latest live slot. This
+        # recovers overwritten-in-the-live-slot cycles in order; reentrant
+        # calls from the drain skip this outer drain.
+        if not self._draining_history:
+            if self.bound_session_id is None:
+                self.bound_session_id = frame.session_id
+            self.drain_history(max_source_sequence=frame.sequence)
         with self._lock:
             if self.stop.is_set() or self.recorder.stopped:
                 self.error = "capture was stopped before the observed policy frame was persisted"
@@ -1674,12 +1735,48 @@ class FrameCapture:
                 return {"status": "pre_run_ignored", "persisted": False}
             key = (frame.session_id, frame.sequence)
             if key == self.last_frame_key:
+                if raw != self.last_frame_raw:
+                    self.identity_conflict_count += 1
+                    self.merge_error = (
+                        "same_runtime_identity_different_content: "
+                        f"session={frame.session_id}, sequence={frame.sequence}")
+                    return {"status": "failed", "persisted": False,
+                            "reason": self.merge_error, "frame_ref": self.last_frame_metadata}
+                self.identity_duplicate_count += 1
                 return {"status": "already_persisted", "persisted": True,
-                        "frame_ref": self.last_frame_metadata}
+                        "frame_ref": self.last_frame_metadata,
+                        "collision_snapshot": self.last_frame_collision_snapshot,
+                        "collision_snapshot_relation": "attached_physics_sample_in_same_persisted_policy_record",
+                        "collision_snapshot_identity": self._collision_snapshot_identity(
+                            self.last_frame_collision_snapshot)}
             if self.bound_session_id is None:
                 self.bound_session_id = frame.session_id
             elif frame.session_id != self.bound_session_id:
                 self.source_mismatch = f"runtime session changed {self.bound_session_id}->{frame.session_id}"
+                self.merge_error = "runtime_session_changed: " + self.source_mismatch
+                return {"status": "failed", "persisted": False, "reason": self.merge_error}
+            if (self.last_frame_key is not None and
+                    (key[0] != self.last_frame_key[0] or key[1] < self.last_frame_key[1])):
+                self.merge_error = (
+                    "runtime_identity_out_of_order: "
+                    f"previous={self.last_frame_key}, current={key}")
+                return {"status": "failed", "persisted": False,
+                        "reason": self.merge_error, "frame_ref": self.last_frame_metadata}
+            if (self.last_frame_metadata is not None and
+                    frame.monotonic_ns <= self.last_frame_metadata.get("monotonic_ns", -1)):
+                self.merge_error = (
+                    "runtime_monotonic_not_strictly_increasing: "
+                    f"previous={self.last_frame_metadata.get('monotonic_ns')}, current={frame.monotonic_ns}")
+                return {"status": "failed", "persisted": False,
+                        "reason": self.merge_error, "frame_ref": self.last_frame_metadata}
+            if (frame.rl_entered == 1 and frame.rl_active == 1 and
+                    self.last_active_policy_cycle is not None and
+                    frame.rl_step <= self.last_active_policy_cycle):
+                self.merge_error = (
+                    "active_policy_cycle_not_increasing: "
+                    f"previous={self.last_active_policy_cycle}, current={frame.rl_step}")
+                return {"status": "failed", "persisted": False,
+                        "reason": self.merge_error, "frame_ref": self.last_frame_metadata}
             if (frame.switching_mode != self.candidate_mode or
                     frame.version != FRAME_VERSION or
                     abs(frame.entry_threshold - self.entry_threshold) >= 1e-5 or
@@ -1711,12 +1808,170 @@ class FrameCapture:
                 self.error = f"{type(exc).__name__}: {exc}"
                 return {"status": "failed", "persisted": False, "reason": self.error, "frame_ref": ref}
             self.last_frame_key = key
+            self.last_frame_raw = bytes(raw)
             self.last_frame_metadata = {**ref, "persisted": True}
+            self.last_frame_collision_snapshot = payload.get("collision_snapshot")
             self.unique_frames += 1
+            if frame.rl_entered == 1 and frame.rl_active == 1:
+                if self.first_active_policy_cycle is None:
+                    self.first_active_policy_cycle = frame.rl_step
+                if self.last_active_policy_cycle is not None and frame.rl_step > self.last_active_policy_cycle + 1:
+                    gap_start = self.last_active_policy_cycle + 1
+                    gap_end = frame.rl_step
+                    self.active_policy_cycle_gap_count += gap_end - gap_start
+                    self.active_policy_cycle_gap_ranges.append([gap_start, gap_end])
+                self.last_active_policy_cycle = frame.rl_step
             return {"status": "persisted", "persisted": True, "frame_ref": self.last_frame_metadata,
-                    "collision_snapshot": payload.get("collision_snapshot")}
+                    "collision_snapshot": self.last_frame_collision_snapshot,
+                    "collision_snapshot_relation": "attached_physics_sample_in_same_persisted_policy_record",
+                    "collision_snapshot_identity": self._collision_snapshot_identity(
+                        self.last_frame_collision_snapshot)}
+
+    @staticmethod
+    def _collision_snapshot_identity(snapshot: dict | None) -> dict | None:
+        if not isinstance(snapshot, dict):
+            return None
+        return {key: snapshot.get(key) for key in
+                ("capture_id", "sequence", "physics_step", "sim_time", "monotonic_ns", "status")}
+
+    def drain_history(self, max_source_sequence: int | None = None) -> dict:
+        """Single guarded entry for producer-ring merge, including closeout drains."""
+        if self._draining_history:
+            return {"status": "REENTRANT_SKIPPED", "cursor": self.history_cursor,
+                    "produced_count": self.history_produced_count}
+        self._draining_history = True
+        try:
+            return self._drain_history_impl(max_source_sequence)
+        finally:
+            self._draining_history = False
+
+    def _drain_history_impl(self, max_source_sequence: int | None = None) -> dict:
+        last_batch: dict = {"status": "INVALID", "reason": "history_not_read"}
+        # A concurrently committed/reused slot can fail its seqlock once while
+        # the producer advances. Retry from the unchanged consumer cursor a
+        # small fixed number of times; persistent incoherence fails closed.
+        for attempt in range(3):
+            batch = read_shm_history(cursor=self.history_cursor,
+                                     expected_session=self.bound_session_id,
+                                     max_source_sequence=max_source_sequence)
+            last_batch = batch
+            self.history_status = batch.get("status", "INVALID")
+            self.history_session_id = batch.get("session_id", self.history_session_id)
+            self.history_produced_count = batch.get("produced_count", self.history_produced_count)
+            self.history_overwritten_count = batch.get("overwritten_count", self.history_overwritten_count)
+            if batch.get("status") == "OVERFLOW":
+                lost = batch.get("consumer_unread_loss_count")
+                if isinstance(lost, int) and not isinstance(lost, bool) and lost > 0:
+                    loss_range = batch.get("consumer_unread_loss_range")
+                    if isinstance(loss_range, list) and len(loss_range) == 2:
+                        loss_start, loss_end = int(loss_range[0]), int(loss_range[1])
+                        # Re-reading the same fail-closed overflow while closing
+                        # out must not count the identical unread indices twice.
+                        new_start = max(loss_start, self.consumer_unread_loss_through)
+                        if loss_end > new_start:
+                            self.consumer_unread_loss_count += loss_end - new_start
+                            self.consumer_unread_loss_ranges.append([new_start, loss_end])
+                            self.consumer_unread_loss_through = loss_end
+            frames = batch.get("frames", [])
+            for index, raw in frames:
+                try:
+                    if index != self.history_cursor:
+                        self.history_error = (
+                            f"history_index_not_contiguous: expected={self.history_cursor}, received={index}")
+                        return batch
+                    frame = RuntimeFrame.from_bytes(raw)
+                    if frame.session_id != self.bound_session_id:
+                        self.history_error = "history_frame_session_mismatch"
+                        return batch
+                    # A history record is validated at its publication timestamp;
+                    # consumer lag is not mistaken for a stale producer snapshot.
+                    status, checked = classify_frame(raw, frame.monotonic_ns)
+                    if status is not FrameStatus.LIVE or checked is None:
+                        self.history_error = f"history_frame_invalid:{status.value}:cycle={frame.rl_step}"
+                        return batch
+                    result = self.observe(raw, status, checked, frame.monotonic_ns)
+                    if not result.get("persisted"):
+                        self.merge_error = result.get("reason", "history_frame_persist_failed")
+                        return batch
+                    self.history_cursor = index + 1
+                    self.history_persisted_frames += 1 if result.get("status") == "persisted" else 0
+                except Exception as exc:
+                    self.history_error = f"{type(exc).__name__}:{exc}"
+                    return batch
+            if batch.get("status") == "OK":
+                return batch
+            if batch.get("status") != "INCOHERENT" or attempt == 2:
+                self.history_error = (
+                    f"{batch.get('status')}:{batch.get('reason', batch)}; "
+                    f"retries={min(attempt, 2)}")
+                return batch
+            self.history_read_retries += 1
+        return last_batch
+
+    def mark_task_terminal(self, frame_ref: dict | None) -> dict:
+        ref = dict(frame_ref) if isinstance(frame_ref, dict) else None
+        same_terminal_payload = bool(
+            ref is not None and self.last_frame_metadata is not None and
+            all(ref.get(key) == self.last_frame_metadata.get(key)
+                for key in ("session_id", "rl_step", "source_sequence", "monotonic_ns")))
+        complete = bool(
+            same_terminal_payload and self.first_active_policy_cycle == 0 and
+            self.last_active_policy_cycle == ref.get("rl_step") and
+            self.active_policy_cycle_gap_count == 0 and
+            self.history_status == "OK" and self.history_error is None and
+            self.merge_error is None and self.consumer_unread_loss_count == 0)
+        self.task_terminal_boundary = {
+            "status": "complete" if complete else "incomplete",
+            "terminal_frame_ref": ref,
+            "terminal_frame_payload_persisted_same_snapshot": same_terminal_payload,
+            "first_active_policy_cycle": self.first_active_policy_cycle,
+            "last_active_policy_cycle": self.last_active_policy_cycle,
+            "missing_active_policy_cycle_count": self.active_policy_cycle_gap_count,
+            "missing_active_policy_cycle_ranges": list(self.active_policy_cycle_gap_ranges),
+            "consumer_cursor_at_task_terminal": self.history_cursor,
+            "producer_count_at_task_terminal": self.history_produced_count,
+            "producer_slot_reuse_count_at_task_terminal": self.history_overwritten_count,
+            "consumer_unread_loss_count_at_task_terminal": self.consumer_unread_loss_count,
+            "reason": None if complete else "terminal payload, active cycle continuity, or ring evidence incomplete",
+        }
+        return dict(self.task_terminal_boundary)
 
     def finish(self, facts: dict) -> dict:
+        if self.bound_session_id is not None and not self._draining_history:
+            self.drain_history()
+        final_drain_complete = bool(
+            self.history_status == "OK" and self.history_error is None and
+            self.merge_error is None and self.consumer_unread_loss_count == 0 and
+            self.history_produced_count == self.history_cursor)
+        facts["policy_cycle_history"] = {
+            "accounting_version": 2,
+            "status": self.history_status,
+            "session_id": self.history_session_id,
+            "producer_count_at_last_drain": self.history_produced_count,
+            # Historical field retains its original producer-side meaning:
+            # cumulative number of slots reused, not consumer data loss.
+            "producer_overwritten_count": self.history_overwritten_count,
+            "producer_slot_reuse_count": self.history_overwritten_count,
+            "consumer_unread_loss_count": self.consumer_unread_loss_count,
+            "consumer_unread_loss_ranges": list(self.consumer_unread_loss_ranges),
+            "history_read_retries": self.history_read_retries,
+            "identity_consistent_duplicate_count": self.identity_duplicate_count,
+            "identity_content_conflict_count": self.identity_conflict_count,
+            "consumer_cursor": self.history_cursor,
+            "history_frames_persisted": self.history_persisted_frames,
+            "runtime_record_unique_frames": self.unique_frames,
+            "error": self.history_error,
+            "merge_error": self.merge_error,
+            "task_termination_boundary": self.task_terminal_boundary,
+            "final_closeout_drain": {
+                "producer_count": self.history_produced_count,
+                "consumer_cursor": self.history_cursor,
+                "producer_slot_reuse_count": self.history_overwritten_count,
+                "consumer_unread_loss_count": self.consumer_unread_loss_count,
+                "complete": final_drain_complete,
+            },
+            "complete_at_last_drain": final_drain_complete,
+        }
         self.stop.set()
         if not self.recorder.stopped:
             self.recorder.stop_sampling()
@@ -1752,6 +2007,16 @@ def finalize_run_closeout(out: Path, context: dict, process_facts: dict,
         errors.append({"stage": "run_context_pre_finalize", "error": f"{type(exc).__name__}: {exc}"})
 
     if capture_started:
+        context["lifecycle"]["capture_close_order"] = {
+            "task_terminal_boundary_frozen": recorder.task_terminal_boundary is not None,
+            "task_terminal_frame_ref": (dict(recorder.task_terminal_boundary.get("terminal_frame_ref") or {})
+                                         if recorder.task_terminal_boundary is not None else None),
+            "owned_producer_process_shutdown_confirmed_before_final_drain": (
+                process_facts.get("shutdown_complete") is True),
+            "record_writer_state_before_final_drain": recorder.recorder.state,
+            "final_history_drain_occurs_after_owned_process_cleanup": True,
+            "scope": "task boundary remains fixed; final drain may persist closeout policy frames outside task metrics",
+        }
         try:
             terminal = recorder.finish(process_facts)
             context["lifecycle"]["terminal_record_finalized"] = True
@@ -1891,6 +2156,25 @@ def run(args: argparse.Namespace) -> int:
         print(json.dumps({"result": "SCENE_PREFLIGHT_REJECTED", "scene": args.scene,
                           "reason": str(exc)}, ensure_ascii=False))
         return 2
+    map_record = None
+    if scene_spec.scene_id.startswith("m1"):
+        try:
+            layout_path = ROOT / "docs/thesis_project/designs/M1/library_v1/layouts.json"
+            library = json.loads(layout_path.read_text(encoding="utf-8"))
+            matches = [item for item in library.get("scenes", [])
+                       if item.get("scene_id") == scene_spec.scene_id]
+            if len(matches) != 1 or matches[0].get("filename") != scene_spec.filename:
+                raise ValueError("M1 library scene identity is missing or ambiguous")
+            map_record = matches[0]
+            if (not math.isclose(args.goal_x, float(map_record["goal_m"][0]), abs_tol=1e-9) or
+                    not math.isclose(args.goal_y, float(map_record["goal_m"][1]), abs_tol=1e-9) or
+                    not math.isclose(args.sim_limit_s, 20.0, abs_tol=1e-9) or
+                    not math.isclose(args.wall_cap_s, 120.0, abs_tol=1e-9)):
+                raise ValueError("M1 goal/runtime limits differ from the frozen map manifest")
+        except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
+            print(json.dumps({"result": "M1_SCENE_SETTINGS_REJECTED", "scene": args.scene,
+                              "reason": str(exc)}, ensure_ascii=False))
+            return 2
     run_id = uuid.uuid4().hex
     capture_id = "p1-10-capture-" + uuid.uuid4().hex
     out = args.output_root / run_id
@@ -1905,7 +2189,8 @@ def run(args: argparse.Namespace) -> int:
     hold_duration_s = args.hold_s if group in ("C", "D") else 0.0
     hysteresis = "true" if group in ("B", "D") else "false"
     hold = "true" if group in ("C", "D") else "false"
-    env = build_env(capture_id, overlay, args.display, args.xauthority, scene_spec, out)
+    env = build_env(capture_id, overlay, args.display, args.xauthority, scene_spec, out,
+                    map_record.get("field_bounds_m") if map_record else None)
     if args.startup_gain_trace:
         env["ABS_S6_STARTUP_GAIN_TRACE"] = "1"
     if args.startup_recovery_observation_s > 0.0:
@@ -1971,11 +2256,17 @@ def run(args: argparse.Namespace) -> int:
                      "scene_root_sha256": scene_spec.root_sha256,
                      "scene_model_closure_sha256": scene_spec.closure_sha256,
                      "runtime_model_fingerprint": scene_spec.model_fingerprint,
+                     "map_library_version": "m1-mapset/1.0" if map_record else None,
+                     "map_structure": map_record.get("route_structure") if map_record else None,
+                     "map_density_label": map_record.get("density") if map_record else None,
+                     "map_split": map_record.get("split") if map_record else None,
+                     "map_generation_seed": map_record.get("generation_seed") if map_record else None,
+                     "declared_field_bounds_m": map_record.get("field_bounds_m") if map_record else None,
                      "candidate": candidate, "group": group,
                      "entry_threshold": entry_threshold, "exit_threshold": exit_threshold,
                      "hysteresis": hysteresis, "hold": hold,
                      "recovery_min_hold_s": hold_duration_s,
-                     "goal_world_m": [args.goal_x, 0.0], "arrival_threshold_m": 0.5,
+                     "goal_world_m": [args.goal_x, args.goal_y], "arrival_threshold_m": 0.5,
                      "diagnostic_sim_limit_after_motion_s": args.sim_limit_s,
                      "standing_observation_sim_s": args.standing_observation_sim_s,
                      "startup_recovery_observation_s": args.startup_recovery_observation_s,
@@ -2068,7 +2359,7 @@ def run(args: argparse.Namespace) -> int:
         config_text = config_path.read_text(encoding="utf-8")
         if not overlay_configuration_matches(config_text, group, entry_threshold,
                                              exit_threshold, hold_duration_s,
-                                             args.goal_x, 0.0):
+                                             args.goal_x, args.goal_y):
             raise RuntimeError(f"overlay config does not satisfy abs.switching {group} contract or expected goal")
         missing_models = [path for path in context["settings"]["model_paths"] if not Path(path).is_file()]
         if missing_models:
@@ -2236,7 +2527,7 @@ def run(args: argparse.Namespace) -> int:
             "candidate": candidate, "group": group,
             "entry_threshold": entry_threshold, "exit_threshold": exit_threshold,
             "hysteresis": hysteresis, "hold": hold, "hold_s": hold_duration_s,
-            "goal_x": args.goal_x, "goal_y": 0.0,
+            "goal_x": args.goal_x, "goal_y": args.goal_y,
         }
         active_observed_recorded = False
         controller_ready = False
@@ -2549,6 +2840,17 @@ def run(args: argparse.Namespace) -> int:
             "status": "LIVE", "snapshot": collision_snapshot_payload(pre_task_status, pre_task_snapshot),
             "reader": pre_task_diagnostic, "observed_monotonic_ns": pre_task_validation_ns,
             "scope": "last authoritative physics snapshot before RL command; retained as the task-start coverage boundary"}
+        pre_task_bounds_result = read_base_bounds_snapshot(
+            expected_scene_id=scene_spec.scene_id, expected_capture_id=capture_id,
+            expected_fingerprint=scene_spec.model_fingerprint)
+        context["initial_state"]["pre_task_safety_boundary"]["base_bounds_snapshot"] = (
+            base_bounds_snapshot_payload(pre_task_bounds_result))
+        base_bounds_failure = (base_bounds_gate_failure(pre_task_bounds_result)
+                               if map_record is not None else None)
+        if base_bounds_failure is not None:
+            terminal_cause = "PREPARATION_FAILURE"
+            raise RuntimeError("pre-RL PhysicsLoop field-boundary check failed; RL entry refused: " +
+                               base_bounds_failure)
         write_json(out / "run_context.json", context)
         # Re-query through the already-owned ROS session after all potentially
         # long standing/state preparation; never rely on the old active result.
@@ -2754,6 +3056,9 @@ def run(args: argparse.Namespace) -> int:
             raw = read_shm_frame()
             frame_sampled_ns = now_ns()
             status, frame = classify_frame(raw, frame_sampled_ns)
+            if (frame is not None and frame.session_id >= recorder.run_start_ns and
+                    recorder.bound_session_id is None):
+                recorder.bound_session_id = frame.session_id
             if (startup_monitor_state is not None and
                     startup_monitor_state.get("terminal") is None):
                 note_startup_policy_read_status(
@@ -2761,6 +3066,21 @@ def run(args: argparse.Namespace) -> int:
                     frame if frame is not None and frame.rl_entered == 1 and frame.rl_active == 1 else None)
             if status is FrameStatus.LIVE and frame is not None:
                 capture_result = recorder.observe(raw, status, frame, frame_sampled_ns)
+                if recorder.history_error is not None or recorder.merge_error is not None:
+                    terminal_cause = "RECORDING_FAILURE"
+                    terminal_frame_ref = capture_result.get("frame_ref")
+                    context["lifecycle"]["policy_cycle_history"] = {
+                        "status": recorder.history_status,
+                        "error": recorder.history_error,
+                        "merge_error": recorder.merge_error,
+                        "session_id": recorder.history_session_id,
+                        "producer_count": recorder.history_produced_count,
+                        "overwritten_count": recorder.history_overwritten_count,
+                        "consumer_unread_loss_count": recorder.consumer_unread_loss_count,
+                        "consumer_cursor": recorder.history_cursor,
+                    }
+                    terminal_event_ns = frame.monotonic_ns
+                    break
                 if not capture_result.get("persisted"):
                     terminal_cause = "RECORDING_FAILURE"
                     terminal_frame_ref = capture_result.get("frame_ref")
@@ -2795,7 +3115,7 @@ def run(args: argparse.Namespace) -> int:
                             "candidate": candidate, "candidate_mode": candidate_mode, "group": group,
                             "entry_threshold": entry_threshold, "exit_threshold": exit_threshold,
                             "hysteresis": hysteresis, "hold": hold, "hold_s": hold_duration_s,
-                            "goal_x": args.goal_x, "goal_y": 0.0,
+                            "goal_x": args.goal_x, "goal_y": args.goal_y,
                         }
                         frame_binding = {"session_id": frame.session_id, "switching_mode": frame.switching_mode,
                                          "entry_threshold": frame.entry_threshold,
@@ -2841,7 +3161,7 @@ def run(args: argparse.Namespace) -> int:
                                 "monotonic_ns": now_ns(), "session_id": bound_session_id,
                                 "candidate": candidate, "group": group,
                                 "entry_threshold": frame.entry_threshold,
-                                "exit_threshold": frame.exit_threshold, "goal_world_m": [args.goal_x, 0.0],
+                                "exit_threshold": frame.exit_threshold, "goal_world_m": [args.goal_x, args.goal_y],
                                 "source_evidence_wait_s": time.monotonic() - source_wait_started
                                     if source_wait_started is not None else 0.0})
                             write_json(out / "run_context.json", context)
@@ -3013,7 +3333,7 @@ def run(args: argparse.Namespace) -> int:
                                     "sim_time_s": fall_event.get("confirmed_sim_time"),
                                     "start_physics_step": fall_event.get("start_physics_step"),
                                     "start_sim_time_s": fall_event.get("start_sim_time")})
-                        distance = math.dist((frame.world_pose[0], frame.world_pose[1]), (args.goal_x, 0.0))
+                        distance = math.dist((frame.world_pose[0], frame.world_pose[1]), (args.goal_x, args.goal_y))
                         arrived = task_window_started and distance <= 0.5
                         sim_timeout = (task_start_sim_s is not None and
                                        frame.sim_clock_valid and
@@ -3038,6 +3358,8 @@ def run(args: argparse.Namespace) -> int:
                     if selected_terminal is not None:
                         terminal_cause = selected_terminal
                         terminal_frame_ref = capture_result["frame_ref"]
+                        task_history_boundary = recorder.mark_task_terminal(terminal_frame_ref)
+                        context["lifecycle"]["policy_cycle_history_at_task_terminal"] = task_history_boundary
                         terminal_event_ns = frame.monotonic_ns
                         closeout_snapshot = collision_payload if isinstance(collision_payload, dict) else {}
                         normal_closeout_eligible, closeout_gate_reason = normal_closeout_gate(
@@ -3049,7 +3371,7 @@ def run(args: argparse.Namespace) -> int:
                             "terminal_frame_sequence": frame.sequence,
                             "terminal_frame_sim_time_s": frame.sim_time_s if frame.sim_clock_valid else None,
                             "terminal_world_xy_m": list(frame.world_pose[:2]),
-                            "goal_world_xy_m": [args.goal_x, 0.0],
+                            "goal_world_xy_m": [args.goal_x, args.goal_y],
                             "distance_to_goal_m": distance,
                             "normal_closeout_eligible": normal_closeout_eligible,
                             "normal_closeout_ineligible_reason": closeout_gate_reason,
@@ -3210,9 +3532,18 @@ def run(args: argparse.Namespace) -> int:
                 motion_start_state_capture["joint_position_rad"] = "UNKNOWN"
                 motion_start_state_capture["joint_velocity_rad_s"] = "UNKNOWN"
         context["initial_state"]["motion_start_measured_state"] = motion_start_state_capture
-        if capture_started and not recorder.recorder.stopped:
-            recorder.stop.set()
-            recorder.recorder.stop_sampling()
+        if capture_started and recorder.task_terminal_boundary is not None:
+            # Freeze the task-metric boundary at the observed terminal frame,
+            # but keep the JSONL writer open. finalize_run_closeout() first
+            # stops the owned producer processes and FrameCapture.finish() then
+            # drains their final policy-history entries before closing the
+            # recorder. Analyzer task metrics remain bounded by the frozen
+            # terminal reference, so closeout frames cannot extend motion.
+            context["lifecycle"]["task_window_capture"] = {
+                "status": "frozen_at_terminal_writer_open_for_closeout_drain",
+                "terminal_frame_ref": dict(recorder.task_terminal_boundary.get("terminal_frame_ref") or {}),
+                "motion_metrics_include_closeout_tail": False,
+            }
         if context.get("session_id") is None and recorder.bound_session_id is not None:
             context["session_id"] = recorder.bound_session_id
         if terminal_frame_ref is None and terminal_cause == "SYSTEM_SAFETY_ABORT" and recorder.last_frame_metadata is not None:
@@ -3499,6 +3830,7 @@ def run(args: argparse.Namespace) -> int:
                                   "shutdown_request_source": "S1-04 bounded supervisor SIGINT with TERM/KILL fallback",
                                   "run_terminal_result": terminal_cause,
                                   "run_terminal_monotonic_ns": finish_event_ns,
+                                  "run_terminal_frame_ref": terminal_frame_ref,
                                   "cleanup_events": [e for e in lifecycle_events if e.get("phase") == "cleanup"]})
             if args.startup_recovery_observation_s > 0.0:
                 startup_record = context["lifecycle"].get("startup_recovery_observation", {})
@@ -3591,6 +3923,7 @@ def main() -> int:
     parser.add_argument("--hold-s", type=float, default=0.30,
                         help="C/D Recovery minimum hold H in simulation seconds; A/B disable hold")
     parser.add_argument("--goal-x", type=float, default=1.0)
+    parser.add_argument("--goal-y", type=float, default=0.0)
     parser.add_argument("--scene", default="scene_obstacle.xml",
                         help="supported MuJoCo scene XML filename (default: scene_obstacle.xml)")
     parser.add_argument("--sim-limit-s", type=float, default=6.0)
@@ -3633,6 +3966,7 @@ def main() -> int:
     if args.startup_recovery_observation_s > 0.0:
         if (args.group != "A" or args.scene != "scene_random_04.xml" or
                 abs(args.entry_threshold - (-0.05)) > 1e-9 or abs(args.goal_x - 7.0) > 1e-9 or
+                abs(args.goal_y) > 1e-9 or
                 args.config_only or args.prepare_only):
             parser.error("the S6-04 startup observation is restricted to one A/-0.05 run on "
                          "scene_random_04.xml with goal-x=7.0; config/prepare-only modes are forbidden")

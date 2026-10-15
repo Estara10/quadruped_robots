@@ -100,6 +100,20 @@ target_include_directories(s2_06_scene_probe PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(s2_06_scene_probe PRIVATE mujoco::mujoco rt)
 
+# S6-11 local-map runtime fingerprint and production publisher probe.
+add_executable(s6_11_scene_identity_probe test/s6_11_scene_identity_probe.cpp)
+target_include_directories(s6_11_scene_identity_probe PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../common
+  ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_link_libraries(s6_11_scene_identity_probe PRIVATE mujoco::mujoco rt)
+
+# B1: bounded PhysicsLoop base-bounds latch and reader handshake probe.
+add_executable(b1_base_bounds_probe test/b1_base_bounds_probe.cpp)
+target_include_directories(b1_base_bounds_probe PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../common
+  ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_link_libraries(b1_base_bounds_probe PRIVATE mujoco::mujoco rt)
+
 # S2-05 foot-contact policy and real MuJoCo contact-force production probe.
 add_executable(s2_05_contact_probe test/s2_05_contact_probe.cpp)
 target_include_directories(s2_05_contact_probe PRIVATE

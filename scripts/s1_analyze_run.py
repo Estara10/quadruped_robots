@@ -22,6 +22,55 @@ def quantile(values: list[float], q: float) -> float | None:
     return ordered[lo] if lo == hi else ordered[lo] + (ordered[hi] - ordered[lo]) * (pos - lo)
 
 
+def summarize_policy_cadence(frames: list[dict[str, Any]]) -> dict[str, Any]:
+    """Estimate policy cadence from cycle identity, not reader poll count.
+
+    Adjacent-frame period quantiles include only persisted consecutive policy
+    cycles. Overall frequency counts cycle IDs across the observed monotonic
+    span, so a skipped reader sample is not treated as if only one policy cycle
+    elapsed. Missing cycles remain explicit and never become fabricated frames.
+    """
+    adjacent_periods_s: list[float] = []
+    observed_cycle_span = 0
+    observed_wall_span_s = 0.0
+    missing_cycles = 0
+    for left, right in zip(frames, frames[1:]):
+        if left.get("session_id") != right.get("session_id"):
+            continue
+        left_step, right_step = left.get("rl_step"), right.get("rl_step")
+        if not isinstance(left_step, int) or not isinstance(right_step, int):
+            continue
+        delta_step = right_step - left_step
+        dt_wall = (right.get("monotonic_ns", 0) - left.get("monotonic_ns", 0)) / 1e9
+        if delta_step <= 0 or dt_wall <= 0:
+            continue
+        observed_cycle_span += delta_step
+        observed_wall_span_s += dt_wall
+        missing_cycles += max(0, delta_step - 1)
+        if delta_step == 1:
+            adjacent_periods_s.append(dt_wall)
+    return {
+        "policy_frequency_hz_overall": (
+            observed_cycle_span / observed_wall_span_s if observed_wall_span_s > 0 else None),
+        "observed_policy_cycle_span": observed_cycle_span,
+        "observed_wall_span_s": observed_wall_span_s if observed_wall_span_s > 0 else None,
+        "missing_policy_cycles_between_saved_frames": missing_cycles,
+        "adjacent_consecutive_cycle_period_s": adjacent_periods_s,
+        "period_quantile_scope": "saved adjacent frames with rl_step delta exactly 1",
+        "frequency_scope": "policy cycle-ID span divided by monotonic span between saved frames",
+        "coverage": "complete" if frames and missing_cycles == 0 else "partial_or_unknown",
+    }
+
+
+def mode_edge_coverage(policy_frames: list[dict[str, Any]], identity_complete: bool) -> str:
+    """A saved-edge count is complete only if the active cycle sequence is contiguous."""
+    contiguous = bool(policy_frames) and all(
+        left.get("session_id") == right.get("session_id") and
+        right.get("rl_step") == left.get("rl_step", -2) + 1
+        for left, right in zip(policy_frames, policy_frames[1:]))
+    return "complete" if identity_complete and contiguous else "partial_or_unknown"
+
+
 def audit_hold_episodes(motion_frames: list[dict]) -> dict[str, Any]:
     """Audit C/D hold against saved decision-cycle frames without interpolation."""
     episodes: list[dict[str, Any]] = []
@@ -117,25 +166,84 @@ def audit_hold_episodes(motion_frames: list[dict]) -> dict[str, Any]:
 def motion_safety(frames: list[dict], start_s: float | None,
                   end_s: float | None,
                   terminal_snapshot: dict | None = None,
-                  boundary_snapshots: list[dict] | None = None) -> dict[str, Any]:
-    """Classify collision and fall evidence only inside inclusive motion bounds."""
+                  boundary_snapshots: list[dict] | None = None,
+                  start_boundary_snapshot: dict | None = None,
+                  end_boundary_snapshot: dict | None = None) -> dict[str, Any]:
+    """Classify safety events using valid sim-time or an identity-bound physics-step window.
+
+    A policy frame can have an invalid sim clock while the independently sampled,
+    same-run collision snapshot remains LIVE. Such snapshots may establish a
+    positive event's task-window membership by physics-step identity. They do not
+    make elapsed-time coverage complete and cannot support a no-event conclusion.
+    Callers must pass only frames within the safety interval; adjacent persisted
+    boundary snapshots may be supplied separately. Post-terminal capture frames
+    belong to the full-capture summary, not to a completed task-window assessment.
+    """
     snapshots = [p.get("collision_snapshot") for p in frames]
     snapshots.extend(boundary_snapshots or [])
     if isinstance(terminal_snapshot, dict):
         snapshots.append(terminal_snapshot)
-    source_complete = bool(frames) and start_s is not None and end_s is not None
-    source_complete = source_complete and all(
-        isinstance(item, dict) and item.get("status") == CollisionStatus.LIVE.value and
-        item.get("version") in (4, 5) and item.get("physics_coverage_complete") is True and
-        item.get("collision_history_overflow") is False and
-        item.get("fall_history_overflow") is False and
-        item.get("event_latches_complete") is True
-        for item in snapshots)
+    capture_ids = {item.get("capture_id") for item in snapshots if isinstance(item, dict)}
+    capture_ids.discard(None)
+    expected_capture_id = next(iter(capture_ids)) if len(capture_ids) == 1 else None
+
+    def usable_boundary(item: dict | None) -> dict | None:
+        if (not isinstance(item, dict) or item.get("status") != CollisionStatus.LIVE.value or
+                item.get("physics_coverage_complete") is not True or
+                not isinstance(item.get("physics_step"), int) or
+                not isinstance(item.get("sim_time"), (int, float)) or
+                not math.isfinite(float(item.get("sim_time"))) or
+                item.get("event_latches_complete") is not True or
+                item.get("collision_history_overflow") is not False or
+                item.get("fall_history_overflow") is not False or
+                expected_capture_id is None or item.get("capture_id") != expected_capture_id):
+            return None
+        return item
+
+    start_physics = usable_boundary(start_boundary_snapshot)
+    end_physics = usable_boundary(end_boundary_snapshot)
+    start_step = start_physics.get("physics_step") if start_physics else None
+    end_step = end_physics.get("physics_step") if end_physics else None
+    step_window_valid = (isinstance(start_step, int) and isinstance(end_step, int) and
+                         end_step >= start_step)
+    coverage_failures: list[str] = []
+    if not frames or start_s is None or end_s is None or end_s < start_s:
+        coverage_failures.append("task_window_frames_or_time_bounds_missing")
+    if not snapshots:
+        coverage_failures.append("task_window_physical_snapshots_missing")
+    if expected_capture_id is None:
+        coverage_failures.append("task_window_capture_identity_missing_or_conflicting")
+    elif any(not isinstance(item, dict) or item.get("capture_id") != expected_capture_id
+             for item in snapshots):
+        coverage_failures.append("task_window_capture_identity_conflict")
+    if any(not isinstance(item, dict) or
+           item.get("status") != CollisionStatus.LIVE.value for item in snapshots):
+        coverage_failures.append("task_window_contains_non_live_physical_snapshot")
+    if any(not isinstance(item, dict) or item.get("version") not in (4, 5)
+           for item in snapshots):
+        coverage_failures.append("task_window_snapshot_version_missing_or_unsupported")
+    if any(not isinstance(item, dict) or item.get("physics_coverage_complete") is not True
+           for item in snapshots):
+        coverage_failures.append("task_window_physics_publisher_coverage_incomplete")
+    if any(not isinstance(item, dict) or item.get("collision_history_overflow") is not False
+           for item in snapshots):
+        coverage_failures.append("task_window_collision_history_overflow_or_unknown")
+    if any(not isinstance(item, dict) or item.get("fall_history_overflow") is not False
+           for item in snapshots):
+        coverage_failures.append("task_window_fall_history_overflow_or_unknown")
+    if any(not isinstance(item, dict) or item.get("event_latches_complete") is not True
+           for item in snapshots):
+        coverage_failures.append("task_window_event_latches_incomplete")
+    source_complete = not coverage_failures
     snapshot_times = [item.get("sim_time") for item in snapshots
                       if isinstance(item, dict) and isinstance(item.get("sim_time"), (int, float))]
-    source_complete = source_complete and len(snapshot_times) == len(snapshots)
-    source_complete = source_complete and min(snapshot_times, default=math.inf) <= start_s
-    source_complete = source_complete and max(snapshot_times, default=-math.inf) >= end_s
+    if len(snapshot_times) != len(snapshots):
+        coverage_failures.append("task_window_snapshot_time_missing")
+    if start_s is not None and min(snapshot_times, default=math.inf) > start_s:
+        coverage_failures.append("task_window_start_not_bracketed_by_physical_snapshot")
+    if end_s is not None and max(snapshot_times, default=-math.inf) < end_s:
+        coverage_failures.append("task_window_terminal_not_bracketed_by_physical_snapshot")
+    source_complete = not coverage_failures
     history: dict[int, dict] = {}
     for item in snapshots:
         if not isinstance(item, dict):
@@ -146,10 +254,22 @@ def motion_safety(frames: list[dict], start_s: float | None,
                 if isinstance(key, int) and (key not in history or
                         event.get("end_physics_step", 0) > history[key].get("end_physics_step", 0)):
                     history[key] = event
-    motion_events = [event for event in history.values()
-                     if start_s is not None and end_s is not None and
-                     event.get("end_sim_time", -math.inf) >= start_s and
-                     event.get("start_sim_time", math.inf) <= end_s]
+    if start_s is not None and end_s is not None:
+        motion_events = [event for event in history.values()
+                         if event.get("end_sim_time", -math.inf) >= start_s and
+                         event.get("start_sim_time", math.inf) <= end_s]
+        event_window_basis = "valid_sim_time"
+    elif step_window_valid:
+        motion_events = [event for event in history.values()
+                         if isinstance(event.get("start_physics_step"), int) and
+                         isinstance(event.get("end_physics_step"), int) and
+                         event.get("end_physics_step") >= start_step and
+                         event.get("start_physics_step") <= end_step and
+                         (end_s is None or event.get("start_sim_time", math.inf) <= end_s)]
+        event_window_basis = "identity_bound_physics_steps; elapsed_time_and_negative_claim_remain_unknown"
+    else:
+        motion_events = []
+        event_window_basis = "unavailable"
     def range_overlaps(item: dict, prefix: str) -> bool:
         count = item.get(f"{prefix}_steps", 0)
         first = item.get(f"first_{prefix}_sim_time", 0.0)
@@ -218,26 +338,134 @@ def motion_safety(frames: list[dict], start_s: float | None,
                 if contact_boundary_crossed else max(0.0, through_end["foot_contact_duration_s"] - after_start["foot_contact_duration_s"]))
             foot_impact_duration = ("UNKNOWN: event crosses motion boundary"
                 if impact_boundary_crossed else max(0.0, through_end["foot_impact_duration_s"] - after_start["foot_impact_duration_s"]))
-    fall_history: dict[int, dict] = {}
+    # A cumulative fall event can change lifecycle state without advancing
+    # end_physics_step (notably open -> closed after posture recovers). Merge
+    # by event identity and the publishing snapshot's physical order, scoped
+    # to what was observable by the task's terminal boundary. Do not use a
+    # later cleanup snapshot to rewrite the event state at task end.
+    fall_history_updates: dict[int, tuple[dict, tuple, dict]] = {}
+    fall_snapshot_identity_valid = bool(snapshots) and expected_capture_id is not None
+    by_sequence: dict[int, dict] = {}
     for item in snapshots:
         if not isinstance(item, dict):
+            fall_snapshot_identity_valid = False
             continue
+        if (item.get("status") != CollisionStatus.LIVE.value or
+                item.get("capture_id") != expected_capture_id):
+            fall_snapshot_identity_valid = False
+            continue
+        sequence = item.get("sequence")
+        if not isinstance(sequence, int) or isinstance(sequence, bool) or sequence <= 0:
+            fall_snapshot_identity_valid = False
+            continue
+        previous_same_sequence = by_sequence.get(sequence)
+        if previous_same_sequence is not None:
+            if previous_same_sequence != item:
+                fall_snapshot_identity_valid = False
+            continue
+        by_sequence[sequence] = item
+    unique_physical_snapshots = [by_sequence[key] for key in sorted(by_sequence)]
+    for previous, current in zip(unique_physical_snapshots, unique_physical_snapshots[1:]):
+        if (current.get("sequence", -1) <= previous.get("sequence", -1) or
+                current.get("physics_step", -1) <= previous.get("physics_step", -1) or
+                not isinstance(current.get("sim_time"), (int, float)) or
+                not isinstance(previous.get("sim_time"), (int, float)) or
+                current.get("sim_time", -math.inf) <= previous.get("sim_time", -math.inf)):
+            fall_snapshot_identity_valid = False
+
+    ordered_snapshots = []
+    for index, item in enumerate(unique_physical_snapshots):
+        sample_time = item.get("sim_time")
+        sample_step = item.get("physics_step")
+        if start_s is not None and end_s is not None:
+            if not isinstance(sample_time, (int, float)) or not math.isfinite(float(sample_time)):
+                # An unclocked sample cannot establish that a lifecycle update
+                # was visible by the time-based terminal boundary.
+                continue
+            if float(sample_time) > end_s:
+                continue
+        elif step_window_valid:
+            if not isinstance(sample_step, int) or sample_step > end_step:
+                continue
+        else:
+            continue
+        order = (float(sample_time) if isinstance(sample_time, (int, float)) else -math.inf,
+                 item.get("sequence", -1) if isinstance(item.get("sequence"), int) else -1,
+                 sample_step if isinstance(sample_step, int) else -1, index)
+        ordered_snapshots.append((order, item))
+    for order, item in sorted(ordered_snapshots, key=lambda pair: pair[0]):
         for event in item.get("fall_history", []):
             if not isinstance(event, dict):
                 continue
             key = event.get("start_physics_step")
-            if isinstance(key, int) and (key not in fall_history or
-                    event.get("end_physics_step", 0) > fall_history[key].get("end_physics_step", 0) or
-                    event.get("confirmed") is True):
-                fall_history[key] = event
-    motion_falls = [event for event in fall_history.values()
-                    if start_s is not None and end_s is not None and
-                    event.get("end_sim_time", -math.inf) >= start_s and
-                    event.get("start_sim_time", math.inf) <= end_s]
+            if not isinstance(key, int):
+                continue
+            previous = fall_history_updates.get(key)
+            if previous is not None and previous[0].get("confirmed") is True:
+                # Confirmation is a latched historical fact. Later state
+                # cannot clear it, even if a malformed/old snapshot says so.
+                merged = dict(event)
+                merged["confirmed"] = True
+                for field in ("confirmed_physics_step", "confirmed_sim_time"):
+                    if previous[0].get(field) not in (None, 0, 0.0):
+                        merged[field] = previous[0][field]
+                event = merged
+            if previous is None or order > previous[1]:
+                fall_history_updates[key] = (dict(event), order, item)
+    fall_history = {key: value[0] for key, value in fall_history_updates.items()}
+    if start_s is not None and end_s is not None:
+        motion_falls = [event for event in fall_history.values()
+                        if event.get("end_sim_time", -math.inf) >= start_s and
+                        event.get("start_sim_time", math.inf) <= end_s]
+    elif step_window_valid:
+        motion_falls = [event for event in fall_history.values()
+                        if isinstance(event.get("start_physics_step"), int) and
+                        isinstance(event.get("end_physics_step"), int) and
+                        event.get("end_physics_step") >= start_step and
+                        event.get("start_physics_step") <= end_step and
+                        (end_s is None or event.get("start_sim_time", math.inf) <= end_s)]
+    else:
+        motion_falls = []
     confirmed_motion_falls = [event for event in motion_falls if event.get("confirmed") is True]
-    unresolved_motion_fall = any(event.get("confirmed") is not True for event in motion_falls)
-    fall = True if confirmed_motion_falls else (
-        False if source_complete and not invalid_posture_overlap and not unresolved_motion_fall else "UNKNOWN")
+    active_motion_falls = [event for event in motion_falls if event.get("closed") is not True]
+    closed_unconfirmed_motion_falls = [event for event in motion_falls
+                                       if event.get("confirmed") is not True and
+                                       event.get("closed") is True]
+    fall_lifecycle_assessments = []
+    for event in sorted(motion_falls, key=lambda item: item.get("start_sim_time", 0.0)):
+        key = event.get("start_physics_step")
+        update = fall_history_updates.get(key)
+        sample = update[2] if update is not None else {}
+        lifecycle_status = ("CONFIRMED" if event.get("confirmed") is True else
+                            "CLOSED_UNCONFIRMED" if event.get("closed") is True else
+                            "ACTIVE_AT_TERMINAL_BOUNDARY")
+        fall_lifecycle_assessments.append({
+            "event_start_physics_step": key,
+            "status_at_task_terminal": lifecycle_status,
+            "confirmed": event.get("confirmed"),
+            "closed": event.get("closed"),
+            "event_start_sim_time_s": event.get("start_sim_time"),
+            "event_last_abnormal_sim_time_s": event.get("end_sim_time"),
+            "confirmation_sim_time_s": event.get("confirmed_sim_time"),
+            "lifecycle_snapshot_physics_step": sample.get("physics_step"),
+            "lifecycle_snapshot_sim_time_s": sample.get("sim_time"),
+            "lifecycle_snapshot_sequence": sample.get("sequence"),
+        })
+    fall_source_complete = source_complete and fall_snapshot_identity_valid
+    if confirmed_motion_falls:
+        fall = True
+        fall_result_basis = "confirmed_fall_event_intersects_motion_window"
+    elif (fall_source_complete and not invalid_posture_overlap and not active_motion_falls):
+        fall = False
+        fall_result_basis = ("closed_unconfirmed_posture_candidates; no candidate met confirmation rule"
+                             if closed_unconfirmed_motion_falls else
+                             "complete_fall_history_no_confirmed_or_active_candidate")
+    else:
+        fall = "UNKNOWN"
+        fall_result_basis = (
+            "invalid_posture_overlaps_motion" if invalid_posture_overlap else
+            "candidate_active_at_terminal_boundary" if active_motion_falls else
+            "fall_history_source_incomplete_or_identity_conflict")
     before_motion_times = [item["sim_time"] for item in snapshots if isinstance(item, dict) and
                            isinstance(item.get("sim_time"), (int, float)) and start_s is not None and
                            item["sim_time"] <= start_s]
@@ -250,6 +478,10 @@ def motion_safety(frames: list[dict], start_s: float | None,
         "sim_time_min_s": min(snapshot_times, default=None),
         "sim_time_max_s": max(snapshot_times, default=None),
         "motion_start_s": start_s, "motion_end_s": end_s,
+        "event_window_basis": event_window_basis,
+        "start_physics_step_boundary": start_step,
+        "end_physics_step_boundary": end_step,
+        "physics_step_window_identity_bound": step_window_valid,
         "has_snapshot_at_or_before_motion_start": bool(before_motion_times),
         "nearest_snapshot_before_or_at_start_s": max(before_motion_times, default=None),
         "has_snapshot_at_or_after_terminal": bool(through_terminal_times),
@@ -284,20 +516,223 @@ def motion_safety(frames: list[dict], start_s: float | None,
                                     else False if nonfoot_failure is False and foot_impact_result == 0
                                     else "UNKNOWN"),
         "fall": fall,
+        "fall_result_basis": fall_result_basis,
+        "fall_snapshot_identity_valid": fall_snapshot_identity_valid,
+        "fall_lifecycle_assessments": fall_lifecycle_assessments,
+        "fall_history_events_at_terminal": sorted(motion_falls, key=lambda item: item.get("start_sim_time", 0.0)),
         "fall_events": sorted(motion_falls, key=lambda item: item.get("start_sim_time", 0.0)),
         "fall_event": (confirmed_motion_falls[-1] if confirmed_motion_falls else None),
         "coverage_complete_for_motion_interval": bool(source_complete),
-        "coverage_reason": None if source_complete else
-            "requires valid v4 snapshots, contiguous physics publisher, bounded motion interval, and no relevant unclassified contact, invalid posture, or history overflow",
+        "coverage_reason": None if source_complete else ";".join(dict.fromkeys(coverage_failures)),
         "coverage_evidence": coverage_evidence,
         "unclassified_contact_overlaps_motion": unknown_contact_overlap,
         "invalid_posture_overlaps_motion": invalid_posture_overlap,
-        "unconfirmed_fall_candidate_overlaps_motion": unresolved_motion_fall,
+        "unconfirmed_fall_candidate_overlaps_motion": bool(active_motion_falls),
+        "closed_unconfirmed_fall_candidate_count": len(closed_unconfirmed_motion_falls),
+        "active_fall_candidate_at_terminal_count": len(active_motion_falls),
         "max_observed_contacts_per_policy_snapshot": {
             "foot_floor": max((item.get("foot_ground_contacts", 0) for item in snapshots if isinstance(item, dict)), default=None),
             "nonfoot_floor": max((item.get("nonfoot_ground_contacts", 0) for item in snapshots if isinstance(item, dict)), default=None),
             "self": max((item.get("self_contacts", 0) for item in snapshots if isinstance(item, dict)), default=None),
         },
+    }
+
+
+def risk_edge_counts(policy_frames: list[dict[str, Any]]) -> dict[str, int]:
+    """Count the tri-state RiskEdge enum without Python truthiness coercion.
+
+    Contract values are 0=false, 1=true, 2=unknown. Unknown is not evidence of
+    an event and malformed values are surfaced separately for audit callers.
+    """
+    counts = {"true": 0, "false": 0, "unknown": 0, "invalid": 0}
+    for frame in policy_frames:
+        value = frame.get("risk_condition_entered")
+        if type(value) is not int or value not in (0, 1, 2):
+            counts["invalid"] += 1
+        elif value == 1:
+            counts["true"] += 1
+        elif value == 0:
+            counts["false"] += 1
+        else:
+            counts["unknown"] += 1
+    return counts
+
+
+def physical_base_bounds_window(pre_task: dict | None, terminal: dict | None,
+                                task_start_s: float | None, task_end_s: float | None) -> dict:
+    """Assess base_link XY against the frozen rectangle using PhysicsLoop latches.
+
+    The cumulative outside-step counter observes between-reader events. A zero
+    counter delta over continuous, identity-matched physical coverage supports a
+    bounded base-point conclusion. It does not prove the robot's full footprint
+    stayed inside the rectangle.
+    """
+    required = ("producer_session_id", "physics_step", "physics_coverage_complete",
+                "bounds_valid", "outside_physics_steps", "xmin", "xmax", "ymin", "ymax",
+                "scenario_id", "capture_id", "runtime_model_fingerprint")
+    for label, item in (("pre_task", pre_task), ("terminal", terminal)):
+        if not isinstance(item, dict) or item.get("status") != "LIVE":
+            return {"status": "UNKNOWN", "reason": f"{label}_base_bounds_snapshot_not_live"}
+        missing = [key for key in required if key not in item]
+        if missing:
+            return {"status": "UNKNOWN", "reason": f"{label}_base_bounds_fields_missing",
+                    "missing": missing}
+        if item.get("bounds_valid") != 1 or item.get("physics_coverage_complete") != 1:
+            return {"status": "UNKNOWN", "reason": f"{label}_base_bounds_coverage_invalid"}
+    identity = ("producer_session_id", "capture_id", "scenario_id", "runtime_model_fingerprint",
+                "xmin", "xmax", "ymin", "ymax")
+    if any(pre_task.get(key) != terminal.get(key) for key in identity):
+        return {"status": "UNKNOWN", "reason": "base_bounds_source_or_rectangle_changed"}
+    if terminal["physics_step"] < pre_task["physics_step"]:
+        return {"status": "UNKNOWN", "reason": "base_bounds_physics_step_regressed"}
+    delta = terminal["outside_physics_steps"] - pre_task["outside_physics_steps"]
+    if delta < 0:
+        return {"status": "UNKNOWN", "reason": "base_bounds_outside_counter_regressed"}
+    evidence = {"pre_task_physics_step": pre_task["physics_step"],
+                "terminal_physics_step": terminal["physics_step"],
+                "outside_physics_steps_before_task": pre_task["outside_physics_steps"],
+                "outside_physics_steps_at_terminal": terminal["outside_physics_steps"],
+                "outside_physics_step_delta": delta,
+                "task_interval_sim_s": [task_start_s, task_end_s],
+                "declared_bounds_m": {"x": [pre_task["xmin"], pre_task["xmax"]],
+                                       "y": [pre_task["ymin"], pre_task["ymax"]]},
+                "scope": "base_link XY point at every continuously published PhysicsLoop step; not robot-footprint containment"}
+    if delta == 0:
+        return {"status": "BASE_LINK_IN_BOUNDS_PHYSICS_STEPS_OBSERVED", **evidence}
+    if task_start_s is None or task_end_s is None or task_end_s < task_start_s:
+        return {"status": "UNKNOWN", "reason": "valid_physics_time_window_unavailable",
+                "outside_physics_step_delta": delta, **evidence}
+    last_outside = terminal.get("last_outside_sim_time")
+    first_outside = terminal.get("first_outside_sim_time")
+    if (isinstance(last_outside, (int, float)) and math.isfinite(float(last_outside)) and
+            task_start_s <= float(last_outside) <= task_end_s):
+        return {"status": "BASE_LINK_OUT_OF_BOUNDS_PHYSICS_STEP_OBSERVED",
+                "first_outside_sim_time_s": first_outside,
+                "last_outside_sim_time_s": last_outside, **evidence}
+    if (isinstance(last_outside, (int, float)) and math.isfinite(float(last_outside)) and
+            float(last_outside) < task_start_s):
+        return {"status": "NO_BASE_LINK_OUTSIDE_STEP_AFTER_TASK_START_OBSERVED",
+                "last_outside_sim_time_s": last_outside, **evidence}
+    return {"status": "UNKNOWN", "reason": "outside_step_delta_not_localized_to_task_window",
+            "first_outside_sim_time_s": first_outside,
+            "last_outside_sim_time_s": last_outside, **evidence}
+
+
+def _closeout_only_task_window(data: Any, context: dict, base: dict,
+                               live_frames: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Validate a complete task boundary when only final closeout history failed.
+
+    This does not make the full record valid. It permits task-window metrics only
+    when the persisted terminal-boundary counters and cycle payloads prove the
+    task window independently complete, while the final producer tail is
+    explicitly accounted as closeout-only and missing.
+    """
+    reasons = sorted(set(base.get("record_validity_reasons") or []))
+    if reasons != ["policy_cycle_history_incomplete"]:
+        return None
+    if context.get("lifecycle", {}).get("closeout_errors"):
+        return None
+    terminal = data.terminal if isinstance(data.terminal, dict) else {}
+    history = terminal.get("policy_cycle_history")
+    if not isinstance(history, dict) or history.get("accounting_version") != 2:
+        return None
+    boundary = history.get("task_termination_boundary")
+    final = history.get("final_closeout_drain")
+    if not isinstance(boundary, dict) or not isinstance(final, dict):
+        return None
+    if (boundary.get("status") != "complete" or
+            boundary.get("terminal_frame_payload_persisted_same_snapshot") is not True or
+            boundary.get("missing_active_policy_cycle_count") != 0 or
+            boundary.get("missing_active_policy_cycle_ranges") != [] or
+            boundary.get("consumer_unread_loss_count_at_task_terminal") != 0):
+        return None
+    terminal_ref = boundary.get("terminal_frame_ref")
+    context_ref = context.get("lifecycle", {}).get("terminal_frame_ref")
+    facts_ref = terminal.get("run_terminal_frame_ref")
+    if not isinstance(terminal_ref, dict) or not isinstance(context_ref, dict) or not isinstance(facts_ref, dict):
+        return None
+    identity_keys = ("session_id", "rl_step", "source_sequence", "monotonic_ns")
+    if any(not all(ref.get(key) == terminal_ref.get(key) for key in identity_keys)
+           for ref in (context_ref, facts_ref)):
+        return None
+    session_id, end_cycle = terminal_ref.get("session_id"), terminal_ref.get("rl_step")
+    if (type(session_id) is not int or type(end_cycle) is not int or end_cycle < 0 or
+            boundary.get("first_active_policy_cycle") != 0 or
+            boundary.get("last_active_policy_cycle") != end_cycle):
+        return None
+    task_cursor = boundary.get("consumer_cursor_at_task_terminal")
+    task_producer = boundary.get("producer_count_at_task_terminal")
+    if (task_cursor != end_cycle + 1 or type(task_producer) is not int or
+            task_producer < task_cursor):
+        return None
+    final_cursor, final_producer = final.get("consumer_cursor"), final.get("producer_count")
+    if (final.get("complete") is not False or type(final_cursor) is not int or
+            type(final_producer) is not int or final_cursor < task_cursor or
+            final_producer <= final_cursor or final.get("consumer_unread_loss_count") != 0 or
+            history.get("status") != "OK" or history.get("error") is not None or
+            history.get("identity_content_conflict_count") != 0 or
+            history.get("consumer_unread_loss_count") != 0):
+        return None
+    # A prior implementation stopped the recorder before its final drain. Only
+    # this known lifecycle error is admissible, and only with a proven complete
+    # terminal boundary and no task-window unread loss.
+    if history.get("merge_error") not in (
+            None, "capture was stopped before the observed policy frame was persisted"):
+        return None
+    if terminal.get("run_terminal_result") != context.get("result_contract", {}).get("classification"):
+        return None
+    if terminal.get("shutdown_complete") is not True:
+        return None
+
+    by_cycle: dict[int, dict[str, Any]] = {}
+    for payload in live_frames:
+        if payload.get("session_id") != session_id:
+            return None
+        cycle = payload.get("rl_step")
+        if type(cycle) is not int:
+            return None
+        if 0 <= cycle <= end_cycle:
+            if cycle in by_cycle:
+                return None
+            by_cycle[cycle] = payload
+    expected = list(range(end_cycle + 1))
+    if sorted(by_cycle) != expected:
+        return None
+    task_frames = [by_cycle[cycle] for cycle in expected]
+    required = ("source_sequence", "monotonic_ns", "sim_time_s", "sim_clock_valid",
+                "world_pose", "ra_value", "mode_before", "mode_after", "action_source",
+                "action_raw", "action_clipped", "joint_target_rad")
+    previous_monotonic = previous_sim = None
+    for payload in task_frames:
+        if (payload.get("rl_entered") != 1 or payload.get("rl_active") != 1 or
+                payload.get("sim_clock_valid") is not True or
+                any(key not in payload or payload.get(key) is None for key in required)):
+            return None
+        sim_time, monotonic = payload.get("sim_time_s"), payload.get("monotonic_ns")
+        if (not isinstance(sim_time, (int, float)) or not math.isfinite(float(sim_time)) or
+                type(monotonic) is not int or
+                (previous_sim is not None and sim_time <= previous_sim) or
+                (previous_monotonic is not None and monotonic <= previous_monotonic)):
+            return None
+        previous_sim, previous_monotonic = sim_time, monotonic
+    last = task_frames[-1]
+    if any(last.get(payload_key) != terminal_ref.get(ref_key) for payload_key, ref_key in (
+            ("session_id", "session_id"), ("rl_step", "rl_step"),
+            ("source_sequence", "source_sequence"), ("monotonic_ns", "monotonic_ns"))):
+        return None
+    closeout_missing = final_producer - final_cursor
+    if closeout_missing <= 0:
+        return None
+    return {
+        "status": "task_window_complete_closeout_incomplete",
+        "task_frames": task_frames,
+        "task_cycle_start": 0,
+        "task_cycle_end": end_cycle,
+        "task_frame_count": len(task_frames),
+        "persisted_live_frame_count": len(live_frames),
+        "closeout_producer_entries_unpersisted": closeout_missing,
+        "full_record_validity": "INVALID",
+        "reason": "complete task boundary; final producer history has unpersisted closeout entries",
     }
 
 
@@ -321,6 +756,7 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
     closeout_errors = context.get("lifecycle", {}).get("closeout_errors", [])
     frames = [line["payload"] for line in data.frames if line.get("status") == "LIVE" and isinstance(line.get("payload"), dict)]
     frames.sort(key=lambda p: (p["session_id"], p["rl_step"]))
+    persisted_live_frame_count = len(frames)
     if closeout_errors:
         return {
             "run_id": context.get("run_id"), "record_validity": "INVALID",
@@ -333,29 +769,35 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
             "external_safety_events": (data.terminal or {}).get("external_safety_events", []),
             "cleanup_events": (data.terminal or {}).get("cleanup_events", []),
         }
+    task_closeout_recovery = None
     if base.get("record_validity") != "VALID":
-        sessions = sorted({p.get("session_id") for p in frames})
-        context_result = context.get("result_contract", {}).get("classification", "UNKNOWN")
-        record_result = (data.terminal or {}).get("run_terminal_result")
-        final_result = ("STARTUP_FAILURE" if context_result == "STARTUP_FAILURE" and record_result == "STARTUP_FAILURE"
-                        else "INCOMPLETE_UNTRUSTED_RECORD")
-        return {
-            "run_id": context.get("run_id"), "record_validity": "INVALID",
-            "record_validity_reason_count": len(base.get("record_validity_reasons") or []),
-            "record_validity_reasons": sorted(set(base.get("record_validity_reasons") or [])),
-            "terminal_result": final_result,
-            "run_terminal_result_context": context_result,
-            "run_terminal_result_record": record_result,
-            "session_ids_observed": sessions, "frame_count": len(frames),
-            "all_derived_metrics": "UNKNOWN: record fails continuity/schema validation; no aggregation across sessions",
-            "collision_coverage": base.get("collision"),
-            "external_safety_events": (data.terminal or {}).get("external_safety_events", []),
-            "cleanup_events": (data.terminal or {}).get("cleanup_events", []),
-            "command_consumption": "UNKNOWN",
-        }
+        task_closeout_recovery = _closeout_only_task_window(data, context, base, frames)
+        if task_closeout_recovery is not None:
+            frames = task_closeout_recovery["task_frames"]
+        else:
+            sessions = sorted({p.get("session_id") for p in frames})
+            context_result = context.get("result_contract", {}).get("classification", "UNKNOWN")
+            record_result = (data.terminal or {}).get("run_terminal_result")
+            final_result = ("STARTUP_FAILURE" if context_result == "STARTUP_FAILURE" and record_result == "STARTUP_FAILURE"
+                            else "INCOMPLETE_UNTRUSTED_RECORD")
+            return {
+                "run_id": context.get("run_id"), "record_validity": "INVALID",
+                "record_validity_reason_count": len(base.get("record_validity_reasons") or []),
+                "record_validity_reasons": sorted(set(base.get("record_validity_reasons") or [])),
+                "terminal_result": final_result,
+                "run_terminal_result_context": context_result,
+                "run_terminal_result_record": record_result,
+                "session_ids_observed": sessions, "frame_count": len(frames),
+                "task_window_metrics_status": "UNKNOWN: task boundary failed closeout-only recovery checks",
+                "all_derived_metrics": "UNKNOWN: record fails continuity/schema validation; no aggregation across sessions",
+                "collision_coverage": base.get("collision"),
+                "external_safety_events": (data.terminal or {}).get("external_safety_events", []),
+                "cleanup_events": (data.terminal or {}).get("cleanup_events", []),
+                "command_consumption": "UNKNOWN",
+            }
     gaps = 0
+    cadence = summarize_policy_cadence(frames)
     periods_s: list[float] = []
-    frequency_hz: list[float] = []
     transitions: list[dict[str, Any]] = []
     usable_pairs: list[tuple[dict, dict, float]] = []
     mode_changes_with_valid_time = 0
@@ -372,7 +814,6 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
         dt_wall = (b["monotonic_ns"] - a["monotonic_ns"]) / 1e9
         if dt_wall > 0:
             periods_s.append(dt_wall)
-            frequency_hz.append(1.0 / dt_wall)
         av = a.get("sim_clock_valid") is True and isinstance(a.get("sim_time_s"), (int, float))
         bv = b.get("sim_clock_valid") is True and isinstance(b.get("sim_time_s"), (int, float))
         if av and bv and b["sim_time_s"] >= a["sim_time_s"]:
@@ -508,6 +949,46 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
                                               goal[1] - policy_cycle_frames[0]["world_pose"][1])
         task_goal_distance_final = math.hypot(goal[0] - policy_cycle_frames[-1]["world_pose"][0],
                                               goal[1] - policy_cycle_frames[-1]["world_pose"][1])
+    declared_bounds = settings.get("declared_field_bounds_m")
+    boundary_observation = {"status": "NOT_APPLICABLE", "scope": "no declared scene boundary in run context"}
+    if isinstance(declared_bounds, dict) and policy_cycle_frames:
+        try:
+            xmin, xmax = map(float, declared_bounds["x"])
+            ymin, ymax = map(float, declared_bounds["y"])
+            out_frames = [p for p in policy_cycle_frames
+                          if not (xmin <= float(p["world_pose"][0]) <= xmax and
+                                  ymin <= float(p["world_pose"][1]) <= ymax)]
+            expected_cycles = (terminal_cycle - active_cycle + 1
+                               if isinstance(terminal_cycle, int) and isinstance(active_cycle, int) else None)
+            cycle_coverage_complete = (expected_cycles is not None and
+                                       len(policy_cycle_frames) == expected_cycles and
+                                       all(b.get("rl_step") == a.get("rl_step") + 1
+                                           for a,b in zip(policy_cycle_frames,policy_cycle_frames[1:])))
+            valid_oob_span = 0.0
+            for a,b,dt in policy_pairs:
+                a_out = not (xmin <= float(a["world_pose"][0]) <= xmax and ymin <= float(a["world_pose"][1]) <= ymax)
+                b_out = not (xmin <= float(b["world_pose"][0]) <= xmax and ymin <= float(b["world_pose"][1]) <= ymax)
+                if a_out and b_out:
+                    valid_oob_span += dt
+            status = "OUT_OF_BOUNDS_SAMPLED" if out_frames else (
+                "SAMPLED_IN_BOUNDS" if cycle_coverage_complete and
+                all(p.get("sim_clock_valid") is True for p in policy_cycle_frames) else "UNKNOWN_INCOMPLETE_COVERAGE")
+            boundary_observation = {
+                "status": status, "declared_bounds_m": {"x": [xmin,xmax], "y": [ymin,ymax]},
+                "sampled_policy_frame_count": len(policy_cycle_frames),
+                "expected_policy_cycle_count": expected_cycles,
+                "cycle_coverage_complete": cycle_coverage_complete,
+                "out_of_bounds_frame_count": len(out_frames),
+                "out_of_bounds_frames": [{"session_id":p.get("session_id"),"rl_step":p.get("rl_step"),
+                                            "sim_time_s":p.get("sim_time_s") if p.get("sim_clock_valid") is True else None,
+                                            "world_xy_m":p.get("world_pose",[])[:2]} for p in out_frames],
+                "minimum_observed_contiguous_outside_duration_s": valid_oob_span if valid_oob_span > 0 else None,
+                "duration_scope": "only adjacent valid policy frames both sampled outside; no interpolation",
+                "interpretation": "sampled positions only; no physical trajectory between policy cycles, so in-bounds samples do not prove continuous footprint containment",
+            }
+        except (KeyError, TypeError, ValueError, IndexError):
+            boundary_observation = {"status":"UNKNOWN_INVALID_BOUNDARY_OR_POSE_DATA",
+                                    "scope":"declared boundary exists but sampled XY/bounds are unusable"}
     policy_active_transitions = [p for p in policy_cycle_frames
                                  if p.get("mode_before") in (0, 1) and p.get("mode_after") in (0, 1)
                                  and p["mode_before"] != p["mode_after"]]
@@ -572,15 +1053,58 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
         else:
             risk_response_unavailable += 1
     risk_response_ns = [item["response_ns"] for item in risk_to_recovery]
-    terminal_collision_snapshot = ((data.terminal or {}).get("collision_coverage") or {}).get("last_snapshot")
-    safety = motion_safety(frames, movement_start, movement_end, terminal_collision_snapshot)
     task_start_event = lifecycle.get("task_start") or lifecycle.get("policy_active_start") or {}
     task_start_time = task_start_event.get("sim_time_s") if task_start_event.get("sim_clock_valid") else None
     pre_task_boundary = context.get("initial_state", {}).get("pre_task_safety_boundary", {})
     task_boundary_snapshot = pre_task_boundary.get("snapshot") if pre_task_boundary.get("status") == "LIVE" else None
+    task_start_frame = next((p for p in frames
+                             if p.get("session_id") == task_start_event.get("session_id") and
+                             p.get("rl_step") == task_start_event.get("rl_step")), None)
+    task_start_physics_snapshot = (
+        task_start_frame.get("collision_snapshot") if isinstance(task_start_frame, dict) else None)
+    if not isinstance(task_start_physics_snapshot, dict):
+        task_start_physics_snapshot = task_boundary_snapshot
+    terminal_policy_payload = next((p for p in frames
+                                    if isinstance(terminal_ref, dict) and
+                                    p.get("session_id") == terminal_ref.get("session_id") and
+                                    p.get("rl_step") == terminal_ref.get("rl_step") and
+                                    (terminal_ref.get("source_sequence") is None or
+                                     p.get("source_sequence") == terminal_ref.get("source_sequence")) and
+                                    (terminal_ref.get("monotonic_ns") is None or
+                                     p.get("monotonic_ns") == terminal_ref.get("monotonic_ns"))), None)
+    terminal_policy_physics_snapshot = (
+        terminal_policy_payload.get("collision_snapshot")
+        if isinstance(terminal_policy_payload, dict) else None)
+    # Safety evidence for motion is bounded by persisted policy-cycle identity,
+    # just like the task metrics. `frames` also contains post-terminal standing
+    # and cleanup records; their attached physical snapshots may be STALE and
+    # must not contaminate a completed task interval. Keep the full-capture
+    # coverage separately in `capture_collision_coverage` below.
+    safety_boundary_snapshots = ([task_boundary_snapshot]
+                                 if isinstance(task_boundary_snapshot, dict) else [])
+    safety = motion_safety(
+        policy_cycle_frames, movement_start, movement_end,
+        terminal_policy_physics_snapshot, safety_boundary_snapshots,
+        start_boundary_snapshot=task_start_physics_snapshot,
+        end_boundary_snapshot=terminal_policy_physics_snapshot)
+    pre_task_bounds = pre_task_boundary.get("base_bounds_snapshot")
+    terminal_bounds = (terminal_policy_payload.get("base_bounds_snapshot")
+                       if isinstance(terminal_policy_payload, dict) else None)
+    active_bounds = (task_start_frame.get("base_bounds_snapshot")
+                     if isinstance(task_start_frame, dict) else None)
+    physical_boundary_observation = physical_base_bounds_window(
+        pre_task_bounds, terminal_bounds,
+        (active_bounds.get("sim_time") if isinstance(active_bounds, dict) and
+         active_bounds.get("status") == "LIVE" else None),
+        (terminal_bounds.get("sim_time") if isinstance(terminal_bounds, dict) and
+         terminal_bounds.get("status") == "LIVE" else None))
     task_safety = motion_safety(
-        frames, task_start_time, movement_end, terminal_collision_snapshot,
-        [task_boundary_snapshot] if isinstance(task_boundary_snapshot, dict) else [])
+        policy_cycle_frames, task_start_time, movement_end,
+        terminal_policy_physics_snapshot, safety_boundary_snapshots,
+        start_boundary_snapshot=task_start_physics_snapshot,
+        end_boundary_snapshot=(terminal_policy_physics_snapshot
+                               if isinstance(terminal_policy_physics_snapshot, dict)
+                               else None))
     task_recovery_duration = sum(dt for a, b, dt in policy_pairs if a.get("mode_after") == 1)
     task_elapsed_coverage_fraction = (
         policy_active_valid_duration / policy_active_elapsed
@@ -602,6 +1126,8 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
     motion_policy_cycle_gaps = sum(1 for a, b in zip(policy_cycle_frames, policy_cycle_frames[1:])
                                    if a.get("session_id") != b.get("session_id") or
                                    b.get("rl_step") != a.get("rl_step", -2) + 1)
+    observed_mode_edge_coverage = mode_edge_coverage(policy_cycle_frames,
+                                                    policy_boundary_identity_complete)
     reverse_pairs = 0
     for left, right in zip(task_transitions, task_transitions[1:]):
         left_time = left.get("sim_time_s") if left.get("sim_clock_valid") else None
@@ -664,6 +1190,33 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
         "scene_id": settings.get("scene_id", "UNKNOWN"),
         "record_validity": "INVALID" if terminal_frame_failure else base.get("record_validity"),
         "record_validity_reasons": validity_reasons,
+        "task_window_metrics_status": (task_closeout_recovery["status"]
+                                        if task_closeout_recovery is not None else
+                                        ("complete" if base.get("record_validity") == "VALID" else "UNKNOWN")),
+        "task_window_integrity": ({key: value for key, value in task_closeout_recovery.items()
+                                   if key != "task_frames"}
+                                  if task_closeout_recovery is not None else None),
+        "persisted_live_frame_count_total": persisted_live_frame_count,
+        "analyzed_frame_count": len(frames),
+        "policy_cycle_history": base.get("policy_cycle_history"),
+        "policy_cycle_history_accounting_version": (
+            (base.get("policy_cycle_history") or {}).get("accounting_version")
+            if isinstance(base.get("policy_cycle_history"), dict) else None),
+        "policy_cycle_history_complete_at_task_termination": (
+            ((base.get("policy_cycle_history") or {}).get("task_termination_boundary") or {}).get("status") == "complete"
+            if isinstance((base.get("policy_cycle_history") or {}).get("task_termination_boundary"), dict) else None),
+        "policy_cycle_history_complete_at_final_closeout_drain": (
+            ((base.get("policy_cycle_history") or {}).get("final_closeout_drain") or {}).get("complete")
+            if isinstance((base.get("policy_cycle_history") or {}).get("final_closeout_drain"), dict) else
+            ((base.get("policy_cycle_history") or {}).get("complete_at_last_drain")
+             if isinstance(base.get("policy_cycle_history"), dict) else None)),
+        "policy_cycle_producer_slot_reuse_count": (
+            (base.get("policy_cycle_history") or {}).get("producer_slot_reuse_count",
+                (base.get("policy_cycle_history") or {}).get("producer_overwritten_count"))
+            if isinstance(base.get("policy_cycle_history"), dict) else None),
+        "policy_cycle_consumer_unread_loss_count": (
+            (base.get("policy_cycle_history") or {}).get("consumer_unread_loss_count")
+            if isinstance(base.get("policy_cycle_history"), dict) else None),
         "terminal_result": final_result,
         "navigation_terminal_result": final_result,
         "run_terminal_result_context": context.get("result_contract", {}).get("classification", "UNKNOWN"),
@@ -708,8 +1261,16 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
         "policy_interval_ms_p95": quantile(periods_s, 0.95) * 1000 if periods_s else None,
         "policy_interval_ms_min": min(periods_s) * 1000 if periods_s else None,
         "policy_interval_ms_max": max(periods_s) * 1000 if periods_s else None,
-        "policy_frequency_hz_overall": ((len(periods_s) / sum(periods_s)) if periods_s and sum(periods_s) > 0 else None),
+        "policy_frequency_hz_overall": cadence["policy_frequency_hz_overall"],
+        "policy_frequency_definition": cadence["frequency_scope"],
+        "policy_frequency_observed_cycle_span": cadence["observed_policy_cycle_span"],
+        "policy_frequency_monotonic_span_s": cadence["observed_wall_span_s"],
+        "policy_frequency_coverage": cadence["coverage"],
+        "policy_period_statistics_scope": cadence["period_quantile_scope"],
         "mode_transitions": len(task_transitions) if policy_cycle_frames else None,
+        "mode_transitions_observed_in_persisted_frames": len(task_transitions) if policy_cycle_frames else None,
+        "mode_transition_count_coverage": observed_mode_edge_coverage,
+        "mode_transition_count_complete": observed_mode_edge_coverage == "complete",
         "agile_to_recovery": agile_recovery if policy_cycle_frames else None,
         "recovery_to_agile": recovery_agile if policy_cycle_frames else None,
         "transitions_with_valid_sim_time": motion_transitions_with_valid_time if policy_cycle_frames else None,
@@ -721,7 +1282,8 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
         "recovery_intervals": intervals,
         "risk_to_recovery_response": {
             "definition": "risk_condition_entered to paired same-cycle Agile->Recovery policy_mode_changed; monotonic delta is internal decision-path time only, not complete avoidance response, command write, action application, or MuJoCo consumption",
-            "risk_edge_count": len(risk_edges) if policy_cycle_frames else None,
+            "risk_edge_count": risk_edge_counts(policy_cycle_frames)["true"] if policy_cycle_frames else None,
+            "risk_edge_enum_counts": risk_edge_counts(policy_cycle_frames) if policy_cycle_frames else None,
             "paired_Agile_to_Recovery_count": len(risk_to_recovery) if policy_cycle_frames else None,
             "risk_reentered_while_already_Recovery_count": risk_reentered_in_recovery if policy_cycle_frames else None,
             "unavailable_or_unpaired_count": risk_response_unavailable if policy_cycle_frames else None,
@@ -740,6 +1302,8 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
         "task_start_sim_time_s": task_start_time,
         "legacy_displacement_start_sim_time_s": movement_start,
         "target_distance_start_m": task_goal_distance_start, "target_distance_final_m": task_goal_distance_final,
+        "declared_boundary_observation": boundary_observation,
+        "declared_boundary_physics_observation": physical_boundary_observation,
         "path_length_m": policy_active_path if policy_active_valid_duration else None,
         "mean_path_speed_mps": policy_active_path / policy_active_valid_duration if policy_active_valid_duration else None,
         "peak_interval_path_speed_mps": task_peak_interval_path_speed,
@@ -757,7 +1321,9 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
                                            motion_transitions_with_valid_time == len(task_transitions)
                                            else "partial_or_unknown" if policy_cycle_frames else "UNKNOWN"),
         "short_reverse_window_s": reverse_window_s,
-        "period_statistics_scope": "all captured LIVE frames including preparation and cleanup tail, if present",
+        "period_statistics_scope": ("validated task window only; full record has an incomplete closeout tail"
+                                     if task_closeout_recovery is not None else
+                                     "all captured LIVE frames including preparation and cleanup tail, if present"),
         "motion_metrics_scope": "primary task window: first rl_entered=1 && rl_active=1 frame through terminal cycle inclusive; cleanup tail excluded",
         "legacy_displacement_window_scope": "historical auxiliary window: first observed >=0.10m displacement through terminal frame; preserved separately and not used as the primary task boundary",
         "capture_collision_coverage": base.get("collision"),

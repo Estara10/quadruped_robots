@@ -307,6 +307,9 @@ StateRL::~StateRL()
     {
         close(rt_frame_shm_fd_);
     }
+    if (rt_history_shm_ptr_ != nullptr && rt_history_shm_ptr_ != MAP_FAILED)
+        munmap(rt_history_shm_ptr_, abs_rt_frame::kHistorySize);
+    if (rt_history_shm_fd_ >= 0) close(rt_history_shm_fd_);
 }
 
 void StateRL::enter()
@@ -403,6 +406,48 @@ void StateRL::enter()
         RCLCPP_INFO(rclcpp::get_logger("StateRL"),
             "[RtFrame] Shared memory initialized: %s session_id=%lu writer_pid=%d",
             abs_rt_frame::kFrameShmName, rt_session_id_, static_cast<int>(::getpid()));
+    }
+
+    // A bounded policy-cycle SPSC ring lets the supervisor recover cycles
+    // missed while inference is running. Each StateRL session resets its
+    // identity/counters; overrun is cumulative and explicit.
+    if (rt_history_shm_ptr_ != nullptr && rt_history_shm_ptr_ != MAP_FAILED)
+        munmap(rt_history_shm_ptr_, abs_rt_frame::kHistorySize);
+    if (rt_history_shm_fd_ >= 0) close(rt_history_shm_fd_);
+    rt_history_shm_ptr_ = nullptr;
+    rt_history_shm_fd_ = -1;
+    rt_history_shm_fd_ = shm_open(abs_rt_frame::kHistoryShmName, O_CREAT | O_RDWR, 0666);
+    if (rt_history_shm_fd_ >= 0 &&
+        ftruncate(rt_history_shm_fd_, static_cast<off_t>(abs_rt_frame::kHistorySize)) == 0)
+    {
+        rt_history_shm_ptr_ = static_cast<abs_rt_frame::HistoryBuffer*>(
+            mmap(nullptr, abs_rt_frame::kHistorySize, PROT_READ | PROT_WRITE,
+                 MAP_SHARED, rt_history_shm_fd_, 0));
+        if (rt_history_shm_ptr_ == MAP_FAILED) rt_history_shm_ptr_ = nullptr;
+    }
+    if (rt_history_shm_ptr_ != nullptr)
+    {
+        __atomic_store_n(&rt_history_shm_ptr_->header.magic, 0ULL, __ATOMIC_RELEASE);
+        __atomic_store_n(&rt_history_shm_ptr_->header.version, abs_rt_frame::kHistoryVersion, __ATOMIC_RELEASE);
+        __atomic_store_n(&rt_history_shm_ptr_->header.capacity, abs_rt_frame::kHistoryCapacity, __ATOMIC_RELEASE);
+        __atomic_store_n(&rt_history_shm_ptr_->header.session_id, rt_session_id_, __ATOMIC_RELEASE);
+        __atomic_store_n(&rt_history_shm_ptr_->header.produced_count, 0ULL, __ATOMIC_RELEASE);
+        __atomic_store_n(&rt_history_shm_ptr_->header.overwritten_count, 0ULL, __ATOMIC_RELEASE);
+        for (uint64_t i = 0; i < abs_rt_frame::kHistoryCapacity; ++i)
+        {
+            __atomic_store_n(&rt_history_shm_ptr_->slots[i].sequence, 0ULL, __ATOMIC_RELEASE);
+            rt_history_shm_ptr_->slots[i].index = UINT64_MAX;
+        }
+        __atomic_store_n(&rt_history_shm_ptr_->header.magic, abs_rt_frame::kHistoryMagic, __ATOMIC_RELEASE);
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+            "[RtFrameHistory] initialized name=%s session_id=%lu capacity=%lu",
+            abs_rt_frame::kHistoryShmName, rt_session_id_, abs_rt_frame::kHistoryCapacity);
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("StateRL"),
+            "[RtFrameHistory] unavailable; policy-cycle completeness cannot be established");
+        if (rt_history_shm_fd_ >= 0) { close(rt_history_shm_fd_); rt_history_shm_fd_ = -1; }
     }
 
     // Always initialize obs_.ray2d (will be updated from shm in runModel if available)
@@ -1218,6 +1263,7 @@ void StateRL::writeRtFrame(uint32_t policy_state,
 
     // Publish the already-validated frame after the anchor reference has been
     // accepted.
+    local.header.sequence = sequence + 2U;
     abs_rt_frame::storeRelease(&frame->header.sequence, sequence + 1U);
     std::memcpy(reinterpret_cast<char*>(frame) + sizeof(abs_rt_frame::FrameHeader),
                 reinterpret_cast<const char*>(&local) + sizeof(abs_rt_frame::FrameHeader),
@@ -1226,6 +1272,7 @@ void StateRL::writeRtFrame(uint32_t policy_state,
     abs_rt_frame::storeRelease(&frame->header.version, abs_rt_frame::kVersion);
     abs_rt_frame::storeRelease(&frame->header.monotonic_ns, now_ns);
     abs_rt_frame::storeRelease(&frame->header.sequence, sequence + 2U);
+    abs_rt_frame::publishHistory(rt_history_shm_ptr_, local);
 
     // Persist the measured controller inputs from the first accepted active
     // policy cycle. This is a one-time companion record keyed to the exact
@@ -1336,7 +1383,7 @@ void StateRL::writeRtFaultedFrame()
                  zeros, zeros, zeros, zeros);
 }
 
-void StateRL::captureSimClock(uint64_t reference_monotonic_ns)
+void StateRL::captureSimClock()
 {
     cycle_trace_.sim_clock_valid = 0;
     cycle_trace_.sim_clock_status = abs_rt_frame::kSimClockUnavailable;
@@ -1401,8 +1448,14 @@ void StateRL::captureSimClock(uint64_t reference_monotonic_ns)
     cycle_trace_.sim_clock_segment_id = sim_clock_segment_id_;
 
     abs_sim_clock::SimClock sample{};
-    if (sim_clock_shm_ptr_ == nullptr ||
-        !abs_sim_clock::readSnapshot(sim_clock_shm_ptr_, &sample))
+    const bool snapshot_valid = sim_clock_shm_ptr_ != nullptr &&
+        abs_sim_clock::readSnapshot(sim_clock_shm_ptr_, &sample);
+    // Sample the validation clock only after the seqlock snapshot is complete.
+    // A physics step can publish between the start of runModel() and this read;
+    // comparing that legitimate newer timestamp with an earlier policy-start
+    // timestamp incorrectly classified it as a future/stale sample.
+    const uint64_t validation_monotonic_ns = monotonicNowNs();
+    if (!snapshot_valid)
     {
         if (last_sim_clock_sequence_ != 0)
         {
@@ -1410,8 +1463,8 @@ void StateRL::captureSimClock(uint64_t reference_monotonic_ns)
             cycle_trace_.sim_clock_sequence = last_sim_clock_sequence_;
             cycle_trace_.sim_clock_monotonic_ns = last_sim_clock_monotonic_ns_;
             cycle_trace_.sim_time_s = last_sim_time_s_;
-            cycle_trace_.sim_clock_age_ns = reference_monotonic_ns >= last_sim_clock_monotonic_ns_
-                ? reference_monotonic_ns - last_sim_clock_monotonic_ns_ : 0;
+            cycle_trace_.sim_clock_age_ns = validation_monotonic_ns >= last_sim_clock_monotonic_ns_
+                ? validation_monotonic_ns - last_sim_clock_monotonic_ns_ : 0;
             cycle_trace_.sim_clock_segment_id = sim_clock_segment_id_;
         }
         return;
@@ -1420,12 +1473,12 @@ void StateRL::captureSimClock(uint64_t reference_monotonic_ns)
     cycle_trace_.sim_clock_sequence = sample.sequence;
     cycle_trace_.sim_clock_monotonic_ns = sample.monotonic_ns;
     cycle_trace_.sim_time_s = sample.sim_time;
-    cycle_trace_.sim_clock_age_ns = reference_monotonic_ns >= sample.monotonic_ns
-        ? reference_monotonic_ns - sample.monotonic_ns : 0;
+    cycle_trace_.sim_clock_age_ns = validation_monotonic_ns >= sample.monotonic_ns
+        ? validation_monotonic_ns - sample.monotonic_ns : 0;
 
     // Do not reuse a valid-looking sample left by an earlier controller/run.
     // The run boundary is the new runtime session's monotonic start timestamp.
-    if (sample.monotonic_ns < rt_session_id_ || sample.monotonic_ns > reference_monotonic_ns)
+    if (sample.monotonic_ns < rt_session_id_ || sample.monotonic_ns > validation_monotonic_ns)
     {
         cycle_trace_.sim_clock_status = abs_rt_frame::kSimClockStale;
         return;
@@ -1947,7 +2000,6 @@ void StateRL::getState()
 
 void StateRL::runModel()
 {
-    const uint64_t policy_start_ns = monotonicNowNs();
     cycle_trace_ = PolicyCycleTrace{};
     cycle_trace_.mode_before = in_recovery_ ? abs_rt_frame::kPolicyRecovery
                                              : abs_rt_frame::kPolicyAgile;
@@ -1969,7 +2021,7 @@ void StateRL::runModel()
     cycle_trace_.exit_threshold = abs_switching::effectiveExitThreshold(
         switching_mode_, cycle_trace_.entry_threshold, switching_exit_threshold_);
     cycle_trace_.risk_condition_entered = abs_rt_frame::kRiskEdgeUnknown;
-    captureSimClock(policy_start_ns);
+    captureSimClock();
 
     obs_.ang_vel = torch::tensor(robot_state_.imu.gyroscope).unsqueeze(0);
     obs_.base_quat = torch::tensor(robot_state_.imu.quaternion).unsqueeze(0);

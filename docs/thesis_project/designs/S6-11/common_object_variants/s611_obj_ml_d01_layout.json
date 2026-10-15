@@ -1,0 +1,613 @@
+{
+  "filename": "scene_s6_11_medium_local_objects_dev_01.xml",
+  "scene_id": "s611_obj_ml_d01",
+  "scene_slug": "s6_11_medium_local_objects_dev_01",
+  "model_name": "s611_obj_ml_d01",
+  "source_scene_id": "s611_ml_d01",
+  "source_filename": "scene_random_s6_11_medium_short_local_bypass_dev_01.xml",
+  "generator_version": "s6-11-common-objects/1.0",
+  "generation_seed": 9120001,
+  "variant_random_seed": null,
+  "variant_method": "deterministic in-place object substitution; no random relocation",
+  "split": "development_variant_only_not_in_60_map_library",
+  "density": "medium",
+  "route_structure": "short_local_bypass",
+  "route_structure_label_zh": "短障碍局部绕行",
+  "start_m": [
+    0.0,
+    0.0
+  ],
+  "goal_m": [
+    7.0,
+    0.0
+  ],
+  "obstacle_bounds_m": {
+    "x": [
+      -0.5,
+      7.5
+    ],
+    "y": [
+      -3.0,
+      3.0
+    ]
+  },
+  "path_search_bounds_m": {
+    "x": [
+      0.0,
+      7.0
+    ],
+    "y": [
+      -2.9,
+      2.9
+    ]
+  },
+  "object_count": 19,
+  "common_object_count": 3,
+  "simple_obstacle_count": 16,
+  "objects": [
+    {
+      "object_id": "obj01_stool",
+      "kind": "stool",
+      "label_zh": "四脚凳",
+      "center_m": [
+        1.635112,
+        0.0
+      ],
+      "yaw_rad": 0.168472,
+      "dimensions_m": {
+        "top_width_m": 0.52,
+        "top_depth_m": 0.52,
+        "total_height_m": 0.5,
+        "top_thickness_m": 0.055,
+        "leg_cross_section_m": 0.06,
+        "legs": 4
+      },
+      "source_obstacle": "ppt_obstacle_01",
+      "components": [
+        "ppt_obstacle_obj01_stool_seat",
+        "ppt_obstacle_obj01_stool_leg1",
+        "ppt_obstacle_obj01_stool_leg2",
+        "ppt_obstacle_obj01_stool_leg3",
+        "ppt_obstacle_obj01_stool_leg4"
+      ]
+    },
+    {
+      "object_id": "obj02_office_desk",
+      "kind": "office_desk",
+      "label_zh": "办公桌",
+      "center_m": [
+        3.485112,
+        0.0
+      ],
+      "yaw_rad": 0.075651,
+      "dimensions_m": {
+        "top_width_m": 0.58,
+        "top_depth_m": 0.5,
+        "total_height_m": 0.72,
+        "top_thickness_m": 0.06,
+        "leg_cross_section_m": 0.05,
+        "legs": 4
+      },
+      "source_obstacle": "ppt_obstacle_02",
+      "components": [
+        "ppt_obstacle_obj02_office_desk_desktop",
+        "ppt_obstacle_obj02_office_desk_leg1",
+        "ppt_obstacle_obj02_office_desk_leg2",
+        "ppt_obstacle_obj02_office_desk_leg3",
+        "ppt_obstacle_obj02_office_desk_leg4"
+      ]
+    },
+    {
+      "object_id": "obj03_trash_bin",
+      "kind": "trash_bin",
+      "label_zh": "垃圾桶",
+      "center_m": [
+        5.335112,
+        0.0
+      ],
+      "yaw_rad": -0.151068,
+      "dimensions_m": {
+        "proxy_shape": "vertical cylinder",
+        "radius_m": 0.18,
+        "height_m": 0.48,
+        "simplification": "uniform cylinder; rim/taper/handles/details omitted"
+      },
+      "source_obstacle": "ppt_obstacle_03",
+      "components": [
+        "ppt_obstacle_obj03_trash_bin_proxy"
+      ]
+    }
+  ],
+  "obstacle_count": 27,
+  "obstacles": [
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 5.374395,
+      "y": -2.380235,
+      "radius": 0.270887,
+      "yaw_rad": 0.0,
+      "height_m": 0.601296,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_04",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.300648
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "box",
+      "x": 5.48019,
+      "y": 2.410151,
+      "half_x": 0.258303,
+      "half_y": 0.256085,
+      "yaw_rad": 0.179177,
+      "height_m": 0.423842,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_05",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.211921
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 1.551709,
+      "y": -0.73827,
+      "half_x": 0.311169,
+      "half_y": 0.216819,
+      "yaw_rad": 0.152752,
+      "height_m": 0.39031,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_06",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.195155
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 2.356608,
+      "y": 2.614618,
+      "half_x": 0.278613,
+      "half_y": 0.225343,
+      "yaw_rad": 0.103549,
+      "height_m": 0.343276,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_07",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.171638
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "rotated_bar",
+      "x": 4.1364,
+      "y": -1.220972,
+      "half_x": 0.286657,
+      "half_y": 0.183005,
+      "yaw_rad": 0.085219,
+      "height_m": 0.466573,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_08",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.2332865
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "box",
+      "x": 2.740114,
+      "y": -1.416713,
+      "half_x": 0.303253,
+      "half_y": 0.222839,
+      "yaw_rad": -0.162191,
+      "height_m": 0.43127,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_09",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.215635
+    },
+    {
+      "name": "ppt_obstacle_10",
+      "shape": "cylinder",
+      "x": 3.773491,
+      "y": 2.311028,
+      "radius": 0.280525,
+      "yaw_rad": 0.0,
+      "height_m": 0.444176,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_10",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.222088
+    },
+    {
+      "name": "ppt_obstacle_11",
+      "shape": "box",
+      "x": 1.386368,
+      "y": -2.421571,
+      "half_x": 0.271686,
+      "half_y": 0.267974,
+      "yaw_rad": 0.152029,
+      "height_m": 0.506697,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_11",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.2533485
+    },
+    {
+      "name": "ppt_obstacle_12",
+      "shape": "cylinder",
+      "x": 1.838414,
+      "y": -1.650241,
+      "radius": 0.261038,
+      "yaw_rad": 0.0,
+      "height_m": 0.56374,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_12",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.28187
+    },
+    {
+      "name": "ppt_obstacle_13",
+      "shape": "box",
+      "x": 3.10376,
+      "y": -2.417457,
+      "half_x": 0.25007,
+      "half_y": 0.236956,
+      "yaw_rad": 0.069383,
+      "height_m": 0.473167,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_13",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.2365835
+    },
+    {
+      "name": "ppt_obstacle_14",
+      "shape": "box",
+      "x": 5.407386,
+      "y": -0.76579,
+      "half_x": 0.31594,
+      "half_y": 0.209013,
+      "yaw_rad": 0.143975,
+      "height_m": 0.325674,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_14",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.162837
+    },
+    {
+      "name": "ppt_obstacle_15",
+      "shape": "box",
+      "x": 1.287019,
+      "y": 2.476526,
+      "half_x": 0.280585,
+      "half_y": 0.226563,
+      "yaw_rad": 0.04688,
+      "height_m": 0.541611,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_15",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.2708055
+    },
+    {
+      "name": "ppt_obstacle_16",
+      "shape": "rotated_bar",
+      "x": 5.430053,
+      "y": -1.642872,
+      "half_x": 0.294018,
+      "half_y": 0.188519,
+      "yaw_rad": 0.050291,
+      "height_m": 0.615018,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_16",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.307509
+    },
+    {
+      "name": "ppt_obstacle_17",
+      "shape": "box",
+      "x": 4.434126,
+      "y": -2.601118,
+      "half_x": 0.311739,
+      "half_y": 0.21593,
+      "yaw_rad": 0.146738,
+      "height_m": 0.434283,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_17",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.2171415
+    },
+    {
+      "name": "ppt_obstacle_18",
+      "shape": "rotated_bar",
+      "x": 4.133755,
+      "y": -1.854209,
+      "half_x": 0.338413,
+      "half_y": 0.186311,
+      "yaw_rad": -0.182209,
+      "height_m": 0.604357,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_18",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.3021785
+    },
+    {
+      "name": "ppt_obstacle_19",
+      "shape": "rotated_bar",
+      "x": 2.6785,
+      "y": -0.731167,
+      "half_x": 0.355128,
+      "half_y": 0.138723,
+      "yaw_rad": -0.18716,
+      "height_m": 0.462396,
+      "role": "density_fill_off_reference_route",
+      "object_id": "obstacle_19",
+      "object_kind": "simple_obstacle",
+      "z_m": 0.231198
+    },
+    {
+      "name": "ppt_obstacle_obj01_stool_seat",
+      "shape": "box",
+      "x": 1.635112,
+      "y": 0.0,
+      "yaw_rad": 0.168472,
+      "height_m": 0.055,
+      "z_m": 0.4725,
+      "role": "seat",
+      "object_id": "obj01_stool",
+      "half_x": 0.26,
+      "half_y": 0.26,
+      "object_kind": "stool"
+    },
+    {
+      "name": "ppt_obstacle_obj01_stool_leg1",
+      "shape": "box",
+      "x": 1.471479,
+      "y": -0.230704,
+      "yaw_rad": 0.168472,
+      "height_m": 0.445,
+      "z_m": 0.2225,
+      "role": "leg",
+      "object_id": "obj01_stool",
+      "half_x": 0.03,
+      "half_y": 0.03,
+      "object_kind": "stool"
+    },
+    {
+      "name": "ppt_obstacle_obj01_stool_leg2",
+      "shape": "box",
+      "x": 1.404408,
+      "y": 0.163633,
+      "yaw_rad": 0.168472,
+      "height_m": 0.445,
+      "z_m": 0.2225,
+      "role": "leg",
+      "object_id": "obj01_stool",
+      "half_x": 0.03,
+      "half_y": 0.03,
+      "object_kind": "stool"
+    },
+    {
+      "name": "ppt_obstacle_obj01_stool_leg3",
+      "shape": "box",
+      "x": 1.865816,
+      "y": -0.163633,
+      "yaw_rad": 0.168472,
+      "height_m": 0.445,
+      "z_m": 0.2225,
+      "role": "leg",
+      "object_id": "obj01_stool",
+      "half_x": 0.03,
+      "half_y": 0.03,
+      "object_kind": "stool"
+    },
+    {
+      "name": "ppt_obstacle_obj01_stool_leg4",
+      "shape": "box",
+      "x": 1.798745,
+      "y": 0.230704,
+      "yaw_rad": 0.168472,
+      "height_m": 0.445,
+      "z_m": 0.2225,
+      "role": "leg",
+      "object_id": "obj01_stool",
+      "half_x": 0.03,
+      "half_y": 0.03,
+      "object_kind": "stool"
+    },
+    {
+      "name": "ppt_obstacle_obj02_office_desk_desktop",
+      "shape": "box",
+      "x": 3.485112,
+      "y": 0.0,
+      "yaw_rad": 0.075651,
+      "height_m": 0.06,
+      "z_m": 0.69,
+      "role": "desktop",
+      "object_id": "obj02_office_desk",
+      "half_x": 0.29,
+      "half_y": 0.25,
+      "object_kind": "office_desk"
+    },
+    {
+      "name": "ppt_obstacle_obj02_office_desk_leg1",
+      "shape": "box",
+      "x": 3.265144,
+      "y": -0.207218,
+      "yaw_rad": 0.075651,
+      "height_m": 0.66,
+      "z_m": 0.33,
+      "role": "leg",
+      "object_id": "obj02_office_desk",
+      "half_x": 0.025,
+      "half_y": 0.025,
+      "object_kind": "office_desk"
+    },
+    {
+      "name": "ppt_obstacle_obj02_office_desk_leg2",
+      "shape": "box",
+      "x": 3.236424,
+      "y": 0.171696,
+      "yaw_rad": 0.075651,
+      "height_m": 0.66,
+      "z_m": 0.33,
+      "role": "leg",
+      "object_id": "obj02_office_desk",
+      "half_x": 0.025,
+      "half_y": 0.025,
+      "object_kind": "office_desk"
+    },
+    {
+      "name": "ppt_obstacle_obj02_office_desk_leg3",
+      "shape": "box",
+      "x": 3.7338,
+      "y": -0.171696,
+      "yaw_rad": 0.075651,
+      "height_m": 0.66,
+      "z_m": 0.33,
+      "role": "leg",
+      "object_id": "obj02_office_desk",
+      "half_x": 0.025,
+      "half_y": 0.025,
+      "object_kind": "office_desk"
+    },
+    {
+      "name": "ppt_obstacle_obj02_office_desk_leg4",
+      "shape": "box",
+      "x": 3.70508,
+      "y": 0.207218,
+      "yaw_rad": 0.075651,
+      "height_m": 0.66,
+      "z_m": 0.33,
+      "role": "leg",
+      "object_id": "obj02_office_desk",
+      "half_x": 0.025,
+      "half_y": 0.025,
+      "object_kind": "office_desk"
+    },
+    {
+      "name": "ppt_obstacle_obj03_trash_bin_proxy",
+      "shape": "cylinder",
+      "x": 5.335112,
+      "y": 0.0,
+      "yaw_rad": 0,
+      "height_m": 0.48,
+      "z_m": 0.24,
+      "role": "proxy",
+      "object_id": "obj03_trash_bin",
+      "radius": 0.18,
+      "object_kind": "trash_bin"
+    }
+  ],
+  "reference_path_m": [
+    [
+      0.0,
+      0.0
+    ],
+    [
+      1.25,
+      1.175
+    ],
+    [
+      6.0,
+      1.075
+    ],
+    [
+      7.0,
+      0.0
+    ]
+  ],
+  "reference_path_adjustment_y_m": 0.07500000000000001,
+  "ray_projection_semantics": "Production 2-D XY projection of every selected collision geom. Tabletops/seats conservatively block their full XY footprint; no under-furniture route is represented. This is not depth-camera or real-robot perception evidence.",
+  "collision_semantics": "Static world collision primitives remain individually named by parent object and part; table/stool undersides are not filled by hidden collision volumes.",
+  "replacement_mapping": [
+    {
+      "source_obstacle": "ppt_obstacle_01",
+      "object_id": "obj01_stool",
+      "kind": "stool",
+      "center_m": [
+        1.635112,
+        0.0
+      ],
+      "source_shape": "box",
+      "dimensions_m": {
+        "top_width_m": 0.52,
+        "top_depth_m": 0.52,
+        "total_height_m": 0.5,
+        "top_thickness_m": 0.055,
+        "leg_cross_section_m": 0.06,
+        "legs": 4
+      },
+      "components": [
+        "ppt_obstacle_obj01_stool_seat",
+        "ppt_obstacle_obj01_stool_leg1",
+        "ppt_obstacle_obj01_stool_leg2",
+        "ppt_obstacle_obj01_stool_leg3",
+        "ppt_obstacle_obj01_stool_leg4"
+      ]
+    },
+    {
+      "source_obstacle": "ppt_obstacle_02",
+      "object_id": "obj02_office_desk",
+      "kind": "office_desk",
+      "center_m": [
+        3.485112,
+        0.0
+      ],
+      "source_shape": "box",
+      "dimensions_m": {
+        "top_width_m": 0.58,
+        "top_depth_m": 0.5,
+        "total_height_m": 0.72,
+        "top_thickness_m": 0.06,
+        "leg_cross_section_m": 0.05,
+        "legs": 4
+      },
+      "components": [
+        "ppt_obstacle_obj02_office_desk_desktop",
+        "ppt_obstacle_obj02_office_desk_leg1",
+        "ppt_obstacle_obj02_office_desk_leg2",
+        "ppt_obstacle_obj02_office_desk_leg3",
+        "ppt_obstacle_obj02_office_desk_leg4"
+      ]
+    },
+    {
+      "source_obstacle": "ppt_obstacle_03",
+      "object_id": "obj03_trash_bin",
+      "kind": "trash_bin",
+      "center_m": [
+        5.335112,
+        0.0
+      ],
+      "source_shape": "box",
+      "dimensions_m": {
+        "proxy_shape": "vertical cylinder",
+        "radius_m": 0.18,
+        "height_m": 0.48,
+        "simplification": "uniform cylinder; rim/taper/handles/details omitted"
+      },
+      "components": [
+        "ppt_obstacle_obj03_trash_bin_proxy"
+      ]
+    }
+  ],
+  "path_check": {
+    "grid_resolution_m": 0.05,
+    "continuous_path_check_step_m": 0.025,
+    "start_goal_clearance_required_m": 0.95,
+    "minimum_geometric_obstacle_clearance_m": 0.7594939833571737,
+    "minimum_centerline_corridor_width_m": 1.5189879667143473,
+    "required_obstacle_clearance_m": 0.75,
+    "go2_planar_envelope_radius_m": 0.65,
+    "engineering_clearance_margin_m": 0.1,
+    "residual_width_after_envelope_margin_m": 0.018987966714347326,
+    "route_checked_against_actual_component_projections": true
+  },
+  "density_definition": {
+    "source_density_label": "medium",
+    "approx_xy_union_area_m2_1cm_grid": 4.6061,
+    "approx_xy_union_area_fraction_1cm_grid": 0.09596,
+    "measurement": "1 cm centre-sampled union of XY collision projections"
+  },
+  "direct_line_blocking_obstacles": [
+    "ppt_obstacle_obj01_stool_seat",
+    "ppt_obstacle_obj02_office_desk_desktop",
+    "ppt_obstacle_obj03_trash_bin_proxy"
+  ]
+}

@@ -136,7 +136,12 @@ def test_first_active_state_requires_exact_cycle_identity() -> None:
              "body_angular_velocity_rad_s": [0, 0, 0], "body_linear_velocity_m_s": [0, 0, 0],
              "world_position_xy_m": [0, 0], "world_yaw_rad": 0}
     frame = {"session_id": 77, "rl_step": 0, "monotonic_ns": 1234,
-             "rl_entered": 1, "rl_active": 1}
+             "source_sequence": 10, "rl_entered": 1, "rl_active": 1,
+             "ra_value": 0.0, "mode_before": 0, "mode_after": 0,
+             "action_source": 1, "action_raw": [0.0] * 12,
+             "action_clipped": [0.0] * 12, "joint_target_rad": [0.0] * 12,
+             "world_pose": [0.0, 0.0, 0.0], "sim_time_s": 0.01,
+             "sim_clock_valid": True, "collision_snapshot": {"status": "LIVE"}}
     with tempfile.TemporaryDirectory(prefix="s6-02-initial-state-") as directory:
         root = Path(directory)
         (root / "ros.log").write_text("[ABS-INITIAL-STATE] " + __import__("json").dumps(state) + "\n")
@@ -166,7 +171,8 @@ def test_physics_step_latches_reach_normal_reader() -> None:
 def test_motion_scope_and_unknown_coverage() -> None:
     clean = {
         "status": "LIVE", "version": 4, "physics_coverage_complete": True,
-        "sim_time": 1.5,
+        "sim_time": 1.5, "capture_id": "p1-10-capture-" + "c" * 32,
+        "sequence": 2, "physics_step": 100,
         "collision_history_overflow": False, "fall_history_overflow": False,
         "event_latches_complete": True,
         "unknown_contacts": 0, "unknown_contact_steps": 0,
@@ -184,8 +190,10 @@ def test_motion_scope_and_unknown_coverage() -> None:
         {"start_physics_step": 5, "end_physics_step": 9,
          "start_sim_time": 1.20, "end_sim_time": 1.35}]}
     def covered(snapshot):
-        return [{"collision_snapshot": {**snapshot, "sim_time": 0.8}},
-                {"collision_snapshot": {**snapshot, "sim_time": 2.0}}]
+        return [{"collision_snapshot": {**snapshot, "sim_time": 0.8,
+                                         "sequence": 2, "physics_step": 100}},
+                {"collision_snapshot": {**snapshot, "sim_time": 2.0,
+                                         "sequence": 4, "physics_step": 200}}]
     safe = motion_safety(covered(clean), 1.0, 2.0)
     assert safe["collision"] is False and safe["fall"] is False
     assert safe["coverage_complete_for_motion_interval"] is True
@@ -208,6 +216,22 @@ def test_motion_scope_and_unknown_coverage() -> None:
                           "confirmed": True, "closed": False}]}
     fall = motion_safety(covered(confirmed_fall), 1.0, 2.0)
     assert fall["fall"] is True and fall["collision"] is False
+    confirmed_event = {"start_physics_step": 50, "end_physics_step": 65,
+        "start_sim_time": 1.2, "end_sim_time": 1.5,
+        "confirmed_sim_time": 1.5, "confirmed_physics_step": 65,
+        "confirmed": True, "closed": False}
+    regressed_event = {**confirmed_event, "confirmed": False, "closed": True,
+                       "confirmed_sim_time": 0.0, "confirmed_physics_step": 0}
+    sticky = motion_safety([
+        {"collision_snapshot": {**clean, "sim_time": 1.2, "sequence": 2,
+                                 "physics_step": 120,
+                                 "fall_history": [confirmed_event]}},
+        {"collision_snapshot": {**clean, "sim_time": 2.0, "sequence": 4,
+                                 "physics_step": 200,
+                                 "fall_history": [regressed_event]}},
+    ], 1.0, 2.0)
+    assert sticky["fall"] is True
+    assert sticky["fall_events"][0]["confirmed"] is True
 
     startup_then_motion_fall = {**clean, "fall_history": [
         {"start_physics_step": 2, "end_physics_step": 80, "start_sim_time": 0.2,

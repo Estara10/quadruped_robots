@@ -1,0 +1,187 @@
+{
+  "scenes": [
+    {
+      "filename": "scene_stool_dev_01.xml",
+      "scene_id": "stool_dev_01",
+      "scene_slug": "fixed stools development 01",
+      "density": "development sample; not in 60-map library",
+      "generation_seed": null,
+      "split": "development only",
+      "obstacle_count": 10,
+      "furniture_count": 2,
+      "obstacles": [
+        {
+          "name": "ppt_obstacle_stool1_seat",
+          "shape": "box",
+          "x": 2.3,
+          "y": 0.0,
+          "half_x": 0.3,
+          "half_y": 0.3,
+          "yaw_rad": 0.0,
+          "height_m": 0.06,
+          "z_m": 0.49,
+          "role": "seat",
+          "furniture": "stool1"
+        },
+        {
+          "name": "ppt_obstacle_stool1_leg1",
+          "shape": "box",
+          "x": 2.07,
+          "y": -0.23,
+          "half_x": 0.035,
+          "half_y": 0.035,
+          "yaw_rad": 0.0,
+          "height_m": 0.46,
+          "z_m": 0.23,
+          "role": "leg",
+          "furniture": "stool1"
+        },
+        {
+          "name": "ppt_obstacle_stool1_leg2",
+          "shape": "box",
+          "x": 2.07,
+          "y": 0.23,
+          "half_x": 0.035,
+          "half_y": 0.035,
+          "yaw_rad": 0.0,
+          "height_m": 0.46,
+          "z_m": 0.23,
+          "role": "leg",
+          "furniture": "stool1"
+        },
+        {
+          "name": "ppt_obstacle_stool1_leg3",
+          "shape": "box",
+          "x": 2.53,
+          "y": -0.23,
+          "half_x": 0.035,
+          "half_y": 0.035,
+          "yaw_rad": 0.0,
+          "height_m": 0.46,
+          "z_m": 0.23,
+          "role": "leg",
+          "furniture": "stool1"
+        },
+        {
+          "name": "ppt_obstacle_stool1_leg4",
+          "shape": "box",
+          "x": 2.53,
+          "y": 0.23,
+          "half_x": 0.035,
+          "half_y": 0.035,
+          "yaw_rad": 0.0,
+          "height_m": 0.46,
+          "z_m": 0.23,
+          "role": "leg",
+          "furniture": "stool1"
+        },
+        {
+          "name": "ppt_obstacle_stool2_seat",
+          "shape": "box",
+          "x": 4.8,
+          "y": -0.65,
+          "half_x": 0.3,
+          "half_y": 0.3,
+          "yaw_rad": 0.3141592653589793,
+          "height_m": 0.06,
+          "z_m": 0.49,
+          "role": "seat",
+          "furniture": "stool2"
+        },
+        {
+          "name": "ppt_obstacle_stool2_leg1",
+          "shape": "box",
+          "x": 4.652330909958352,
+          "y": -0.9398169074541232,
+          "half_x": 0.035,
+          "half_y": 0.035,
+          "yaw_rad": 0.3141592653589793,
+          "height_m": 0.46,
+          "z_m": 0.23,
+          "role": "leg",
+          "furniture": "stool2"
+        },
+        {
+          "name": "ppt_obstacle_stool2_leg2",
+          "shape": "box",
+          "x": 4.510183092545877,
+          "y": -0.5023309099583526,
+          "half_x": 0.035,
+          "half_y": 0.035,
+          "yaw_rad": 0.3141592653589793,
+          "height_m": 0.46,
+          "z_m": 0.23,
+          "role": "leg",
+          "furniture": "stool2"
+        },
+        {
+          "name": "ppt_obstacle_stool2_leg3",
+          "shape": "box",
+          "x": 5.089816907454122,
+          "y": -0.7976690900416474,
+          "half_x": 0.035,
+          "half_y": 0.035,
+          "yaw_rad": 0.3141592653589793,
+          "height_m": 0.46,
+          "z_m": 0.23,
+          "role": "leg",
+          "furniture": "stool2"
+        },
+        {
+          "name": "ppt_obstacle_stool2_leg4",
+          "shape": "box",
+          "x": 4.947669090041647,
+          "y": -0.3601830925458768,
+          "half_x": 0.035,
+          "half_y": 0.035,
+          "yaw_rad": 0.3141592653589793,
+          "height_m": 0.46,
+          "z_m": 0.23,
+          "role": "leg",
+          "furniture": "stool2"
+        }
+      ],
+      "routes": [
+        {
+          "reference_path_m": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.25,
+              1.1
+            ],
+            [
+              5.85,
+              1.1
+            ],
+            [
+              7.0,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "route_structure": "short_local_bypass",
+      "density_definition": {
+        "obstacle_footprint_area_fraction": 0.015,
+        "minimum_obstacle_spacing_m": 1.8287631520544767
+      },
+      "direct_line_blocking_obstacles": [
+        "ppt_obstacle_stool1_seat"
+      ],
+      "minimum_route_clearance_m": 0.8,
+      "ray_semantics": "Existing 2D XY projection of each seat and leg; conservative occupied footprint, no under-seat navigation.",
+      "collision_semantics": "Ten physical boxes: two seats and eight legs; no hidden solid volume beneath seats.",
+      "dimensions_m": {
+        "seat_width": 0.6,
+        "seat_depth": 0.6,
+        "seat_thickness": 0.06,
+        "total_height": 0.52,
+        "leg_width": 0.07,
+        "leg_height": 0.46
+      }
+    }
+  ]
+}

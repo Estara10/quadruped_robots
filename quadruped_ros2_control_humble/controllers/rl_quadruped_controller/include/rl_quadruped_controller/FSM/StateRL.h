@@ -21,6 +21,7 @@
 
 namespace abs_ray2d_shm { struct FrameHeader; }
 namespace abs_rt_frame { struct RuntimeFrame; }
+namespace abs_rt_frame { struct HistoryBuffer; }
 namespace abs_sim_clock { struct SimClock; }
 
 struct CtrlComponent;
@@ -350,6 +351,8 @@ private:
     // Written only by StateRL; source = AUTHORITATIVE_RUNTIME.
     int rt_frame_shm_fd_ = -1;
     abs_rt_frame::RuntimeFrame* rt_frame_shm_ptr_ = nullptr;
+    int rt_history_shm_fd_ = -1;
+    abs_rt_frame::HistoryBuffer* rt_history_shm_ptr_ = nullptr;
     uint64_t rt_session_id_ = 0;
     bool initial_policy_state_logged_ = false;
     bool stage_a_common_start_enabled_ = false;
@@ -434,7 +437,7 @@ private:
     bool finiteMotorCommand() const;
     bool injectTestFault(const char* id, torch::Tensor* value = nullptr);
     void emitCommandTelemetry(const char* event, const char* reason = "") const;
-    void captureSimClock(uint64_t reference_monotonic_ns);
+    void captureSimClock();
     void writeRtFrame(uint32_t policy_state,
                       double robot_wx, double robot_wy, double robot_yaw,
                       double body_x, double body_y, double heading_cmd,

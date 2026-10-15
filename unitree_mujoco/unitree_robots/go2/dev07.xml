@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="go2 m1_sparse_short_local_bypass_dev_01">
+  <include file="go2.xml" />
+  <statistic center="3.75 0 0.1" extent="8.5" />
+  <visual><headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0" />
+    <rgba haze="0.15 0.25 0.35 1" /><global azimuth="135" elevation="-40" /></visual>
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072" />
+    <texture type="2d" name="s6_08_groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300" />
+    <material name="s6_08_groundplane" texture="s6_08_groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2" />
+  </asset>
+  <worldbody><light pos="1 0 7" dir="0 0 -1" directional="true" />
+    <geom name="floor" type="plane" pos="3.75 0 0" size="4 3.5 0.05" material="s6_08_groundplane" />
+    <geom name="ppt_obstacle_01" type="box" pos="2.5875819999999998 0.260521 0.21455750000000001" euler="0 0 0.014381" size="0.231907 0.28395300000000001 0.21455750000000001" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_02" type="box" pos="4.9140100000000002 0.11634700000000001 0.22016350000000001" euler="0 0 0.387212" size="0.23808399999999999 0.30696899999999999 0.22016350000000001" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_03" type="box" pos="2.4992549999999998 2.5595970000000001 0.17280899999999999" euler="0 0 -0.111887" size="0.21395500000000001 0.19451299999999999 0.17280899999999999" rgba="0.26 0.28 0.31 1" />
+  </worldbody>
+</mujoco>

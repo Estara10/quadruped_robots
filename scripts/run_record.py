@@ -80,6 +80,7 @@ from abs_collision import (
     MODEL_CLOSURE_SHA256, SCENARIO_ID, SCENE_ROOT_SHA256, classify_snapshot,
     read_collision_snapshot,
 )
+from abs_base_bounds import read_snapshot as read_base_bounds_snapshot
 from abs_scene import LEGACY_BINDING, SCENES
 from p1_10_common_start import CommonStartError, validate_anchor
 
@@ -88,6 +89,42 @@ FRAME_SOURCE_PATH = "/dev/shm/mujoco_rt_frame"
 RUN_RECORD_KIND_META = "meta"
 RUN_RECORD_KIND_FRAME = "frame"
 RUN_RECORD_KIND_TERMINAL = "terminal"
+
+
+def _scene_binding_matches_current_or_m1_rename(binding: Mapping[str, Any]) -> bool:
+    """Validate current scene bindings and the frozen M1 filename-only aliases.
+
+    M1 short-name migration kept XML bytes, scene IDs, obstacle counts and
+    runtime model fingerprints fixed, while the closure digest changed because
+    it includes the root path. Historical records keep their original full
+    binding for per-snapshot checks; only the known old filename is accepted.
+    """
+    if any(binding == spec.binding() for spec in SCENES.values()):
+        return True
+    try:
+        mapping_path = (Path(__file__).resolve().parents[1] /
+                        "docs/thesis_project/designs/M1/library_v1/name_mapping.json")
+        aliases = json.loads(mapping_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    if not isinstance(aliases, list):
+        return False
+    for alias in aliases:
+        if not isinstance(alias, dict) or alias.get("old_filename") != binding.get("filename"):
+            continue
+        current = SCENES.get(alias.get("filename"))
+        if current is None:
+            return False
+        expected = current.binding()
+        return (
+            binding.get("scene_id") == expected.get("scene_id") == alias.get("scene_id") and
+            binding.get("obstacle_count") == expected.get("obstacle_count") and
+            binding.get("root_sha256") == expected.get("root_sha256") and
+            binding.get("model_fingerprint") == expected.get("model_fingerprint") and
+            isinstance(binding.get("closure_sha256"), str) and
+            HEX64_RE.fullmatch(binding["closure_sha256"]) is not None
+        )
+    return False
 
 # Accepted frame statuses form an explicit whitelist: LIVE (valid payload) and
 # MISSING (recorded gap, no payload). ANY other status — including the known
@@ -401,6 +438,19 @@ def collision_snapshot_payload(status: CollisionStatus,
     return payload
 
 
+def base_bounds_snapshot_payload(result: Mapping[str, Any]) -> Dict[str, Any]:
+    """Keep physical-step boundary evidence separate from contact/fall authority."""
+    payload: Dict[str, Any] = {"status": result.get("status"),
+                              "reason": result.get("reason"),
+                              "available": result.get("status") == "LIVE"}
+    if isinstance(result.get("snapshot"), Mapping):
+        payload.update(result["snapshot"])
+    for key in ("actual_size", "expected_size", "identity_mismatches"):
+        if key in result:
+            payload[key] = result[key]
+    return payload
+
+
 # ------------------------------------------------------------- strict fact types
 def _strict_bool(value: Any, field_name: str, errors: List[str]) -> Optional[bool]:
     """Accept only a real ``bool`` (or None). No implicit bool conversion."""
@@ -462,11 +512,21 @@ def _validate_process_facts(facts: Mapping[str, Any]) -> Tuple[Dict[str, Any], L
         validated["cleanup_events"] = []
     validated["run_terminal_result"] = _strict_str(facts.get("run_terminal_result"), "run_terminal_result", errors)
     validated["run_terminal_monotonic_ns"] = _strict_int(facts.get("run_terminal_monotonic_ns"), "run_terminal_monotonic_ns", errors)
+    validated["run_terminal_frame_ref"] = facts.get("run_terminal_frame_ref")
+    if (validated["run_terminal_frame_ref"] is not None and
+            not isinstance(validated["run_terminal_frame_ref"], dict)):
+        errors.append("run_terminal_frame_ref: expected an object when present")
+        validated["run_terminal_frame_ref"] = None
     validated["startup_recovery_observation"] = facts.get("startup_recovery_observation")
     if (validated["startup_recovery_observation"] is not None and
             not isinstance(validated["startup_recovery_observation"], dict)):
         errors.append("startup_recovery_observation: expected an object when present")
         validated["startup_recovery_observation"] = None
+    validated["policy_cycle_history"] = facts.get("policy_cycle_history")
+    if (validated["policy_cycle_history"] is not None and
+            not isinstance(validated["policy_cycle_history"], dict)):
+        errors.append("policy_cycle_history: expected an object when present")
+        validated["policy_cycle_history"] = None
     return validated, errors
 
 
@@ -532,6 +592,9 @@ class RunRecordRecorder:
         self._collision_publisher_coverage_complete = True
         self._collision_last_payload: Optional[Dict[str, Any]] = None
         self._fall_confirmed_observed = False
+        self._base_bounds_samples = 0
+        self._base_bounds_live_samples = 0
+        self._base_bounds_last_payload: Optional[Dict[str, Any]] = None
         self._started = False
         self._stopped = False
         self._finalized = False
@@ -664,6 +727,17 @@ class RunRecordRecorder:
                 collision_status, collision_snapshot)
             line["availability"]["collision_snapshot"] = collision_status is CollisionStatus.LIVE
             self._record_collision_sample(collision_status, collision_snapshot)
+            bounds_result = read_base_bounds_snapshot(
+                expected_scene_id=(self.expected_scene_binding.get("scene_id")
+                                   if self.scene_binding_explicit else None),
+                expected_capture_id=self.capture_id,
+                expected_fingerprint=self.expected_fingerprint)
+            line["payload"]["base_bounds_snapshot"] = base_bounds_snapshot_payload(bounds_result)
+            line["availability"]["base_bounds_snapshot"] = bounds_result.get("status") == "LIVE"
+            self._base_bounds_samples += 1
+            if bounds_result.get("status") == "LIVE":
+                self._base_bounds_live_samples += 1
+                self._base_bounds_last_payload = line["payload"]["base_bounds_snapshot"]
             self._frames += 1
             if self._first_monotonic_ns is None:
                 self._first_monotonic_ns = frame.monotonic_ns
@@ -790,6 +864,15 @@ class RunRecordRecorder:
         elif terminal_collision is not None:
             self._collision_invalid_samples += 1
 
+        terminal_bounds = base_bounds_snapshot_payload(read_base_bounds_snapshot(
+            expected_scene_id=(self.expected_scene_binding.get("scene_id")
+                               if self.scene_binding_explicit else None),
+            expected_capture_id=self.capture_id,
+            expected_fingerprint=self.expected_fingerprint))
+        if terminal_bounds.get("status") != "LIVE" and self._base_bounds_last_payload is not None:
+            terminal_bounds = {**self._base_bounds_last_payload,
+                               "last_live_policy_recorded_sample": True}
+
         sampled_collision_complete = (
             self._collision_live_samples > 0 and
             self._collision_unknown_samples == 0 and
@@ -835,6 +918,7 @@ class RunRecordRecorder:
             "cleanup_events": validated["cleanup_events"],
             "run_terminal_result": validated["run_terminal_result"],
             "run_terminal_monotonic_ns": validated["run_terminal_monotonic_ns"],
+            "run_terminal_frame_ref": validated["run_terminal_frame_ref"],
             "last_ra_value": self._last_ra_value,
             # Terminal/event fields. Those with no authoritative source today are
             # recorded UNKNOWN with an explicit reason — never fabricated.
@@ -873,6 +957,17 @@ class RunRecordRecorder:
                 "event_history_overflow": self._collision_history_overflow,
                 "last_snapshot": self._collision_last_payload,
             },
+            "base_bounds_coverage": {
+                "source": "PhysicsLoop base_link XY cumulative physical-step authority",
+                "samples": self._base_bounds_samples,
+                "live_samples": self._base_bounds_live_samples,
+                "last_snapshot": terminal_bounds,
+                "complete_for_captured_interval": (
+                    terminal_bounds.get("status") == "LIVE" and
+                    terminal_bounds.get("bounds_valid") == 1 and
+                    terminal_bounds.get("physics_coverage_complete") == 1),
+                "scope": "base_link XY center against declared rectangle; not full robot footprint containment",
+            },
             "fall_events": (True if self._fall_confirmed_observed else
                             (False if sampled_collision_complete and not (
                                 isinstance(self._collision_last_payload, dict) and
@@ -886,6 +981,8 @@ class RunRecordRecorder:
                     self._collision_last_payload.get("invalid_posture_steps", 0) > 0
                 ) else UNKNOWN_REASON_FALL),
         }
+        if validated["policy_cycle_history"] is not None:
+            terminal["policy_cycle_history"] = validated["policy_cycle_history"]
         if self.capture_id is not None:
             terminal["capture_id"] = self.capture_id
         if validated["startup_recovery_observation"] is not None:
@@ -1119,6 +1216,46 @@ def _validate_live_payload(payload: Any) -> List[str]:
         for index, value in enumerate(vec):
             if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)):
                 reasons.append(f"vector_not_finite:{key}[{index}]")
+    return reasons
+
+
+def _validate_base_bounds_payload(value: Any, expected_binding: Mapping[str, Any] | None,
+                                 expected_capture_id: str | None,
+                                 expected_fingerprint: str | None) -> List[str]:
+    """Validate the optional PhysicsLoop boundary snapshot without upgrading old records."""
+    if value is None:  # Historical record format did not carry this authority.
+        return []
+    if not isinstance(value, dict):
+        return ["base_bounds_snapshot_not_object"]
+    status = value.get("status")
+    if status not in {"LIVE", "MISSING", "INVALID", "STALE"}:
+        return ["base_bounds_snapshot_status_invalid"]
+    if status != "LIVE":
+        return []
+    required_ints = ("version", "sequence", "monotonic_ns", "physics_step",
+                     "producer_session_id", "physics_coverage_complete", "bounds_valid",
+                     "currently_outside", "outside_physics_steps", "first_outside_step",
+                     "last_outside_step")
+    reasons = [f"base_bounds_{key}_invalid" for key in required_ints
+               if type(value.get(key)) is not int]
+    if value.get("version") != 1 or value.get("sequence", 0) <= 0 or value.get("sequence", 0) % 2:
+        reasons.append("base_bounds_version_or_sequence_invalid")
+    for key in ("sim_time", "base_x", "base_y", "xmin", "xmax", "ymin", "ymax"):
+        item = value.get(key)
+        if isinstance(item, bool) or not isinstance(item, (int, float)) or not math.isfinite(item):
+            reasons.append(f"base_bounds_{key}_invalid")
+    if value.get("bounds_valid") not in (0, 1) or value.get("physics_coverage_complete") not in (0, 1):
+        reasons.append("base_bounds_validity_flags_invalid")
+    if value.get("bounds_valid") == 1 and value.get("physics_coverage_complete") == 1:
+        if (value.get("xmin", 0) >= value.get("xmax", 0) or
+                value.get("ymin", 0) >= value.get("ymax", 0)):
+            reasons.append("base_bounds_rectangle_invalid")
+    if expected_binding is not None and value.get("scenario_id") != expected_binding.get("scene_id"):
+        reasons.append("base_bounds_scene_mismatch")
+    if expected_capture_id is not None and value.get("capture_id") != expected_capture_id:
+        reasons.append("base_bounds_capture_mismatch")
+    if expected_fingerprint is not None and value.get("runtime_model_fingerprint") != expected_fingerprint:
+        reasons.append("base_bounds_fingerprint_mismatch")
     return reasons
 
 
@@ -1388,10 +1525,7 @@ def _validate_record_trust(data: RunRecordData) -> Tuple[bool, List[str], List[D
     if scene_binding is None:
         scene_binding = LEGACY_BINDING  # pre-S2-04 historical records
     else:
-        scene_id = scene_binding.get("scene_id") if isinstance(scene_binding, dict) else None
-        catalog_binding = next((spec.binding() for spec in SCENES.values()
-                                if spec.scene_id == scene_id), None)
-        if catalog_binding is None or scene_binding != catalog_binding:
+        if not isinstance(scene_binding, dict) or not _scene_binding_matches_current_or_m1_rename(scene_binding):
             reasons.append("meta_scene_binding_not_in_catalog")
             scene_binding = LEGACY_BINDING
 
@@ -1452,6 +1586,50 @@ def _validate_record_trust(data: RunRecordData) -> Tuple[bool, List[str], List[D
         reasons.append("terminal_not_unique")
     if data.terminal_is_last is not True:
         reasons.append("terminal_not_at_record_boundary")
+    # New producer-history records are strict: a ring overrun, missing reader,
+    # or undrained cycle invalidates completeness. Older records have no field
+    # and retain their historical validity semantics.
+    if data.terminal is not None and "policy_cycle_history" in data.terminal:
+        history = data.terminal.get("policy_cycle_history")
+        if not isinstance(history, dict):
+            reasons.append("policy_cycle_history_malformed")
+        elif history.get("complete_at_last_drain") is not True:
+            reasons.append("policy_cycle_history_incomplete")
+        elif history.get("accounting_version") == 2:
+            reuse = history.get("producer_slot_reuse_count")
+            legacy_reuse = history.get("producer_overwritten_count")
+            unread_loss = history.get("consumer_unread_loss_count")
+            final_drain = history.get("final_closeout_drain")
+            if (type(reuse) is not int or type(legacy_reuse) is not int or
+                    reuse != legacy_reuse or type(unread_loss) is not int or unread_loss != 0 or
+                    not isinstance(final_drain, dict) or final_drain.get("complete") is not True or
+                    final_drain.get("consumer_unread_loss_count") != 0 or
+                    final_drain.get("producer_count") != final_drain.get("consumer_cursor")):
+                reasons.append("policy_cycle_history_v2_accounting_inconsistent")
+            task_boundary = history.get("task_termination_boundary")
+            if task_boundary is not None:
+                if not isinstance(task_boundary, dict):
+                    reasons.append("policy_cycle_task_boundary_malformed")
+                elif task_boundary.get("status") == "complete":
+                    terminal_ref = task_boundary.get("terminal_frame_ref")
+                    terminal_matches = False
+                    if isinstance(terminal_ref, dict):
+                        terminal_matches = any(
+                            frame.get("status") == FrameStatus.LIVE.value and
+                            isinstance(frame.get("payload"), dict) and
+                            all(frame["payload"].get(key) == terminal_ref.get(ref_key)
+                                for key, ref_key in (("session_id", "session_id"),
+                                                     ("source_sequence", "source_sequence"),
+                                                     ("rl_step", "rl_step"),
+                                                     ("monotonic_ns", "monotonic_ns")))
+                            for frame in data.frames)
+                    if (not terminal_matches or
+                            task_boundary.get("terminal_frame_payload_persisted_same_snapshot") is not True or
+                            task_boundary.get("first_active_policy_cycle") != 0 or
+                            task_boundary.get("last_active_policy_cycle") != terminal_ref.get("rl_step") or
+                            task_boundary.get("missing_active_policy_cycle_count") != 0 or
+                            task_boundary.get("consumer_unread_loss_count_at_task_terminal") != 0):
+                        reasons.append("policy_cycle_task_boundary_inconsistent")
 
     # --- frame status whitelist + LIVE payload schema validation
     for index, frame in enumerate(data.frames):
@@ -1467,6 +1645,10 @@ def _validate_record_trust(data: RunRecordData) -> Tuple[bool, List[str], List[D
             payload_reasons = _validate_live_payload(payload)
             payload_reasons.extend(_validate_collision_payload(
                 payload.get("collision_snapshot"), collision_scene_binding))
+            payload_reasons.extend(_validate_base_bounds_payload(
+                payload.get("base_bounds_snapshot"), collision_scene_binding,
+                capture_id, (collision_scene_binding.get("model_fingerprint")
+                             if isinstance(collision_scene_binding, dict) else None)))
             collision = payload.get("collision_snapshot")
             if isinstance(collision, dict) and collision.get("status") == CollisionStatus.LIVE.value:
                 if capture_id is None or collision.get("capture_id") != capture_id:
@@ -1600,6 +1782,8 @@ def summarize_record(path: str) -> Dict[str, Any]:
         ),
         "meta": data.meta,
         "terminal": data.terminal,
+        "policy_cycle_history": (data.terminal.get("policy_cycle_history")
+                                  if isinstance(data.terminal, dict) else None),
         "frame_count": len(data.frames),
         "live_frame_count": live_status_count,
         "outcome": None,

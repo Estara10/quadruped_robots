@@ -16,8 +16,10 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <vector>
+#include <cstdio>
 
 #include "abs_collision_contract.h"
+#include "abs_base_bounds_contract.h"
 #include "abs_collision_model_fingerprint.h"
 #include "abs_scene_catalog.h"
 #include "abs_safety_rules.h"
@@ -69,11 +71,15 @@ class ObstacleCollisionAuthority {
     abs_collision::storeRelease(&ptr_->magic, abs_collision::kMagic);
     abs_collision::storeRelease(&ptr_->version, abs_collision::kVersion);
     abs_collision::storeRelease(&ptr_->sequence, 2);
+    initBaseBoundsPublisher();
   }
 
   ~ObstacleCollisionAuthority() {
     if (ptr_ != nullptr && ptr_ != MAP_FAILED) munmap(ptr_, sizeof(abs_collision::Snapshot));
     if (fd_ >= 0) close(fd_);
+    if (bounds_ptr_ != nullptr && bounds_ptr_ != MAP_FAILED)
+      munmap(bounds_ptr_, sizeof(abs_base_bounds::Snapshot));
+    if (bounds_fd_ >= 0) close(bounds_fd_);
   }
 
   ObstacleCollisionAuthority(const ObstacleCollisionAuthority&) = delete;
@@ -164,6 +170,7 @@ class ObstacleCollisionAuthority {
     const bool bound = model != nullptr && data != nullptr && physics_step > 0 &&
                        capture_binding_valid_ && fingerprint_bound && foot_geom_set_valid_ &&
                        scene_geometries_bound;
+    publishBaseBounds(model, data, physics_step, bound);
     if (!bound) {
       if (previous_physics_step_ != 0) physics_coverage_complete_ = false;
       fall_tracker_.candidate = false;
@@ -443,6 +450,121 @@ class ObstacleCollisionAuthority {
   }
 
  private:
+  void initBaseBoundsPublisher() {
+    const char* configured_name = std::getenv("ABS_BASE_BOUNDS_SHM_NAME");
+    bounds_shm_name_ = configured_name == nullptr ? abs_base_bounds::kShmName : configured_name;
+    if (bounds_shm_name_.empty() || bounds_shm_name_[0] != '/' ||
+        bounds_shm_name_.find('/', 1) != std::string::npos || bounds_shm_name_.size() > 120) {
+      bounds_shm_name_.clear();
+      return;
+    }
+    const char* bx0 = std::getenv("ABS_FIELD_BOUNDS_X_MIN");
+    const char* bx1 = std::getenv("ABS_FIELD_BOUNDS_X_MAX");
+    const char* by0 = std::getenv("ABS_FIELD_BOUNDS_Y_MIN");
+    const char* by1 = std::getenv("ABS_FIELD_BOUNDS_Y_MAX");
+    bounds_config_valid_ = bx0 && bx1 && by0 && by1 &&
+        std::sscanf(bx0, "%lf", &bounds_xmin_) == 1 &&
+        std::sscanf(bx1, "%lf", &bounds_xmax_) == 1 &&
+        std::sscanf(by0, "%lf", &bounds_ymin_) == 1 &&
+        std::sscanf(by1, "%lf", &bounds_ymax_) == 1 &&
+        std::isfinite(bounds_xmin_) && std::isfinite(bounds_xmax_) &&
+        std::isfinite(bounds_ymin_) && std::isfinite(bounds_ymax_) &&
+        bounds_xmin_ < bounds_xmax_ && bounds_ymin_ < bounds_ymax_;
+    const mode_t bounds_mode = bounds_shm_name_ == abs_base_bounds::kShmName ? 0666 : 0600;
+    bounds_fd_ = shm_open(bounds_shm_name_.c_str(), O_CREAT | O_RDWR, bounds_mode);
+    if (bounds_fd_ < 0 || ftruncate(bounds_fd_, sizeof(abs_base_bounds::Snapshot)) != 0) {
+      if (bounds_fd_ >= 0) close(bounds_fd_);
+      bounds_fd_ = -1;
+      return;
+    }
+    bounds_ptr_ = static_cast<abs_base_bounds::Snapshot*>(mmap(
+        nullptr, sizeof(abs_base_bounds::Snapshot), PROT_READ | PROT_WRITE,
+        MAP_SHARED, bounds_fd_, 0));
+    if (bounds_ptr_ == MAP_FAILED) {
+      bounds_ptr_ = nullptr;
+      close(bounds_fd_);
+      bounds_fd_ = -1;
+      return;
+    }
+    abs_base_bounds::Snapshot initial{};
+    initial.magic = abs_base_bounds::kMagic;
+    initial.version = abs_base_bounds::kVersion;
+    initial.monotonic_ns = monotonicNowNs();
+    initial.producer_session_id = initial.monotonic_ns;
+    initial.physics_coverage_complete = 1;
+    initial.bounds_valid = bounds_config_valid_ ? 1U : 0U;
+    initial.xmin = bounds_xmin_; initial.xmax = bounds_xmax_;
+    initial.ymin = bounds_ymin_; initial.ymax = bounds_ymax_;
+    initial.min_observed_x = initial.min_observed_y = std::numeric_limits<double>::infinity();
+    initial.max_observed_x = initial.max_observed_y = -std::numeric_limits<double>::infinity();
+    copyField(initial.scenario_id, sizeof(initial.scenario_id), scenario_id_);
+    copyField(initial.capture_id, sizeof(initial.capture_id), capture_id_);
+    copyField(initial.runtime_model_fingerprint, sizeof(initial.runtime_model_fingerprint), expected_fingerprint_);
+    abs_base_bounds::storeRelease(&bounds_ptr_->sequence, 1U);
+    abs_base_bounds::storeRelease(&bounds_ptr_->magic, initial.magic);
+    abs_base_bounds::storeRelease(&bounds_ptr_->version, initial.version);
+    std::memcpy(reinterpret_cast<char*>(bounds_ptr_) + offsetof(abs_base_bounds::Snapshot, monotonic_ns),
+                reinterpret_cast<const char*>(&initial) + offsetof(abs_base_bounds::Snapshot, monotonic_ns),
+                sizeof(initial) - offsetof(abs_base_bounds::Snapshot, monotonic_ns));
+    abs_base_bounds::storeRelease(&bounds_ptr_->sequence, 2U);
+    initial.sequence = 2U;
+    bounds_state_ = initial;
+  }
+
+  void publishBaseBounds(const mjModel* model, const mjData* data,
+                         uint64_t physics_step, bool authoritative) {
+    if (bounds_ptr_ == nullptr || bounds_ptr_ == MAP_FAILED) return;
+    abs_base_bounds::Snapshot local = bounds_state_;
+    local.monotonic_ns = monotonicNowNs();
+    local.physics_step = physics_step;
+    local.bounds_valid = bounds_config_valid_ && authoritative ? 1U : 0U;
+    local.sim_time = data == nullptr ? std::numeric_limits<double>::quiet_NaN() : data->time;
+    if (last_bounds_step_ == 0) {
+      if (physics_step != 1U) local.physics_coverage_complete = 0U;
+    } else if (physics_step != last_bounds_step_ + 1U) {
+      local.physics_coverage_complete = 0U;
+    }
+    if (!authoritative) local.physics_coverage_complete = 0U;
+    int base_id = model == nullptr ? -1 : mj_name2id(model, mjOBJ_BODY, "base_link");
+    if (data != nullptr && base_id >= 0) {
+      local.base_x = data->xpos[3 * base_id];
+      local.base_y = data->xpos[3 * base_id + 1];
+    } else {
+      local.base_x = local.base_y = std::numeric_limits<double>::quiet_NaN();
+      local.bounds_valid = 0U;
+      local.physics_coverage_complete = 0U;
+    }
+    local.currently_outside = 0U;
+    if (local.bounds_valid && std::isfinite(local.base_x) && std::isfinite(local.base_y)) {
+      local.min_observed_x = std::min(local.min_observed_x, local.base_x);
+      local.max_observed_x = std::max(local.max_observed_x, local.base_x);
+      local.min_observed_y = std::min(local.min_observed_y, local.base_y);
+      local.max_observed_y = std::max(local.max_observed_y, local.base_y);
+      const bool outside = local.base_x < local.xmin || local.base_x > local.xmax ||
+                           local.base_y < local.ymin || local.base_y > local.ymax;
+      local.currently_outside = outside ? 1U : 0U;
+      if (outside) {
+        if (local.outside_physics_steps == 0) {
+          local.first_outside_step = physics_step;
+          local.first_outside_sim_time = local.sim_time;
+        }
+        ++local.outside_physics_steps;
+        local.last_outside_step = physics_step;
+        local.last_outside_sim_time = local.sim_time;
+      }
+    }
+    uint64_t sequence = abs_base_bounds::loadAcquire(&bounds_ptr_->sequence);
+    if (sequence & 1U) ++sequence;
+    abs_base_bounds::storeRelease(&bounds_ptr_->sequence, sequence + 1U);
+    std::memcpy(reinterpret_cast<char*>(bounds_ptr_) + offsetof(abs_base_bounds::Snapshot, monotonic_ns),
+                reinterpret_cast<const char*>(&local) + offsetof(abs_base_bounds::Snapshot, monotonic_ns),
+                sizeof(local) - offsetof(abs_base_bounds::Snapshot, monotonic_ns));
+    abs_base_bounds::storeRelease(&bounds_ptr_->sequence, sequence + 2U);
+    local.sequence = sequence + 2U;
+    bounds_state_ = local;
+    last_bounds_step_ = physics_step;
+  }
+
   static uint64_t monotonicNowNs() {
     return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
@@ -750,6 +872,16 @@ class ObstacleCollisionAuthority {
   uint64_t last_invalid_posture_step_ = 0;
   double first_invalid_posture_sim_time_ = 0.0;
   double last_invalid_posture_sim_time_ = 0.0;
+  int bounds_fd_ = -1;
+  abs_base_bounds::Snapshot* bounds_ptr_ = nullptr;
+  std::string bounds_shm_name_;
+  abs_base_bounds::Snapshot bounds_state_{};
+  bool bounds_config_valid_ = false;
+  double bounds_xmin_ = 0.0;
+  double bounds_xmax_ = 0.0;
+  double bounds_ymin_ = 0.0;
+  double bounds_ymax_ = 0.0;
+  uint64_t last_bounds_step_ = 0;
   std::array<abs_collision::Snapshot::FallEpisode,
              abs_collision::kFallEventCapacity> fall_history_{};
   std::array<abs_collision::Snapshot::CollisionEpisode,

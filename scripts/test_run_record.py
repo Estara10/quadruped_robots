@@ -28,6 +28,7 @@ from abs_rt_frame import (  # noqa: E402
 )
 from run_record import (  # noqa: E402
     RunRecordRecorder,
+    _validate_base_bounds_payload,
     _validate_live_payload,
     frame_availability,
     frame_payload,
@@ -544,6 +545,37 @@ def test_valid_facts_with_proper_types_ok():
         assert summary["record_validity"] == "VALID"
         assert summary["normal_shutdown"] is True
         assert summary["termination_reason"] == "FRAMES_ENDED_RC0"
+
+
+def test_policy_cycle_history_incomplete_invalidates_new_record():
+    with tempfile.TemporaryDirectory() as tmp:
+        path = str(Path(tmp) / "run.jsonl")
+        _record(path, [_fresh(fixture(monotonic_ns=100))],
+                {"exit_code": 0, "forced_termination": False, "shutdown_complete": True,
+                 "shutdown_request_source": "SIGINT",
+                 "policy_cycle_history": {"complete_at_last_drain": False,
+                                           "producer_count_at_last_drain": 2,
+                                           "consumer_cursor": 1,
+                                           "producer_overwritten_count": 1}})
+        summary = summarize_record(path)
+        assert summary["record_validity"] == "INVALID"
+        assert "policy_cycle_history_incomplete" in summary["record_validity_reasons"]
+
+
+def test_policy_cycle_history_complete_is_accepted():
+    with tempfile.TemporaryDirectory() as tmp:
+        path = str(Path(tmp) / "run.jsonl")
+        _record(path, [_fresh(fixture(monotonic_ns=100))],
+                {"exit_code": 0, "forced_termination": False, "shutdown_complete": True,
+                 "shutdown_request_source": "SIGINT",
+                 "policy_cycle_history": {"status": "OK", "complete_at_last_drain": True,
+                                           "producer_count_at_last_drain": 1,
+                                           "consumer_cursor": 1,
+                                           "producer_overwritten_count": 0,
+                                           "history_frames_persisted": 1,
+                                           "runtime_record_unique_frames": 1,
+                                           "error": None}})
+        assert summarize_record(path)["record_validity"] == "VALID"
 
 
 def test_optional_startup_observation_summary_is_preserved_in_terminal():
@@ -1087,6 +1119,26 @@ def test_stopped_record_not_polluted_by_controller_exit_frames():
         summary = summarize_record(path)
         assert summary["record_validity"] == "VALID"
         assert summary["live_frame_count"] == 1
+
+
+def test_base_bounds_live_payload_validates_identity_and_physical_fields():
+    capture = "p1-10-capture-" + "a" * 32
+    fingerprint = "b" * 64
+    binding = {"scene_id": "m1dod01"}
+    payload = {"status": "LIVE", "available": True, "version": 1,
+        "sequence": 4, "monotonic_ns": 100, "physics_step": 2,
+        "producer_session_id": 90, "physics_coverage_complete": 1,
+        "bounds_valid": 1, "currently_outside": 0, "outside_physics_steps": 0,
+        "first_outside_step": 0, "last_outside_step": 0,
+        "sim_time": 0.004, "base_x": 0.0, "base_y": 0.0,
+        "xmin": -0.5, "xmax": 8.0, "ymin": -3.0, "ymax": 3.0,
+        "scenario_id": "m1dod01", "capture_id": capture,
+        "runtime_model_fingerprint": fingerprint}
+    assert _validate_base_bounds_payload(payload, binding, capture, fingerprint) == []
+    assert _validate_base_bounds_payload({**payload, "scenario_id": "wrong"},
+                                         binding, capture, fingerprint) == ["base_bounds_scene_mismatch"]
+    assert _validate_base_bounds_payload({**payload, "physics_step": True},
+                                         binding, capture, fingerprint) == ["base_bounds_physics_step_invalid"]
 
 
 if __name__ == "__main__":

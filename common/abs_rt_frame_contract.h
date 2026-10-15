@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 
 // Versioned cross-process contract for the ABS-Go2 real-time observation frame.
 //
@@ -28,8 +29,12 @@
 namespace abs_rt_frame {
 
 constexpr const char* kFrameShmName = "/mujoco_rt_frame";
+constexpr const char* kHistoryShmName = "/mujoco_rt_frame_history";
 constexpr uint64_t kMagic = 0x414253525446524DULL;  // mnemonic "ABSRTFRM"
 constexpr uint64_t kVersion = 3;
+constexpr uint64_t kHistoryMagic = 0x4142535254484953ULL;  // "ABS RTHIS"
+constexpr uint64_t kHistoryVersion = 1;
+constexpr uint64_t kHistoryCapacity = 2048;
 constexpr int kJointCount = 12;
 constexpr int kRayCount = 11;
 
@@ -169,6 +174,52 @@ struct RuntimeFrame {
 
 static_assert(offsetof(RuntimeFrame, hold_status) == 536, "unexpected v3 hold offset");
 static_assert(sizeof(RuntimeFrame) == 568, "unexpected runtime frame layout");
+
+// Fixed-size SPSC history for complete policy-cycle capture. The live frame
+// above remains the HUD/controller interface. A slot is committed with its
+// own odd/even sequence; produced_count is advanced only after slot commit.
+struct HistoryHeader {
+  uint64_t magic;
+  uint64_t version;
+  uint64_t capacity;
+  uint64_t session_id;
+  uint64_t produced_count;
+  // Cumulative ring-slot reuse count: max(produced_count - capacity, 0).
+  // This is not consumer data loss; unread loss is determined by comparing
+  // the reader cursor with the earliest still-readable producer index.
+  uint64_t overwritten_count;
+};
+struct HistorySlot {
+  uint64_t sequence;
+  uint64_t index;
+  RuntimeFrame frame;
+};
+struct HistoryBuffer {
+  HistoryHeader header;
+  HistorySlot slots[kHistoryCapacity];
+};
+constexpr std::size_t kHistorySize = sizeof(HistoryBuffer);
+static_assert(sizeof(HistoryHeader) == 48, "unexpected policy history header");
+static_assert(sizeof(HistorySlot) == 584, "unexpected policy history slot");
+
+inline void publishHistory(HistoryBuffer* history, const RuntimeFrame& frame) {
+  if (history == nullptr || history->header.magic != kHistoryMagic ||
+      history->header.version != kHistoryVersion ||
+      history->header.session_id != frame.session_id) return;
+  const uint64_t index = __atomic_load_n(&history->header.produced_count, __ATOMIC_ACQUIRE);
+  HistorySlot* slot = &history->slots[index % kHistoryCapacity];
+  uint64_t sequence = __atomic_load_n(&slot->sequence, __ATOMIC_ACQUIRE);
+  if (sequence & 1U) ++sequence;
+  __atomic_store_n(&slot->sequence, sequence + 1U, __ATOMIC_RELEASE);
+  slot->index = index;
+  std::memcpy(&slot->frame, &frame, sizeof(RuntimeFrame));
+  __atomic_store_n(&slot->sequence, sequence + 2U, __ATOMIC_RELEASE);
+  const uint64_t next = index + 1U;
+  __atomic_store_n(&history->header.overwritten_count,
+                   next > kHistoryCapacity ? next - kHistoryCapacity : 0U,
+                   __ATOMIC_RELEASE);
+  __atomic_store_n(&history->header.produced_count, next, __ATOMIC_RELEASE);
+}
 
 inline uint64_t loadAcquire(const uint64_t* value) {
   return __atomic_load_n(value, __ATOMIC_ACQUIRE);

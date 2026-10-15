@@ -1,0 +1,12 @@
+{
+  "scene_id": "stool_dev_01",
+  "status": "LIVE",
+  "obstacle_components": 10,
+  "physics_step": 1,
+  "authoritative": 1,
+  "runtime_fingerprint": "9ad0063c772cc0a774e42e8f020c8b08277639ebf739f5ec80d51150011f74e5",
+  "publisher_exit_code": 0,
+  "temporary_shm_removed": true,
+  "publisher_output": "[ABS-SCENE-AUTHORITY] scene_id=stool_dev_01 root_sha256=2de7493b0d76f59633c143fc291d9d7378cab4922ea3c06dc196053af263d5d1 model_closure_sha256=dd9717a1dce2c05280c2313d8aab92984c3f41a4f193bc5d8a501d10b8dd7980 runtime_model_fingerprint=9ad0063c772cc0a774e42e8f020c8b08277639ebf739f5ec80d51150011f74e5 obstacle_count=10 obstacle_ids=1,2,3,4,5,6,7,8,9,10\nREADY filename=scene_stool_dev_01.xml id=stool_dev_01 obstacle_count=10 fingerprint=9ad0063c772cc0a774e42e8f020c8b08277639ebf739f5ec80d51150011f74e5 mujoco_version=3.3.3 shm=/abs_stool_76c9a6425317\nCLEANED shm=/abs_stool_76c9a6425317\n",
+  "robot_policy_run": false
+}

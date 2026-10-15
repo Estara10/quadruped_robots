@@ -44,6 +44,13 @@ _FRAME_V2_STRUCT = struct.Struct("<14Q20Id83f4x")
 _FRAME_STRUCT = struct.Struct("<14Q20Id83f4xII3d")
 FRAME_SIZE = _FRAME_STRUCT.size  # 568
 FRAME_V2_SIZE = _FRAME_V2_STRUCT.size  # 536
+HISTORY_MAGIC = 0x4142535254484953
+HISTORY_VERSION = 1
+HISTORY_CAPACITY = 2048
+HISTORY_SHM_PATH = "/dev/shm/mujoco_rt_frame_history"
+_HISTORY_HEADER = struct.Struct("<6Q")
+_HISTORY_SLOT_PREFIX = struct.Struct("<2Q")
+HISTORY_SLOT_SIZE = _HISTORY_SLOT_PREFIX.size + FRAME_SIZE
 
 _HEADER_SEQUENCE_OFFSET = 16  # 3rd uint64 in the header
 
@@ -412,6 +419,94 @@ def read_shm_frame(
                     continue
                 return snapshot
             return b""
+        finally:
+            buf.close()
+    finally:
+        os.close(fd)
+
+
+def read_shm_history(path: str = HISTORY_SHM_PATH, cursor: int = 0,
+                     expected_session: int | None = None,
+                     max_source_sequence: int | None = None) -> dict:
+    """Drain committed slots from the controller's bounded SPSC history.
+
+    `cursor` is the next monotonically increasing producer index. When a live
+    single-slot snapshot supplies `max_source_sequence`, return only the
+    ordered prefix no newer than that snapshot, leaving later slots for the
+    next drain. This prevents a racing producer from making persisted frames
+    appear after an older direct snapshot.
+    The function
+    reports overrun and session reset explicitly and never silently skips a
+    slot. Returned frame bytes are ordered and each slot seqlock is checked.
+    """
+    try:
+        fd = os.open(path, os.O_RDONLY)
+    except OSError as exc:
+        return {"status": "MISSING", "reason": str(exc), "frames": [], "cursor": cursor}
+    try:
+        expected_size = _HISTORY_HEADER.size + HISTORY_CAPACITY * HISTORY_SLOT_SIZE
+        if os.fstat(fd).st_size != expected_size:
+            return {"status": "INVALID", "reason": "history_size_mismatch",
+                    "actual_size": os.fstat(fd).st_size, "expected_size": expected_size,
+                    "frames": [], "cursor": cursor}
+        buf = mmap.mmap(fd, expected_size, access=mmap.ACCESS_READ)
+        try:
+            magic, version, capacity, session, produced, overwritten = _HISTORY_HEADER.unpack_from(buf, 0)
+            if (magic, version, capacity) != (HISTORY_MAGIC, HISTORY_VERSION, HISTORY_CAPACITY):
+                return {"status": "INVALID", "reason": "history_header_mismatch",
+                        "magic": magic, "version": version, "capacity": capacity,
+                        "frames": [], "cursor": cursor}
+            if expected_session is not None and session != expected_session:
+                return {"status": "SESSION_CHANGED", "session_id": session,
+                        "expected_session_id": expected_session, "frames": [], "cursor": cursor}
+            if produced < cursor:
+                return {"status": "RESET", "reason": "producer_counter_reset",
+                        "session_id": session, "produced_count": produced,
+                        "overwritten_count": overwritten, "frames": [], "cursor": 0}
+            oldest = max(0, produced - capacity)
+            expected_slot_reuse_count = oldest
+            if overwritten != expected_slot_reuse_count:
+                return {"status": "INVALID", "reason": "slot_reuse_counter_mismatch",
+                        "session_id": session, "produced_count": produced,
+                        "overwritten_count": overwritten,
+                        "expected_slot_reuse_count": expected_slot_reuse_count,
+                        "frames": [], "cursor": cursor}
+            if cursor < oldest:
+                return {"status": "OVERFLOW", "session_id": session,
+                        "produced_count": produced, "overwritten_count": overwritten,
+                        "first_available_index": oldest, "requested_cursor": cursor,
+                        "consumer_unread_loss_count": oldest - cursor,
+                        "consumer_unread_loss_range": [cursor, oldest],
+                        "frames": [], "cursor": cursor}
+            result = []
+            next_cursor = cursor
+            for index in range(cursor, produced):
+                offset = _HISTORY_HEADER.size + (index % capacity) * HISTORY_SLOT_SIZE
+                before = struct.unpack_from("<Q", buf, offset)[0]
+                if before == 0 or before & 1:
+                    return {"status": "INCOHERENT", "reason": "slot_uncommitted",
+                            "slot_index": index, "frames": result, "cursor": next_cursor,
+                            "session_id": session, "produced_count": produced,
+                            "overwritten_count": overwritten}
+                stored_index = struct.unpack_from("<Q", buf, offset + 8)[0]
+                raw = bytes(buf[offset + _HISTORY_SLOT_PREFIX.size:
+                                 offset + _HISTORY_SLOT_PREFIX.size + FRAME_SIZE])
+                after = struct.unpack_from("<Q", buf, offset)[0]
+                if before != after or after & 1 or stored_index != index:
+                    return {"status": "INCOHERENT", "reason": "slot_changed_or_wrong_index",
+                            "slot_index": index, "stored_index": stored_index,
+                            "frames": result, "cursor": next_cursor,
+                            "session_id": session, "produced_count": produced,
+                            "overwritten_count": overwritten}
+                if max_source_sequence is not None:
+                    frame = RuntimeFrame.from_bytes(raw)
+                    if frame.sequence > max_source_sequence:
+                        break
+                result.append((index, raw))
+                next_cursor = index + 1
+            return {"status": "OK", "session_id": session,
+                    "produced_count": produced, "overwritten_count": overwritten,
+                    "frames": result, "cursor": next_cursor}
         finally:
             buf.close()
     finally:

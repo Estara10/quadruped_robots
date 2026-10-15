@@ -1,0 +1,146 @@
+[
+  {
+    "run": "flat_A_01",
+    "frames": 198,
+    "clock_status_stale": 2,
+    "stale_age_values_ns": [
+      0
+    ],
+    "stale_nonzero_sequence": true,
+    "task_start_sim_s": 7.489999999999397,
+    "task_end_sim_s": 11.4700000000005,
+    "producer_physics_coverage_complete_at_terminal": true,
+    "unknown_contact_steps": 0,
+    "invalid_posture_steps": 0,
+    "fall_history_overflow": false,
+    "startup_confirmed_falls_excluded_from_task": 1,
+    "unconfirmed_fall_candidates_overlapping_task": 0,
+    "base_bounds_authority_present_in_old_record": false
+  },
+  {
+    "run": "flat_A_02",
+    "frames": 206,
+    "clock_status_stale": 5,
+    "stale_age_values_ns": [
+      0
+    ],
+    "stale_nonzero_sequence": true,
+    "task_start_sim_s": null,
+    "task_end_sim_s": 11.386000000000472,
+    "producer_physics_coverage_complete_at_terminal": true,
+    "unknown_contact_steps": 0,
+    "invalid_posture_steps": 0,
+    "fall_history_overflow": false,
+    "startup_confirmed_falls_excluded_from_task": 0,
+    "unconfirmed_fall_candidates_overlapping_task": 0,
+    "base_bounds_authority_present_in_old_record": false
+  },
+  {
+    "run": "m1dod01_C",
+    "frames": 356,
+    "clock_status_stale": 6,
+    "stale_age_values_ns": [
+      0
+    ],
+    "stale_nonzero_sequence": true,
+    "task_start_sim_s": 9.479999999999835,
+    "task_end_sim_s": 16.640000000001656,
+    "producer_physics_coverage_complete_at_terminal": true,
+    "unknown_contact_steps": 0,
+    "invalid_posture_steps": 0,
+    "fall_history_overflow": false,
+    "startup_confirmed_falls_excluded_from_task": 1,
+    "unconfirmed_fall_candidates_overlapping_task": 1,
+    "base_bounds_authority_present_in_old_record": false
+  },
+  {
+    "run": "m1dod01_D",
+    "frames": 350,
+    "clock_status_stale": 2,
+    "stale_age_values_ns": [
+      0
+    ],
+    "stale_nonzero_sequence": true,
+    "task_start_sim_s": 6.8239999999994705,
+    "task_end_sim_s": 13.884000000001306,
+    "producer_physics_coverage_complete_at_terminal": true,
+    "unknown_contact_steps": 0,
+    "invalid_posture_steps": 0,
+    "fall_history_overflow": false,
+    "startup_confirmed_falls_excluded_from_task": 1,
+    "unconfirmed_fall_candidates_overlapping_task": 1,
+    "base_bounds_authority_present_in_old_record": false
+  },
+  {
+    "run": "m1ssd01_A",
+    "frames": 382,
+    "clock_status_stale": 2,
+    "stale_age_values_ns": [
+      0
+    ],
+    "stale_nonzero_sequence": true,
+    "task_start_sim_s": 7.10199999999944,
+    "task_end_sim_s": 14.802000000001613,
+    "producer_physics_coverage_complete_at_terminal": true,
+    "unknown_contact_steps": 0,
+    "invalid_posture_steps": 0,
+    "fall_history_overflow": false,
+    "startup_confirmed_falls_excluded_from_task": 1,
+    "unconfirmed_fall_candidates_overlapping_task": 2,
+    "base_bounds_authority_present_in_old_record": false
+  },
+  {
+    "run": "m1ssd01_B",
+    "frames": 611,
+    "clock_status_stale": 4,
+    "stale_age_values_ns": [
+      0
+    ],
+    "stale_nonzero_sequence": true,
+    "task_start_sim_s": 6.851999999999467,
+    "task_end_sim_s": 19.092000000000297,
+    "producer_physics_coverage_complete_at_terminal": true,
+    "unknown_contact_steps": 0,
+    "invalid_posture_steps": 0,
+    "fall_history_overflow": false,
+    "startup_confirmed_falls_excluded_from_task": 1,
+    "unconfirmed_fall_candidates_overlapping_task": 1,
+    "base_bounds_authority_present_in_old_record": false
+  },
+  {
+    "run": "m1ssd01_C",
+    "frames": 985,
+    "clock_status_stale": 1,
+    "stale_age_values_ns": [
+      0
+    ],
+    "stale_nonzero_sequence": true,
+    "task_start_sim_s": 6.489999999999507,
+    "task_end_sim_s": 26.509999999996186,
+    "producer_physics_coverage_complete_at_terminal": true,
+    "unknown_contact_steps": 0,
+    "invalid_posture_steps": 0,
+    "fall_history_overflow": false,
+    "startup_confirmed_falls_excluded_from_task": 1,
+    "unconfirmed_fall_candidates_overlapping_task": 5,
+    "base_bounds_authority_present_in_old_record": false
+  },
+  {
+    "run": "m1ssd01_D",
+    "frames": 573,
+    "clock_status_stale": 11,
+    "stale_age_values_ns": [
+      0
+    ],
+    "stale_nonzero_sequence": true,
+    "task_start_sim_s": 7.365999999999411,
+    "task_end_sim_s": 18.846000000000434,
+    "producer_physics_coverage_complete_at_terminal": true,
+    "unknown_contact_steps": 0,
+    "invalid_posture_steps": 0,
+    "fall_history_overflow": false,
+    "startup_confirmed_falls_excluded_from_task": 1,
+    "unconfirmed_fall_candidates_overlapping_task": 0,
+    "base_bounds_authority_present_in_old_record": false
+  }
+]

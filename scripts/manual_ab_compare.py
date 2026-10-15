@@ -76,11 +76,21 @@ def prepare_overlay(source, destination, group, entry_threshold, exit_threshold,
                          lambda _: block, text)
     if count != 1:
         raise RuntimeError("没有找到唯一 abs.switching 配置，停止。")
-    for key, number in (("goal_x", "7.0"), ("goal_y", "0.0")):
+    config.write_text(text, encoding="utf-8")
+
+
+def set_overlay_goal(config_path, goal_x, goal_y):
+    text = config_path.read_text(encoding="utf-8")
+    for key, number in (("goal_x", f"{goal_x:.17g}"), ("goal_y", f"{goal_y:.17g}")):
         text, count = re.subn(rf"(?m)^  {key}:.*$", f"  {key}: {number}", text)
         if count != 1:
             raise RuntimeError(f"没有找到唯一 {key} 配置，停止。")
-    config.write_text(text, encoding="utf-8")
+    config_path.write_text(text, encoding="utf-8")
+
+
+def resolve_group_overlay(root, group, prepared_overlay=None):
+    """Return the exact detached overlay selected for both preflight and launch."""
+    return prepared_overlay.resolve() if prepared_overlay else root / "overlays" / group
 
 
 def verify_overlay_detached(source, destination):
@@ -295,7 +305,17 @@ def save_comparison(root, rows, groups, parameters=None, classification=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--scene", default="scene_random_04.xml")
+    parser.add_argument("--scene", default="dev01.xml")
+    parser.add_argument("--goal-x", type=float, default=7.5,
+                        help="world-frame goal x; used in overlay, controller validation, run context and analysis")
+    parser.add_argument("--goal-y", type=float, default=0.0,
+                        help="world-frame goal y; used in overlay, controller validation, run context and analysis")
+    parser.add_argument("--sim-limit-s", type=float, default=20.0)
+    parser.add_argument("--wall-cap-s", type=float, default=120.0)
+    parser.add_argument("--result-root", type=Path, default=None,
+                        help="optional unique output root for one resumable M1 map/repeat")
+    parser.add_argument("--prepared-overlay", type=Path, default=None,
+                        help="reuse a previously detached overlay whose config and model files are revalidated before each run")
     parser.add_argument("--display", default=os.environ.get("DISPLAY", ":0"))
     default_xauthority = os.environ.get("XAUTHORITY") or os.path.join(
         os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"), "gdm", "Xauthority")
@@ -317,10 +337,14 @@ def main():
     args = parser.parse_args()
     if not Path(args.plot_python).is_file():
         parser.error("绘图 Python 不存在，请用 --plot-python 指定。")
+    if (not math.isfinite(args.goal_x) or not math.isfinite(args.goal_y) or
+            not math.isfinite(args.sim_limit_s) or args.sim_limit_s <= 0 or
+            not math.isfinite(args.wall_cap_s) or args.wall_cap_s <= 0):
+        parser.error("goal and runtime limits must be finite; limits must be positive")
     source = PROJECT / "quadruped_ros2_control_humble/install/go2_description"
     batch = datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + uuid4().hex[:6]
-    root = PROJECT / "logs/manual_abcd_compare" / batch
-    root.mkdir(parents=True)
+    root = args.result_root.resolve() if args.result_root else PROJECT / "logs/manual_abcd_compare" / batch
+    root.mkdir(parents=True, exist_ok=False)
     groups = tuple(args.groups)
     if len(set(groups)) != len(groups):
         parser.error("--groups cannot repeat a group")
@@ -334,8 +358,8 @@ def main():
                   "exit_threshold_X_BD": args.exit_threshold,
                   "recovery_min_hold_H_CD_sim_s": args.hold_s}
     plan = {"classification": args.classification,
-            "scene": args.scene, "goal_world_m": [7.0, 0.0], "arrival_radius_m": 0.5,
-            "sim_limit_s": 20.0, "wall_cap_s": 120.0,
+            "scene": args.scene, "goal_world_m": [args.goal_x, args.goal_y], "arrival_radius_m": 0.5,
+            "sim_limit_s": args.sim_limit_s, "wall_cap_s": args.wall_cap_s,
             "standing_observation_sim_s": 5.0, "standing_wall_cap_s": 30.0,
             "groups_order": list(groups), "repeats_per_group": args.repeats,
             "parameters": parameters,
@@ -348,14 +372,16 @@ def main():
     rows = {}
     try:
         for group in groups:
-            overlay = root / "overlays" / group
-            prepare_overlay(source, overlay, group, args.entry_threshold,
-                            args.exit_threshold, args.hold_s)
+            overlay = resolve_group_overlay(root, group, args.prepared_overlay)
+            if not args.prepared_overlay:
+                prepare_overlay(source, overlay, group, args.entry_threshold,
+                                args.exit_threshold, args.hold_s)
+            set_overlay_goal(overlay / "share/go2_description/config/abs/config.yaml", args.goal_x, args.goal_y)
             detached_files = verify_overlay_detached(source, overlay)
             config_path = overlay / "share/go2_description/config/abs/config.yaml"
             config_text = config_path.read_text(encoding="utf-8")
             if not overlay_configuration_matches(config_text, group, args.entry_threshold,
-                                                 args.exit_threshold, args.hold_s, 7.0, 0.0):
+                                                 args.exit_threshold, args.hold_s, args.goal_x, args.goal_y):
                 raise RuntimeError(f"generated {group} overlay failed production configuration validation: {config_path}")
             plan.setdefault("overlay_preflight", {})[group] = {
                 "status": "PRODUCTION_CONFIG_VALIDATED",
@@ -364,8 +390,9 @@ def main():
                 "group": group, "entry_threshold_E": args.entry_threshold,
                 "exit_threshold_X": args.exit_threshold if group in ("B", "D") else None,
                 "hold_H_sim_s": args.hold_s if group in ("C", "D") else None,
-                "goal_world_m": [7.0, 0.0],
+                "goal_world_m": [args.goal_x, args.goal_y],
                 "overlay_is_independent_tree": True,
+                "overlay_reused": bool(args.prepared_overlay),
                 "independent_regular_files": detached_files,
             }
             (root / "batch_plan.json").write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -382,14 +409,14 @@ def main():
                 status_item.update({"status": "RUNNING", "output_directory": str(run_out)})
                 (root / "batch_plan.json").write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
                 command = ["/usr/bin/python3", "-u", str(PROJECT / "scripts/s1_run_diagnostic.py"),
-                           "--group", group, "--scene", args.scene, "--goal-x", "7",
+                           "--group", group, "--scene", args.scene, "--goal-x", f"{args.goal_x:.17g}", "--goal-y", f"{args.goal_y:.17g}",
                            "--entry-threshold", f"{args.entry_threshold:.17g}",
                            "--exit-threshold", f"{args.exit_threshold:.17g}",
                            "--hold-s", f"{args.hold_s:.17g}",
-                           "--sim-limit-s", "20", "--wall-cap-s", "120",
+                           "--sim-limit-s", f"{args.sim_limit_s:.17g}", "--wall-cap-s", f"{args.wall_cap_s:.17g}",
                            "--standing-observation-sim-s", "5", "--standing-observation-wall-cap-s", "30",
                            "--startup-gain-trace",
-                           "--overlay", str(root / "overlays" / group),
+                           "--overlay", str(resolve_group_overlay(root, group, args.prepared_overlay)),
                            "--output-root", str(run_out), "--display", args.display,
                            "--xauthority", args.xauthority,
                            "--classification", args.classification]

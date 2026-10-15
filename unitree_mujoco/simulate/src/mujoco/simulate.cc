@@ -2694,6 +2694,33 @@ void Simulate::Render() {
   // cannot leave a cached old mapping visible. Non-LIVE states render no values.
   const auto abs_panel = ReadAbsLivePanelSnapshot();
   std::string abs_panel_text = abs_mujoco_live_panel::render(abs_panel);
+  // Free-joint translational qvel is in world coordinates, in metres per
+  // simulation second. Read under the physics mutex, independently of the
+  // controller frame, so speed remains available before RL and while standing.
+  char speed_text[192] = "Speed (world XY): N/A\n";
+  {
+    const MutexLock lock(this->mtx);
+    const mjModel* model = this->is_passive_ ? this->m_passive_ : this->m_;
+    const mjData* data = this->is_passive_ ? this->d_passive_ : this->d_;
+    if (model && data && !this->loadrequest) {
+      const int base = mj_name2id(model, mjOBJ_BODY, "base_link");
+      const int joint = base > 0 && model->body_jntnum[base] == 1
+                            ? model->body_jntadr[base] : -1;
+      if (joint >= 0 && model->jnt_type[joint] == mjJNT_FREE) {
+        const int dof = model->jnt_dofadr[joint];
+        const double vx = data->qvel[dof];
+        const double vy = data->qvel[dof + 1];
+        if (std::isfinite(vx) && std::isfinite(vy)) {
+          std::snprintf(speed_text, sizeof(speed_text),
+                        "Speed (world XY): %.2f m/s%s\n"
+                        "World vx: %+.2f / vy: %+.2f m/s\n",
+                        std::hypot(vx, vy), this->run ? "" : " [PAUSED snapshot]",
+                        vx, vy);
+        }
+      }
+    }
+  }
+  abs_panel_text = speed_text + abs_panel_text;
   const char* standing_prompt_marker = std::getenv("ABS_MUJOCO_STANDING_PROMPT_MARKER");
   const bool standing_prompt_active = standing_prompt_marker && standing_prompt_marker[0] &&
       access(standing_prompt_marker, F_OK) == 0;

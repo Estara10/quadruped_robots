@@ -49,6 +49,39 @@ def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def ray_repair_code_stage(plan: dict) -> dict:
+    """Fingerprint only the source and installed artifacts changed for this narrow repair."""
+    source_files = (
+        ROOT / "common/abs_ray2d_validation.h",
+        ROOT / "scripts/test_abs_ray2d_validation.cpp",
+        ROOT / "scripts/s1_run_diagnostic.py",
+        ROOT / "scripts/test_s1_04_contract.py",
+        ROOT / "scripts/test_s6_12_ray_repair_resume.py",
+        ROOT / "scripts/manual_s6_12_coarse.py",
+        ROOT / "quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp",
+        ROOT / "quadruped_ros2_control_humble/controllers/rl_quadruped_controller/include/rl_quadruped_controller/FSM/StateRL.h",
+    )
+    library = ROOT / "quadruped_ros2_control_humble/install/rl_quadruped_controller/lib/rl_quadruped_controller/librl_quadruped_controller.so"
+    mujoco = ROOT / "unitree_mujoco/simulate/build2/unitree_mujoco"
+    missing = [str(path) for path in (*source_files, library, mujoco) if not path.is_file()]
+    if missing:
+        raise RuntimeError(f"ray repair code-stage evidence missing: {missing}")
+    sources = {str(path.relative_to(ROOT)): digest(path) for path in source_files}
+    artifacts = {"controller_library_path": str(library.resolve()),
+                 "controller_library_sha256": digest(library),
+                 "mujoco_executable_path": str(mujoco.resolve()),
+                 "mujoco_executable_sha256": digest(mujoco)}
+    identity = {"sources": sources, "artifacts": artifacts,
+                "frozen_git_base": plan.get("code_commit")}
+    stage_id = hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()[:16]
+    return {"stage_id": stage_id,
+            "created_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+            "frozen_git_base": plan.get("code_commit"),
+            "source_sha256": sources, **artifacts,
+            "ray_read_max_attempts": 16, "ray_read_total_budget_ns": 250000,
+            "behavior_scope": "consistent frame acquisition and safety boundary evidence; policy values, switching, control cadence and thresholds unchanged"}
+
+
 def write_json(path: Path, value: dict) -> None:
     path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
@@ -216,6 +249,114 @@ def validate_authorized_second_retry(plan: dict) -> dict:
     return second
 
 
+def validate_authorized_ray_repair_resume(plan: dict, batch_root: Path) -> dict:
+    """Accept only the frozen batch stopped at row 66 with rows 1-65 valid."""
+    expected_root = (ROOT / "logs/s6_12/b_exit_coarse/20261015_192706_3").resolve()
+    rows = plan.get("runs", [])
+    row66 = rows[65] if len(rows) > 65 else {}
+    prior = row66.get("attempts", [])
+    prior_attempt = prior[0] if len(prior) == 1 else {}
+    prior_run_dir = Path(prior_attempt.get("run_directory", "")).resolve()
+    exact_prefix = all(
+        row.get("sequence") == index and row.get("status") == "VALID_TASK_RESULT" and
+        bool(row.get("attempts")) and
+        row["attempts"][-1].get("record_validity") == "VALID" and
+        row["attempts"][-1].get("process_shutdown_complete") is True and
+        row["attempts"][-1].get("closeout_complete") is True
+        for index, row in enumerate(rows[:65], 1))
+    exact_row66 = (
+        row66.get("sequence") == 66 and row66.get("plan_item_id") == "066_m1dld01_x09_r1" and
+        row66.get("scene") == "dev27.xml" and row66.get("scene_id") == "m1dld01" and
+        row66.get("group") == "B" and row66.get("entry_threshold_E") == E and
+        row66.get("exit_threshold_setting") == -0.09 and
+        row66.get("status") == "TASK_SAFETY_UNKNOWN_STOPPED" and len(prior) == 1 and
+        prior_attempt.get("run_id") == "a93bdb05a7fe4686856b7bffd79249ce" and
+        prior_attempt.get("terminal_result") == "SYSTEM_SAFETY_ABORT" and
+        prior_attempt.get("record_validity") == "VALID" and
+        prior_attempt.get("process_shutdown_complete") is True and
+        prior_attempt.get("closeout_complete") is True and
+        prior_run_dir.is_dir() and (prior_run_dir / "terminal.json").is_file() and
+        (prior_run_dir / "runtime_record.jsonl").is_file() and
+        (prior_run_dir / "process_facts.json").is_file())
+    untouched_suffix = all(row.get("status") == "NOT_STARTED" and not row.get("attempts")
+                           for row in rows[66:])
+    frozen_identity = (
+        plan.get("schema") == "s6-12-b-exit-coarse-v1" and
+        plan.get("planned_count") == 96 and plan.get("schedule_seed") == SCHEDULE_SEED and
+        plan.get("code_commit") == "8655995ff265ef2a18656c7a0b956ee889c64559" and
+        plan.get("library_version") == "m1-mapset/1.0" and
+        plan.get("stop_sequence") == 66 and plan.get("status") == "STOPPED")
+    if (batch_root.resolve() != expected_root or not frozen_identity or len(rows) != 96 or
+            not exact_prefix or not exact_row66 or not untouched_suffix):
+        raise RuntimeError(
+            "authorized ray repair resume rejected: expected original frozen batch stopped at row 66, "
+            "rows 1-65 valid/cleaned, exact preserved row-66 safety attempt, and rows 67-96 untouched")
+    return row66
+
+
+def validate_authorized_fall_analysis_final_13(plan: dict, batch_root: Path) -> dict:
+    """Accept only the independently reanalyzed row 83 and untouched suffix 84-96."""
+    expected_root = (ROOT / "logs/s6_12/b_exit_coarse/20261015_192706_3").resolve()
+    rows = plan.get("runs", [])
+    row83 = rows[82] if len(rows) > 82 else {}
+    history = row83.get("historical_analysis_before_fall_timefix", {})
+    derived = row83.get("fall_time_reanalysis", {})
+    attempt_list = row83.get("attempts", [])
+    attempt = attempt_list[0] if len(attempt_list) == 1 else {}
+    original_run = Path(attempt.get("run_directory", "")).resolve()
+    derived_path = (expected_root / derived.get("metrics_path", "__missing__")).resolve()
+    metrics = row83.get("metrics", {})
+    fall_safety = metrics.get("motion_safety", {}) if isinstance(metrics, dict) else {}
+    exact_prefix = all(
+        row.get("sequence") == index and row.get("status") == "VALID_TASK_RESULT" and
+        bool(row.get("attempts")) and
+        row["attempts"][-1].get("record_validity") == "VALID" and
+        row["attempts"][-1].get("process_shutdown_complete") is True and
+        row["attempts"][-1].get("closeout_complete") is True
+        for index, row in enumerate(rows[:82], 1))
+    exact_row83 = (
+        row83.get("sequence") == 83 and row83.get("plan_item_id") == "083_m1dfd01_x05_r1" and
+        row83.get("scene") == "dev29.xml" and row83.get("scene_id") == "m1dfd01" and
+        row83.get("group") == "A" and row83.get("entry_threshold_E") == E and
+        row83.get("exit_threshold_setting") == -0.05 and
+        row83.get("status") == "VALID_TASK_RESULT" and
+        history.get("status") == "TASK_SAFETY_UNKNOWN_STOPPED" and
+        row83.get("run_id") == "8fecf8c227d54c199a63b7530e51eab0" and
+        row83.get("terminal_result") == "FALL_TERMINATION" and
+        row83.get("record_validity") == "VALID" and
+        len(attempt_list) == 1 and
+        attempt.get("run_id") == "8fecf8c227d54c199a63b7530e51eab0" and
+        attempt.get("terminal_result") == "FALL_TERMINATION" and
+        attempt.get("record_validity") == "VALID" and
+        attempt.get("process_shutdown_complete") is True and
+        attempt.get("closeout_complete") is True and
+        original_run.is_dir() and (original_run / "runtime_record.jsonl").is_file() and
+        (original_run / "run_context.json").is_file() and (original_run / "terminal.json").is_file() and
+        derived.get("stage_id") == "fall_timefix_20261016_001" and
+        derived.get("result") == "FALL_TERMINATION" and
+        derived.get("record_validity") == "VALID" and
+        derived.get("motion_fall") is True and
+        derived_path.is_file() and
+        metrics.get("terminal_result") == "FALL_TERMINATION" and
+        metrics.get("record_validity") == "VALID" and fall_safety.get("fall") is True)
+    untouched_suffix = all(row.get("sequence") == index and
+                           row.get("status") == "NOT_STARTED" and not row.get("attempts")
+                           for index, row in enumerate(rows[83:], 84))
+    frozen_identity = (
+        plan.get("schema") == "s6-12-b-exit-coarse-v1" and
+        plan.get("planned_count") == 96 and plan.get("schedule_seed") == SCHEDULE_SEED and
+        plan.get("code_commit") == "8655995ff265ef2a18656c7a0b956ee889c64559" and
+        plan.get("library_version") == "m1-mapset/1.0" and
+        plan.get("stop_sequence") == 83 and plan.get("status") == "STOPPED")
+    if (batch_root.resolve() != expected_root or not frozen_identity or len(rows) != 96 or
+            not exact_prefix or not exact_row83 or not untouched_suffix):
+        raise RuntimeError(
+            "authorized fall-analysis continuation rejected: expected original frozen batch stopped at row 83, "
+            "rows 1-82 valid/cleaned, row 83 independently reanalyzed as the preserved VALID FALL_TERMINATION, "
+            "and rows 84-96 untouched")
+    return row83
+
+
 def set_b_threshold(config_path: Path, x: float) -> None:
     text = config_path.read_text(encoding="utf-8")
     import re
@@ -291,6 +432,9 @@ def write_partial_summary(root: Path, plan: dict, plot_python: str) -> None:
     rows = [r for r in plan.get("runs", []) if r.get("attempts")]
     attempt_fields = ["sequence", "plan_item_id", "attempt_number", "scene", "scene_id", "group",
                       "entry_threshold_E", "exit_threshold_setting", "run_id", "terminal_result",
+                      "controller_code_stage",
+                      "fall_reanalysis_terminal_result", "fall_reanalysis_record_validity",
+                      "fall_reanalysis_motion_fall", "fall_reanalysis_basis", "fall_reanalysis_metrics_path",
                       "record_validity", "child_exit_code", "run_directory",
                       "process_shutdown_complete", "closeout_complete", "runtime_source_validation",
                       "actual_group", "actual_entry_threshold", "actual_exit_threshold"]
@@ -302,6 +446,11 @@ def write_partial_summary(root: Path, plan: dict, plot_python: str) -> None:
             for attempt_index, attempt in enumerate(item.get("attempts", []), 1):
                 attempt_row = {**item, **attempt,
                                "attempt_number": attempt.get("attempt_number", attempt_index)}
+                attempt_row["controller_code_stage"] = attempt.get("controller_code_stage") or (
+                    "cd6021faa96b0cc8" if item.get("sequence", 0) >= 66 and
+                    attempt.get("attempt_number", attempt_index) >= 2 else
+                    "cd6021faa96b0cc8" if item.get("sequence", 0) >= 67 else
+                    "pre_ray_repair_controller_stage_per_run_id_not_recorded")
                 run_directory = attempt.get("run_directory")
                 if run_directory:
                     run_path = Path(run_directory)
@@ -314,15 +463,25 @@ def write_partial_summary(root: Path, plan: dict, plot_python: str) -> None:
                                             "actual_group": evidence.get("group"),
                                             "actual_entry_threshold": evidence.get("entry_threshold"),
                                             "actual_exit_threshold": evidence.get("exit_threshold")})
+                fall_reanalysis = attempt.get("fall_time_reanalysis") or {}
+                attempt_row.update({
+                    "fall_reanalysis_terminal_result": fall_reanalysis.get("terminal_result"),
+                    "fall_reanalysis_record_validity": fall_reanalysis.get("record_validity"),
+                    "fall_reanalysis_motion_fall": fall_reanalysis.get("motion_fall"),
+                    "fall_reanalysis_basis": fall_reanalysis.get("fall_result_basis"),
+                    "fall_reanalysis_metrics_path": fall_reanalysis.get("metrics_path"),
+                })
                 writer.writerow(attempt_row)
     fields = ["sequence", "plan_item_id", "scene", "density", "route_structure", "schedule_repeat",
-              "group", "entry_threshold_E", "exit_threshold_setting", "effective_exit_threshold",
+              "controller_code_stage", "group", "entry_threshold_E", "exit_threshold_setting", "effective_exit_threshold",
               "status", "run_id", "terminal_result", "record_validity", "runtime_source_validation",
               "target_distance_final_m", "elapsed_task_duration_s", "valid_motion_duration_s",
               "task_valid_time_coverage_fraction", "path_length_m", "mean_path_speed_mps",
               "mode_transitions", "short_reverse_switch_count", "short_reverse_switch_coverage",
               "recovery_sim_duration_s", "recovery_share_valid_motion_time", "recovery_hold_audit_status",
-              "motion_fall_result", "foot_contact_count", "foot_impact_count", "nonfoot_collision_failure",
+              "motion_collision_result", "motion_fall_result", "motion_safety_coverage_complete",
+              "motion_safety_coverage_reason", "fall_result_basis", "foot_contact_count",
+              "foot_impact_count", "nonfoot_collision_failure",
               "rl_step_gaps", "invalid_clock_frames", "standing_observation_status",
               "process_shutdown_complete", "closeout_complete", "ra_sample_count", "ra_min", "ra_max", "ra_median"]
     output = root / "coarse_run_results.csv"
@@ -340,6 +499,10 @@ def write_partial_summary(root: Path, plan: dict, plot_python: str) -> None:
                    "task_valid_time_coverage_fraction": m.get("task_valid_time_coverage_fraction"),
                    "mode_transitions": m.get("mode_transitions"),
                    "motion_fall_result": m.get("motion_fall_result"),
+                   "motion_collision_result": safety.get("collision"),
+                   "motion_safety_coverage_complete": safety.get("coverage_complete_for_motion_interval"),
+                   "motion_safety_coverage_reason": safety.get("coverage_reason"),
+                   "fall_result_basis": safety.get("fall_result_basis"),
                    "foot_contact_count": safety.get("foot_contact_count"),
                    "foot_impact_count": safety.get("foot_impact_count"),
                    "nonfoot_collision_failure": safety.get("nonfoot_collision_failure"),
@@ -353,6 +516,7 @@ def write_partial_summary(root: Path, plan: dict, plot_python: str) -> None:
     outcomes = {}
     by_x = {}
     by_scene_x = {}
+    safety_by_x = {}
     valid_rows = [item for item in rows
                   if item.get("status") == "VALID_TASK_RESULT" and item.get("record_validity") == "VALID"]
     status_counts = {
@@ -369,12 +533,26 @@ def write_partial_summary(root: Path, plan: dict, plot_python: str) -> None:
         bucket["attempted"] += 1
         bucket["outcomes"][outcome] = bucket["outcomes"].get(outcome, 0) + 1
         m = item.get("metrics") or {}
+        safety = m.get("task_window_safety") or {}
+        safety_bucket = safety_by_x.setdefault(x, {
+            "plan_items": 0, "collision": {"true": 0, "false": 0, "UNKNOWN": 0},
+            "fall": {"true": 0, "false": 0, "UNKNOWN": 0},
+            "collision_coverage_complete": 0, "fall_coverage_complete": 0})
+        safety_bucket["plan_items"] += 1
+        for metric, key in (("collision", "collision"), ("fall", "fall")):
+            value = safety.get(metric, "UNKNOWN")
+            label = "true" if value is True else "false" if value is False else "UNKNOWN"
+            safety_bucket[key][label] += 1
+        if safety.get("coverage_complete_for_motion_interval") is True:
+            safety_bucket["collision_coverage_complete"] += 1
+            safety_bucket["fall_coverage_complete"] += 1
         if outcome == "ARRIVED" and isinstance(m.get("elapsed_task_duration_s"), (int, float)):
             bucket["arrived_elapsed"].append(m["elapsed_task_duration_s"])
         vtime = m.get("valid_motion_duration_s")
         reverse = m.get("short_reverse_switch_count")
         if isinstance(vtime, (int, float)) and vtime > 0 and isinstance(reverse, (int, float)):
-            bucket["short_reverse_rates"].append(reverse / (vtime / 60.0))
+            if m.get("short_reverse_switch_coverage") == "complete":
+                bucket["short_reverse_rates"].append(reverse / (vtime / 60.0))
         share = m.get("recovery_share_valid_motion_time")
         if isinstance(share, (int, float)) and math.isfinite(share):
             bucket["recovery_shares"].append(share)
@@ -393,8 +571,15 @@ def write_partial_summary(root: Path, plan: dict, plot_python: str) -> None:
             result: sum(a.get("terminal_result") == result for i in plan["runs"] for a in i.get("attempts", []))
             for result in sorted({a.get("terminal_result") for i in plan["runs"] for a in i.get("attempts", []) if a.get("terminal_result")})
         },
+        "all_attempt_record_validity": {
+            validity: sum(a.get("record_validity") == validity
+                          for i in plan["runs"] for a in i.get("attempts", []))
+            for validity in ("VALID", "INVALID", "UNKNOWN")
+        },
         "outcomes": outcomes,
         "by_exit_threshold": by_x,
+        "task_window_safety_by_exit_threshold": safety_by_x,
+        "fall_analysis_stage": plan.get("derived_reanalysis", {}).get("stage_id"),
         "threshold_heatmap_arrived_count_by_scene": {
             f"{scene}/{x:.2f}": by_scene_x.get((scene, x), 0)
             for scene in [entry[1] for entry in SCENES] for x in THRESHOLDS
@@ -427,6 +612,15 @@ for t in terms:
  vals=np.array([d['by_exit_threshold'].get(str(x),{}).get('outcomes',{}).get(t,0) for x in xs])
  if vals.any(): ax.bar(labels,vals,bottom=bottom,label=t); bottom+=vals
 ax.set(title=f"Valid task-result terminals by exit setting (n={len(rows)} valid plan items; coarse development only)",xlabel='Exit threshold (−0.05 is A reference)',ylabel='Runs'); ax.legend(fontsize=8);fig.tight_layout();fig.savefig(p/'terminal_composition.png',dpi=150);plt.close(fig)
+for metric, fname, title in [('motion_collision_result','collision_outcome_by_threshold.png','Task-window collision result'),('motion_fall_result','fall_outcome_by_threshold.png','Task-window fall result')]:
+ cats=['true','false','UNKNOWN']; fig,ax=plt.subplots(figsize=(10,4)); bottom=np.zeros(len(xs))
+ for cat in cats:
+  vals=[]
+  for x in xs:
+   bucket=d['task_window_safety_by_exit_threshold'].get(str(x),{}).get('collision' if 'collision' in metric else 'fall',{})
+   vals.append(bucket.get(cat,0))
+  vals=np.array(vals); ax.bar(labels,vals,bottom=bottom,label=cat); bottom+=vals
+ ax.set(title=f'{title} by exit setting (valid plan items; counts retain UNKNOWN)',xlabel='Exit threshold (−0.05 is A reference)',ylabel='Plan items');ax.legend();fig.tight_layout();fig.savefig(p/fname,dpi=150);plt.close(fig)
 def series(key, title, ylabel, predicate=lambda r:True, transform=lambda r:float(r[key]) if r.get(key) not in ('',None) else np.nan):
  vals=[]; counts=[]
  for x in xs:
@@ -576,6 +770,7 @@ def run_item(root: Path, item: dict, plan: dict, args: argparse.Namespace) -> bo
                                                  context.get("terminal_result")),
                              "record_validity": metrics.get("record_validity"),
                              "run_directory": str(run_dir) if run_dir else None,
+                             "code_stage_id": (plan.get("active_code_stage") or {}).get("stage_id"),
                              "process_shutdown_complete": facts.get("shutdown_complete", metrics.get("process_shutdown_complete")),
                              "closeout_complete": facts.get("closeout_complete", metrics.get("closeout_complete"))})
     item["run_id"] = run_id
@@ -626,15 +821,23 @@ def main() -> int:
                         help="perform the single explicitly authorized retry of the preserved first infrastructure-failed item")
     parser.add_argument("--authorized-retry-second", action="store_true",
                         help="perform the single explicitly authorized retry of frozen plan item 002, then continue untouched rows")
+    parser.add_argument("--authorized-ray-repair-resume", action="store_true",
+                        help="perform the authorized one-time repair-stage retry of frozen item 066, then continue untouched rows 067-096")
+    parser.add_argument("--authorized-fall-analysis-final-13", action="store_true",
+                        help="continue only original frozen items 084-096 after the independent fall-time reanalysis gate for item 083")
+    parser.add_argument("--summarize-only", action="store_true",
+                        help="regenerate partial/complete coarse tables and charts from the frozen plan without launching scenes")
     parser.add_argument("--preflight-only", action="store_true")
     parser.add_argument("--display", default=os.environ.get("DISPLAY", ":0"))
     parser.add_argument("--xauthority", default=os.environ.get("XAUTHORITY", "/run/user/1000/gdm/Xauthority"))
     parser.add_argument("--plot-python", default="/home/lidio/anaconda3/bin/python3")
     args = parser.parse_args()
-    if (args.authorized_retry_first or args.authorized_retry_second) and not args.batch_root:
+    authorized_modes = (args.authorized_retry_first, args.authorized_retry_second,
+                        args.authorized_ray_repair_resume, args.authorized_fall_analysis_final_13)
+    if any(authorized_modes) and not args.batch_root:
         parser.error("authorized retry requires the original frozen --batch-root")
-    if args.authorized_retry_first and args.authorized_retry_second:
-        parser.error("choose only one authorized retry mode")
+    if sum(bool(mode) for mode in authorized_modes) > 1:
+        parser.error("choose only one authorized resume mode")
     if not Path(args.plot_python).is_file():
         parser.error(f"plot Python not found: {args.plot_python}")
     catalog = scene_catalog()
@@ -669,8 +872,17 @@ def main() -> int:
             print(f"Frozen S6-12 plan ready: {root / 's6_12_coarse_plan.json'}; 96 unique rows, A=12, B=84; overlays detached and production config validation passed. No scene launched.")
             return 0
     validate_plan(plan, catalog)
+    if args.summarize_only:
+        if not args.batch_root or not args.resume:
+            parser.error("--summarize-only requires --batch-root and --resume")
+        write_partial_summary(root, plan, args.plot_python)
+        choose_timelines(root, plan)
+        print(f"S6-12 summary regenerated from existing attempts only: {root}")
+        return 0
     authorized_retry = False
     authorized_second_retry = False
+    authorized_ray_resume = False
+    authorized_fall_resume = False
     if args.authorized_retry_first:
         first = validate_authorized_first_retry(plan)
         attempts = first["attempts"]
@@ -691,7 +903,34 @@ def main() -> int:
             "additional_attempt_limit_for_second_item": 1,
         }
         authorized_second_retry = True
-    if args.resume and plan.get("status") in ("STOPPED", "COMPLETE") and not authorized_retry and not authorized_second_retry:
+    if args.authorized_ray_repair_resume:
+        row66 = validate_authorized_ray_repair_resume(plan, root)
+        plan["authorized_ray_repair_resume"] = {
+            "authorization": "User authorized repair, one attempt of original plan item 066, then original untouched rows 067-096 if record and cleanup pass.",
+            "authorized_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+            "preserved_original_attempt": row66["attempts"][0].get("run_directory"),
+            "repair_scope": "bounded consistent ray-frame read retries and truthful controller safety-boundary capture only",
+            "attempt_limit_for_item_066_this_round": 2,
+        }
+        stage = ray_repair_code_stage(plan)
+        plan.setdefault("code_stages", []).append(stage) if not any(
+            item.get("stage_id") == stage["stage_id"] for item in plan.get("code_stages", [])) else None
+        plan["active_code_stage"] = stage
+        authorized_ray_resume = True
+    if args.authorized_fall_analysis_final_13:
+        row83 = validate_authorized_fall_analysis_final_13(plan, root)
+        plan["authorized_fall_analysis_final_13"] = {
+            "authorization": "User authorized correcting production fall-event time analysis, independently reanalyzing row 083, then continuing original rows 084-096 once each if row 083 and prior evidence are coherent.",
+            "authorized_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+            "row_083_run_id": row83["run_id"],
+            "fall_analysis_stage_id": row83["fall_time_reanalysis"]["stage_id"],
+            "remaining_item_range": [84, 96],
+            "base_attempt_limit": 13,
+            "infrastructure_extra_attempt_limit": 3,
+            "retry_policy": "only a specifically repaired engineering startup/recording failure; no valid task-terminal retry",
+        }
+        authorized_fall_resume = True
+    if args.resume and plan.get("status") in ("STOPPED", "COMPLETE") and not authorized_retry and not authorized_second_retry and not authorized_ray_resume and not authorized_fall_resume:
         if plan["status"] == "COMPLETE":
             print("S6-12 coarse matrix already complete; no new scene launched.")
             return 0
@@ -721,6 +960,19 @@ def main() -> int:
             print(f"S6-12 authorized retry stopped at {second['plan_item_id']}: {second.get('stop_reason')}; no second retry or later run started.", file=sys.stderr)
             return 1
         remaining_items = plan["runs"][2:]
+    elif authorized_ray_resume:
+        row66 = plan["runs"][65]
+        row66["status"] = "AUTHORIZED_RAY_REPAIR_RETRY_RUNNING"
+        update_plan(root, plan)
+        if not run_item(root, row66, plan, args):
+            plan["status"] = "STOPPED"
+            plan["stop_sequence"] = row66["sequence"]
+            update_plan(root, plan)
+            print(f"S6-12 repaired-reader retry stopped at {row66['plan_item_id']}: {row66.get('stop_reason')}; rows 67-96 were not started.", file=sys.stderr)
+            return 1
+        remaining_items = plan["runs"][66:]
+    elif authorized_fall_resume:
+        remaining_items = plan["runs"][83:]
     else:
         remaining_items = plan["runs"]
     for item in remaining_items:

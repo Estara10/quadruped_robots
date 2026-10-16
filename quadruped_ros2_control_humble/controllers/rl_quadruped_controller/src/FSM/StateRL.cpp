@@ -28,9 +28,22 @@
 #include <chrono>
 #include <sstream>
 #include <stdexcept>
+#include <thread>
 
 namespace {
 constexpr uint64_t kSimClockFreshnessNs = 100'000'000ULL;
+constexpr uint32_t kRayReadMaxAttempts = 16;
+constexpr uint64_t kRayReadBudgetNs = 250'000ULL;
+
+struct RaySnapshotSource {
+    const abs_ray2d_shm::FrameHeader* header;
+    const float* payload;
+    uint64_t sequence() const { return abs_ray2d_shm::loadAcquire(&header->sequence); }
+    uint64_t magic() const { return abs_ray2d_shm::loadAcquire(&header->magic); }
+    uint64_t version() const { return abs_ray2d_shm::loadAcquire(&header->version); }
+    uint64_t stamp() const { return abs_ray2d_shm::loadAcquire(&header->monotonic_ns); }
+    void copy(float* out) const { std::memcpy(out, payload, abs_ray2d_shm::kRayCount * sizeof(float)); }
+};
 
 uint64_t monotonicNowNs()
 {
@@ -514,7 +527,19 @@ void StateRL::enter()
             vector(target_kp).c_str(), vector(target_kd).c_str());
     }
     last_ray_stamp_ns_ = 0;
+    last_ray_validation_ns_ = 0;
     last_ray_age_ns_ = 0;
+    last_ray_sequence_first_ = 0;
+    last_ray_sequence_last_ = 0;
+    last_ray_read_duration_ns_ = 0;
+    last_ray_attempts_ = 0;
+    ray_retry_success_total_ = 0;
+    ray_retry_duration_total_ns_ = 0;
+    ray_retry_duration_max_ns_ = 0;
+    last_ray_header_observed_ = false;
+    last_ray_stamp_observed_ = false;
+    last_ray_snapshot_consistent_ = false;
+    last_ray_validation_clock_observed_ = false;
     last_ray_reason_ = "not_checked";
     ray_check_count_ = 0;
     ray_last_check_telemetry_ns_ = 0;
@@ -898,6 +923,14 @@ bool StateRL::updateRay2d()
     last_ray_stamp_ns_ = 0;
     last_ray_validation_ns_ = 0;
     last_ray_age_ns_ = 0;
+    last_ray_sequence_first_ = 0;
+    last_ray_sequence_last_ = 0;
+    last_ray_read_duration_ns_ = 0;
+    last_ray_attempts_ = 0;
+    last_ray_header_observed_ = false;
+    last_ray_stamp_observed_ = false;
+    last_ray_snapshot_consistent_ = false;
+    last_ray_validation_clock_observed_ = false;
     const uint64_t timeout_ns = static_cast<uint64_t>(params_.abs_ray2d_timeout_ms) * 1000000ULL;
     if (ray2d_stamp_shm_ptr_ == nullptr || ray2d_shm_ptr_ == nullptr)
     {
@@ -906,66 +939,73 @@ bool StateRL::updateRay2d()
         return false;
     }
 
-    // The writer brackets its payload with an odd/even sequence.  A reader only
-    // accepts a snapshot whose header did not change while the 11 values were copied.
-    std::array<float, abs_ray2d_shm::kRayCount> snapshot{};
-    for (int attempt = 0; attempt < 3; ++attempt)
-    {
-        const uint64_t sequence_before = abs_ray2d_shm::loadAcquire(&ray2d_stamp_shm_ptr_->sequence);
-        if (sequence_before == 0 || (sequence_before & 1U) != 0U)
-        {
-            last_ray_reason_ = "writer_in_progress_or_unarmed";
-            continue;
-        }
-        const uint64_t magic = abs_ray2d_shm::loadAcquire(&ray2d_stamp_shm_ptr_->magic);
-        const uint64_t version = abs_ray2d_shm::loadAcquire(&ray2d_stamp_shm_ptr_->version);
-        const uint64_t stamp_ns = abs_ray2d_shm::loadAcquire(&ray2d_stamp_shm_ptr_->monotonic_ns);
-        std::memcpy(snapshot.data(), ray2d_shm_ptr_, snapshot.size() * sizeof(float));
-        const uint64_t sequence_after = abs_ray2d_shm::loadAcquire(&ray2d_stamp_shm_ptr_->sequence);
-        if (!abs_ray2d_shm::coherentSequence(sequence_before, sequence_after))
-        {
-            last_ray_reason_ = "incoherent_snapshot";
-            continue;
-        }
+    RaySnapshotSource source{ray2d_stamp_shm_ptr_, ray2d_shm_ptr_};
+    auto read = abs_ray2d_shm::readConsistentSnapshot(
+        source, [] { return monotonicNowNs(); }, [] { std::this_thread::yield(); },
+        kRayReadMaxAttempts, kRayReadBudgetNs, timeout_ns, params_.abs_ray2d_count);
+    last_ray_sequence_first_ = read.sequence_first;
+    last_ray_sequence_last_ = read.sequence_last;
+    last_ray_read_duration_ns_ = read.read_duration_ns;
+    last_ray_attempts_ = read.attempts;
+    last_ray_header_observed_ = read.header_observed;
+    last_ray_stamp_observed_ = read.stamp_observed;
+    last_ray_validation_clock_observed_ = read.validation_clock_observed;
+    last_ray_snapshot_consistent_ = read.snapshot_consistent;
+    last_ray_stamp_observed_ = read.stamp_observed && read.snapshot_consistent;
+    last_ray_stamp_ns_ = last_ray_stamp_observed_ ? read.stamp_ns : 0;
+    last_ray_validation_ns_ = read.validation_clock_observed ? read.validation_now_ns : 0;
+    last_ray_age_ns_ = read.validation_clock_observed && read.snapshot_consistent && read.validation_now_ns >= read.stamp_ns
+        ? read.validation_now_ns - read.stamp_ns : 0;
 
-        // Read the validation clock only after the accepted seqlock snapshot.
-        // The producer may have published this valid timestamp while we copied it.
-        const uint64_t validation_now_ns = monotonicNowNs();
-        last_ray_stamp_ns_ = stamp_ns;
-        last_ray_validation_ns_ = validation_now_ns;
-        last_ray_age_ns_ = validation_now_ns >= stamp_ns ? validation_now_ns - stamp_ns : 0;
-        const auto validation = abs_ray2d_shm::validate(snapshot.data(), params_.abs_ray2d_count,
-            magic, version, stamp_ns, validation_now_ns, timeout_ns);
-        if (validation == abs_ray2d_shm::Validation::valid)
+    if (read.status != abs_ray2d_shm::ReadStatus::stable)
+    {
+        ray2d_valid_ = false;
+        last_ray_reason_ = abs_ray2d_shm::readStatusName(read.status);
+        if (read.status == abs_ray2d_shm::ReadStatus::time_budget ||
+            read.status == abs_ray2d_shm::ReadStatus::retry_limit)
         {
-            obs_.ray2d = torch::from_blob(snapshot.data(), {1, params_.abs_ray2d_count}, torch::kFloat32).clone();
-            ray2d_valid_ = true;
-            last_ray_reason_ = "valid";
-            if (live_telemetry_enabled_ && ++ray_check_count_ % 50U == 0U)
-            {
-                const double average_period_ms = ray_last_check_telemetry_ns_ == 0 ? 0.0
-                    : static_cast<double>(validation_now_ns - ray_last_check_telemetry_ns_) / 50.0 / 1e6;
-                RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-                    "[ABS-LIVE-RAY-CHECK] clock=steady_clock_ns now_ns=%lu checks=50 average_period_ms=%.6f",
-                    validation_now_ns, average_period_ms);
-                ray_last_check_telemetry_ns_ = validation_now_ns;
-            }
-            return true;
+            last_ray_reason_ += std::string("_last_") +
+                abs_ray2d_shm::readStatusName(read.last_observed_status);
         }
-        switch (validation)
-        {
-            case abs_ray2d_shm::Validation::header: last_ray_reason_ = "header_magic_or_version"; break;
-            case abs_ray2d_shm::Validation::unarmed_timestamp: last_ray_reason_ = "unarmed_timestamp"; break;
-            case abs_ray2d_shm::Validation::monotonic_clock_order: last_ray_reason_ = "monotonic_clock_order"; break;
-            case abs_ray2d_shm::Validation::stale: last_ray_reason_ = "stale"; break;
-            case abs_ray2d_shm::Validation::non_finite: last_ray_reason_ = "non_finite_ray"; break;
-            case abs_ray2d_shm::Validation::valid: break;
-        }
+        return false;
+    }
+
+    switch (read.validation)
+    {
+        case abs_ray2d_shm::Validation::header: last_ray_reason_ = "header_magic_or_version"; break;
+        case abs_ray2d_shm::Validation::unarmed_timestamp: last_ray_reason_ = "unarmed_timestamp"; break;
+        case abs_ray2d_shm::Validation::monotonic_clock_order: last_ray_reason_ = "monotonic_clock_order"; break;
+        case abs_ray2d_shm::Validation::stale: last_ray_reason_ = "stale"; break;
+        case abs_ray2d_shm::Validation::non_finite: last_ray_reason_ = "non_finite_ray"; break;
+        case abs_ray2d_shm::Validation::valid: break;
+    }
+    if (read.validation != abs_ray2d_shm::Validation::valid)
+    {
         ray2d_valid_ = false;
         return false;
     }
-    ray2d_valid_ = false;
-    return false;
+
+    obs_.ray2d = torch::from_blob(read.rays.data(), {1, params_.abs_ray2d_count}, torch::kFloat32).clone();
+    ray2d_valid_ = true;
+    last_ray_reason_ = "valid";
+    if (read.attempts > 1)
+    {
+        ++ray_retry_success_total_;
+        ray_retry_duration_total_ns_ += read.read_duration_ns;
+        ray_retry_duration_max_ns_ = std::max(ray_retry_duration_max_ns_, read.read_duration_ns);
+    }
+    if (live_telemetry_enabled_ && ++ray_check_count_ % 50U == 0U)
+    {
+        const double average_period_ms = ray_last_check_telemetry_ns_ == 0 ? 0.0
+            : static_cast<double>(read.validation_now_ns - ray_last_check_telemetry_ns_) / 50.0 / 1e6;
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+            "[ABS-LIVE-RAY-CHECK] clock=steady_clock_ns now_ns=%lu checks=50 average_period_ms=%.6f retry_successes=%lu retry_duration_total_ns=%lu retry_duration_max_ns=%lu read_budget_ns=%lu max_attempts=%u",
+            read.validation_now_ns, average_period_ms, ray_retry_success_total_,
+            ray_retry_duration_total_ns_, ray_retry_duration_max_ns_,
+            kRayReadBudgetNs, kRayReadMaxAttempts);
+        ray_last_check_telemetry_ns_ = read.validation_now_ns;
+    }
+    return true;
 }
 
 void StateRL::safetyVeto(const char* stage)
@@ -974,8 +1014,12 @@ void StateRL::safetyVeto(const char* stage)
     {
         const uint64_t now_ns = monotonicNowNs();
         RCLCPP_ERROR(rclcpp::get_logger("StateRL"),
-            "[ABS-CONTRACT] event=detected clock=steady_clock_ns detection_ns=%lu ray_stamp_ns=%lu ray_validation_now_ns=%lu ray_age_ns=%lu ray_reason=%s stage=%s transition_request=PASSIVE",
-            now_ns, last_ray_stamp_ns_, last_ray_validation_ns_, last_ray_age_ns_, last_ray_reason_.c_str(), stage);
+            "[ABS-CONTRACT] event=detected clock=steady_clock_ns detection_ns=%lu session_id=%lu policy_cycle=%lu ray_reason=%s sequence_first=%lu sequence_last=%lu attempts=%lu read_duration_ns=%lu header_observed=%d stamp_observed=%d snapshot_consistent=%d ray_stamp_ns=%lu validation_clock_observed=%d ray_validation_now_ns=%lu ray_age_ns=%lu stage=%s transition_request=PASSIVE",
+            now_ns, rt_session_id_, static_cast<uint64_t>(rl_step_count_), last_ray_reason_.c_str(),
+            last_ray_sequence_first_, last_ray_sequence_last_, last_ray_attempts_,
+            last_ray_read_duration_ns_, last_ray_header_observed_, last_ray_stamp_observed_,
+            last_ray_snapshot_consistent_, last_ray_stamp_ns_, last_ray_validation_clock_observed_, last_ray_validation_ns_,
+            last_ray_age_ns_, stage);
     }
     safety_faulted_ = true;
     running_ = false;
@@ -995,6 +1039,24 @@ void StateRL::safetyVeto(const char* stage)
     cycle_trace_.mode_change_ns = 0;
     emitCommandTelemetry("safety_veto", stage);
     writeRtFaultedFrame();
+    if (rt_frame_shm_ptr_ != nullptr && rt_frame_shm_ptr_ != MAP_FAILED)
+    {
+        const auto* frame = static_cast<const abs_rt_frame::RuntimeFrame*>(rt_frame_shm_ptr_);
+        const uint64_t sequence_before = abs_rt_frame::loadAcquire(&frame->header.sequence);
+        const uint64_t frame_magic = abs_rt_frame::loadAcquire(&frame->header.magic);
+        const uint64_t frame_version = abs_rt_frame::loadAcquire(&frame->header.version);
+        const uint64_t frame_ns = abs_rt_frame::loadAcquire(&frame->header.monotonic_ns);
+        const uint64_t sequence_after = abs_rt_frame::loadAcquire(&frame->header.sequence);
+        const bool exact_fault_frame = sequence_before != 0 && sequence_before == sequence_after &&
+            (sequence_after & 1U) == 0U && frame_magic == abs_rt_frame::kMagic &&
+            frame_version == abs_rt_frame::kVersion && frame->session_id == rt_session_id_ &&
+            frame->rl_step == static_cast<uint64_t>(rl_step_count_) &&
+            frame->policy_state == abs_rt_frame::kPolicyFaulted;
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+            "[ABS-SAFETY-BOUNDARY] event=fault_frame_written exact=%d session_id=%lu policy_cycle=%lu sequence=%lu frame_monotonic_ns=%lu sim_clock_valid=%d sim_time_s=%.9f policy_state=%u last_ray_reason=%s",
+            exact_fault_frame, frame->session_id, frame->rl_step, sequence_after, frame_ns,
+            frame->sim_clock_valid, frame->sim_time_s, frame->policy_state, last_ray_reason_.c_str());
+    }
 }
 
 bool StateRL::finiteMotorCommand() const

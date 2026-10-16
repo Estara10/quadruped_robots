@@ -316,6 +316,8 @@ def main():
                         help="optional unique output root for one resumable M1 map/repeat")
     parser.add_argument("--prepared-overlay", type=Path, default=None,
                         help="reuse a previously detached overlay whose config and model files are revalidated before each run")
+    parser.add_argument("--disable-framebuffer-capture", action="store_true",
+                        help="suppress optional live/standing PPM writes for storage-bounded batches")
     parser.add_argument("--display", default=os.environ.get("DISPLAY", ":0"))
     default_xauthority = os.environ.get("XAUTHORITY") or os.path.join(
         os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"), "gdm", "Xauthority")
@@ -420,6 +422,8 @@ def main():
                            "--output-root", str(run_out), "--display", args.display,
                            "--xauthority", args.xauthority,
                            "--classification", args.classification]
+                if args.disable_framebuffer_capture:
+                    command.append("--disable-framebuffer-capture")
                 try:
                     result = execute(command, root / f"{group}_rep_{repeat_index:02d}_console.log")
                 except Exception as error:

@@ -24,6 +24,7 @@
 #include "abs_scene_catalog.h"
 #include "abs_safety_rules.h"
 #include "foot_contact_policy.h"
+#include "physics_coverage_diagnostic.h"
 
 // Versioned collision authority for the explicitly supported S2 scene set.
 class ObstacleCollisionAuthority {
@@ -172,7 +173,11 @@ class ObstacleCollisionAuthority {
                        scene_geometries_bound;
     publishBaseBounds(model, data, physics_step, bound);
     if (!bound) {
-      if (previous_physics_step_ != 0) physics_coverage_complete_ = false;
+      if (previous_physics_step_ != 0) {
+        markPhysicsCoverageIncomplete("authority_not_bound", model, data, physics_step,
+            local.sim_time, capture_binding_valid_, fingerprint_bound,
+            foot_geom_set_valid_, scene_geometries_bound);
+      }
       fall_tracker_.candidate = false;
       fall_tracker_.start_sim_time = 0.0;
       fall_tracker_.start_physics_step = 0;
@@ -186,7 +191,11 @@ class ObstacleCollisionAuthority {
       return;
     }
     if (!std::isfinite(local.sim_time) || local.monotonic_ns == 0) {
-      if (previous_physics_step_ != 0) physics_coverage_complete_ = false;
+      if (previous_physics_step_ != 0) {
+        markPhysicsCoverageIncomplete("nonfinite_sim_time_or_monotonic_clock", model, data,
+            physics_step, local.sim_time, capture_binding_valid_, fingerprint_bound,
+            foot_geom_set_valid_, scene_geometries_bound);
+      }
       fall_tracker_.candidate = false;
       fall_tracker_.start_sim_time = 0.0;
       fall_tracker_.start_physics_step = 0;
@@ -215,10 +224,10 @@ class ObstacleCollisionAuthority {
       scene_identity_logged_ = true;
     }
 
-    const bool continuous_step = previous_physics_step_ == 0
-        ? (physics_step == 1U && std::fabs(local.sim_time - model->opt.timestep) <= 1e-9)
-        : (physics_step == previous_physics_step_ + 1U &&
-           std::fabs((local.sim_time - previous_sim_time_) - model->opt.timestep) <= 1e-9);
+    const auto continuity = abs_physics_coverage::checkContinuity(
+        previous_physics_step_ != 0, previous_physics_step_, previous_sim_time_,
+        physics_step, local.sim_time, model->opt.timestep);
+    const bool continuous_step = continuity.continuous;
     std::map<uint64_t, FootPairObservation> foot_pairs;
     std::array<std::array<double, 3>, 4> net_foot_force{};
     uint32_t force_valid_mask = 0xFU;
@@ -384,7 +393,9 @@ class ObstacleCollisionAuthority {
       }
     }
     if (!continuous_step) {
-      physics_coverage_complete_ = false;
+      markPhysicsCoverageIncomplete(continuity.reason, model, data, physics_step,
+          local.sim_time, capture_binding_valid_, fingerprint_bound,
+          foot_geom_set_valid_, scene_geometries_bound);
     }
     updateFallState(model, data, physics_step, local.sim_time, continuous_step, local);
     local.v5.reserved_flags = fall_tracker_.condition_flags;
@@ -450,6 +461,38 @@ class ObstacleCollisionAuthority {
   }
 
  private:
+  void markPhysicsCoverageIncomplete(const char* reason, const mjModel* model,
+                                     const mjData* data, uint64_t physics_step,
+                                     double sim_time, bool capture_binding_valid,
+                                     bool fingerprint_bound, bool foot_geometry_valid,
+                                     bool scene_geometries_bound) {
+    if (physics_coverage_complete_) {
+      const double timestep = model == nullptr
+          ? std::numeric_limits<double>::quiet_NaN() : model->opt.timestep;
+      const double delta = sim_time - previous_sim_time_;
+      std::cerr << "[ABS-PHYSICS-COVERAGE-FIRST-LOSS]"
+                << " reason=" << (reason == nullptr ? "unknown" : reason)
+                << " previous_step=" << previous_physics_step_
+                << " current_step=" << physics_step
+                << " expected_step=" << (previous_physics_step_ == 0 ? 1 : previous_physics_step_ + 1)
+                << " previous_sim_time=" << previous_sim_time_
+                << " current_sim_time=" << sim_time
+                << " delta_sim_time=" << delta
+                << " timestep=" << timestep
+                << " capture_id=" << capture_id_
+                << " scene_id=" << scenario_id_
+                << " capture_binding_valid=" << (capture_binding_valid ? 1 : 0)
+                << " fingerprint_bound=" << (fingerprint_bound ? 1 : 0)
+                << " foot_geometry_valid=" << (foot_geometry_valid ? 1 : 0)
+                << " scene_geometries_bound=" << (scene_geometries_bound ? 1 : 0)
+                << " runtime_fingerprint=" << runtime_fingerprint_
+                << " expected_fingerprint=" << expected_fingerprint_
+                << " data_present=" << (data != nullptr ? 1 : 0)
+                << std::endl;
+    }
+    physics_coverage_complete_ = false;
+  }
+
   void initBaseBoundsPublisher() {
     const char* configured_name = std::getenv("ABS_BASE_BOUNDS_SHM_NAME");
     bounds_shm_name_ = configured_name == nullptr ? abs_base_bounds::kShmName : configured_name;

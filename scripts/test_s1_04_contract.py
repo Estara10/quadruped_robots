@@ -16,7 +16,7 @@ from abs_rt_frame import FrameStatus, classify_frame  # noqa: E402
 from abs_scene import resolve_scene  # noqa: E402
 import s1_run_diagnostic  # noqa: E402
 from s1_run_diagnostic import FrameCapture  # noqa: E402
-from s1_analyze_run import calculate  # noqa: E402
+from s1_analyze_run import calculate, motion_safety  # noqa: E402
 from test_run_record import fixture, pack_frame  # noqa: E402
 
 
@@ -25,6 +25,109 @@ def _capture(path: Path, run_id: str, capture_id: str, run_start_ns: int = 0) ->
     return FrameCapture(path, run_id, capture_id, run_start_ns,
                         resolve_scene("scene_obstacle.xml"), candidate_mode=1,
                         entry_threshold=-0.05, exit_threshold=-0.08, hold_duration_s=0.0)
+
+
+def _fall_snapshot(sequence: int, physics_step: int, sim_time: float, event=None,
+                   *, overflow: bool = False, capture_id: str = "fall-test-capture") -> dict:
+    return {
+        "status": "LIVE", "version": 5, "capture_id": capture_id,
+        "sequence": sequence, "physics_step": physics_step, "sim_time": sim_time,
+        "physics_coverage_complete": True, "event_latches_complete": True,
+        "collision_history_overflow": False, "fall_history_overflow": overflow,
+        "fall_history": [event] if event else [], "collision_history": [],
+        "unknown_contact_steps": 0, "unknown_contact_first_sim_time": 0.0,
+        "unknown_contact_last_sim_time": 0.0, "invalid_posture_steps": 0,
+        "first_invalid_posture_sim_time": 0.0, "last_invalid_posture_sim_time": 0.0,
+        "foot_identity_valid": True, "foot_contact_history_overflow": False,
+        "foot_impact_history_overflow": False,
+    }
+
+
+def _fall_window(start_snapshot: dict, end_snapshot: dict, end_s: float = 10.1) -> dict:
+    frames = [{"collision_snapshot": start_snapshot}, {"collision_snapshot": end_snapshot}]
+    return motion_safety(frames, 10.0, end_s, terminal_snapshot=end_snapshot,
+                         start_boundary_snapshot=start_snapshot,
+                         end_boundary_snapshot=end_snapshot)
+
+
+def test_fall_event_time_is_independent_of_later_snapshot_publication() -> None:
+    start = _fall_snapshot(2, 100, 10.0)
+    event = {"start_physics_step": 105, "start_sim_time": 10.05,
+             "end_physics_step": 112, "end_sim_time": 10.12,
+             "confirmed": True, "confirmed_physics_step": 108,
+             "confirmed_sim_time": 10.08, "closed": False}
+    end = _fall_snapshot(4, 112, 10.12, event)
+    result = _fall_window(start, end)
+    assert result["coverage_complete_for_motion_interval"] is True
+    assert result["fall"] is True, result
+    assert result["fall_result_basis"] == "confirmed_fall_event_time_and_physics_step_within_motion_window"
+    assert result["fall_lifecycle_assessments"][0]["status_at_task_terminal"] == "CONFIRMED_BY_TASK_TERMINAL"
+    assert result["fall_lifecycle_assessments"][0]["event_last_abnormal_after_task_terminal"] is True
+
+
+def test_fall_confirmation_after_terminal_is_unknown_not_backdated() -> None:
+    start = _fall_snapshot(2, 100, 10.0)
+    event = {"start_physics_step": 105, "start_sim_time": 10.05,
+             "end_physics_step": 112, "end_sim_time": 10.12,
+             "confirmed": True, "confirmed_physics_step": 111,
+             "confirmed_sim_time": 10.11, "closed": False}
+    result = _fall_window(start, _fall_snapshot(4, 112, 10.12, event))
+    assert result["fall"] == "UNKNOWN", result
+    assert result["fall_lifecycle_assessments"][0]["status_at_task_terminal"] == "CONFIRMATION_AFTER_TASK_TERMINAL"
+
+    contradictory = {**event, "confirmed_physics_step": 108, "confirmed_sim_time": 10.11}
+    result = _fall_window(start, _fall_snapshot(4, 112, 10.12, contradictory))
+    assert result["fall"] == "UNKNOWN", result
+    assert result["fall_result_basis"] == "fall_event_confirmation_time_step_conflict"
+
+
+def test_fall_candidate_closed_only_after_terminal_remains_unknown() -> None:
+    start = _fall_snapshot(2, 100, 10.0)
+    event = {"start_physics_step": 105, "start_sim_time": 10.05,
+             "end_physics_step": 109, "end_sim_time": 10.09,
+             "confirmed": False, "confirmed_physics_step": 0,
+             "confirmed_sim_time": 0.0, "closed": True}
+    result = _fall_window(start, _fall_snapshot(4, 112, 10.12, event))
+    assert result["fall"] == "UNKNOWN", result
+    assert result["fall_lifecycle_assessments"][0]["status_at_task_terminal"] == "ACTIVE_OR_CLOSE_TIME_UNKNOWN_AT_TERMINAL"
+
+
+def test_closed_preparation_fall_is_excluded_but_cross_boundary_confirmation_counts() -> None:
+    prep = {"start_physics_step": 80, "start_sim_time": 9.8,
+            "end_physics_step": 90, "end_sim_time": 9.9,
+            "confirmed": False, "confirmed_physics_step": 0,
+            "confirmed_sim_time": 0.0, "closed": True}
+    result = _fall_window(_fall_snapshot(2, 100, 10.0, prep),
+                          _fall_snapshot(4, 112, 10.12, prep))
+    assert result["fall"] is False, result
+    assert result["fall_events"] == []
+
+    continuing = {"start_physics_step": 95, "start_sim_time": 9.95,
+                  "end_physics_step": 108, "end_sim_time": 10.08,
+                  "confirmed": True, "confirmed_physics_step": 106,
+                  "confirmed_sim_time": 10.06, "closed": False}
+    initial = {**continuing, "confirmed": False, "confirmed_physics_step": 0,
+               "confirmed_sim_time": 0.0}
+    result = _fall_window(_fall_snapshot(2, 100, 10.0, initial),
+                          _fall_snapshot(4, 112, 10.12, continuing))
+    assert result["fall"] is True, result
+
+
+def test_fall_history_overflow_or_identity_conflict_does_not_prove_result() -> None:
+    start = _fall_snapshot(2, 100, 10.0)
+    event = {"start_physics_step": 105, "start_sim_time": 10.05,
+             "end_physics_step": 108, "end_sim_time": 10.08,
+             "confirmed": True, "confirmed_physics_step": 106,
+             "confirmed_sim_time": 10.06, "closed": False}
+    assert _fall_window(start, _fall_snapshot(4, 112, 10.12, event, overflow=True))["fall"] == "UNKNOWN"
+    conflict = _fall_snapshot(4, 112, 10.12, event, capture_id="other-capture")
+    assert _fall_window(start, conflict)["fall"] == "UNKNOWN"
+
+    invalid = _fall_snapshot(4, 112, 10.12, event)
+    invalid["invalid_posture_steps"] = 1
+    invalid["first_invalid_posture_sim_time"] = 10.07
+    invalid["last_invalid_posture_sim_time"] = 10.07
+    assert _fall_window(start, invalid)["fall"] == "UNKNOWN"
 
 
 def test_external_safety_event_has_terminal_priority() -> None:
@@ -49,6 +152,49 @@ def test_external_safety_event_has_terminal_priority() -> None:
             assert terminal["termination_reason"] == "SAFETY_FAULT"
             assert terminal["external_safety_events"] == [event]
             assert run_record.summarize_record(path)["record_validity"] == "VALID"
+    finally:
+        run_record.read_collision_snapshot = original
+
+
+def test_policy_safety_boundary_keeps_fault_frame_separate_from_last_policy_frame() -> None:
+    line = ("[StateRL] [ABS-CONTRACT] event=detected clock=steady_clock_ns detection_ns=12345 "
+            "session_id=71 policy_cycle=9 ray_reason=read_time_budget_last_odd_sequence_writer_in_progress "
+            "sequence_first=3 sequence_last=17 attempts=16 read_duration_ns=249001 "
+            "header_observed=0 stamp_observed=0 snapshot_consistent=0 ray_stamp_ns=0 "
+            "validation_clock_observed=0 ray_validation_now_ns=0 ray_age_ns=0 "
+            "stage=ray transition_request=PASSIVE")
+    parsed = s1_run_diagnostic.parse_policy_safety_veto(line)
+    assert parsed is not None
+    assert parsed["detection_monotonic_ns"] == 12345
+    assert parsed["session_id"] == 71 and parsed["policy_cycle"] == 9
+    assert parsed["ray_reason"] == "read_time_budget_last_odd_sequence_writer_in_progress"
+    assert parsed["sequence_first"] == 3 and parsed["sequence_last"] == 17
+    assert parsed["attempts"] == 16 and parsed["read_duration_ns"] == 249001
+
+    strategy = dataclasses.replace(fixture(sequence=2, rl_step=8, session_id=71,
+        monotonic_ns=time.monotonic_ns()), policy_state=0, rl_entered=1, rl_active=1)
+    fault = dataclasses.replace(fixture(sequence=4, rl_step=9, session_id=71,
+        monotonic_ns=strategy.monotonic_ns + 20_000_000), policy_state=2,
+        rl_entered=1, rl_active=0, safety_faulted=True)
+    assert s1_run_diagnostic.same_cycle_fault_frame(fault, 71, 9)
+    assert not s1_run_diagnostic.same_cycle_fault_frame(strategy, 71, 9)
+    assert not s1_run_diagnostic.same_cycle_fault_frame(fault, 72, 9)
+
+    original = run_record.read_collision_snapshot
+    run_record.read_collision_snapshot = lambda: b""
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            capture = _capture(Path(tmp) / "runtime.jsonl", "fault-boundary",
+                               "p1-10-capture-" + "a" * 32)
+            capture.start()
+            for frame in (strategy, fault):
+                raw = pack_frame(frame)
+                status, observed = classify_frame(raw, frame.monotonic_ns + 1)
+                result = capture.observe(raw, status, observed, frame.monotonic_ns + 1)
+                assert result["persisted"] is True
+            assert capture.last_frame_metadata["policy_state"] == "FAULTED"
+            assert capture.last_active_frame_metadata["rl_step"] == 8
+            assert capture.last_active_frame_metadata["policy_state"] == "AGILE"
     finally:
         run_record.read_collision_snapshot = original
 
@@ -481,6 +627,7 @@ def test_production_closeout_end_to_end_and_failure_keeps_cleanup() -> None:
 
 if __name__ == "__main__":
     test_external_safety_event_has_terminal_priority()
+    test_policy_safety_boundary_keeps_fault_frame_separate_from_last_policy_frame()
     test_step_gap_is_not_bridged_into_recovery_dwell()
     test_exit_cycle_closes_recovery_and_cleanup_tail_is_excluded()
     test_recovery_interval_ends_on_first_agile_cycle()

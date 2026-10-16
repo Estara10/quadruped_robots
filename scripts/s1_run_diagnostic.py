@@ -64,6 +64,41 @@ def now_ns() -> int:
     return time.monotonic_ns()
 
 
+def parse_policy_safety_veto(line: str) -> dict | None:
+    """Parse controller-authored fault identity and ray-read diagnostics, when present."""
+    if not VETO_RE.search(line):
+        return None
+    def integer(name: str) -> int | None:
+        match = re.search(rf"(?:^|\s){re.escape(name)}=(\d+)(?:\s|$)", line)
+        return int(match.group(1)) if match else None
+    reason = re.search(r"(?:^|\s)ray_reason=([^\s]+)", line)
+    return {
+        "detection_monotonic_ns": integer("detection_ns"),
+        "session_id": integer("session_id"),
+        "policy_cycle": integer("policy_cycle"),
+        "ray_reason": reason.group(1) if reason else None,
+        "sequence_first": integer("sequence_first"),
+        "sequence_last": integer("sequence_last"),
+        "attempts": integer("attempts"),
+        "read_duration_ns": integer("read_duration_ns"),
+        "header_observed": integer("header_observed"),
+        "stamp_observed": integer("stamp_observed"),
+        "snapshot_consistent": integer("snapshot_consistent"),
+        "ray_stamp_ns": integer("ray_stamp_ns"),
+        "validation_clock_observed": integer("validation_clock_observed"),
+        "validation_now_ns": integer("ray_validation_now_ns"),
+        "ray_age_ns": integer("ray_age_ns"),
+        "stage": (re.search(r"(?:^|\s)stage=(.*?)\s+transition_request=", line) or [None, None])[1],
+    }
+
+
+def same_cycle_fault_frame(frame: RuntimeFrame | None, session_id: int | None,
+                           policy_cycle: int | None) -> bool:
+    return bool(frame is not None and session_id is not None and policy_cycle is not None and
+                frame.session_id == session_id and frame.rl_step == policy_cycle and
+                frame.safety_faulted and frame.policy_state == 2)
+
+
 def history_drain_limit(status: FrameStatus, frame: RuntimeFrame | None) -> int | None:
     """Cap ring draining at the exact live single-slot snapshot we may append next."""
     return frame.sequence if status is FrameStatus.LIVE and frame is not None else None
@@ -104,9 +139,16 @@ def normal_closeout_gate(terminal: str, safety_abort: bool, collision_events: li
 
 def standing_physics_sample_failure(snapshot: object) -> str | None:
     """Validate one live physics-authority sample during the standing hold."""
-    if (not math.isfinite(snapshot.sim_time) or snapshot.physics_coverage_complete != 1 or
-            snapshot.unknown_contacts != 0):
-        return "invalid physics time, incomplete coverage, or unknown contact"
+    # Keep the admission conditions unchanged, but name the first failed field.
+    # The former combined message made a preparation timeout impossible to
+    # distinguish later when the sample values had not been persisted.
+    if not math.isfinite(snapshot.sim_time):
+        return f"sim_time_nonfinite: actual={snapshot.sim_time!r}; expected=finite"
+    if snapshot.physics_coverage_complete != 1:
+        return ("physics_coverage_complete: "
+                f"actual={snapshot.physics_coverage_complete!r}; expected=1")
+    if snapshot.unknown_contacts != 0:
+        return f"unknown_contacts: actual={snapshot.unknown_contacts!r}; expected=0"
     if snapshot.fall_candidate or snapshot.fall_confirmed:
         return "fall candidate/confirmation during standing hold"
     if snapshot.robot_obstacle_contacts != 0:
@@ -933,7 +975,8 @@ def write_json(path: Path, value: object) -> None:
 
 def build_env(capture_id: str, overlay: Path, display: str, xauthority: str,
               scene: object, run_dir: Path,
-              field_bounds_m: dict | None = None) -> dict[str, str]:
+              field_bounds_m: dict | None = None,
+              capture_framebuffer: bool = True) -> dict[str, str]:
     env = os.environ.copy()
     env["DISPLAY"] = display
     env["XAUTHORITY"] = xauthority
@@ -952,8 +995,13 @@ def build_env(capture_id: str, overlay: Path, display: str, xauthority: str,
         env["ABS_FIELD_BOUNDS_Y_MAX"] = str(field_bounds_m["y"][1])
     resolved_run_dir = run_dir.resolve()
     env["ABS_MUJOCO_STANDING_PROMPT_MARKER"] = str(resolved_run_dir / "standing_prompt.marker")
-    env["ABS_MUJOCO_STANDING_FRAMEBUFFER_CAPTURE"] = str(resolved_run_dir / "standing_hold.ppm")
-    env["ABS_MUJOCO_FRAMEBUFFER_CAPTURE"] = str(resolved_run_dir / "live_panel.ppm")
+    if capture_framebuffer:
+        env["ABS_MUJOCO_STANDING_FRAMEBUFFER_CAPTURE"] = str(resolved_run_dir / "standing_hold.ppm")
+        env["ABS_MUJOCO_FRAMEBUFFER_CAPTURE"] = str(resolved_run_dir / "live_panel.ppm")
+    else:
+        # Explicit batch suppression must also defeat inherited parent-shell paths.
+        env.pop("ABS_MUJOCO_STANDING_FRAMEBUFFER_CAPTURE", None)
+        env.pop("ABS_MUJOCO_FRAMEBUFFER_CAPTURE", None)
     return env
 
 
@@ -1006,6 +1054,48 @@ def confirm_pre_rl_standing(capture_id: str, scene: object, wall_cap_s: float = 
     confirmed_fall_seen = False
     observed_fall_keys: set[tuple[int, float]] = set()
     resolved_fall_keys: set[tuple[int, float]] = set()
+    first_rejected_sample: dict | None = None
+    last_rejected_sample: dict | None = None
+
+    def physics_diagnostic(status: CollisionStatus, snap: object | None,
+                           reader: dict, validation_ns: int) -> dict:
+        fields = {
+            "snapshot_status": status.value,
+            "reader": reader,
+            "validation_monotonic_ns": validation_ns,
+            "expected_capture_id": capture_id,
+            "expected_scene_id": scene.scene_id,
+            "expected_model_fingerprint": scene.model_fingerprint,
+        }
+        if snap is None:
+            fields["decoded_snapshot"] = False
+            return fields
+        fields.update({
+            "decoded_snapshot": True,
+            "version": snap.version,
+            "sequence": snap.sequence,
+            "physics_step": snap.physics_step,
+            "sim_time_s": snap.sim_time,
+            "snapshot_monotonic_ns": snap.monotonic_ns,
+            "sample_age_ns": validation_ns - snap.monotonic_ns,
+            "capture_id": snap.capture_id,
+            "scene_id": snap.scenario_id,
+            "runtime_model_fingerprint": snap.runtime_model_fingerprint,
+            "authoritative": bool(snap.authoritative),
+            "physics_coverage_complete": snap.physics_coverage_complete,
+            "unknown_contacts": snap.unknown_contacts,
+            "invalid_posture_steps": snap.invalid_posture_steps,
+            "robot_obstacle_contacts": snap.robot_obstacle_contacts,
+            "foot_ground_contacts": snap.foot_ground_contacts,
+            "base_height_m": snap.base_height_m,
+            "base_roll_rad": snap.base_roll_rad,
+            "base_pitch_rad": snap.base_pitch_rad,
+            "fall_candidate": bool(snap.fall_candidate),
+            "fall_confirmed": bool(snap.fall_confirmed),
+            "fall_history_overflow": snap.fall_history_overflow,
+            "collision_history_overflow": snap.collision_history_overflow,
+        })
+        return fields
 
     def controller_sample() -> dict:
         state = "PASSIVE"
@@ -1046,9 +1136,13 @@ def confirm_pre_rl_standing(capture_id: str, scene: object, wall_cap_s: float = 
         status, snap = classify_snapshot(raw, validation_ns, expected_capture_id=capture_id,
                                          expected_fingerprint=scene.model_fingerprint,
                                          expected_scene_binding=scene.binding())
+        source_diagnostic = physics_diagnostic(status, snap, diagnostic, validation_ns)
         if status is not CollisionStatus.LIVE or snap is None:
             return {"status": "PREPARATION_FAILURE", "reason": f"physics authority {status.value} during pre-RL standing preparation",
-                    "reader": diagnostic, "observations": observations,
+                    "reader": diagnostic, "physics_failure": source_diagnostic,
+                    "first_rejected_sample": first_rejected_sample,
+                    "last_rejected_sample": source_diagnostic,
+                    "observations": observations,
                     "started_monotonic_ns": started_ns, "finished_monotonic_ns": now_ns(),
                     "wall_cap_s": wall_cap_s, "stable_required_sim_s": stable_sim_s}
         latest_fall = dict(snap.fall_history[-1]) if snap.fall_history else None
@@ -1086,11 +1180,15 @@ def confirm_pre_rl_standing(capture_id: str, scene: object, wall_cap_s: float = 
             stable_start_s = None
             previous_sim_s = snap.sim_time
             previous_sequence = snap.sequence
-            append_sample({"sequence": snap.sequence, "physics_step": snap.physics_step,
+            rejected_sample = {"sequence": snap.sequence, "physics_step": snap.physics_step,
                                  "sim_time_s": snap.sim_time, "status": "not_stable",
                                  "reason": failed, "base_height_m": snap.base_height_m,
                                  "base_roll_rad": snap.base_roll_rad, "base_pitch_rad": snap.base_pitch_rad,
                                  "foot_ground_contacts": snap.foot_ground_contacts,
+                                 "ground_contacts": snap.ground_contacts,
+                                 "robot_obstacle_contacts": snap.robot_obstacle_contacts,
+                                 "physics_coverage_complete": snap.physics_coverage_complete,
+                                 "unknown_contacts": snap.unknown_contacts,
                                  "fall_candidate": bool(snap.fall_candidate),
                                  "fall_confirmed": bool(snap.fall_confirmed),
                                  "fall_episode_active": bool(latest_fall and not latest_fall.get("closed", False)),
@@ -1098,7 +1196,12 @@ def confirm_pre_rl_standing(capture_id: str, scene: object, wall_cap_s: float = 
                                  "invalid_posture_steps": snap.invalid_posture_steps,
                                  "first_invalid_posture_sim_time_s": snap.first_invalid_posture_sim_time,
                                  "last_invalid_posture_sim_time_s": snap.last_invalid_posture_sim_time,
-                                 "controller": controller})
+                                 "physics_diagnostic": source_diagnostic,
+                                 "controller": controller}
+            append_sample(rejected_sample)
+            if first_rejected_sample is None:
+                first_rejected_sample = rejected_sample
+            last_rejected_sample = rejected_sample
             if (snap.invalid_posture_steps > 0 and
                     (not preparation_events or preparation_events[-1].get("last_sim_time_s") != snap.last_invalid_posture_sim_time)):
                 preparation_events.append({"kind": "invalid_posture_history", "phase": "preparation",
@@ -1120,6 +1223,8 @@ def confirm_pre_rl_standing(capture_id: str, scene: object, wall_cap_s: float = 
             stable_start_s = snap.sim_time
         observation = {"sequence": snap.sequence, "physics_step": snap.physics_step,
                        "sim_time_s": snap.sim_time, "status": "stable_candidate",
+                       "physics_coverage_complete": snap.physics_coverage_complete,
+                       "unknown_contacts": snap.unknown_contacts,
                        "base_height_m": snap.base_height_m, "base_roll_rad": snap.base_roll_rad,
                        "base_pitch_rad": snap.base_pitch_rad,
                        "foot_ground_contacts": snap.foot_ground_contacts,
@@ -1130,6 +1235,7 @@ def confirm_pre_rl_standing(capture_id: str, scene: object, wall_cap_s: float = 
                        "unknown_contacts": snap.unknown_contacts,
                        "robot_obstacle_contacts": snap.robot_obstacle_contacts,
                        "controller": controller}
+        observation["physics_diagnostic"] = source_diagnostic
         append_sample(observation)
         if previous_sim_s is not None and snap.sim_time < previous_sim_s:
             return {"status": "PREPARATION_FAILURE", "reason": "simulation clock moved backward during pre-RL standing preparation",
@@ -1153,6 +1259,8 @@ def confirm_pre_rl_standing(capture_id: str, scene: object, wall_cap_s: float = 
                                  "controller_command3_gate_log": controller["stand_transition_ready_log"]},
                     "resolved_setup_events": resolved_setup_events,
                     "preparation_events": preparation_events,
+                    "first_rejected_sample": first_rejected_sample,
+                    "last_rejected_sample": last_rejected_sample,
                     "posture_history_at_confirmation": {
                         "invalid_posture_steps": snap.invalid_posture_steps,
                         "first_invalid_posture_sim_time_s": snap.first_invalid_posture_sim_time,
@@ -1162,11 +1270,16 @@ def confirm_pre_rl_standing(capture_id: str, scene: object, wall_cap_s: float = 
                     "last_collision_snapshot": collision_snapshot_payload(status, snap)}
         time.sleep(0.01)
     latest = observations[-1] if observations else None
-    return {"status": "PREPARATION_FAILURE", "reason": "stable standing interval not confirmed before wall cap",
+    reason = "stable standing interval not confirmed before wall cap"
+    if last_rejected_sample is not None:
+        reason += "; last sample rejection: " + str(last_rejected_sample.get("reason"))
+    return {"status": "PREPARATION_FAILURE", "reason": reason,
             "started_monotonic_ns": started_ns, "finished_monotonic_ns": now_ns(),
             "wall_cap_s": wall_cap_s, "stable_required_sim_s": stable_sim_s,
             "resolved_setup_events": resolved_setup_events,
             "preparation_events": preparation_events, "observations": observations,
+            "first_rejected_sample": first_rejected_sample,
+            "last_rejected_sample": last_rejected_sample,
             "last_observation": latest}
 
 
@@ -1690,6 +1803,7 @@ class FrameCapture:
         self.consumer_unread_loss_through = self.history_cursor
         self.history_persisted_frames = 0
         self.last_frame_raw: bytes | None = None
+        self.last_active_frame_metadata: dict | None = None
         self.first_active_policy_cycle: int | None = None
         self.last_active_policy_cycle: int | None = None
         self.active_policy_cycle_gap_count = 0
@@ -1813,6 +1927,7 @@ class FrameCapture:
             self.last_frame_collision_snapshot = payload.get("collision_snapshot")
             self.unique_frames += 1
             if frame.rl_entered == 1 and frame.rl_active == 1:
+                self.last_active_frame_metadata = {**ref, "persisted": True}
                 if self.first_active_policy_cycle is None:
                     self.first_active_policy_cycle = frame.rl_step
                 if self.last_active_policy_cycle is not None and frame.rl_step > self.last_active_policy_cycle + 1:
@@ -2190,7 +2305,8 @@ def run(args: argparse.Namespace) -> int:
     hysteresis = "true" if group in ("B", "D") else "false"
     hold = "true" if group in ("C", "D") else "false"
     env = build_env(capture_id, overlay, args.display, args.xauthority, scene_spec, out,
-                    map_record.get("field_bounds_m") if map_record else None)
+                    map_record.get("field_bounds_m") if map_record else None,
+                    capture_framebuffer=not args.disable_framebuffer_capture)
     if args.startup_gain_trace:
         env["ABS_S6_STARTUP_GAIN_TRACE"] = "1"
     if args.startup_recovery_observation_s > 0.0:
@@ -3004,19 +3120,77 @@ def run(args: argparse.Namespace) -> int:
             if safety:
                 kind = "FROZEN_POSITION_PASSIVE" if EMERGENCY_RE.search(safety) else ("GLOBAL_HARD_STOP" if HARDSTOP_RE.search(safety) else "POLICY_SAFETY_VETO")
                 observer_ns = now_ns()
-                detection_match = re.search(r"detection_ns=(\d+)", safety)
-                terminal_event_ns = int(detection_match.group(1)) if detection_match else observer_ns
-                process_facts["external_safety_events"].append({
+                parsed_veto = parse_policy_safety_veto(safety) if kind == "POLICY_SAFETY_VETO" else None
+                detection_ns = parsed_veto.get("detection_monotonic_ns") if parsed_veto else None
+                terminal_event_ns = detection_ns if isinstance(detection_ns, int) else observer_ns
+                expected_session = parsed_veto.get("session_id") if parsed_veto else None
+                expected_cycle = parsed_veto.get("policy_cycle") if parsed_veto else None
+                safety_event = {
                     "event": kind, "source": "RlQuadrupedController/StateRL ROS log",
                     "message": safety.strip()[:1000], "observed_monotonic_ns": terminal_event_ns,
-                    "observer_received_monotonic_ns": observer_ns})
+                    "observer_received_monotonic_ns": observer_ns,
+                    "controller_session_id": expected_session,
+                    "controller_policy_cycle": expected_cycle,
+                    "ray_read_diagnostics": parsed_veto,
+                    "last_valid_strategy_frame_ref": recorder.last_active_frame_metadata,
+                    "fault_frame_ref": None,
+                    "fault_frame_capture_status": "identity_unavailable" if not (
+                        isinstance(expected_session, int) and isinstance(expected_cycle, int))
+                        else "awaiting_exact_same_cycle_frame",
+                }
+                process_facts["external_safety_events"].append(safety_event)
+                # StateRL emits the safety log immediately before publishing its
+                # same-cycle FAULTED frame. Read only that controller-authored
+                # identity; never promote the preceding valid strategy frame to
+                # an exact terminal frame.
+                if isinstance(expected_session, int) and isinstance(expected_cycle, int):
+                    capture_deadline = time.monotonic() + 0.025
+                    while time.monotonic() < capture_deadline:
+                        raw_fault = read_shm_frame()
+                        fault_sampled_ns = now_ns()
+                        fault_status, fault_frame = classify_frame(raw_fault, fault_sampled_ns)
+                        if (fault_status is FrameStatus.LIVE and
+                                same_cycle_fault_frame(fault_frame, expected_session, expected_cycle)):
+                            fault_capture = recorder.observe(raw_fault, fault_status, fault_frame, fault_sampled_ns)
+                            if fault_capture.get("persisted"):
+                                safety_event["fault_frame_ref"] = fault_capture.get("frame_ref")
+                                safety_event["fault_frame_capture_status"] = "persisted_exact_same_cycle_faulted_frame"
+                                break
+                            safety_event["fault_frame_capture_status"] = "capture_failed"
+                            safety_event["fault_frame_capture_error"] = fault_capture.get("reason")
+                            break
+                        time.sleep(0.001)
+                process_facts["external_safety_events"][-1] = safety_event
+                safety_snapshot_raw = read_collision_snapshot()
+                safety_snapshot_observed_ns = now_ns()
                 collision_status, collision_snapshot = classify_snapshot(
-                    read_collision_snapshot(), observer_ns,
+                    safety_snapshot_raw, safety_snapshot_observed_ns,
                     expected_capture_id=capture_id,
                     expected_fingerprint=scene_spec.model_fingerprint,
                     expected_scene_binding=scene_spec.binding())
-                process_facts["external_safety_events"][-1]["collision_snapshot"] = (
-                    collision_snapshot_payload(collision_status, collision_snapshot))
+                safety_event["post_detection_physics_snapshot"] = collision_snapshot_payload(
+                    collision_status, collision_snapshot)
+                safety_event["post_detection_physics_snapshot_observed_monotonic_ns"] = safety_snapshot_observed_ns
+                safety_event["physics_boundary_interpretation"] = (
+                    "snapshot is sampled after controller detection; it is not relabeled as an exact same-cycle physical terminal boundary")
+                safety_event["collision_snapshot"] = safety_event["post_detection_physics_snapshot"]
+                context["lifecycle"]["external_safety_boundary"] = {
+                    "event": kind,
+                    "controller_detection_monotonic_ns": terminal_event_ns,
+                    "controller_session_id": safety_event["controller_session_id"],
+                    "controller_policy_cycle": safety_event["controller_policy_cycle"],
+                    "last_valid_strategy_frame_ref": safety_event["last_valid_strategy_frame_ref"],
+                    "same_cycle_faulted_frame_ref": safety_event["fault_frame_ref"],
+                    "fault_frame_capture_status": safety_event["fault_frame_capture_status"],
+                    "physical_terminal_boundary": "UNKNOWN; post-detection snapshot is retained separately and is not relabeled as exact same-cycle physics",
+                    "strategy_terminal_frame_ref": None,
+                }
+                if safety_event["fault_frame_ref"] is not None:
+                    lifecycle_events.append({"phase": "motion", "event": "same_cycle_faulted_frame_persisted",
+                        "source": "controller-authored session/cycle identity plus exact runtime snapshot",
+                        "monotonic_ns": safety_event["fault_frame_ref"].get("monotonic_ns"),
+                        "frame_ref": safety_event["fault_frame_ref"],
+                        "last_valid_strategy_frame_ref": safety_event["last_valid_strategy_frame_ref"]})
                 terminal_cause = "SYSTEM_SAFETY_ABORT"
                 break
             if ros.poll() is not None or mujoco.poll() is not None:
@@ -3546,11 +3720,13 @@ def run(args: argparse.Namespace) -> int:
             }
         if context.get("session_id") is None and recorder.bound_session_id is not None:
             context["session_id"] = recorder.bound_session_id
-        if terminal_frame_ref is None and terminal_cause == "SYSTEM_SAFETY_ABORT" and recorder.last_frame_metadata is not None:
-            context["lifecycle"]["last_frame_before_external_safety_event"] = recorder.last_frame_metadata
+        if terminal_frame_ref is None and terminal_cause == "SYSTEM_SAFETY_ABORT":
+            last_valid_strategy = recorder.last_active_frame_metadata
+            if last_valid_strategy is not None:
+                context["lifecycle"]["last_frame_before_external_safety_event"] = last_valid_strategy
             context["lifecycle"]["terminal_frame_capture"] = {
-                "status": "no_strategy_snapshot_for_external_event", "complete": False,
-                "reason": "external safety event was observed from ROS log, not from the persisted strategy snapshot",
+                "status": "faulted_frame_separate_from_strategy_terminal", "complete": False,
+                "reason": "an external controller safety event has no strategy decision at its detection boundary; see external_safety_boundary for the exact same-cycle FAULTED frame and last valid strategy frame",
             }
         lifecycle_events.append({"phase": "motion_end", "event": terminal_cause,
                                  "monotonic_ns": finish_event_ns or now_ns(),
@@ -3695,6 +3871,12 @@ def run(args: argparse.Namespace) -> int:
                 context["lifecycle"]["normal_shutdown_error"] = post_terminal_stop["failed"]
         context["lifecycle"]["normal_shutdown"] = post_terminal_shutdown
         context["lifecycle"]["post_terminal_strategy_stop"] = post_terminal_stop
+        if isinstance(context.get("lifecycle", {}).get("external_safety_boundary"), dict):
+            context["lifecycle"]["external_safety_boundary"]["passive_confirmation"] = (
+                post_terminal_stop.get("controller_confirmation") if isinstance(post_terminal_stop, dict) else None)
+            context["lifecycle"]["external_safety_boundary"]["passive_confirmation_scope"] = (
+                post_terminal_stop.get("confirmation_scope") if isinstance(post_terminal_stop, dict) else
+                "UNKNOWN; no controller confirmation captured")
         def cleanup_owned_processes() -> None:
             # Preserve the requested order: close this run's MuJoCo first,
             # then its controller launch, then the prepared stop publisher.
@@ -3823,6 +4005,9 @@ def run(args: argparse.Namespace) -> int:
                                    "frame_capture_writer": "supervisor_synchronous_single_writer",
                                    "authoritative_collision_live_before_motion": collision_live_seen,
                                    "pre_run_shared_frames_ignored_by_session_timestamp": recorder.pre_run_frames_ignored}
+            safety_events = process_facts.get("external_safety_events", [])
+            latest_fault_event = next((event for event in reversed(safety_events)
+                                       if event.get("event") == "POLICY_SAFETY_VETO"), {})
             process_facts.update({"exit_code": ros.returncode if ros is not None else None,
                                   "forced_termination": any(item["forced"] for item in stop_results),
                                   "shutdown_complete": all(proc is None or proc.poll() is not None
@@ -3831,6 +4016,8 @@ def run(args: argparse.Namespace) -> int:
                                   "run_terminal_result": terminal_cause,
                                   "run_terminal_monotonic_ns": finish_event_ns,
                                   "run_terminal_frame_ref": terminal_frame_ref,
+                                  "run_terminal_fault_frame_ref": latest_fault_event.get("fault_frame_ref"),
+                                  "last_valid_strategy_frame_before_safety_event": latest_fault_event.get("last_valid_strategy_frame_ref"),
                                   "cleanup_events": [e for e in lifecycle_events if e.get("phase") == "cleanup"]})
             if args.startup_recovery_observation_s > 0.0:
                 startup_record = context["lifecycle"].get("startup_recovery_observation", {})
@@ -3847,6 +4034,7 @@ def run(args: argparse.Namespace) -> int:
                 "first_valid_sim_time_s": sim_start_s, "first_valid_frame_monotonic_ns": first_frame_ns,
                 "task_start": context.get("lifecycle", {}).get("task_start"),
                 "task_window_safety_boundary": context.get("initial_state", {}).get("pre_task_safety_boundary"),
+                "external_safety_boundary": context.get("lifecycle", {}).get("external_safety_boundary"),
                 "motion_start_sim_time_s": movement_start_sim_s,
                 "motion_start_unknown_reason": None if movement_start_sim_s is not None else "no >=0.10m pose displacement observed",
                 "valid_collision_source_seen": collision_live_seen,
@@ -3944,6 +4132,8 @@ def main() -> int:
                         help="S6-04 one-off simulation-only low-height recovery observation (0..4.0 s; default disabled)")
     parser.add_argument("--startup-gain-trace", action="store_true",
                         help="record actual S6-05 startup gain-interface writes; observational only")
+    parser.add_argument("--disable-framebuffer-capture", action="store_true",
+                        help="disable optional live/standing PPM writes without changing rendering or control")
     parser.add_argument("--display", default=":0")
     default_xauthority = os.environ.get("XAUTHORITY") or os.path.join(
         os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"), "gdm", "Xauthority")

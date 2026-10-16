@@ -276,6 +276,17 @@ private:
     uint64_t last_ray_stamp_ns_ = 0;
     uint64_t last_ray_validation_ns_ = 0;
     uint64_t last_ray_age_ns_ = 0;
+    uint64_t last_ray_sequence_first_ = 0;
+    uint64_t last_ray_sequence_last_ = 0;
+    uint64_t last_ray_read_duration_ns_ = 0;
+    uint64_t last_ray_attempts_ = 0;
+    uint64_t ray_retry_success_total_ = 0;
+    uint64_t ray_retry_duration_total_ns_ = 0;
+    uint64_t ray_retry_duration_max_ns_ = 0;
+    bool last_ray_header_observed_ = false;
+    bool last_ray_stamp_observed_ = false;
+    bool last_ray_snapshot_consistent_ = false;
+    bool last_ray_validation_clock_observed_ = false;
     std::string last_ray_reason_ = "not_checked";
     uint64_t ray_check_count_ = 0;
     uint64_t ray_last_check_telemetry_ns_ = 0;

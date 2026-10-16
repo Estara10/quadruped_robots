@@ -187,3 +187,21 @@ ABS_SCENE("holdout29.xml", "m1dfh01", 11, kNamedPptObstacles,
 ABS_SCENE("holdout30.xml", "m1dfh02", 10, kNamedPptObstacles,
           "3a4579eed54f3896b6b0e6a5876ee1d939c48403e84d8dab90f85fc1e15e700c", "f00d94eef6e40cdba15a3358c16d0b89547844470d7b5f44e45145cbdbf607f1",
           "2ab0eef73f38075e2caee7bac4fe6292eedba66263054845de56c027ff05e8f0")
+ABS_SCENE("m2dev01.xml", "m2d01", 10, kNamedPptObstacles,
+          "5efcbef08595265ef0f8ac060ed4630a2d33aa8a8995769e0692e3cecb64c7ae", "258f4b32db29d122d63348a6d4fb55c8d762092bb458b3e3cbc386ec392599c1",
+          "fd126e940736a9a230d6d4ec7eb2b77865481795edf4f91c4e96eccb11b97167")
+ABS_SCENE("m2dev02.xml", "m2d02", 9, kNamedPptObstacles,
+          "18f2d8de697c3200f67f8786af897c450dc30cc9fd5ea85b34bd4c4ccd9de916", "e69130636871eff4e763d25b12b9cdbabc7a0649e84e04b075f5851eec82cfbc",
+          "7cb9dfcb09f8288cfb2f9a4f3cd5e0c2845c6092cf9851ccc29b5c1cff8b8465")
+ABS_SCENE("m2dev03.xml", "m2d03", 10, kNamedPptObstacles,
+          "01acd1010e43153431b4c60ea498937c3d3a1f4803e756359bb3e19d1beaafb4", "b457f6b0263dce008adafe7a44adf18aa81511102787a802cc391956667069d8",
+          "e919d28347e3688f42489ca7c9a89e019c28b7b0eb30f7856dff1b36e7558cea")
+ABS_SCENE("m2dev04.xml", "m2d04", 9, kNamedPptObstacles,
+          "d58105cd5c7cd6ae89d27c91e20fb3d4e9f45d853b4b2ed9c0dc113176e43100", "c2a9e62e2872417d8a9466d434198fcdc67991a16bdbd40a474dafb95f2194fa",
+          "f04bbdb6d5a95ec249d265d0f48de9de91f79083eac4515ac61d1c40523265dc")
+ABS_SCENE("m2dev05.xml", "m2d05", 10, kNamedPptObstacles,
+          "7c6caed391e3c542fdae1da7536d677b9c32f1c3156dc0e1795c54e34add3bc1", "73659c473323ab7816774b4d3de22e55bd7b858fcc1c6924803d3a5061bf2bdf",
+          "e0b60a6139a73b654012375499054161e847424137621c6cf57be227d303614c")
+ABS_SCENE("m2dev06.xml", "m2d06", 9, kNamedPptObstacles,
+          "714bb71a6d1d5f01d18d2d7d67563cc90b5ab74d01cde1033981cc40ecc0a3d4", "e12e9f1e10528937dd5e80ab126e629273a895b374fe2afaaecdae09ebce860e",
+          "af2a79e8c05f32a4211bd88800d6d3f7f580d308f08096dafb2bb166cd135901")

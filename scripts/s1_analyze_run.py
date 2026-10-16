@@ -377,17 +377,12 @@ def motion_safety(frames: list[dict], start_s: float | None,
     for index, item in enumerate(unique_physical_snapshots):
         sample_time = item.get("sim_time")
         sample_step = item.get("physics_step")
-        if start_s is not None and end_s is not None:
-            if not isinstance(sample_time, (int, float)) or not math.isfinite(float(sample_time)):
-                # An unclocked sample cannot establish that a lifecycle update
-                # was visible by the time-based terminal boundary.
-                continue
-            if float(sample_time) > end_s:
-                continue
-        elif step_window_valid:
-            if not isinstance(sample_step, int) or sample_step > end_step:
-                continue
-        else:
+        # Keep a same-run terminal-boundary snapshot even when it was published
+        # just after the terminal policy frame. Its publication time is not the
+        # event time: an explicit confirmed_sim_time/physics_step may establish
+        # an in-window event. The evaluator below clips lifecycle facts to the
+        # task boundary instead of discarding the whole snapshot.
+        if not isinstance(sample_time, (int, float)) or not math.isfinite(float(sample_time)):
             continue
         order = (float(sample_time) if isinstance(sample_time, (int, float)) else -math.inf,
                  item.get("sequence", -1) if isinstance(item.get("sequence"), int) else -1,
@@ -413,32 +408,131 @@ def motion_safety(frames: list[dict], start_s: float | None,
             if previous is None or order > previous[1]:
                 fall_history_updates[key] = (dict(event), order, item)
     fall_history = {key: value[0] for key, value in fall_history_updates.items()}
-    if start_s is not None and end_s is not None:
-        motion_falls = [event for event in fall_history.values()
-                        if event.get("end_sim_time", -math.inf) >= start_s and
-                        event.get("start_sim_time", math.inf) <= end_s]
-    elif step_window_valid:
-        motion_falls = [event for event in fall_history.values()
-                        if isinstance(event.get("start_physics_step"), int) and
-                        isinstance(event.get("end_physics_step"), int) and
-                        event.get("end_physics_step") >= start_step and
-                        event.get("start_physics_step") <= end_step and
-                        (end_s is None or event.get("start_sim_time", math.inf) <= end_s)]
-    else:
-        motion_falls = []
-    confirmed_motion_falls = [event for event in motion_falls if event.get("confirmed") is True]
-    active_motion_falls = [event for event in motion_falls if event.get("closed") is not True]
-    closed_unconfirmed_motion_falls = [event for event in motion_falls
-                                       if event.get("confirmed") is not True and
-                                       event.get("closed") is True]
+    # Reconstruct event status as of the task boundary. A later snapshot may
+    # reveal an earlier confirmation (positive evidence), but a later `closed`
+    # bit has no closure timestamp and cannot prove that the event closed by
+    # the task boundary. Use a close only when a closed version was already
+    # published no later than that boundary.
+    motion_falls: list[dict] = []
+    confirmed_motion_falls: list[dict] = []
+    active_motion_falls: list[dict] = []
+    closed_unconfirmed_motion_falls: list[dict] = []
+    fall_event_timing_conflicts: list[dict] = []
+    for key, (latest_event, _latest_order, _latest_snapshot) in fall_history_updates.items():
+        versions = [(order, item, event)
+                    for order, item in ordered_snapshots
+                    for event in item.get("fall_history", [])
+                    if isinstance(event, dict) and event.get("start_physics_step") == key]
+        if not versions:
+            continue
+        start_step_value = latest_event.get("start_physics_step")
+        start_time_value = latest_event.get("start_sim_time")
+        if (not isinstance(start_step_value, int) or isinstance(start_step_value, bool) or
+                not isinstance(start_time_value, (int, float)) or
+                not math.isfinite(float(start_time_value))):
+            fall_event_timing_conflicts.append({"start_physics_step": key, "reason": "invalid_event_start"})
+            continue
+        event_starts = {(event.get("start_physics_step"), event.get("start_sim_time"))
+                        for _o, _i, event in versions}
+        if len(event_starts) != 1:
+            fall_event_timing_conflicts.append({"start_physics_step": key,
+                "reason": "event_start_identity_changed", "values": sorted(map(str, event_starts))})
+            continue
+        # The event must intersect the task window. `end_sim_time` is the last
+        # abnormal sample, not a close timestamp; a still-open candidate whose
+        # last abnormal sample precedes task start is nevertheless active at
+        # task start unless a close was observed before that boundary.
+        before_start_closed = any(
+            event.get("closed") is True and start_s is not None and end_s is not None and
+            isinstance(event.get("end_sim_time"), (int, float)) and
+            event.get("end_sim_time") < start_s and
+            isinstance(item.get("sim_time"), (int, float)) and item.get("sim_time") <= start_s and
+            (not step_window_valid or item.get("physics_step", math.inf) <= start_step)
+            for _order, item, event in versions)
+        if before_start_closed:
+            continue
+        intersects = (start_s is not None and end_s is not None and
+                      start_time_value <= end_s and
+                      (latest_event.get("end_sim_time", -math.inf) >= start_s or
+                       any(event.get("closed") is not True for _o, _i, event in versions)))
+        if not intersects and step_window_valid:
+            intersects = (isinstance(latest_event.get("end_physics_step"), int) and
+                          latest_event.get("start_physics_step") <= end_step and
+                          (latest_event.get("end_physics_step") >= start_step or
+                           any(event.get("closed") is not True for _o, _i, event in versions)))
+        if not intersects:
+            continue
+        event_for_window = dict(latest_event)
+        event_for_window["status_at_task_terminal"] = "UNKNOWN"
+        confirmation_versions = [event for _o, _i, event in versions if event.get("confirmed") is True]
+        if confirmation_versions:
+            confirmations = {(event.get("confirmed_physics_step"), event.get("confirmed_sim_time"))
+                             for event in confirmation_versions}
+            if len(confirmations) != 1:
+                fall_event_timing_conflicts.append({"start_physics_step": key,
+                    "reason": "confirmation_identity_changed", "values": sorted(map(str, confirmations))})
+            else:
+                confirmed_step, confirmed_time = next(iter(confirmations))
+                time_valid = (isinstance(confirmed_time, (int, float)) and
+                              math.isfinite(float(confirmed_time)) and end_s is not None and
+                              start_time_value <= confirmed_time <= end_s)
+                step_valid = (isinstance(confirmed_step, int) and not isinstance(confirmed_step, bool) and
+                              confirmed_step >= start_step_value and
+                              (not step_window_valid or confirmed_step <= end_step))
+                time_after = (isinstance(confirmed_time, (int, float)) and end_s is not None and confirmed_time > end_s)
+                step_after = (isinstance(confirmed_step, int) and step_window_valid and confirmed_step > end_step)
+                confirmation_event_end = latest_event.get("end_physics_step")
+                confirmation_after_event_end = (isinstance(confirmation_event_end, int) and
+                                                isinstance(confirmed_step, int) and
+                                                confirmed_step > confirmation_event_end)
+                if step_window_valid and time_after != step_after:
+                    fall_event_timing_conflicts.append({"start_physics_step": key,
+                        "reason": "confirmation_time_step_terminal_boundary_disagrees",
+                        "confirmed_physics_step": confirmed_step, "confirmed_sim_time": confirmed_time})
+                elif confirmation_after_event_end:
+                    fall_event_timing_conflicts.append({"start_physics_step": key,
+                        "reason": "confirmation_after_event_physics_end",
+                        "confirmed_physics_step": confirmed_step, "event_end_physics_step": confirmation_event_end})
+                elif time_valid and step_valid:
+                    event_for_window["confirmed"] = True
+                    event_for_window["closed"] = False
+                    event_for_window["status_at_task_terminal"] = "CONFIRMED_BY_TASK_TERMINAL"
+                    event_for_window["confirmation_within_task_window"] = (
+                        start_s is not None and confirmed_time >= start_s)
+                    confirmed_motion_falls.append(event_for_window)
+                elif time_after and (not step_window_valid or step_after):
+                    event_for_window["confirmed"] = False
+                    event_for_window["closed"] = False
+                    event_for_window["status_at_task_terminal"] = "CONFIRMATION_AFTER_TASK_TERMINAL"
+                    active_motion_falls.append(event_for_window)
+                else:
+                    fall_event_timing_conflicts.append({"start_physics_step": key,
+                        "reason": "confirmation_time_step_outside_or_conflicting",
+                        "confirmed_physics_step": confirmed_step, "confirmed_sim_time": confirmed_time})
+        else:
+            event_for_window["confirmed"] = False
+            # Close is task-visible only if that closed version itself was
+            # published within the task interval/boundary.
+            closed_by_terminal = any(
+                event.get("closed") is True and isinstance(item.get("sim_time"), (int, float)) and
+                end_s is not None and item.get("sim_time") <= end_s and
+                (not step_window_valid or item.get("physics_step", math.inf) <= end_step)
+                for _o, item, event in versions)
+            if closed_by_terminal:
+                event_for_window["closed"] = True
+                event_for_window["status_at_task_terminal"] = "CLOSED_UNCONFIRMED_IN_TASK"
+                closed_unconfirmed_motion_falls.append(event_for_window)
+            else:
+                event_for_window["closed"] = False
+                event_for_window["status_at_task_terminal"] = "ACTIVE_OR_CLOSE_TIME_UNKNOWN_AT_TERMINAL"
+                active_motion_falls.append(event_for_window)
+        motion_falls.append(event_for_window)
     fall_lifecycle_assessments = []
     for event in sorted(motion_falls, key=lambda item: item.get("start_sim_time", 0.0)):
         key = event.get("start_physics_step")
         update = fall_history_updates.get(key)
         sample = update[2] if update is not None else {}
-        lifecycle_status = ("CONFIRMED" if event.get("confirmed") is True else
-                            "CLOSED_UNCONFIRMED" if event.get("closed") is True else
-                            "ACTIVE_AT_TERMINAL_BOUNDARY")
+        lifecycle_status = event.get("status_at_task_terminal", "UNKNOWN")
         fall_lifecycle_assessments.append({
             "event_start_physics_step": key,
             "status_at_task_terminal": lifecycle_status,
@@ -446,15 +540,27 @@ def motion_safety(frames: list[dict], start_s: float | None,
             "closed": event.get("closed"),
             "event_start_sim_time_s": event.get("start_sim_time"),
             "event_last_abnormal_sim_time_s": event.get("end_sim_time"),
+            "event_last_abnormal_after_task_terminal": (
+                end_s is not None and isinstance(event.get("end_sim_time"), (int, float)) and
+                event.get("end_sim_time") > end_s),
             "confirmation_sim_time_s": event.get("confirmed_sim_time"),
             "lifecycle_snapshot_physics_step": sample.get("physics_step"),
             "lifecycle_snapshot_sim_time_s": sample.get("sim_time"),
             "lifecycle_snapshot_sequence": sample.get("sequence"),
         })
     fall_source_complete = source_complete and fall_snapshot_identity_valid
-    if confirmed_motion_falls:
+    if fall_event_timing_conflicts:
+        fall = "UNKNOWN"
+        fall_result_basis = "fall_event_confirmation_time_step_conflict"
+    elif not fall_source_complete:
+        fall = "UNKNOWN"
+        fall_result_basis = "fall_history_source_incomplete_or_identity_conflict"
+    elif invalid_posture_overlap:
+        fall = "UNKNOWN"
+        fall_result_basis = "invalid_posture_overlaps_motion"
+    elif confirmed_motion_falls:
         fall = True
-        fall_result_basis = "confirmed_fall_event_intersects_motion_window"
+        fall_result_basis = "confirmed_fall_event_time_and_physics_step_within_motion_window"
     elif (fall_source_complete and not invalid_posture_overlap and not active_motion_falls):
         fall = False
         fall_result_basis = ("closed_unconfirmed_posture_candidates; no candidate met confirmation rule"
@@ -519,6 +625,7 @@ def motion_safety(frames: list[dict], start_s: float | None,
         "fall_result_basis": fall_result_basis,
         "fall_snapshot_identity_valid": fall_snapshot_identity_valid,
         "fall_lifecycle_assessments": fall_lifecycle_assessments,
+        "fall_event_timing_conflicts": fall_event_timing_conflicts,
         "fall_history_events_at_terminal": sorted(motion_falls, key=lambda item: item.get("start_sim_time", 0.0)),
         "fall_events": sorted(motion_falls, key=lambda item: item.get("start_sim_time", 0.0)),
         "fall_event": (confirmed_motion_falls[-1] if confirmed_motion_falls else None),

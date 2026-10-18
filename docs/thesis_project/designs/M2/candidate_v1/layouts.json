@@ -5422,8 +5422,8 @@
         {
           "name": "ppt_obstacle_01",
           "shape": "rotated_bar",
-          "x": 1.76217,
-          "y": 0.048765,
+          "x": 2.36217,
+          "y": 0.548765,
           "role": "primary",
           "height_m": 0.507402,
           "half_x": 0.280849,
@@ -5434,7 +5434,7 @@
           "name": "ppt_obstacle_02",
           "shape": "cylinder",
           "x": 3.858587,
-          "y": -0.207272,
+          "y": 0.092728,
           "role": "primary",
           "height_m": 0.44654,
           "radius": 0.235008,
@@ -5515,7 +5515,6 @@
         }
       ],
       "direct_line_blocking_obstacles": [
-        "ppt_obstacle_01",
         "ppt_obstacle_02",
         "ppt_obstacle_03"
       ],
@@ -5562,25 +5561,71 @@
         "reference_path_point_count": 5,
         "start_goal_straight_blocked": true,
         "start_goal_straight_blocking_obstacles": [
-          "ppt_obstacle_01",
           "ppt_obstacle_02",
           "ppt_obstacle_03"
         ],
-        "max_forward_heading_deg": 37.99873244250466
+        "max_forward_heading_deg": 37.99873244250466,
+        "reference_path_clearance_satisfied": true,
+        "manual_edit_warning": null
       },
       "density_definition": {
         "obstacle_footprint_area_fraction": 0.03760541594366957,
-        "minimum_obstacle_spacing_m": 0.6524260189418141
+        "minimum_obstacle_spacing_m": 0.5139402907419198
       },
       "production_scene_binding": {
         "filename": "m2dev04.xml",
         "scene_id": "m2d04",
         "obstacle_count": 9,
-        "root_sha256": "d58105cd5c7cd6ae89d27c91e20fb3d4e9f45d853b4b2ed9c0dc113176e43100",
-        "closure_sha256": "c2a9e62e2872417d8a9466d434198fcdc67991a16bdbd40a474dafb95f2194fa",
-        "model_fingerprint": "f04bbdb6d5a95ec249d265d0f48de9de91f79083eac4515ac61d1c40523265dc",
+        "root_sha256": "addf2d3a6b191a534c7bc93000f121c49a31b07226592ed98ef9602bca6b0708",
+        "closure_sha256": "698dcd97f97184d98b1b1b3dde34f1210ce73d2d652fde3f75c1ab41a9924128",
+        "model_fingerprint": "a59e6f4b4e2531ea2319b9c87922439df353cf14c87eb01e8ee8fbefd5063e63",
         "runtime_mujoco_version": "3.3.3"
-      }
+      },
+      "layout_revision": "m2dev04-r5-20261018",
+      "manual_edit": {
+        "obstacle": "ppt_obstacle_01",
+        "delta_world_xy_m": [
+          0.6,
+          0.5
+        ],
+        "before_world_xy_m": [
+          1.76217,
+          0.048765
+        ],
+        "after_world_xy_m": [
+          2.36217,
+          0.548765
+        ],
+        "previous_revision_world_xy_m": [
+          0.36217,
+          0.548765
+        ],
+        "latest_delta_world_xy_m": [
+          2.0,
+          0.0
+        ],
+        "direction_correction": "Undo r3 displacement, then move +1m in world X from r2.",
+        "replaces_current_xml": true,
+        "original_minimum_spacing_rule_satisfied": false,
+        "note": "User-corrected direction; historical runs use earlier geometry. Refer to current spacing and path metrics."
+      },
+      "additional_manual_edits": [
+        {
+          "obstacle": "ppt_obstacle_02",
+          "delta_world_xy_m": [
+            0.0,
+            0.3
+          ],
+          "before_world_xy_m": [
+            3.858587,
+            -0.207272
+          ],
+          "after_world_xy_m": [
+            3.858587,
+            0.092728
+          ]
+        }
+      ]
     },
     {
       "scene_id": "m2d05",
@@ -8369,5 +8414,8 @@
       }
     }
   ],
-  "registration": "catalog registered; simulator rebuild required; no policy run"
+  "registration": "catalog registered; simulator rebuild required; no policy run",
+  "current_manual_revisions": {
+    "m2dev04.xml": "m2dev04-r5-20261018"
+  }
 }

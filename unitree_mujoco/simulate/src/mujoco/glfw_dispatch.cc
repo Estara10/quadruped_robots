@@ -87,8 +87,10 @@ const struct Glfw& Glfw(void* dlhandle) {
     mjGLFW_INITIALIZE_SYMBOL(glfwGetMonitorPhysicalSize);
     mjGLFW_INITIALIZE_SYMBOL(glfwGetMouseButton);
     mjGLFW_INITIALIZE_SYMBOL(glfwGetPrimaryMonitor);
+    mjGLFW_INITIALIZE_SYMBOL(glfwGetProcAddress);
     mjGLFW_INITIALIZE_SYMBOL(glfwGetTime);
     mjGLFW_INITIALIZE_SYMBOL(glfwGetVideoMode);
+    mjGLFW_INITIALIZE_SYMBOL(glfwGetWindowAttrib);
     mjGLFW_INITIALIZE_SYMBOL(glfwGetWindowMonitor);
     mjGLFW_INITIALIZE_SYMBOL(glfwGetWindowPos);
     mjGLFW_INITIALIZE_SYMBOL(glfwGetWindowSize);

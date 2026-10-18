@@ -512,13 +512,37 @@ def final_tables_and_cluster_ci(root: Path, rows: list[dict]) -> dict:
             "bootstrap_seed":BOOTSTRAP_SEED,"unknown_handling":"unknown collision/fall excluded from known-outcome proportion and separately counted; never treated as false"}
 
 
+def build_diagnostic_command(item: dict, overlay: Path, result_root: Path,
+                             args: argparse.Namespace, *, standing_observation_sim_s: float = 2.0) -> list[str]:
+    expected_x = E if item["group"] == "A" else item["exit_threshold_X"]
+    command = ["/usr/bin/python3", "-u", str(ROOT/"scripts/manual_ab_compare.py"),
+      "--groups", item["group"], "--repeats", "1", "--scene", item["map"],
+      "--goal-x", "7.5", "--goal-y", "0", "--sim-limit-s", "20", "--wall-cap-s", "120",
+      "--standing-observation-sim-s", format(standing_observation_sim_s, ".17g"),
+      "--entry-threshold", "-0.05", "--exit-threshold", f"{-0.07 if item['group']=='A' else expected_x:.17g}",
+      "--hold-s", "0.30", "--classification", args.classification,
+      "--display", args.display, "--xauthority", args.xauthority, "--plot-python", args.plot_python,
+      "--result-root", str(result_root), "--prepared-overlay", str(overlay)]
+    if getattr(args, "no_window", False):
+        command.append("--no-window")
+    if getattr(args, "disable_framebuffer_capture", False) or not item.get("screenshot_preselected", False):
+        command.append("--disable-framebuffer-capture")
+    return command
+
+
 def run_one(root: Path, plan: dict, item: dict, args: argparse.Namespace) -> None:
     assert_frozen_code_unchanged(plan)
     previous_attempts = item.get("attempts", [])
-    retry = item["status"] == "RETRY_AUTHORIZED_ENGINEERING"
+    retry_kind = ("operator_interruption" if item["status"] == "RETRY_AUTHORIZED_OPERATOR" else
+                  "repaired_engineering" if item["status"] == "RETRY_AUTHORIZED_ENGINEERING" else None)
+    retry = retry_kind is not None
     if retry:
-        if len(previous_attempts) != 1 or previous_attempts[0].get("status") != "ENGINEERING_FAILURE_REPAIRED":
-            raise RuntimeError("engineering retry must have exactly one explicitly repaired prior attempt")
+        if len(previous_attempts) != 1:
+            raise RuntimeError("retry requires exactly one preserved prior attempt")
+        if retry_kind == "repaired_engineering" and previous_attempts[0].get("status") != "ENGINEERING_FAILURE_REPAIRED":
+            raise RuntimeError("engineering retry must have an explicitly repaired prior attempt")
+        if retry_kind == "operator_interruption" and previous_attempts[0].get("status") != "INTERRUPTED_INVALID":
+            raise RuntimeError("operator retry requires the preserved interrupted INVALID attempt")
     elif item["status"] != "NOT_STARTED" or previous_attempts:
         raise RuntimeError(f"refusing to rerun or skip non-fresh item {item['plan_item_id']}")
     overlay_key = "A_ref" if item["group"] == "A" else f"B_{item['exit_threshold_X']:.2f}"
@@ -537,16 +561,15 @@ def run_one(root: Path, plan: dict, item: dict, args: argparse.Namespace) -> Non
     child.mkdir(parents=True, exist_ok=False)
     result_root = child / "result"
     attempt = {"attempt_number":attempt_number,"status":"RUNNING","started_at":datetime.now().astimezone().isoformat(timespec="seconds"),
-               "result_root":str(result_root),"screenshot_preselected":item["screenshot_preselected"]}
+               "result_root":str(result_root),"screenshot_preselected":item["screenshot_preselected"],
+               "classification":args.classification,
+               "render_mode":"hidden GLFW" if getattr(args, "no_window", False) else "visible GLFW",
+               "effective_hold_enabled":False if item["group"] == "B" else None}
     item.setdefault("attempts", []).append(attempt); item["status"]="RUNNING"; atomic_json(root/"expanded_400_plan.json",plan)
-    command=["/usr/bin/python3","-u",str(ROOT/"scripts/manual_ab_compare.py"),
-      "--groups",item["group"],"--repeats","1","--scene",item["map"],
-      "--goal-x","7.5","--goal-y","0","--sim-limit-s","20","--wall-cap-s","120",
-      "--entry-threshold","-0.05","--exit-threshold",f"{-0.07 if item['group']=='A' else expected_x:.17g}",
-      "--hold-s","0.30","--classification","T1 expanded 400 development parameter validation; nonformal",
-      "--display",args.display,"--xauthority",args.xauthority,"--plot-python",args.plot_python,
-      "--result-root",str(result_root),"--prepared-overlay",str(overlay)]
-    if not item["screenshot_preselected"]: command.append("--disable-framebuffer-capture")
+    # No batch window is shown; suppress optional framebuffer files regardless of
+    # the historical screenshot-selection flag in the frozen matrix.
+    command = build_diagnostic_command(item, overlay, result_root, args,
+        standing_observation_sim_s=plan.get("standing_observation_sim_s", 2.0))
     log=child/"console.log"; code=None
     with log.open("w",encoding="utf-8") as f:
         proc=subprocess.Popen(command,cwd=ROOT,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,bufsize=1)
@@ -607,13 +630,19 @@ def run_one(root: Path, plan: dict, item: dict, args: argparse.Namespace) -> Non
         attempt["failure_reasons"] = fatal
     else:
         item["failure_reasons"] = []
-        item["engineering_retry_used"] = attempt_number > 1
+        item["retry_used"] = attempt_number > 1
+        item["retry_kind"] = retry_kind
     item["status"]="STOPPED_FAILURE" if fatal else "VALID_TASK_RESULT"
     item["failure_reasons"]=fatal
+    attempt["render_mode"] = "hidden GLFW" if getattr(args, "no_window", False) else "visible GLFW"
+    attempt["classification"] = args.classification
+    attempt["effective_hold_enabled"] = False if item["group"] == "B" else None
+    if not fatal:
+        attempt["status"] = "VALID_TASK_RESULT"
     atomic_json(root/"expanded_400_plan.json",plan)
     if fatal:
         raise RuntimeError(f"{item['plan_item_id']} stopped: {'; '.join(fatal)}; no next item launched")
-    print(f"T1 expanded {item['sequence']}/400: {item['map']} {item['group']} X={expected_x:.2f} -> {supervisor}; record/source/cleanup checked.",flush=True)
+    print(f"T1 two-thresholds {item['sequence']}/144: {item['map']} B X={expected_x:.2f} -> {supervisor}; hold=disabled; {attempt['render_mode']}; record/source/cleanup checked.",flush=True)
 
 
 def finalize(root: Path, plan: dict, plot_python: str) -> None:
@@ -760,7 +789,7 @@ def main() -> int:
               "library_version":"m1-mapset/1.0","scene_index_sha256":sha(INDEX),"maps":catalog,"runs":runs,
               "planned_count":400,"A_count":50,"B_count":350,"thresholds":list(X_LEVELS),"entry_threshold_E":E,
               "hold_enabled":False,"goal_world_m":[7.5,0.0],"arrival_radius_m":0.5,"sim_limit_s":20,"wall_cap_s":120,
-              "standing_observation_sim_s":5,"standing_wall_cap_s":30,"startup_gain_transition_control_s":0.30,
+              "standing_observation_sim_s":2,"standing_wall_cap_s":30,"startup_gain_transition_control_s":0.30,
               "schedule_seed":SEED,"schedule_rule":"five rounds; shuffled map order per round; eight shuffled thresholds within each map-round block",
               "screenshot_selection_plan_item_ids":screens,"screenshot_count_max":8,"recording_policy":"raw JSONL/context/terminal/process facts/metrics/timeline retained; no video; screenshots only for selected first-map round-1 threshold block",
               "storage_budget_bytes":MAX_BATCH_BYTES,"minimum_filesystem_free_bytes":MIN_FREE_BYTES,

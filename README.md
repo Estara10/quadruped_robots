@@ -19,11 +19,11 @@ Reference code: https://github.com/LeCAR-Lab/ABS
 - 当前状态与 Active Task：[`docs/thesis_project/CURRENT_STATE.md`](docs/thesis_project/CURRENT_STATE.md)
 - 新路线：[`docs/thesis_project/ROADMAP.md`](docs/thesis_project/ROADMAP.md)
 - 实验设计：[`docs/thesis_project/EXPERIMENT_PLAN.md`](docs/thesis_project/EXPERIMENT_PLAN.md)
-- 当前任务：[`docs/thesis_project/tasks/S1-05.md`](docs/thesis_project/tasks/S1-05.md)
+- 最近完成任务：[`docs/thesis_project/tasks/T1.md`](docs/thesis_project/tasks/T1.md)
 
-当前主要任务是 **S1-05：碰撞、跌倒与安全终止记录**。正式实验、模型重训和实机 RL 均未获准；实机状态为 **NO-GO**。
+**T1退出阈值开发选参已完成（Director有条件通过），代表退出阈值为−0.10；当前唯一Active Task为[T2最小保持时间规划](docs/thesis_project/tasks/T2.md)，尚未授权场景运行。** 当前进度与后续范围以CURRENT_STATE为准。正式实验、模型重训和实机RL不得由旧提示词自动授权；实机状态为 **NO-GO**。
 
-冻结的旧治理文档与 P1 计划已集中到 [`docs/legacy/`](docs/legacy/README.md)，只供历史参考。
+已结束任务、旧提示词、旧P1治理和日报已归入[Markdown历史资料](archive/markdown/20261018/README.md)，只供历史参考；当前文档入口见[项目文档导航](docs/thesis_project/README.md)。
 
 ---
 

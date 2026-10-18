@@ -4,7 +4,7 @@
 
 ## 最新执行：跌倒事件时间修复与第84–96项（2026-10-16）
 
-按[本轮授权提示词](../../T1_FALL_ANALYSIS_AND_FINAL_13_PROMPT.md)完成生产分析修正、离线针对性验证、独立重分析及冻结矩阵最后13项。没有改变控制器、射线、RA、模型、参数、地图、安全规则或运行时限；没有重跑第83项、没有增加超出授权的场景启动、没有启动细选或使用留出集。
+按[本轮授权提示词](../../../../archive/markdown/20261018/docs/thesis_project/T1_FALL_ANALYSIS_AND_FINAL_13_PROMPT.md)完成生产分析修正、离线针对性验证、独立重分析及冻结矩阵最后13项。没有改变控制器、射线、RA、模型、参数、地图、安全规则或运行时限；没有重跑第83项、没有增加超出授权的场景启动、没有启动细选或使用留出集。
 
 ### 分析器修正与第83项
 
@@ -61,7 +61,7 @@
 
 ## 本轮射线修复、第66项补做及粗选续跑（2026-10-16）
 
-按[T1执行提示词](../../T1_RAY_REPAIR_AND_COARSE_COMPLETION_PROMPT.md)完成定向修复后，在同一获准桌面执行上下文中通过GLFW/OpenGL预检并运行批次。预检使用`DISPLAY=:0`、`XAUTHORITY=/run/user/1000/gdm/Xauthority`、`MUJOCO_GL=glfw`和系统`/usr/bin/python3`；实际renderer为Intel / Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6。窗口已关闭，详细环境记录见[本轮预检](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/ray_repair_display_preflight_20261016.json)。
+按[T1执行提示词](../../../../archive/markdown/20261018/docs/thesis_project/T1_RAY_REPAIR_AND_COARSE_COMPLETION_PROMPT.md)完成定向修复后，在同一获准桌面执行上下文中通过GLFW/OpenGL预检并运行批次。预检使用`DISPLAY=:0`、`XAUTHORITY=/run/user/1000/gdm/Xauthority`、`MUJOCO_GL=glfw`和系统`/usr/bin/python3`；实际renderer为Intel / Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6。窗口已关闭，详细环境记录见[本轮预检](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/ray_repair_display_preflight_20261016.json)。
 
 生产射线读取现在最多尝试16次、总读取预算250,000 ns（约为5 ms控制周期的5%），只对sequence未武装、奇数写入中或复制期间前后不一致进行有界重读。达到稳定一致快照后，才读取一次校验用单调时间；版本、magic、11维、零/未来/过期时间戳和非有限数等稳定帧语义错误仍直接拒绝。持续冲突继续走原安全停止路径。修复没有改变射线值、RA/状态机、控制周期或安全门。定向验证通过：生产helper的确定性C++交错检查、`python3 scripts/test_s1_04_contract.py`、`python3 scripts/test_s6_12_ray_repair_resume.py`、受影响Python文件`py_compile`及`colcon build --packages-select rl_quadruped_controller`。构建后的实际安装controller库和MuJoCo主程序已记录SHA-256。实际运行代码阶段为`cd6021faa96b0cc8`，冻结Git基点`8655995ff265ef2a18656c7a0b956ee889c64559`；controller库SHA-256为`c94903e50f5d1d751d4be1f9effb7a10be775d8daee0aec08736b794719327ac`，MuJoCo主程序SHA-256为`8ae02f1c6f20a00f51e7a9bbefa7ef31c718830460179df75120ceccbd4290d7`。完整源码阶段记录在冻结计划的`code_stages`中。
 

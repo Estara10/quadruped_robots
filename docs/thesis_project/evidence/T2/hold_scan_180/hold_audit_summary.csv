@@ -1,0 +1,6 @@
+level,runs,runs_with_recovery,runs_no_recovery,episodes,exits_observed,censored,clock_incomplete,early_exits_before_H,expired_low_risk_no_prompt_exit,expired_high_risk_continued,risk_re_rise_episodes,entry_time_changed_episodes,reentry_within_0_5s
+A,36,33,3,0,0,0,0,0,0,0,0,0,0
+C_H0.10,36,33,3,582,581,1,0,0,0,221,82,0,497
+C_H0.20,36,32,4,379,377,2,0,0,0,93,104,0,274
+C_H0.30,36,32,4,344,341,3,0,0,0,60,127,0,220
+C_H0.50,36,32,4,296,288,8,0,0,0,23,113,0,129

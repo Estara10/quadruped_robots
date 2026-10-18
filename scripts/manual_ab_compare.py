@@ -312,12 +312,16 @@ def main():
                         help="world-frame goal y; used in overlay, controller validation, run context and analysis")
     parser.add_argument("--sim-limit-s", type=float, default=20.0)
     parser.add_argument("--wall-cap-s", type=float, default=120.0)
+    parser.add_argument("--standing-observation-sim-s", type=float, default=2.0,
+                        help="arrival standing observation in simulation seconds (0..30; default 2)")
     parser.add_argument("--result-root", type=Path, default=None,
                         help="optional unique output root for one resumable M1 map/repeat")
     parser.add_argument("--prepared-overlay", type=Path, default=None,
                         help="reuse a previously detached overlay whose config and model files are revalidated before each run")
     parser.add_argument("--disable-framebuffer-capture", action="store_true",
                         help="suppress optional live/standing PPM writes for storage-bounded batches")
+    parser.add_argument("--no-window", action="store_true",
+                        help="hide the production GLFW window; still uses its normal DISPLAY/OpenGL context")
     parser.add_argument("--display", default=os.environ.get("DISPLAY", ":0"))
     default_xauthority = os.environ.get("XAUTHORITY") or os.path.join(
         os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"), "gdm", "Xauthority")
@@ -337,6 +341,9 @@ def main():
     parser.add_argument("--hold-s", type=float, default=0.30,
                         help="C/D 共用最小保持 H，单位仿真秒；仅 C/D overlay 写入")
     args = parser.parse_args()
+    if (not math.isfinite(args.standing_observation_sim_s) or
+            not 0.0 <= args.standing_observation_sim_s <= 30.0):
+        parser.error("--standing-observation-sim-s must be finite and in [0, 30]")
     if not Path(args.plot_python).is_file():
         parser.error("绘图 Python 不存在，请用 --plot-python 指定。")
     if (not math.isfinite(args.goal_x) or not math.isfinite(args.goal_y) or
@@ -361,16 +368,23 @@ def main():
                   "recovery_min_hold_H_CD_sim_s": args.hold_s}
     plan = {"classification": args.classification,
             "scene": args.scene, "goal_world_m": [args.goal_x, args.goal_y], "arrival_radius_m": 0.5,
+            "rendering": {"backend": "GLFW", "requested_mode": "hidden" if args.no_window else "visible",
+                          "framebuffer_capture_enabled": not args.disable_framebuffer_capture},
             "sim_limit_s": args.sim_limit_s, "wall_cap_s": args.wall_cap_s,
-            "standing_observation_sim_s": 5.0, "standing_wall_cap_s": 30.0,
+            "standing_observation_sim_s": args.standing_observation_sim_s, "standing_wall_cap_s": 30.0,
             "groups_order": list(groups), "repeats_per_group": args.repeats,
             "parameters": parameters,
             "run_statuses": [{"group": group, "repeat": repeat_index,
                               "status": "NOT_STARTED", "run_id": None}
                              for group in groups for repeat_index in range(1, args.repeats + 1)]}
     (root / "batch_plan.json").write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"本次结果目录：{root}\n计划运行 {'、'.join(groups)}，每组 {args.repeats} 次；每次到达后站立观察5秒。", flush=True)
-    print(f"诊断参数：E={args.entry_threshold:g}，X={args.exit_threshold:g}，H={args.hold_s:g}s（按组别只消费适用字段）。", flush=True)
+    print(f"本次结果目录：{root}\n计划运行 {'、'.join(groups)}，每组 {args.repeats} 次；每次到达后站立观察{args.standing_observation_sim_s:g}仿真秒。", flush=True)
+    effective_hold = {group: args.hold_s if group in ("C", "D") else 0.0 for group in groups}
+    if groups == ("B",):
+        hold_summary = "B组保持关闭（H=0；命令行0.30仅为未消费校验回退值）"
+    else:
+        hold_summary = ", ".join(f"{group}:H={effective_hold[group]:g}s" for group in groups)
+    print(f"诊断参数：E={args.entry_threshold:g}，X={args.exit_threshold:g}；有效保持：{hold_summary}。", flush=True)
     rows = {}
     try:
         for group in groups:
@@ -416,12 +430,14 @@ def main():
                            "--exit-threshold", f"{args.exit_threshold:.17g}",
                            "--hold-s", f"{args.hold_s:.17g}",
                            "--sim-limit-s", f"{args.sim_limit_s:.17g}", "--wall-cap-s", f"{args.wall_cap_s:.17g}",
-                           "--standing-observation-sim-s", "5", "--standing-observation-wall-cap-s", "30",
+                           "--standing-observation-sim-s", f"{args.standing_observation_sim_s:.17g}", "--standing-observation-wall-cap-s", "30",
                            "--startup-gain-trace",
                            "--overlay", str(resolve_group_overlay(root, group, args.prepared_overlay)),
                            "--output-root", str(run_out), "--display", args.display,
                            "--xauthority", args.xauthority,
                            "--classification", args.classification]
+                if args.no_window:
+                    command.append("--no-window")
                 if args.disable_framebuffer_capture:
                     command.append("--disable-framebuffer-capture")
                 try:

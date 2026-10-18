@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import argparse
 import csv
+import copy
+import fcntl
 import hashlib
 import json
 import math
@@ -22,6 +24,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import manual_ab_compare as manual  # noqa: E402
 import manual_t1_expanded_400 as expanded  # noqa: E402
 from abs_scene import resolve_scene  # noqa: E402
+from s1_run_diagnostic import build_env as diagnostic_build_env  # noqa: E402
 from s1_run_diagnostic import overlay_configuration_matches  # noqa: E402
 
 M1_INDEX = ROOT / "docs/thesis_project/designs/M1/library_v1/scene_index.csv"
@@ -31,6 +34,7 @@ SOURCE = ROOT / "quadruped_ros2_control_humble/install/go2_description"
 PARENT = ROOT / "logs/t1/two_thresholds_36_maps"
 E = -0.05
 XS = (-0.07, -0.12)
+CLASSIFICATION = "T1 two exit-thresholds across 36 development maps; nonformal pre-experiment; not paper results"
 SCHEDULE_SEED = 2026101604
 BOOTSTRAP_SEED = 2026101605
 BOOTSTRAP_N = 10000
@@ -49,6 +53,16 @@ def atomic_json(path: Path, value: object) -> None:
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     os.replace(tmp, path)
+
+
+def write_runner_status(root: Path, status: str, **fields: object) -> None:
+    path = root / "runner_status.json"
+    previous = load_json(path)
+    runner_pid = previous.get("runner_pid") if status in {"STOP_REQUESTED", "STOPPED_USER_REQUEST"} else os.getpid()
+    payload = {**previous, "status": status, "runner_pid": runner_pid,
+        "updated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "batch_root": str(root.resolve()), "run_mode": "hidden GLFW", **fields}
+    atomic_json(path, payload)
 
 
 def load_catalog() -> list[dict]:
@@ -183,8 +197,9 @@ def prepare_overlays(root: Path) -> dict:
 def current_related_processes() -> list[dict]:
     matches = []
     self_pid = os.getpid()
+    launcher_pid = int(os.environ.get("T1_BATCH_LAUNCH_PID", "-1"))
     for entry in Path("/proc").iterdir():
-        if not entry.name.isdigit() or int(entry.name) == self_pid:
+        if not entry.name.isdigit() or int(entry.name) in {self_pid, launcher_pid}:
             continue
         try:
             exe = os.readlink(entry / "exe")
@@ -238,7 +253,8 @@ def code_snapshot(catalog: list[dict]) -> dict:
         ["git", "rev-parse", "HEAD"], cwd=ROOT, check=True, capture_output=True, text=True).stdout.strip()})
     snap.update({"m1_scene_index_sha256": sha(M1_INDEX), "m2_scene_index_sha256": sha(M2_INDEX),
         "m2_layouts_sha256": sha(M2_LAYOUTS), "map_xml_sha256": {m["filename"]: m["xml_sha256"] for m in catalog},
-        "batch_runner_sha256": sha(Path(__file__).resolve())})
+        "batch_runner_sha256": sha(Path(__file__).resolve()),
+        "installed_mujoco_launch_sha256": sha(ROOT / "quadruped_ros2_control_humble/install/rl_quadruped_controller/share/rl_quadruped_controller/launch/mujoco.launch.py")})
     return snap
 
 
@@ -246,7 +262,7 @@ def verify_frozen(plan: dict, catalog: list[dict]) -> None:
     snap = plan["code_snapshot"]
     expanded.assert_frozen_code_unchanged(plan)
     now = code_snapshot(catalog)
-    for key in ("m1_scene_index_sha256", "m2_scene_index_sha256", "m2_layouts_sha256", "map_xml_sha256", "batch_runner_sha256"):
+    for key in ("m1_scene_index_sha256", "m2_scene_index_sha256", "m2_layouts_sha256", "map_xml_sha256", "batch_runner_sha256", "installed_mujoco_launch_sha256"):
         if snap.get(key) != now.get(key):
             raise RuntimeError(f"frozen batch input changed: {key}")
     if plan.get("maps") != catalog:
@@ -284,7 +300,7 @@ def prepare_plan(root: Path, display: str, xauthority: str) -> dict:
         "entry_threshold_E": E, "exit_thresholds_X": list(XS), "hold_enabled": False,
         "goal_world_m": [7.5, 0.0], "arrival_radius_m": 0.5,
         "sim_limit_s": 20.0, "wall_cap_s": 120.0,
-        "standing_observation_sim_s": 5.0, "standing_wall_cap_s": 30.0,
+        "standing_observation_sim_s": 2.0, "standing_wall_cap_s": 30.0,
         "schedule_seed": SCHEDULE_SEED,
         "schedule_rule": "two rounds of 36 shuffled adjacent map blocks; thresholds are paired; first-round order balanced 18/18 and second round reverses each map; schedule frozen before launch",
         "simulator_random_seed": {"controllable": False,
@@ -312,7 +328,135 @@ def prepare_plan(root: Path, display: str, xauthority: str) -> dict:
     return plan
 
 
-def resume_gate(plan: dict, root: Path, *, retry_sequence: int | None = None, repair_reason: str | None = None) -> list[dict]:
+def validate_interrupted_stop_point(plan: dict, root: Path) -> dict:
+    runs = plan.get("runs", [])
+    if plan.get("status") != "STOPPED_OPERATOR" or len(runs) != 144:
+        raise RuntimeError("expected the preserved 144-row operator-stop plan")
+    for row in runs[:4]:
+        if row.get("status") != "VALID_TASK_RESULT" or len(row.get("attempts", [])) != 1:
+            raise RuntimeError("the first four rows no longer match the reviewed valid stop point")
+    item = runs[4]
+    attempts = item.get("attempts", [])
+    if (item.get("sequence") != 5 or item.get("map") != "dev07.xml" or
+            item.get("exit_threshold_X") != -0.12 or item.get("status") != "STOPPED_OPERATOR" or
+            len(attempts) != 1 or attempts[0].get("status") != "INTERRUPTED_INVALID" or
+            attempts[0].get("record_validity") != "INVALID" or not attempts[0].get("run_id")):
+        raise RuntimeError("sequence 5 is not the preserved dev07/X=-0.12 operator interruption")
+    if any(row.get("status") != "NOT_STARTED" or row.get("attempts") for row in runs[5:]):
+        raise RuntimeError("rows 6-144 must remain untouched and NOT_STARTED")
+    interrupt = load_json(root / "operator_interrupt_cleanup_005.json")
+    inventory = load_json(root / "post_stop_process_inventory.json")
+    if (interrupt.get("run_id") != attempts[0].get("run_id") or
+            inventory.get("status") != "EMPTY_VERIFIED" or inventory.get("matches") != []):
+        raise RuntimeError("sequence-5 interruption identity or final process cleanup evidence is not confirmed")
+    return item
+
+
+def record_runtime_code_stage(root: Path, plan: dict) -> None:
+    item = validate_interrupted_stop_point(plan, root)
+    old = plan.get("code_snapshot") or {}
+    catalog = load_catalog()
+    if plan.get("maps") != catalog:
+        raise RuntimeError("map catalog changed; refusing the runtime-only code-stage transition")
+    new = code_snapshot(catalog)
+    # This stage may change only simulator presentation and run orchestration metadata.
+    if old.get("controller_library_sha256") != new.get("controller_library_sha256"):
+        raise RuntimeError("controller library changed; this is not a presentation-only code stage")
+    if old.get("model_artifacts") != new.get("model_artifacts"):
+        raise RuntimeError("model artifact changed; refusing to mix this stage")
+    for key in ("m1_scene_index_sha256", "m2_scene_index_sha256", "m2_layouts_sha256", "map_xml_sha256"):
+        if old.get(key) != new.get(key):
+            raise RuntimeError(f"frozen map input changed during code-stage transition: {key}")
+    if not plan.get("code_stage_transition_recorded_at"):
+        plan.setdefault("code_stage_history", []).append({
+            "stage_name": "original visible-window stop point",
+            "snapshot": old,
+            "attempt_sequences": [1, 2, 3, 4, 5],
+            "note": "four valid visible-window runs and the preserved partial invalid sequence-5 attempt",
+        })
+    plan["code_snapshot"] = new
+    plan["runtime_mode_policy"] = {
+        "post_transition_mode": "hidden GLFW window; same production simulator, PhysicsLoop, DISPLAY/OpenGL backend",
+        "true_headless": False,
+        "reason": "user explicitly requested background batch without desktop windows",
+        "framebuffer_capture": "disabled for all resumed attempts",
+        "controller_library_unchanged": True,
+        "models_and_maps_unchanged": True,
+    }
+    plan["classification_correction"] = {
+        "new_classification": CLASSIFICATION,
+        "supersedes_old_attempt_context": False,
+        "old_attempts_note": "append correction here; original run_context.json remains unchanged",
+        "recorded_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+    }
+    plan["classification_history"] = plan.get("classification_history", []) + [{
+        "previous": plan.get("classification"), "current": CLASSIFICATION,
+        "effective_from_sequence": 5,
+        "recorded_at": datetime.now().astimezone().isoformat(timespec="seconds")}]
+    plan["classification"] = CLASSIFICATION
+    plan["code_stage_transition_recorded_at"] = datetime.now().astimezone().isoformat(timespec="seconds")
+    item.setdefault("operator_retry_authorization", {
+        "authorized": True,
+        "attempt_number": 2,
+        "reason": "prior operation interruption caused by misleading legacy batch classification; not a robot failure",
+        "original_attempt_preserved": True,
+        "consumes_existing_engineering_retry_allowance": True,
+    })
+    atomic_json(root / PLAN_FILE, plan)
+
+
+def record_no_rviz_runtime_stage(root: Path, plan: dict) -> None:
+    """Record a display-only launch correction after the user-requested stop."""
+    runs = plan.get("runs", [])
+    if plan.get("status") != "STOPPED_USER_REQUEST" or len(runs) != 144:
+        raise RuntimeError("no-RViz stage requires the preserved user-stop plan")
+    if [(row.get("sequence"), row.get("status")) for row in runs[:10]] != [
+            (i, "VALID_TASK_RESULT") for i in range(1, 11)]:
+        raise RuntimeError("no-RViz stage expected exactly sequences 1-10 as valid")
+    if len(runs[4].get("attempts", [])) != 2 or runs[4]["attempts"][0].get("record_validity") != "INVALID":
+        raise RuntimeError("sequence-5 original invalid attempt must remain alongside its successful retry")
+    if any(row.get("status") != "NOT_STARTED" or row.get("attempts") for row in runs[10:]):
+        raise RuntimeError("sequences 11-144 must remain untouched before the display stage transition")
+    catalog = load_catalog()
+    if plan.get("maps") != catalog:
+        raise RuntimeError("map catalog changed; refusing display-only stage transition")
+    old = plan.get("code_snapshot") or {}
+    new = code_snapshot(catalog)
+    for key in ("controller_library_sha256", "model_artifacts", "m1_scene_index_sha256",
+                "m2_scene_index_sha256", "m2_layouts_sha256", "map_xml_sha256"):
+        if old.get(key) != new.get(key):
+            raise RuntimeError(f"non-display frozen input changed: {key}")
+    if not plan.get("no_rviz_stage_recorded_at"):
+        plan.setdefault("code_stage_history", []).append({
+            "stage_name": "RViz suppressed for hidden batch continuation",
+            "snapshot": new,
+            "completed_sequences_before_stage": list(range(1, 11)),
+            "historical_display_boundary": {
+                "sequences_1_to_4": "visible GLFW and RViz as originally configured",
+                "sequences_5_to_10": "hidden GLFW; launch default also started batch-owned RViz",
+                "sequences_11_to_144": "hidden GLFW and start_rviz:=false; no RViz process",
+            },
+            "physics_control_models_maps_unchanged": True,
+            "reason": "user requested RViz be closed first; launch had unconditionally started it",
+            "recorded_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+        })
+    plan["code_snapshot"] = new
+    plan["runtime_mode_policy"] = {
+        "post_transition_mode": "hidden GLFW context; visible window disabled; RViz disabled",
+        "launch_argument": "start_rviz:=false",
+        "true_headless": False,
+        "reason": "user requested a background batch without MuJoCo or RViz windows",
+        "framebuffer_capture": "disabled for resumed attempts",
+        "controller_library_unchanged": True,
+        "models_and_maps_unchanged": True,
+    }
+    plan["no_rviz_stage_recorded_at"] = datetime.now().astimezone().isoformat(timespec="seconds")
+    plan["no_rviz_stage_scope"] = "display/launch-only; no control, physics, model, map, or experiment parameter changes"
+    atomic_json(root / PLAN_FILE, plan)
+
+
+def resume_gate(plan: dict, root: Path, *, retry_sequence: int | None = None,
+                repair_reason: str | None = None, persist_authorization: bool = True) -> list[dict]:
     catalog = load_catalog()
     validate_schedule(plan["runs"], catalog)
     verify_frozen(plan, catalog)
@@ -320,7 +464,7 @@ def resume_gate(plan: dict, root: Path, *, retry_sequence: int | None = None, re
         return []
     runs = plan["runs"]
     if retry_sequence is None:
-        if plan.get("status") not in {"FROZEN", "RUNNING", "STOPPED_OPERATOR"}:
+        if plan.get("status") not in {"FROZEN", "RUNNING", "STOPPED_OPERATOR", "STOPPED_USER_REQUEST"}:
             raise RuntimeError(f"batch status is not resumable: {plan.get('status')}")
         if any(r.get("status") not in {"NOT_STARTED", "VALID_TASK_RESULT"} for r in runs):
             raise RuntimeError("unresolved failure; requires explicit repaired-failure retry gate")
@@ -329,32 +473,61 @@ def resume_gate(plan: dict, root: Path, *, retry_sequence: int | None = None, re
         if states[:first_pending] != ["VALID_TASK_RESULT"] * first_pending or states[first_pending:] != ["NOT_STARTED"] * (len(states)-first_pending):
             raise RuntimeError("resume would skip a completed item or reorder the frozen schedule")
     else:
-        if not repair_reason or plan.get("status") != "STOPPED":
+        if not repair_reason or plan.get("status") not in {"STOPPED", "STOPPED_OPERATOR"}:
             raise RuntimeError("retry requires a stopped batch and a specific repair reason")
         item = runs[retry_sequence - 1]
         attempts = item.get("attempts", [])
-        if (len(attempts) != 1 or item.get("status") != "STOPPED_FAILURE" or
+        operator_interruption = (retry_sequence == 5 and plan.get("status") == "STOPPED_OPERATOR" and
+            item.get("status") == "STOPPED_OPERATOR" and len(attempts) == 1 and
+            attempts[0].get("status") == "INTERRUPTED_INVALID" and
+            attempts[0].get("record_validity") == "INVALID" and bool(attempts[0].get("run_id")))
+        if operator_interruption:
+            validate_interrupted_stop_point(plan, root)
+            if repair_reason != "operator interruption after batch-label correction; original partial attempt retained":
+                raise RuntimeError("sequence-5 operator retry requires the explicit interruption reason")
+            if any(r.get("status") != "VALID_TASK_RESULT" for r in runs[:retry_sequence-1]) or any(
+                    r.get("status") != "NOT_STARTED" or r.get("attempts") for r in runs[retry_sequence:]):
+                raise RuntimeError("operator retry must resume at the single interrupted row without skipping/reordering later rows")
+            prior_retries = int(plan.get("repaired_infrastructure_retry_count", 0))
+            if prior_retries >= 4:
+                raise RuntimeError("four existing retry starts are already consumed")
+            item["status"] = "RETRY_AUTHORIZED_OPERATOR"
+            item["operator_retry_authorization"] = {"authorized": True,
+                "attempt_number": 2, "reason": repair_reason,
+                "original_attempt_preserved": True,
+                "consumes_existing_engineering_retry_allowance": True,
+                "authorized_at": datetime.now().astimezone().isoformat(timespec="seconds")}
+            plan["repaired_infrastructure_retry_count"] = prior_retries + 1
+            plan["status"] = "RUNNING"
+            if persist_authorization:
+                atomic_json(root / PLAN_FILE, plan)
+        else:
+            if plan.get("status") != "STOPPED":
+                raise RuntimeError("only the explicitly identified sequence-5 operator interruption may resume STOPPED_OPERATOR")
+            if (len(attempts) != 1 or item.get("status") != "STOPPED_FAILURE" or
                 attempts[0].get("terminal_result") in {"ARRIVED", "COLLISION_TERMINATION", "FALL_TERMINATION",
                   "DIAGNOSTIC_SIM_TIME_LIMIT", "SYSTEM_SAFETY_ABORT"} or
                 attempts[0].get("process_shutdown_complete") is not True or
                 attempts[0].get("closeout_complete") is not True):
-            raise RuntimeError("only one repaired, cleaned infrastructure/record failure may be retried")
-        if any(r.get("status") != "VALID_TASK_RESULT" for r in runs[:retry_sequence-1]) or any(
+                raise RuntimeError("only one repaired, cleaned infrastructure/record failure may be retried")
+            if any(r.get("status") != "VALID_TASK_RESULT" for r in runs[:retry_sequence-1]) or any(
                 r.get("status") != "NOT_STARTED" or r.get("attempts") for r in runs[retry_sequence:]):
-            raise RuntimeError("repair retry must resume at the single stopped row without skipping/reordering later rows")
-        prior_retries = int(plan.get("repaired_infrastructure_retry_count", 0))
-        if prior_retries >= 4:
-            raise RuntimeError("four repaired infrastructure retry allowance exhausted")
-        if any(r.get("status") not in {"NOT_STARTED", "VALID_TASK_RESULT", "STOPPED_FAILURE"} for r in runs):
-            raise RuntimeError("batch contains conflicting in-progress items")
-        item["status"] = "RETRY_AUTHORIZED_ENGINEERING"
-        attempts[0]["status"] = "ENGINEERING_FAILURE_REPAIRED"
-        attempts[0]["repair"] = {"reason": repair_reason,
-            "authorized_at": datetime.now().astimezone().isoformat(timespec="seconds")}
-        plan["repaired_infrastructure_retry_count"] = prior_retries + 1
-        plan["status"] = "RUNNING"
-        atomic_json(root / PLAN_FILE, plan)
-    pending = [r for r in runs if r.get("status") in {"NOT_STARTED", "RETRY_AUTHORIZED_ENGINEERING"}]
+                raise RuntimeError("repair retry must resume at the single stopped row without skipping/reordering later rows")
+            prior_retries = int(plan.get("repaired_infrastructure_retry_count", 0))
+            if prior_retries >= 4:
+                raise RuntimeError("four repaired infrastructure retry allowance exhausted")
+            if any(r.get("status") not in {"NOT_STARTED", "VALID_TASK_RESULT", "STOPPED_FAILURE"} for r in runs):
+                raise RuntimeError("batch contains conflicting in-progress items")
+            item["status"] = "RETRY_AUTHORIZED_ENGINEERING"
+            attempts[0]["status"] = "ENGINEERING_FAILURE_REPAIRED"
+            attempts[0]["repair"] = {"reason": repair_reason,
+                "authorized_at": datetime.now().astimezone().isoformat(timespec="seconds")}
+            plan["repaired_infrastructure_retry_count"] = prior_retries + 1
+            plan["status"] = "RUNNING"
+            if persist_authorization:
+                atomic_json(root / PLAN_FILE, plan)
+    pending = [r for r in runs if r.get("status") in {"NOT_STARTED", "VALID_TASK_RESULT", "RETRY_AUTHORIZED_ENGINEERING", "RETRY_AUTHORIZED_OPERATOR"}]
+    pending = [r for r in pending if r.get("status") != "VALID_TASK_RESULT"]
     if pending:
         first = pending[0]["sequence"]
         if any(r["sequence"] > first and r.get("status") == "RETRY_AUTHORIZED_ENGINEERING" for r in pending):
@@ -363,14 +536,51 @@ def resume_gate(plan: dict, root: Path, *, retry_sequence: int | None = None, re
 
 
 def run_batch(root: Path, args: argparse.Namespace) -> int:
+    lock_stream = (root / "runner.lock").open("a+")
+    try:
+        fcntl.flock(lock_stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError as error:
+        lock_stream.close()
+        raise RuntimeError("another T1-36 runner owns the batch lock") from error
+    try:
+        (root / "runner.pid").write_text(f"{os.getpid()}\n", encoding="ascii")
+        write_runner_status(root, "STARTING", pid_file=str(root / "runner.pid"),
+            stop_request_file=str(root / "STOP_AFTER_CURRENT_RUN"),
+            classification=CLASSIFICATION, render_mode="hidden GLFW")
+        return _run_batch_locked(root, args)
+    except KeyboardInterrupt:
+        write_runner_status(root, "STOPPED_OPERATOR", reason="keyboard interrupt; child cleanup path requested")
+        raise
+    except Exception as error:
+        write_runner_status(root, "FAILED", error=f"{type(error).__name__}: {error}")
+        raise
+    finally:
+        fcntl.flock(lock_stream.fileno(), fcntl.LOCK_UN)
+        lock_stream.close()
+
+
+def _run_batch_locked(root: Path, args: argparse.Namespace) -> int:
     plan_path = root / PLAN_FILE
     plan = json.loads(plan_path.read_text(encoding="utf-8"))
     pending = resume_gate(plan, root, retry_sequence=args.retry_sequence, repair_reason=args.repair_reason)
     if not pending:
+        write_runner_status(root, "NO_PENDING_ITEMS")
         return 0
+    args.classification = CLASSIFICATION
+    args.no_window = True
+    args.disable_framebuffer_capture = True
+    saved_env = ((plan.get("preflight") or {}).get("facts") or {}).get("environment") or {}
     env = os.environ.copy()
+    for key, value in saved_env.items():
+        if value is None:
+            env.pop(key, None)
+        else:
+            env[key] = str(value)
     env.update({"DISPLAY": args.display, "XAUTHORITY": args.xauthority,
-        "MUJOCO_GL": "glfw", "PYTHONNOUSERSITE": "1"})
+        "MUJOCO_GL": "glfw", "PYTHONNOUSERSITE": "1", "ABS_MUJOCO_NO_WINDOW": "1"})
+    for key in set(os.environ) - set(env):
+        os.environ.pop(key, None)
+    os.environ.update(env)
     # A single bounded GLFW context check and the run loop share this process environment.
     preflight = subprocess.run(["/usr/bin/python3", str(ROOT / "scripts/m2_glfw_preflight.py"),
         str(root / "glfw_preflight.json")], cwd=ROOT, env=env, capture_output=True, text=True, timeout=20)
@@ -384,12 +594,14 @@ def run_batch(root: Path, args: argparse.Namespace) -> int:
             "stdout": preflight.stdout[-2000:], "stderr": preflight.stderr[-2000:], "facts": facts}
         plan["status"] = "STOPPED_PREFLIGHT"
         atomic_json(plan_path, plan)
+        write_runner_status(root, "STOPPED_PREFLIGHT", preflight=facts)
         raise RuntimeError("same-context GLFW preflight failed; no scene started")
     inventory = current_related_processes()
     if inventory:
         plan["status"] = "STOPPED_PREFLIGHT"
         plan["preflight_process_inventory_after_glfw"] = {"matches": inventory}
         atomic_json(plan_path, plan)
+        write_runner_status(root, "STOPPED_PREFLIGHT", related_processes=inventory)
         raise RuntimeError("related project process appeared during preflight; refusing first scene")
     plan["preflight"] = {"status": "PASS", "returncode": preflight.returncode,
         "facts": facts, "environment": facts.get("environment"),
@@ -397,10 +609,27 @@ def run_batch(root: Path, args: argparse.Namespace) -> int:
         "window_closed": facts.get("window_closed") is True}
     plan["preflight_process_inventory_after_glfw"] = {"checked_at": datetime.now().astimezone().isoformat(timespec="seconds"), "matches": []}
     plan["status"] = "RUNNING"
+    plan["classification_history"] = plan.get("classification_history", []) + [{
+        "previous": plan.get("classification"), "current": CLASSIFICATION,
+        "effective_from_sequence": 5,
+        "recorded_at": datetime.now().astimezone().isoformat(timespec="seconds")}]
+    plan["classification"] = CLASSIFICATION
     atomic_json(plan_path, plan)
+    write_runner_status(root, "RUNNING", preflight_status="PASS",
+        renderer=facts.get("renderer"), vendor=facts.get("vendor"),
+        hidden_window_probe_closed=facts.get("window_closed") is True,
+        planned=144, valid_preexisting=4, pending=len(pending))
     expanded.MAX_BATCH_BYTES = MAX_BATCH_BYTES
     expanded.MIN_FREE_BYTES = MIN_FREE_BYTES
     for item in pending:
+        if (root / "STOP_AFTER_CURRENT_RUN").exists():
+            plan["status"] = "STOPPED_USER_REQUEST"
+            plan["stop_requested_at"] = datetime.now().astimezone().isoformat(timespec="seconds")
+            plan["next_sequence"] = item["sequence"]
+            atomic_json(plan_path, plan)
+            write_progress(root, plan)
+            write_runner_status(root, "STOPPED_USER_REQUEST", next_sequence=item["sequence"])
+            return 0
         if current_related_processes():
             raise RuntimeError("identified project process remained after prior item cleanup; stopping")
         confirmed_starts = sum(bool(a.get("run_id") or a.get("scene_started") is True)
@@ -415,6 +644,13 @@ def run_batch(root: Path, args: argparse.Namespace) -> int:
         if sum(len(r.get("attempts", [])) > 1 for r in plan["runs"]) >= 4 and not item.get("attempts"):
             raise RuntimeError("four infrastructure repair starts already consumed")
         try:
+            item["batch_classification"] = CLASSIFICATION
+            item["render_mode"] = "hidden GLFW"
+            item["framebuffer_capture_enabled"] = False
+            atomic_json(plan_path, plan)
+            write_runner_status(root, "RUNNING_SCENE", current_sequence=item["sequence"],
+                current_item=item["plan_item_id"], attempts=len(item.get("attempts", [])) + 1,
+                completed=sum(r.get("status") == "VALID_TASK_RESULT" for r in plan["runs"]))
             expanded.run_one(root, plan, item, args)
             validate_completed_item(root, plan, item)
         except KeyboardInterrupt:
@@ -437,6 +673,9 @@ def run_batch(root: Path, args: argparse.Namespace) -> int:
         item["status"] = "VALID_TASK_RESULT"
         item["completed_at"] = datetime.now().astimezone().isoformat(timespec="seconds")
         atomic_json(plan_path, plan)
+        write_progress(root, plan)
+        write_runner_status(root, "RUNNING_BETWEEN_SCENES", last_completed_sequence=item["sequence"],
+            completed=sum(r.get("status") == "VALID_TASK_RESULT" for r in plan["runs"]))
         if item["sequence"] % 8 == 0:
             usage = expanded.allocated_bytes(root)
             free = shutil.disk_usage(root).free
@@ -451,6 +690,14 @@ def run_batch(root: Path, args: argparse.Namespace) -> int:
                 plan["stop_sequence"] = item["sequence"]
                 atomic_json(plan_path, plan)
                 return 2
+    if (root / "STOP_AFTER_CURRENT_RUN").exists():
+        plan["status"] = "STOPPED_USER_REQUEST"
+        plan["stop_requested_at"] = datetime.now().astimezone().isoformat(timespec="seconds")
+        plan["next_sequence"] = None
+        atomic_json(plan_path, plan)
+        write_progress(root, plan)
+        write_runner_status(root, "STOPPED_USER_REQUEST", next_sequence=None)
+        return 0
     plan["status"] = "RUNS_COMPLETE_PENDING_ANALYSIS"
     plan["finished_at"] = datetime.now().astimezone().isoformat(timespec="seconds")
     atomic_json(plan_path, plan)
@@ -466,6 +713,8 @@ def run_batch(root: Path, args: argparse.Namespace) -> int:
     plan["analysis_completed_at"] = datetime.now().astimezone().isoformat(timespec="seconds")
     atomic_json(plan_path, plan)
     write_progress(root, plan)
+    write_runner_status(root, "COMPLETE", completed=144, valid=144,
+        analysis_completed_at=plan["analysis_completed_at"])
     return 0
 
 
@@ -494,6 +743,7 @@ def validate_completed_item(root: Path, plan: dict, item: dict) -> None:
     overlay = Path(plan["overlays"][f"B_{item['exit_threshold_X']:.2f}"]["path"]).resolve()
     issues = []
     checks = {
+        "batch classification consumed": context.get("classification") == CLASSIFICATION,
         "source confirmed": source.get("status") == "confirmed",
         "group B consumed": evidence.get("group") == "B" and settings.get("group") == "B",
         "entry E consumed": abs(float(evidence.get("entry_threshold", math.nan)) - E) < 1e-5,
@@ -508,7 +758,19 @@ def validate_completed_item(root: Path, plan: dict, item: dict) -> None:
         "cycle0 persisted": (metrics.get("s6_preparation_readiness") or {}).get("first_active_policy_frame_exactly_persisted") is True,
         "clean closeout": facts.get("shutdown_complete") is True and facts.get("closeout_complete") is True,
         "terminal and raw frame records": (run_dir / "terminal.json").is_file() and (run_dir / "runtime_record.jsonl").is_file(),
+        "hidden GLFW requested": (settings.get("rendering") or {}).get("requested_mode") == "hidden",
+        "hidden GLFW observed": ((context.get("preflight", {}).get("mujoco_window_observation") or {}).get("status") == "OBSERVED" and
+            "visible=0" in ((context.get("preflight", {}).get("mujoco_window_observation") or {}).get("log_line") or "") and
+            "renderer=" in ((context.get("preflight", {}).get("mujoco_window_observation") or {}).get("log_line") or "")),
+        "framebuffer capture disabled": (settings.get("rendering") or {}).get("framebuffer_capture_enabled") is False,
     }
+    if item.get("sequence", 0) >= 11:
+        launch_events = [event for event in context.get("events", [])
+                         if event.get("phase") == "startup_preparation" and event.get("event") == "ros_launch_started"]
+        ros_log = (run_dir / "ros_launch.log").read_text(encoding="utf-8", errors="replace")
+        checks["RViz disabled in actual launch command"] = bool(launch_events) and all(
+            "start_rviz:=false" in str(event.get("command", "")) for event in launch_events)
+        checks["RViz process not launched"] = "rviz2-" not in ros_log and "/rviz2/rviz2" not in ros_log
     issues = [name for name, passed in checks.items() if not passed]
     item["post_run_source_and_boundary_checks"] = checks
     if issues:
@@ -522,7 +784,16 @@ def validate_completed_item(root: Path, plan: dict, item: dict) -> None:
 
 def load_json(path: Path) -> dict:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
+        raw = path.read_text(encoding="utf-8")
+        try:
+            value = json.loads(raw)
+        except json.JSONDecodeError:
+            # One preserved stop-inventory file ends with the literal two
+            # characters backslash+n. Read it without rewriting the evidence.
+            if raw.endswith("\\n"):
+                value = json.loads(raw[:-2])
+            else:
+                raise
         return value if isinstance(value, dict) else {}
     except (OSError, json.JSONDecodeError):
         return {}
@@ -880,6 +1151,14 @@ def main() -> int:
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--retry-sequence", type=int)
     ap.add_argument("--repair-reason")
+    ap.add_argument("--record-runtime-code-stage", action="store_true",
+        help="record the authorized hidden-window simulator presentation stage after the production build")
+    ap.add_argument("--record-no-rviz-runtime-stage", action="store_true",
+        help="record the display-only RViz suppression stage after the user-requested stop")
+    ap.add_argument("--request-stop", action="store_true",
+        help="request the active batch to stop between scene runs after the current run is cleaned")
+    ap.add_argument("--background", action="store_true",
+        help="detach the authorized batch runner and persist its PID/log/status in the batch root")
     ap.add_argument("--display", default=os.environ.get("DISPLAY", ":0"))
     ap.add_argument("--xauthority", default=os.environ.get("XAUTHORITY", "/run/user/1000/gdm/Xauthority"))
     ap.add_argument("--plot-python", default="/home/lidio/anaconda3/bin/python3")
@@ -889,6 +1168,67 @@ def main() -> int:
     ap.add_argument("--refresh-freeze", action="store_true",
         help="refresh binary/source/map freeze only while the saved plan has no attempts")
     args = ap.parse_args()
+    if args.request_stop:
+        if not args.batch_root:
+            ap.error("--request-stop requires --batch-root")
+        root = args.batch_root.resolve()
+        if not (root / PLAN_FILE).is_file():
+            ap.error(f"batch plan not found: {root / PLAN_FILE}")
+        stop_path = root / "STOP_AFTER_CURRENT_RUN"
+        stop_path.write_text(datetime.now().astimezone().isoformat(timespec="seconds") + "\n", encoding="utf-8")
+        write_runner_status(root, "STOP_REQUESTED", stop_request_file=str(stop_path),
+            note="honored after the currently running scene completes and cleanup is verified")
+        print(f"Stop requested; current run will finish cleanup before the next scene is withheld: {stop_path}")
+        return 0
+    if args.background:
+        if not args.batch_root or not args.resume or ((args.retry_sequence is None) != (not args.repair_reason)):
+            ap.error("background launch requires --batch-root --resume; optional retry requires sequence and reason together")
+        if args.retry_sequence is not None and args.retry_sequence != 5:
+            ap.error("the only already-authorized retry is sequence 5")
+        root = args.batch_root.resolve()
+        if not (root / PLAN_FILE).is_file():
+            ap.error(f"batch plan not found: {root / PLAN_FILE}")
+        log_path = root / "runner.log"
+        command = [sys.executable, "-u", str(Path(__file__).resolve()),
+            "--batch-root", str(root), "--resume"]
+        if args.retry_sequence is not None:
+            command.extend(["--retry-sequence", str(args.retry_sequence), "--repair-reason", args.repair_reason])
+        command.extend(["--display", args.display,
+            "--xauthority", args.xauthority, "--plot-python", args.plot_python]
+        )
+        environment = os.environ.copy()
+        saved_env = (((load_json(root / PLAN_FILE).get("preflight") or {}).get("facts") or {}).get("environment") or {})
+        for key, value in saved_env.items():
+            if value is None:
+                environment.pop(key, None)
+            else:
+                environment[key] = str(value)
+        environment.update({"DISPLAY": args.display, "XAUTHORITY": args.xauthority,
+            "MUJOCO_GL": "glfw", "ABS_MUJOCO_NO_WINDOW": "1", "PYTHONNOUSERSITE": "1",
+            "T1_BATCH_LAUNCH_PID": str(os.getpid())})
+        write_runner_status(root, "BACKGROUND_LAUNCH_REQUESTED", runner_log=str(log_path.resolve()),
+            detached=True, command=command, no_window=True)
+        (root / "runner.launch_pid").write_text(f"{os.getpid()}\n", encoding="ascii")
+        stop_path = root / "STOP_AFTER_CURRENT_RUN"
+        consumed_stop = None
+        if stop_path.exists():
+            consumed_stop = root / f"STOP_AFTER_CURRENT_RUN.consumed_{datetime.now().astimezone().strftime('%Y%m%d_%H%M%S')}"
+            os.replace(stop_path, consumed_stop)
+            plan = load_json(root / PLAN_FILE)
+            plan.setdefault("stop_request_history", []).append({
+                "request_file": str(consumed_stop),
+                "content": consumed_stop.read_text(encoding="utf-8").strip(),
+                "consumed_for_explicit_resume_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+                "next_sequence": 11,
+            })
+            atomic_json(root / PLAN_FILE, plan)
+        with log_path.open("ab", buffering=0) as log_stream:
+            child = subprocess.Popen(command, cwd=ROOT, env=environment,
+                stdin=subprocess.DEVNULL, stdout=log_stream, stderr=subprocess.STDOUT,
+                start_new_session=True, close_fds=True)
+        (root / "runner.launch_child_pid").write_text(f"{child.pid}\n", encoding="ascii")
+        print(f"Detached T1-36 runner PID {child.pid}; log={log_path}; status=runner_status.json")
+        return 0
     catalog = load_catalog()
     if args.self_check:
         runs = make_schedule(catalog)
@@ -905,14 +1245,65 @@ def main() -> int:
             if not overlay_configuration_matches(text, "B", E, x, 0.30, 7.5, 0.0) or "recovery_min_hold_s:" in text:
                 raise RuntimeError(f"offline production config check failed for X={x}")
             shutil.rmtree(temp)
+        diagnostic_env = diagnostic_build_env("offline-no-window-check", SOURCE,
+            ":0", "/run/user/1000/gdm/Xauthority", resolve_scene("dev07.xml"),
+            Path("/tmp/t1-36-offline-env-check"), capture_framebuffer=False, no_window=True)
+        if (diagnostic_env.get("ABS_MUJOCO_NO_WINDOW") != "1" or
+                diagnostic_env.get("MUJOCO_GL") != "glfw" or
+                "ABS_MUJOCO_FRAMEBUFFER_CAPTURE" in diagnostic_env or
+                "ABS_MUJOCO_STANDING_FRAMEBUFFER_CAPTURE" in diagnostic_env):
+            raise RuntimeError("production diagnostic environment builder did not suppress the window/capture as requested")
         assert current_related_processes() == []
-        print("PASS: 144 unique rows, 72 per X, 36 maps × 2 repeats, adjacent pairs, 18/18 first-order balance, round-2 reversal, reproducible schedule, no hold, production B config parser accepts both overlays; retry gate requires explicit sequence and repair reason.")
+        if args.batch_root:
+            root = args.batch_root.resolve()
+            frozen = load_json(root / PLAN_FILE)
+            dry_plan = copy.deepcopy(frozen)
+            if frozen.get("status") == "STOPPED_OPERATOR":
+                pending = resume_gate(dry_plan, root, retry_sequence=5,
+                    repair_reason="operator interruption after batch-label correction; original partial attempt retained",
+                    persist_authorization=False)
+                expected_pending = list(range(5, 145))
+            elif frozen.get("status") == "STOPPED_USER_REQUEST":
+                pending = resume_gate(dry_plan, root, persist_authorization=False)
+                expected_pending = list(range(11, 145))
+            else:
+                raise RuntimeError(f"self-check does not accept current plan status {frozen.get('status')}")
+            if [row["sequence"] for row in pending] != expected_pending:
+                raise RuntimeError("production resume gate did not preserve the exact authorized pending order")
+            item = pending[0]
+            args_for_dispatch = argparse.Namespace(classification=CLASSIFICATION, no_window=True,
+                disable_framebuffer_capture=True, display=":0", xauthority="/run/user/1000/gdm/Xauthority",
+                plot_python="/home/lidio/anaconda3/bin/python3")
+            overlay = Path(frozen["overlays"][f"B_{item['exit_threshold_X']:.2f}"]["path"])
+            command = expanded.build_diagnostic_command(item, overlay, root / "dry-run-result", args_for_dispatch)
+            expected_scene = item["map"]
+            required = ["--groups", "B", "--scene", expected_scene, "--exit-threshold",
+                "--classification", CLASSIFICATION, "--no-window", "--disable-framebuffer-capture"]
+            if any(value not in command for value in required):
+                raise RuntimeError("production run_one dispatcher command lost a frozen field or no-window flag")
+            threshold_index = command.index("--exit-threshold") + 1
+            if not math.isclose(float(command[threshold_index]), item["exit_threshold_X"], abs_tol=1e-12):
+                raise RuntimeError("production dispatcher command changed the frozen exit threshold")
+            if str(root / "dry-run-result") not in command or str(overlay) not in command:
+                raise RuntimeError("production run_one dispatcher command lost independent output/overlay paths")
+            if frozen.get("runs", [])[4].get("attempts", [])[0].get("run_id") != dry_plan["runs"][4]["attempts"][0].get("run_id"):
+                raise RuntimeError("dry resume gate modified the preserved invalid attempt")
+            print(f"PASS: real batch resume gate preserves the pending order {expected_pending[0]}–144; child command carries the selected B/X configuration, corrected classification, detached overlay/output paths, hidden GLFW, and framebuffer capture off; prior raw attempts remain unchanged in memory.")
+        print("PASS: frozen 144-row schedule, B configuration, operator retry accounting, and no-window production dispatch checks.")
         return 0
     if args.batch_root:
         if not args.resume:
             ap.error("existing batch root requires --resume")
         root = args.batch_root.resolve()
         plan = json.loads((root / PLAN_FILE).read_text(encoding="utf-8"))
+        if args.record_runtime_code_stage:
+            record_runtime_code_stage(root, plan)
+            print("Recorded hidden-window runtime code stage; no scene started.")
+            return 0
+        if args.record_no_rviz_runtime_stage:
+            record_no_rviz_runtime_stage(root, plan)
+            print("Recorded display-only RViz suppression stage; no scene started.")
+            return 0
         if args.summarize_only:
             if plan.get("status") not in {"RUNS_COMPLETE_PENDING_ANALYSIS", "ANALYSIS_FAILED_RAW_DATA_PRESERVED", "COMPLETE"}:
                 raise RuntimeError("summarize-only requires all planned items to have reached the analysis boundary")

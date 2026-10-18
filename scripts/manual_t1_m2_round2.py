@@ -300,7 +300,7 @@ def validate_final_139_resume(plan: dict, root: Path, catalog: list[dict], *, al
             plan.get("entry_threshold_E") != E or plan.get("exit_thresholds_X") != list(XS) or
             plan.get("hold_enabled") is not False or plan.get("goal_world_m") != [7.5, 0.0] or
             plan.get("arrival_radius_m") != 0.5 or plan.get("sim_limit_s") != 20 or
-            plan.get("wall_cap_s") != 120 or plan.get("standing_observation_sim_s") != 5 or
+            plan.get("wall_cap_s") != 120 or plan.get("standing_observation_sim_s") not in (2, 5) or
             plan.get("standing_wall_cap_s") != 30):
         raise RuntimeError("frozen M2 experiment conditions changed")
     limits = plan.get("attempt_limits", {})
@@ -421,7 +421,7 @@ def validate_item73_repair_and_continue(plan: dict, root: Path, catalog: list[di
             plan.get("entry_threshold_E") != E or plan.get("exit_thresholds_X") != list(XS) or
             plan.get("hold_enabled") is not False or plan.get("goal_world_m") != [7.5, 0.0] or
             plan.get("arrival_radius_m") != 0.5 or plan.get("sim_limit_s") != 20 or
-            plan.get("wall_cap_s") != 120 or plan.get("standing_observation_sim_s") != 5 or
+            plan.get("wall_cap_s") != 120 or plan.get("standing_observation_sim_s") not in (2, 5) or
             plan.get("standing_wall_cap_s") != 30):
         raise RuntimeError("item-073 repair requires the original frozen conditions stopped at 073")
     if len(plan.get("runs", [])) != 144 or plan.get("maps") != catalog:
@@ -787,6 +787,7 @@ def run_one(root: Path, plan: dict, item: dict, args: argparse.Namespace,
     command = ["/usr/bin/python3", "-u", str(ROOT / "scripts/manual_ab_compare.py"),
         "--groups", "B", "--repeats", "1", "--scene", item["map"],
         "--goal-x", "7.5", "--goal-y", "0", "--sim-limit-s", "20", "--wall-cap-s", "120",
+        "--standing-observation-sim-s", str(plan["standing_observation_sim_s"]),
         "--entry-threshold", "-0.05", "--exit-threshold", format(x, ".17g"), "--hold-s", "0.30",
         "--classification", "T1 M2 second-round B exit-threshold development; nonformal",
         "--display", args.display, "--xauthority", args.xauthority, "--plot-python", args.plot_python,
@@ -1033,7 +1034,7 @@ def main(argv=None, *, test_hooks=None) -> int:
                     plan.get("entry_threshold_E") != E or plan.get("exit_thresholds_X") != list(XS) or
                     plan.get("hold_enabled") is not False or plan.get("goal_world_m") != [7.5, 0.0] or
                     plan.get("arrival_radius_m") != 0.5 or plan.get("sim_limit_s") != 20 or
-                    plan.get("wall_cap_s") != 120 or plan.get("standing_observation_sim_s") != 5 or
+                    plan.get("wall_cap_s") != 120 or plan.get("standing_observation_sim_s") not in (2, 5) or
                     plan.get("standing_wall_cap_s") != 30):
                 raise RuntimeError("original frozen experiment conditions do not match the authorized matrix")
             if plan.get("attempt_limits", {}).get("attempts_total_max") != 147 or plan.get("attempt_limits", {}).get("attempts_per_item_max") != 2:
@@ -1204,7 +1205,7 @@ def main(argv=None, *, test_hooks=None) -> int:
             "maps": catalog, "runs": runs, "planned_count": 144, "group": "B",
             "entry_threshold_E": E, "exit_thresholds_X": list(XS), "hold_enabled": False,
             "goal_world_m": [7.5, 0.0], "arrival_radius_m": 0.5, "sim_limit_s": 20,
-            "wall_cap_s": 120, "standing_observation_sim_s": 5, "standing_wall_cap_s": 30,
+            "wall_cap_s": 120, "standing_observation_sim_s": 2, "standing_wall_cap_s": 30,
             "schedule_seed": SCHEDULE_SEED,
             "schedule_rule": "3 rounds; shuffle 6 maps each round and 8 X values within each map-round",
             "screenshot_preselected_item_ids": screenshots, "screenshot_runs_max": 8,

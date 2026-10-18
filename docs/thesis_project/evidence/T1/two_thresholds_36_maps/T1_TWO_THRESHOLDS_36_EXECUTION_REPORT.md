@@ -1,10 +1,39 @@
+> **数据保留状态更新（2026-10-18）**：按用户要求已清理本批逐次原始记录、临时 overlays 和绘图缓存；报告、结果表（大型 CSV 无损压缩）、计划、台账及图表保留。历史“原始数据保留”措辞仅描述当时状态，当前无法完整逐帧重分析。详见[清理记录](../../../../../logs/t1/two_thresholds_36_maps/20261016_211029_3/DATA_RETENTION.md)。
+
 # T1 两档退出阈值、36 张开发地图执行报告
 
-**状态：INCOMPLETE / STOPPED_OPERATOR；T1 保持 ACTIVE，提交 Director 审阅。**
+**最新状态：两档36图批次 COMPLETE（本批次执行与分析完成）；T1 仍 ACTIVE，等待 Director 审阅。**
+
+## 最新续跑结果：144项完成与无RViz运行（2026-10-18）
+
+按[恢复提示词](../../../../../archive/markdown/20261018/docs/thesis_project/T1_TWO_THRESHOLDS_36_RESUME_PROMPT.md)，保留前4条有效运行和第5项首次中断INVALID；第5项在 `attempt_02` 独立补做有效后，按冻结顺序完成原第6–144项。台账共144个有效计划项、145次实际场景启动（含第5项补做），其中144条有效任务结果和1条历史INVALID原始尝试。没有新增的场景补做。原第5项 `attempt_01` 的部分数据、旧terminal/分类状态和中断证据均未覆盖。
+
+| 退出阈值 X | 有效任务结果 | ARRIVED | COLLISION_TERMINATION | DIAGNOSTIC_SIM_TIME_LIMIT | FALL_TERMINATION |
+|---:|---:|---:|---:|---:|---:|
+| −0.07 | 72 | 61 | 8 | 3 | 0 |
+| −0.12 | 72 | 60 | 10 | 2 | 0 |
+
+汇总、逐run指标、36图对照、初态/覆盖表和图表位于[批次目录](../../../../../logs/t1/two_thresholds_36_maps/20261016_211029_3/)，包括 `RESULTS_SUMMARY.md`、`per_run_results_144.csv`、`map_comparison_36.csv`、`initial_state_and_coverage_144.csv`、`threshold_summary_M1_M2_ALL.csv/.json` 和 `charts/`。M1 为30图，M2为6图；每图每档2次，初态并非严格重放。留出集未使用。
+
+全36图的地图等权分数均值为 X=−0.07 的77.6755、X=−0.12 的76.2135；35张具有完整配对分数地图的 `X=−0.12 − X=−0.07` 均值为−1.1613，地图簇bootstrap 95%区间为[−6.9208, 4.4286]，包含0。按冻结分析还发现第36张地图的配对分数不完整。排除最早4条可视运行后，完整配对地图仅33张，均值差方向变为 +1.1667；仅看同一无RViz代码阶段的第11–144项时为31张，均值差 +1.1769。阶段敏感性和样本缩减说明本批不足以支持阈值优劣结论。辅助得分不是安全准入，也不把有效记录或到达等同于安全成功。
+
+**运行显示阶段与差异：**第1–4项为可视GLFW；第5–10项已隐藏MuJoCo GLFW窗口，但当时安装的ROS launch默认仍启动本批RViz。第10项完成并清理后按用户要求暂停。发现launch无条件启动RViz后，仅对显示/launch层做最小修正：为已安装的 `mujoco.launch.py` 增加默认开启的 `start_rviz` 参数，批量 `--no-window` 路径传入 `start_rviz:=false`，可视手动运行仍默认开启。第11–144项均验证命令含 `start_rviz:=false` 且ROS日志没有RViz进程启动；仍使用生产MuJoCo、隐藏GLFW context、原PhysicsLoop、DISPLAY和OpenGL renderer Mesa Intel(R) Graphics (RPL-P)，这不是真正无显示依赖的headless。第5–10与后续批次仍存在RViz负载差异，因此按要求附加了排除前4项的比较，也额外报告排除1–10项结果；不声称全批运行条件完全相同。
+
+分类标签、进度分母和B组保持回显修正已通过真实dispatcher离线核验。生产MuJoCo GLFW隐藏模式及窗口可见性记录已核验；C++主程序构建在本轮此前完成。ROS launch `--show-args` 确认新参数默认 `true`，只列参数未启动节点。`py_compile`、批次实际恢复门/dispatcher自检、ROS launch解析和 `git diff --check` 通过。
+
+批次最终状态 `COMPLETE`，runner状态 `COMPLETE`；最终相关项目进程扫描为空，MuJoCo、controller/ROS、RViz和采集器均无本批次残留。批次占用约1.21 GiB，最后一次磁盘检查可用约54.2 GiB。当前只完成T1的这项两阈值开发预实验批次；不把它称为正式实验，不宣布最优阈值，不用留出集。
+
+**Remaining UNKNOWN / 限制：**一条 X=−0.12 记录的碰撞与跌倒指标为UNKNOWN；另有一张地图的完整评分单元不足。分组并非严格初态相同，显示/额外RViz负载在运行阶段间不同；单次实验批次不证明总体性能或因果关系。命令发布和controller状态记录不证明MuJoCo已消费命令。原始失败记录和历史报告均保留。
+
+**通俗总结：**原来停下来的第5项保留失败记录后单独补做成功，其余139项也按原顺序跑完并生成汇总和图表。发现隐藏仿真窗口时ROS还会自动打开RViz，所以第10项后暂停，补上关闭RViz的启动参数，再从第11项续跑。现在仿真、ROS/controller、RViz和辅助进程都已退出；两档结果存在阶段差异和安全指标未知，不能据此选出最优阈值。T1保持ACTIVE，等待Director审阅，不提交Git。
+
+## 原始批次停止点报告（2026-10-16，历史）
+
+以下保留的是本批最初在第5项中断时的报告快照；其中“139项未启动”等状态已由上方2026-10-18续跑结果取代，不代表当前批次状态。
 
 ## 本轮范围与固定条件
 
-执行依据：[授权提示词](../../../../../docs/thesis_project/T1_TWO_THRESHOLDS_36_MAPS_PROMPT.md)。计划为 M1 开发图 30 张与 M2 开发图 6 张，全部 B 组、`E=-0.05`、`X∈{-0.07,-0.12}`、无保持；每图每档两次，共 144 项。目标 `(7.5,0)`、到达半径 `0.5 m`，运动上限 `20 sim s / 120 wall s`，到达后站立观察 `5 sim s / 30 wall s`。留出集未使用，历史批次不抵扣本批重复。本批不是正式实验，不用于参数最优结论。
+执行依据：[授权提示词](../../../../../archive/markdown/20261018/docs/thesis_project/T1_TWO_THRESHOLDS_36_MAPS_PROMPT.md)。计划为 M1 开发图 30 张与 M2 开发图 6 张，全部 B 组、`E=-0.05`、`X∈{-0.07,-0.12}`、无保持；每图每档两次，共 144 项。目标 `(7.5,0)`、到达半径 `0.5 m`，运动上限 `20 sim s / 120 wall s`，到达后站立观察 `5 sim s / 30 wall s`。留出集未使用，历史批次不抵扣本批重复。本批不是正式实验，不用于参数最优结论。
 
 运行计划、独立配置副本和原始数据位于[`logs/t1/two_thresholds_36_maps/20261016_211029_3/`](../../../../../logs/t1/two_thresholds_36_maps/20261016_211029_3/)。冻结调度种子为 `2026101604`，每轮 36 个随机地图块、每块两档相邻；首轮顺序 18/18 平衡，第二轮逐图反转。预检与运行使用同一执行上下文的 `DISPLAY=:0`、`XAUTHORITY=/run/user/1000/gdm/Xauthority`、`MUJOCO_GL=glfw`、系统 `/usr/bin/python3` 和本地临时库路径。GLFW 预检为 PASS，renderer 为 Intel / Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6；窗口已关闭。
 

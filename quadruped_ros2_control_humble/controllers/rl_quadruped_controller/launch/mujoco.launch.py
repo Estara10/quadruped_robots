@@ -5,6 +5,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription, RegisterEventHandler, SetEnvironmentVariable
 from launch.event_handlers import OnProcessExit
+from launch.conditions import IfCondition
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -32,7 +33,8 @@ def launch_setup(context, *args, **kwargs):
         executable='rviz2',
         name='rviz_ocs2',
         output='screen',
-        arguments=["-d", rviz_config_file]
+        arguments=["-d", rviz_config_file],
+        condition=IfCondition(LaunchConfiguration('start_rviz')),
     )
 
     robot_state_publisher = Node(
@@ -111,6 +113,9 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'simulation_test', default_value='0',
             description='Allow ABS_TEST_FAULT only for local MuJoCo fault-injection runs'),
+        DeclareLaunchArgument(
+            'start_rviz', default_value='true',
+            description='Start the optional RViz visualization process'),
         SetEnvironmentVariable('ABS_SIMULATION_TEST', LaunchConfiguration('simulation_test')),
         OpaqueFunction(function=launch_setup),
     ])

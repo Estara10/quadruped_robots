@@ -129,6 +129,56 @@ def reference_path(number, obstacles):
     return m1.s611.grid_forward_path(obstacles)
 
 
+def apply_manual_revision(s):
+    """Replay the user-approved edit after seeded generation, without rerolling peers."""
+    if s["filename"] != "m2dev04.xml":
+        return
+    target = next(o for o in s["obstacles"] if o["name"] == "ppt_obstacle_01")
+    if (target["x"], target["y"]) != (1.76217, 0.048765):
+        raise ValueError("M2-04 base recipe changed; do not silently apply the old edit")
+    # Correct the last direction: from r2 move 1m towards the goal (+X).
+    target["x"], target["y"] = 2.36217, 0.548765
+    second = next(o for o in s["obstacles"] if o["name"] == "ppt_obstacle_02")
+    if (second["x"], second["y"]) != (3.858587, -0.207272):
+        raise ValueError("M2-04 second obstacle base recipe changed")
+    second["y"] = 0.092728  # User: move obstacle 02 left by 0.3m.
+    path = s["routes"][0]["reference_path_m"]
+    metrics = m1.geom.path_metrics(path, s["obstacles"])
+    metrics["max_forward_heading_deg"] = max(
+        (abs(math.degrees(math.atan2(b[1]-a[1], b[0]-a[0])))
+         for a, b in zip(path, path[1:])), default=0)
+    clearance_ok = metrics["minimum_geometric_obstacle_clearance_m"] >= 0.75
+    metrics["connected"] = bool(metrics["connected"] and clearance_ok)
+    metrics["reference_path_clearance_satisfied"] = clearance_ok
+    metrics["manual_edit_warning"] = (
+        "Edited obstacle violates the original 0.75m reference-path clearance."
+        if not clearance_ok else None)
+    s["path_check"] = metrics
+    blockers = m1.geom.line_blockers(s["obstacles"])
+    s["direct_line_blocking_obstacles"] = blockers
+    s["direct_line_blocked"] = bool(blockers)
+    spacing = min(m1.geom.shape_distance(a, b)
+                  for i, a in enumerate(s["obstacles"]) for b in s["obstacles"][i+1:])
+    s["density_definition"] = {
+        "obstacle_footprint_area_fraction": m1.area(s["obstacles"])/m1.FIELD_AREA,
+        "minimum_obstacle_spacing_m": spacing}
+    s["layout_revision"] = "m2dev04-r5-20261018"
+    s["manual_edit"] = {
+        "obstacle": "ppt_obstacle_01", "delta_world_xy_m": [0.6, 0.5],
+        "before_world_xy_m": [1.76217, 0.048765],
+        "after_world_xy_m": [2.36217, 0.548765],
+        "previous_revision_world_xy_m": [0.36217, 0.548765],
+        "latest_delta_world_xy_m": [2.0, 0.0],
+        "direction_correction": "Undo r3 displacement, then move +1m in world X from r2.",
+        "replaces_current_xml": True,
+        "original_minimum_spacing_rule_satisfied": spacing >= 0.60,
+        "note": "User-corrected direction; historical runs use earlier geometry. Refer to current spacing and path metrics."}
+    s["additional_manual_edits"] = [{
+        "obstacle": "ppt_obstacle_02", "delta_world_xy_m": [0.0, 0.3],
+        "before_world_xy_m": [3.858587, -0.207272],
+        "after_world_xy_m": [3.858587, 0.092728]}]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--runtime-fingerprints", type=Path,
@@ -140,6 +190,8 @@ def main():
     m1.configure_geometry()
     OUT.mkdir(parents=True, exist_ok=True)
     scenes = [scene(i, *recipe) for i, recipe in enumerate(RECIPES, 1)]
+    for s in scenes:
+        apply_manual_revision(s)
     # Render at equal metric scale: x and y share one pixels-per-metre value.
     m1.BOUNDS = ((-0.5, 8.0), (-3.0, 3.0))
     images = []
@@ -207,11 +259,13 @@ def render(s):
     route = s["routes"][0]["reference_path_m"]
     points = [p(q) for q in route]
     radius = 0.75*scale
-    d.line(points, fill="#d8eeeb", width=round(2*radius), joint="curve")
-    for x,y in points:
-        d.ellipse((x-radius,y-radius,x+radius,y+radius),fill="#d8eeeb")
+    route_valid = s["path_check"].get("connected", False)
+    if route_valid:
+        d.line(points, fill="#d8eeeb", width=round(2*radius), joint="curve")
+        for x,y in points:
+            d.ellipse((x-radius,y-radius,x+radius,y+radius),fill="#d8eeeb")
+        d.line(points,fill="#087e83",width=3)
     # The declared field boundary below is not a physical wall.
-    d.line(points,fill="#087e83",width=3)
     d.line((p(m1.START),p(m1.GOAL)),fill="#df9636",width=2)
     blockers = set(s["direct_line_blocking_obstacles"])
     for o in s["obstacles"]:
@@ -226,7 +280,9 @@ def render(s):
     for q,label,color in ((m1.START,"START", "#21864a"),(m1.GOAL,"GOAL", "#2357a5")):
         x,y=p(q);d.ellipse((x-7,y-7,x+7,y+7),fill=color)
         d.text((x-20,y+12),label,fill=color,font=m1.font(15))
-    d.text((40, 745), "等比例俯视；浅青带半宽0.75m。参考线仅作几何通路证明，不输入策略。",fill="#334155",font=m1.font(17))
+    caption = ("等比例俯视；浅青带半宽0.75m。参考线仅作几何通路证明，不输入策略。"
+               if route_valid else "人工修改：首障碍接近起点，不满足0.75m包络净距；不显示已失效的参考通道。")
+    d.text((40, 745), caption, fill="#334155" if route_valid else "#b42318",font=m1.font(17))
     return im
 
 

@@ -26,7 +26,7 @@ def make_plan(doc):
     return {"schema":"m1-a-dev-batch-v1","classification":"nonformal M1 development-map A-group repeatability workflow; not a formal experiment",
             "library_version":doc["library_version"],"layout_sha256":digest(LAYOUT),"scene_count":30,"run_budget":90,
             "fixed_conditions":{"group":"A","entry_threshold_E":-0.05,"goal_world_m":[7.5,0.0],"arrival_radius_m":0.5,
-                "sim_limit_s":20.0,"wall_cap_s":120.0,"standing_observation_sim_s":5.0,"standing_wall_cap_s":30.0,
+                "sim_limit_s":20.0,"wall_cap_s":120.0,"standing_observation_sim_s":2.0,"standing_wall_cap_s":30.0,
                 "scene_field_bounds_m":doc["field_bounds_m"],"switching_behavior":"A; no hysteresis; no minimum hold",
                 "startup_gain_transition_s_control_runtime":0.30,"startup_recovery_observation_enabled":False},
             "schedule":"round robin: all 30 dev scenes once, then second, then third",
@@ -89,6 +89,7 @@ def main():
     current["status"]="RUNNING"; current["active_output_root"]=str(child); write(plan_path,plan)
     cmd=["/usr/bin/python3","-u",str(ROOT/"scripts/manual_ab_compare.py"),"--scene",current["filename"],
          "--goal-x","7.5","--goal-y","0","--sim-limit-s","20","--wall-cap-s","120",
+         "--standing-observation-sim-s",str(plan["fixed_conditions"].get("standing_observation_sim_s",2.0)),
          "--groups","A","--repeats","1","--entry-threshold","-0.05","--classification",plan["classification"],
          "--display",a.display,"--xauthority",a.xauthority,"--plot-python",a.plot_python,"--result-root",str(child)]
     cmd.extend(["--prepared-overlay",str(overlay)])

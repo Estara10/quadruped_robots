@@ -50,6 +50,7 @@ S6_FALL_LOW_HEIGHT = 1
 S6_FALL_TILT = 2
 VETO_RE = re.compile(r"\[ABS-CONTRACT\].*PASSIVE")
 SOURCE_EVIDENCE_WAIT_S = 3.0
+M2_SELECTED_MAPSET_VERSION = "m2-selected-development/2.1"
 
 
 class ConfigOnlyComplete(Exception):
@@ -976,13 +977,20 @@ def write_json(path: Path, value: object) -> None:
 def build_env(capture_id: str, overlay: Path, display: str, xauthority: str,
               scene: object, run_dir: Path,
               field_bounds_m: dict | None = None,
-              capture_framebuffer: bool = True) -> dict[str, str]:
+              capture_framebuffer: bool = True,
+              no_window: bool = False) -> dict[str, str]:
     env = os.environ.copy()
     env["DISPLAY"] = display
     env["XAUTHORITY"] = xauthority
     env["S1_04_OVERLAY"] = str(overlay)
-    env["LD_LIBRARY_PATH"] = f"{SDKLIB}:{LIBTORCH}:/usr/lib/x86_64-linux-gnu:{env.get('LD_LIBRARY_PATH', '')}"
+    library_paths = [str(SDKLIB), str(LIBTORCH), "/usr/lib/x86_64-linux-gnu"]
+    library_paths.extend(path for path in env.get("LD_LIBRARY_PATH", "").split(":") if path)
+    env["LD_LIBRARY_PATH"] = ":".join(dict.fromkeys(library_paths))
     env["MUJOCO_GL"] = "glfw"
+    if no_window:
+        env["ABS_MUJOCO_NO_WINDOW"] = "1"
+    else:
+        env.pop("ABS_MUJOCO_NO_WINDOW", None)
     env["ABS_P1_10_SCENARIO_ID"] = scene.scene_id
     env["ABS_P1_10_ROOT_XML_SHA256"] = scene.root_sha256
     env["ABS_P1_10_MODEL_CLOSURE_SHA256"] = scene.closure_sha256
@@ -2264,6 +2272,67 @@ def extract_first_active_policy_state(ros_log_path: Path, record_path: Path) -> 
             "world_position_xy_m": state["world_position_xy_m"], "world_yaw_rad": state["world_yaw_rad"]}
 
 
+class MapManifestError(ValueError):
+    """Map identity/goal/limit mismatch; rejected before any robot motion."""
+
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+
+
+def resolve_map_manifest(scene_spec, goal_x: float, goal_y: float,
+                         sim_limit_s: float, wall_cap_s: float) -> tuple[dict | None, str | None]:
+    """Load the frozen map manifest record for the scene's identity.
+
+    M1 records live in library_v1; the current M2 selected-v2 records live in
+    designs/M2/selected_v2 and carry their own version, difficulty, source map
+    and layout revision. Both are bound to the production catalog hashes.
+    """
+    if scene_spec.scene_id.startswith("m1"):
+        code = "M1_SCENE_SETTINGS_REJECTED"
+        layout_path = ROOT / "docs/thesis_project/designs/M1/library_v1/layouts.json"
+        library_version = "m1-mapset/1.0"
+    elif scene_spec.scene_id.startswith("m2v2_"):
+        code = "M2_SELECTED_SCENE_SETTINGS_REJECTED"
+        layout_path = ROOT / "docs/thesis_project/designs/M2/selected_v2/layouts.json"
+        library_version = M2_SELECTED_MAPSET_VERSION
+    else:
+        return None, None
+    try:
+        library = json.loads(layout_path.read_text(encoding="utf-8"))
+        if code == "M2_SELECTED_SCENE_SETTINGS_REJECTED":
+            if library.get("mapset_version") != library_version:
+                raise ValueError("M2 selected mapset version is not the approved revision")
+        matches = [item for item in library.get("scenes", [])
+                   if item.get("scene_id") == scene_spec.scene_id]
+        if len(matches) != 1 or matches[0].get("filename") != scene_spec.filename:
+            raise ValueError(f"{library_version} scene identity is missing or ambiguous")
+        record = matches[0]
+        if code == "M2_SELECTED_SCENE_SETTINGS_REJECTED":
+            binding = record.get("production_scene_binding") or {}
+            if (binding.get("scene_id") != scene_spec.scene_id or
+                    binding.get("filename") != scene_spec.filename or
+                    int(binding.get("obstacle_count", -1)) != scene_spec.obstacle_count):
+                raise ValueError("M2 selected binding differs from the production scene")
+            for name in ("root_sha256", "closure_sha256", "model_fingerprint"):
+                if binding.get(name) != getattr(scene_spec, name):
+                    raise ValueError(f"M2 selected {name} differs from the production catalog")
+            if (record.get("difficulty_label") not in ("easy", "middle", "difficult") or
+                    not record.get("source_filename")):
+                raise ValueError("M2 selected difficulty/source metadata is incomplete")
+            bounds = record.get("field_bounds_m") or {}
+            if list(bounds.get("x", [])) != [-0.5, 8.0] or list(bounds.get("y", [])) != [-3.0, 3.0]:
+                raise ValueError("M2 selected field bounds differ from the approved arena")
+        if (not math.isclose(goal_x, float(record["goal_m"][0]), abs_tol=1e-9) or
+                not math.isclose(goal_y, float(record["goal_m"][1]), abs_tol=1e-9) or
+                not math.isclose(sim_limit_s, 20.0, abs_tol=1e-9) or
+                not math.isclose(wall_cap_s, 120.0, abs_tol=1e-9)):
+            raise ValueError(f"{library_version} goal/runtime limits differ from the frozen map manifest")
+        return record, library_version
+    except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
+        raise MapManifestError(code, str(exc)) from exc
+
+
 def run(args: argparse.Namespace) -> int:
     try:
         scene_spec = resolve_scene(args.scene)
@@ -2271,25 +2340,13 @@ def run(args: argparse.Namespace) -> int:
         print(json.dumps({"result": "SCENE_PREFLIGHT_REJECTED", "scene": args.scene,
                           "reason": str(exc)}, ensure_ascii=False))
         return 2
-    map_record = None
-    if scene_spec.scene_id.startswith("m1"):
-        try:
-            layout_path = ROOT / "docs/thesis_project/designs/M1/library_v1/layouts.json"
-            library = json.loads(layout_path.read_text(encoding="utf-8"))
-            matches = [item for item in library.get("scenes", [])
-                       if item.get("scene_id") == scene_spec.scene_id]
-            if len(matches) != 1 or matches[0].get("filename") != scene_spec.filename:
-                raise ValueError("M1 library scene identity is missing or ambiguous")
-            map_record = matches[0]
-            if (not math.isclose(args.goal_x, float(map_record["goal_m"][0]), abs_tol=1e-9) or
-                    not math.isclose(args.goal_y, float(map_record["goal_m"][1]), abs_tol=1e-9) or
-                    not math.isclose(args.sim_limit_s, 20.0, abs_tol=1e-9) or
-                    not math.isclose(args.wall_cap_s, 120.0, abs_tol=1e-9)):
-                raise ValueError("M1 goal/runtime limits differ from the frozen map manifest")
-        except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
-            print(json.dumps({"result": "M1_SCENE_SETTINGS_REJECTED", "scene": args.scene,
-                              "reason": str(exc)}, ensure_ascii=False))
-            return 2
+    try:
+        map_record, map_library_version = resolve_map_manifest(
+            scene_spec, args.goal_x, args.goal_y, args.sim_limit_s, args.wall_cap_s)
+    except MapManifestError as exc:
+        print(json.dumps({"result": exc.code, "scene": args.scene,
+                          "reason": str(exc)}, ensure_ascii=False))
+        return 2
     run_id = uuid.uuid4().hex
     capture_id = "p1-10-capture-" + uuid.uuid4().hex
     out = args.output_root / run_id
@@ -2306,7 +2363,8 @@ def run(args: argparse.Namespace) -> int:
     hold = "true" if group in ("C", "D") else "false"
     env = build_env(capture_id, overlay, args.display, args.xauthority, scene_spec, out,
                     map_record.get("field_bounds_m") if map_record else None,
-                    capture_framebuffer=not args.disable_framebuffer_capture)
+                    capture_framebuffer=not args.disable_framebuffer_capture,
+                    no_window=args.no_window)
     if args.startup_gain_trace:
         env["ABS_S6_STARTUP_GAIN_TRACE"] = "1"
     if args.startup_recovery_observation_s > 0.0:
@@ -2372,11 +2430,16 @@ def run(args: argparse.Namespace) -> int:
                      "scene_root_sha256": scene_spec.root_sha256,
                      "scene_model_closure_sha256": scene_spec.closure_sha256,
                      "runtime_model_fingerprint": scene_spec.model_fingerprint,
-                     "map_library_version": "m1-mapset/1.0" if map_record else None,
+                     "map_library_version": map_library_version,
                      "map_structure": map_record.get("route_structure") if map_record else None,
                      "map_density_label": map_record.get("density") if map_record else None,
                      "map_split": map_record.get("split") if map_record else None,
                      "map_generation_seed": map_record.get("generation_seed") if map_record else None,
+                     "map_difficulty_label": map_record.get("difficulty_label") if map_record else None,
+                     "map_source_set": map_record.get("source_set") if map_record else None,
+                     "map_source_filename": map_record.get("source_filename") if map_record else None,
+                     "map_previous_name": map_record.get("previous_m2_filename") if map_record else None,
+                     "map_layout_revision": map_record.get("layout_revision") if map_record else None,
                      "declared_field_bounds_m": map_record.get("field_bounds_m") if map_record else None,
                      "candidate": candidate, "group": group,
                      "entry_threshold": entry_threshold, "exit_threshold": exit_threshold,
@@ -2398,6 +2461,12 @@ def run(args: argparse.Namespace) -> int:
                                      str(overlay / "share/go2_description/config/rec/policy.pt")],
                      "display": env.get("DISPLAY"),
                      "xauthority": env.get("XAUTHORITY"), "overlay": str(overlay),
+                     "rendering": {"backend": "GLFW", "requested_mode": "hidden" if args.no_window else "visible",
+                                   "window_visibility_variable": "ABS_MUJOCO_NO_WINDOW",
+                                   "rviz_requested": "disabled" if args.no_window else "enabled",
+                                   "rviz_launch_argument": "start_rviz:=false" if args.no_window else "start_rviz:=true",
+                                   "framebuffer_capture_enabled": not args.disable_framebuffer_capture,
+                                   "actual_window_and_renderer_evidence": "MUJOCO-WINDOW line in mujoco.log"},
                      "fall_rule": {"base_body": "base_link", "height_threshold_m": 0.22,
                                    "tilt_threshold_deg": 60.0, "duration_sim_s": 0.30,
                                    "combination": "height OR absolute roll OR absolute pitch",
@@ -2590,6 +2659,12 @@ def run(args: argparse.Namespace) -> int:
             raise RuntimeError("MuJoCo current-run physics authority did not become LIVE and advance before timeout; no motion started")
         context["preflight"]["loaded_mujoco_scene_authority"] = verify_scene_authority_log(
             mujoco_log_path.read_text(encoding="utf-8", errors="replace"), scene_spec)
+        window_lines = [line.strip() for line in mujoco_log_path.read_text(
+            encoding="utf-8", errors="replace").splitlines() if "[MUJOCO-WINDOW]" in line]
+        context["preflight"]["mujoco_window_observation"] = {
+            "status": "OBSERVED" if len(window_lines) == 1 else "UNKNOWN",
+            "log_line": window_lines[0] if len(window_lines) == 1 else None,
+            "matching_line_count": len(window_lines), "same_run_log": str(mujoco_log_path.resolve())}
         context["preflight"]["collision_reader_scene_binding"] = {
             "status": "LIVE", "scene_id": snap.scenario_id,
             "root_sha256": snap.scene_root_sha256,
@@ -2600,9 +2675,10 @@ def run(args: argparse.Namespace) -> int:
         lifecycle_events.append({"phase": "startup_preparation", "event": "collision_source_live_confirmed",
                                  "monotonic_ns": context["lifecycle"]["mujoco_authority_live_monotonic_ns"]})
         ros_start_requested_ns = now_ns()
+        rviz_setting = " start_rviz:=false" if args.no_window else " start_rviz:=true"
         launch_shell = (f"source /opt/ros/humble/setup.bash && source {ROS_WS}/install/setup.bash && "
                         f"export AMENT_PREFIX_PATH={shlex.quote(env['S1_04_OVERLAY'])}:$AMENT_PREFIX_PATH && "
-                        "ros2 launch rl_quadruped_controller mujoco.launch.py simulation_test:=false")
+                        "ros2 launch rl_quadruped_controller mujoco.launch.py simulation_test:=false" + rviz_setting)
         ros = subprocess.Popen(["bash", "-lc", launch_shell],
                                cwd=ROS_WS, env=env, stdout=ros_log, stderr=subprocess.STDOUT,
                                start_new_session=True)
@@ -2612,7 +2688,7 @@ def run(args: argparse.Namespace) -> int:
                                                                                    ros_launch_started_ns]
         lifecycle_events.append({"phase": "startup_preparation", "event": "ros_launch_started",
                                  "monotonic_ns": ros_launch_started_ns, "pid": ros.pid,
-                                 "command": "ros2 launch rl_quadruped_controller mujoco.launch.py simulation_test:=false"})
+                                 "command": "ros2 launch rl_quadruped_controller mujoco.launch.py simulation_test:=false" + rviz_setting})
         ros_startup_deadline = time.monotonic() + 15.0
         query_node_name = startup_ros_session_node_name()
         stop_publisher, session_ready = start_prepared_stop_publisher(
@@ -4116,7 +4192,7 @@ def main() -> int:
                         help="supported MuJoCo scene XML filename (default: scene_obstacle.xml)")
     parser.add_argument("--sim-limit-s", type=float, default=6.0)
     parser.add_argument("--wall-cap-s", type=float, default=60.0)
-    parser.add_argument("--standing-observation-sim-s", type=float, default=5.0,
+    parser.add_argument("--standing-observation-sim-s", type=float, default=2.0,
                         help="post-stand observation in simulation seconds (0..30)")
     parser.add_argument("--standing-observation-wall-cap-s", type=float, default=30.0,
                         help="independent wall-clock cap for post-stand observation (1..60)")
@@ -4134,6 +4210,8 @@ def main() -> int:
                         help="record actual S6-05 startup gain-interface writes; observational only")
     parser.add_argument("--disable-framebuffer-capture", action="store_true",
                         help="disable optional live/standing PPM writes without changing rendering or control")
+    parser.add_argument("--no-window", action="store_true",
+                        help="hide the production GLFW window; DISPLAY and OpenGL are still required")
     parser.add_argument("--display", default=":0")
     default_xauthority = os.environ.get("XAUTHORITY") or os.path.join(
         os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"), "gdm", "Xauthority")

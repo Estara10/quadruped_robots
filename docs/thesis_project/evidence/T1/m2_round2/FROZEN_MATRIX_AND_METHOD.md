@@ -6,7 +6,7 @@
 
 - 地图：M2开发候选 `m2dev01.xml`～`m2dev06.xml`（内部ID `m2d01`～`m2d06`），布局文件和场景身份哈希保存在批次计划中；本轮不改变地图。
 - 组别与参数：全部B，E=−0.05，X={−0.06, −0.07, −0.08, −0.09, −0.10, −0.11, −0.12, −0.13}；保持关闭。
-- 每图每档3次，3轮；每轮随机排列六图，每个地图×轮次内随机排列八档；种子2026101602。144条完整矩阵及顺序见[冻结批次计划](../../../../../logs/t1/m2_exit_round2/20261016_174309_9/m2_round2_plan.json)。
+- 每图每档3次，3轮；每轮随机排列六图，每个地图×轮次内随机排列八档；种子2026101602。144条完整矩阵及顺序见[冻结批次计划](../../../../../logs/01_T1_exit_threshold/m2_exit_round2/20261016_174309_9/m2_round2_plan.json)。
 - 起点(0,0)m，目标(7.5,0)m，到达半径0.5m；任务上限20仿真秒/120墙钟秒；到达后站立观察5仿真秒/30墙钟秒。模型、观测、动作、频率和安全规则沿用生产链。
 - 评分：到达0.40；任务窗无终止性非足端碰撞0.30；效率0.20，ARRIVED时`max(0,1−task_time/20)`，其他合法任务终局为0；稳定性0.10，逐run先算`1/(1+f/257.8)`，f为0.5秒短反向切换/有效任务分钟。总分为加权分×100。缺碰撞结论、任务计时或完整短反向频率则该run分数UNKNOWN，不补零。
 - 汇总顺序：每图×阈值先平均3次，再对六图等权；仅覆盖完整项可报部分结果，不把不完整覆盖包装成完整排名。Bootstrap以地图为簇，10,000次、固定种子2026101603；地图是目的开发图，区间只作描述。
@@ -24,7 +24,7 @@
 rtk proxy env DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority MUJOCO_GL=glfw LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu /usr/bin/python3 -u scripts/manual_t1_m2_round2.py --prepare-only
 ```
 
-正式运行必须在同一个获准桌面命令上下文中先调用GLFW预检，再将预检结果路径传给该批的`--batch-root <batch>` `--resume`命令；本批实际调用见[批次控制台日志](../../../../../logs/t1/m2_exit_round2/20261016_174309_9/)和[预检记录](../../../../../logs/t1/m2_exit_round2/20261016_174309_9/glfw_preflight.json)。
+正式运行必须在同一个获准桌面命令上下文中先调用GLFW预检，再将预检结果路径传给该批的`--batch-root <batch>` `--resume`命令；本批实际调用见[批次控制台日志](../../../../../logs/01_T1_exit_threshold/m2_exit_round2/20261016_174309_9/)和[预检记录](../../../../../logs/01_T1_exit_threshold/m2_exit_round2/20261016_174309_9/glfw_preflight.json)。
 
 恢复命令模板仅接受状态为`FROZEN`、`RUNNING`或`STOPPED_OPERATOR`且无未解决失败的批次：
 
@@ -36,7 +36,7 @@ rtk proxy env DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority MUJOCO_GL=glfw
 
 ## 运行前与代码冻结
 
-GLFW隐藏窗口预检与实际诊断位于同一个沙箱外命令父上下文，使用`DISPLAY=:0`、`XAUTHORITY=/run/user/1000/gdm/Xauthority`、`MUJOCO_GL=glfw`、系统`/usr/bin/python3`和本地临时`LD_LIBRARY_PATH`。renderer为Intel / Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6。预检结果见批次[GLFW记录](../../../../../logs/t1/m2_exit_round2/20261016_174309_9/glfw_preflight.json)。
+GLFW隐藏窗口预检与实际诊断位于同一个沙箱外命令父上下文，使用`DISPLAY=:0`、`XAUTHORITY=/run/user/1000/gdm/Xauthority`、`MUJOCO_GL=glfw`、系统`/usr/bin/python3`和本地临时`LD_LIBRARY_PATH`。renderer为Intel / Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6。预检结果见批次[GLFW记录](../../../../../logs/01_T1_exit_threshold/m2_exit_round2/20261016_174309_9/glfw_preflight.json)。
 
 实际构建阶段、controller库、MuJoCo可执行文件、模型和场景/布局身份哈希见批次计划。M2目录预先完成模型加载与生产身份登记；本轮四个有效run的运行来源及实际消费参数也分别写入其`run_context.json`。初次无场景启动的编排失败只因生产阶段快照带易变`created_at`字段；已从稳定比较字段中排除此时间戳，并保留失败说明。该修正不改变控制器、模型、地图或阈值。没有用该次启动失败替代任何运行项。
 

@@ -1,4 +1,4 @@
-> **数据保留状态更新（2026-10-18）**：按用户要求已清理本批逐次原始记录、临时 overlays 和绘图缓存；报告、结果表（大型 CSV 无损压缩）、计划、台账及图表保留。历史“原始数据保留”措辞仅描述当时状态，当前无法完整逐帧重分析。详见[清理记录](../../../../../logs/t1/two_thresholds_36_maps/20261016_211029_3/DATA_RETENTION.md)。
+> **数据保留状态更新（2026-10-18）**：按用户要求已清理本批逐次原始记录、临时 overlays 和绘图缓存；报告、结果表（大型 CSV 无损压缩）、计划、台账及图表保留。历史“原始数据保留”措辞仅描述当时状态，当前无法完整逐帧重分析。详见[清理记录](../../../../../logs/01_T1_exit_threshold/two_thresholds_36_maps/20261016_211029_3/DATA_RETENTION.md)。
 
 # T1 两档退出阈值、36 张开发地图执行报告
 
@@ -13,7 +13,7 @@
 | −0.07 | 72 | 61 | 8 | 3 | 0 |
 | −0.12 | 72 | 60 | 10 | 2 | 0 |
 
-汇总、逐run指标、36图对照、初态/覆盖表和图表位于[批次目录](../../../../../logs/t1/two_thresholds_36_maps/20261016_211029_3/)，包括 `RESULTS_SUMMARY.md`、`per_run_results_144.csv`、`map_comparison_36.csv`、`initial_state_and_coverage_144.csv`、`threshold_summary_M1_M2_ALL.csv/.json` 和 `charts/`。M1 为30图，M2为6图；每图每档2次，初态并非严格重放。留出集未使用。
+汇总、逐run指标、36图对照、初态/覆盖表和图表位于[批次目录](../../../../../logs/01_T1_exit_threshold/two_thresholds_36_maps/20261016_211029_3/)，包括 `RESULTS_SUMMARY.md`、`per_run_results_144.csv`、`map_comparison_36.csv`、`initial_state_and_coverage_144.csv`、`threshold_summary_M1_M2_ALL.csv/.json` 和 `charts/`。M1 为30图，M2为6图；每图每档2次，初态并非严格重放。留出集未使用。
 
 全36图的地图等权分数均值为 X=−0.07 的77.6755、X=−0.12 的76.2135；35张具有完整配对分数地图的 `X=−0.12 − X=−0.07` 均值为−1.1613，地图簇bootstrap 95%区间为[−6.9208, 4.4286]，包含0。按冻结分析还发现第36张地图的配对分数不完整。排除最早4条可视运行后，完整配对地图仅33张，均值差方向变为 +1.1667；仅看同一无RViz代码阶段的第11–144项时为31张，均值差 +1.1769。阶段敏感性和样本缩减说明本批不足以支持阈值优劣结论。辅助得分不是安全准入，也不把有效记录或到达等同于安全成功。
 
@@ -35,7 +35,7 @@
 
 执行依据：[授权提示词](../../../../../archive/markdown/20261018/docs/thesis_project/T1_TWO_THRESHOLDS_36_MAPS_PROMPT.md)。计划为 M1 开发图 30 张与 M2 开发图 6 张，全部 B 组、`E=-0.05`、`X∈{-0.07,-0.12}`、无保持；每图每档两次，共 144 项。目标 `(7.5,0)`、到达半径 `0.5 m`，运动上限 `20 sim s / 120 wall s`，到达后站立观察 `5 sim s / 30 wall s`。留出集未使用，历史批次不抵扣本批重复。本批不是正式实验，不用于参数最优结论。
 
-运行计划、独立配置副本和原始数据位于[`logs/t1/two_thresholds_36_maps/20261016_211029_3/`](../../../../../logs/t1/two_thresholds_36_maps/20261016_211029_3/)。冻结调度种子为 `2026101604`，每轮 36 个随机地图块、每块两档相邻；首轮顺序 18/18 平衡，第二轮逐图反转。预检与运行使用同一执行上下文的 `DISPLAY=:0`、`XAUTHORITY=/run/user/1000/gdm/Xauthority`、`MUJOCO_GL=glfw`、系统 `/usr/bin/python3` 和本地临时库路径。GLFW 预检为 PASS，renderer 为 Intel / Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6；窗口已关闭。
+运行计划、独立配置副本和原始数据位于[`logs/t1/two_thresholds_36_maps/20261016_211029_3/`](../../../../../logs/01_T1_exit_threshold/two_thresholds_36_maps/20261016_211029_3/)。冻结调度种子为 `2026101604`，每轮 36 个随机地图块、每块两档相邻；首轮顺序 18/18 平衡，第二轮逐图反转。预检与运行使用同一执行上下文的 `DISPLAY=:0`、`XAUTHORITY=/run/user/1000/gdm/Xauthority`、`MUJOCO_GL=glfw`、系统 `/usr/bin/python3` 和本地临时库路径。GLFW 预检为 PASS，renderer 为 Intel / Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6；窗口已关闭。
 
 ## 运行与停止结果
 
@@ -49,9 +49,9 @@
 | 4 | dev19 / −0.07 | ARRIVED | 11.800 s | 66 / 完整 | 0.3241 | 82.545 | VALID；周期0至终止帧完整 | COMPLETE |
 | 5 | dev07 / −0.12 | UNKNOWN（操作中断） | UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | INVALID；部分记录，无 terminal/process facts | 未证实 |
 
-四条有效记录来源均核实为 `group=B`、`E=-0.05`、对应 X、场景 dev08/dev19、目标 `(7.5,0)`、唯一 writer/session；配置源记录 `hold=false`、保持时长 0。运行上下文保存了 cycle 0 的具名关节 q/dq、姿态、位置、速度和同周期身份。各次初态的 sim_time、位置、关节速度等并非完全相同，重复号不表示完全重放。运行记录和辅助逐 run 分数分别见 [`per_run_results_144.csv`](../../../../../logs/t1/two_thresholds_36_maps/20261016_211029_3/per_run_results_144.csv)、[`initial_state_and_coverage_144.csv`](../../../../../logs/t1/two_thresholds_36_maps/20261016_211029_3/initial_state_and_coverage_144.csv) 和 [`map_comparison_36.csv`](../../../../../logs/t1/two_thresholds_36_maps/20261016_211029_3/map_comparison_36.csv)。
+四条有效记录来源均核实为 `group=B`、`E=-0.05`、对应 X、场景 dev08/dev19、目标 `(7.5,0)`、唯一 writer/session；配置源记录 `hold=false`、保持时长 0。运行上下文保存了 cycle 0 的具名关节 q/dq、姿态、位置、速度和同周期身份。各次初态的 sim_time、位置、关节速度等并非完全相同，重复号不表示完全重放。运行记录和辅助逐 run 分数分别见 [`per_run_results_144.csv`](../../../../../logs/01_T1_exit_threshold/two_thresholds_36_maps/20261016_211029_3/per_run_results_144.csv)、[`initial_state_and_coverage_144.csv`](../../../../../logs/01_T1_exit_threshold/two_thresholds_36_maps/20261016_211029_3/initial_state_and_coverage_144.csv) 和 [`map_comparison_36.csv`](../../../../../logs/01_T1_exit_threshold/two_thresholds_36_maps/20261016_211029_3/map_comparison_36.csv)。
 
-第 5 项 run_id 为 `d4e8d5f464314977b9951abf5d3a5507`，保留了 336 个策略帧、run context、MuJoCo/ROS 日志及 framebuffer；未生成终局、metrics 或 process facts，故不能归为超时、碰撞、跌倒或有效任务结果。批次台账明确标记 `STOPPED_OPERATOR / INVALID`，139 项仍为未运行。详细的中断原因和收尾信号见[`operator_interrupt_cleanup_005.json`](../../../../../logs/t1/two_thresholds_36_maps/20261016_211029_3/operator_interrupt_cleanup_005.json)。中断后向本次 MuJoCo 及 ROS launch 发送 SIGINT；最终沙箱外进程清单为空，见[`post_stop_process_inventory.json`](../../../../../logs/t1/two_thresholds_36_maps/20261016_211029_3/post_stop_process_inventory.json)。不声称第 5 项正常终止或正常站立收尾。
+第 5 项 run_id 为 `d4e8d5f464314977b9951abf5d3a5507`，保留了 336 个策略帧、run context、MuJoCo/ROS 日志及 framebuffer；未生成终局、metrics 或 process facts，故不能归为超时、碰撞、跌倒或有效任务结果。批次台账明确标记 `STOPPED_OPERATOR / INVALID`，139 项仍为未运行。详细的中断原因和收尾信号见[`operator_interrupt_cleanup_005.json`](../../../../../logs/01_T1_exit_threshold/two_thresholds_36_maps/20261016_211029_3/operator_interrupt_cleanup_005.json)。中断后向本次 MuJoCo 及 ROS launch 发送 SIGINT；最终沙箱外进程清单为空，见[`post_stop_process_inventory.json`](../../../../../logs/01_T1_exit_threshold/two_thresholds_36_maps/20261016_211029_3/post_stop_process_inventory.json)。不声称第 5 项正常终止或正常站立收尾。
 
 ## 停止原因与影响
 
@@ -63,7 +63,7 @@
 
 - 离线检查通过：144 个计划键唯一；两档各 72 项；每图每档两次；首轮先后 18/18 平衡；第二轮逐图反转；冻结计划可复现。
 - 生产配置解析检查通过：两个独立 overlay 均由实际配置检查器接受，组别 B、E/X 数值正确、无 `recovery_min_hold_s`；overlay 文件与安装源为独立副本。
-- 当前生产控制器库、MuJoCo 主程序、三个部署模型和地图 XML/index/layout 身份快照见 [`expanded_400_plan.json`](../../../../../logs/t1/two_thresholds_36_maps/20261016_211029_3/expanded_400_plan.json)（文件名沿用既有运行 helper 接口；实际 schema 为 `t1-two-thresholds-36-v1`，计划数 144）。无运行代码或模型构建变更。
+- 当前生产控制器库、MuJoCo 主程序、三个部署模型和地图 XML/index/layout 身份快照见 [`expanded_400_plan.json`](../../../../../logs/01_T1_exit_threshold/two_thresholds_36_maps/20261016_211029_3/expanded_400_plan.json)（文件名沿用既有运行 helper 接口；实际 schema 为 `t1-two-thresholds-36-v1`，计划数 144）。无运行代码或模型构建变更。
 - Python 编译、计划与生产解析器定向检查、分析/绘图临时输入 smoke check 通过。对当前批次只做部分统计，产物位于 `logs`：完整 144 行模板中其余未运行项明确为 UNKNOWN；没有完整地图单元的分数差，bootstrap 估计为空，不作参数比较。
 - 截图图表是部分批次可视化，不代表完整样本。8 张预选运行上限未超；无视频。
 

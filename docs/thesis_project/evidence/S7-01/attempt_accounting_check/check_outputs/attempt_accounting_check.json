@@ -1,0 +1,942 @@
+{
+  "status": "PASS",
+  "historical_fact_row_count": 6,
+  "historical_rule_audit_status": "REJECTED",
+  "historical_rule_audit_errors": [
+    "replacement_not_supported_by_prior_attempt:t2h180-034-scene-attempt-2"
+  ],
+  "historical_rule_audit_counts": {
+    "plan_items": 3,
+    "invocation_attempts": 6,
+    "actual_scene_starts": 4,
+    "scene_creation_unknown_attempts": 0,
+    "started_motion_tasks": 4,
+    "unique_run_ids": 4,
+    "replacement_scene_starts": 1
+  },
+  "historical_rule_audit_plan_item_outcomes": {
+    "KNOWN_NOT_COMPLETE": 1,
+    "SAFETY_UNKNOWN": 2
+  },
+  "historical_rule_audit_safety_completion_bounds": {
+    "confirmed_lower": 0.0,
+    "potential_upper": 0.6666666666666666,
+    "numerator_unknown_categories": [
+      "SAFETY_UNKNOWN",
+      "UNRESOLVED_ENGINEERING",
+      "UNRESOLVED_SCENE_ATTEMPT",
+      "UNRESOLVED",
+      "NOT_STARTED"
+    ],
+    "denominator_plan_items": 3,
+    "known_task_failure_categories_excluded_from_upper": [
+      "KNOWN_NOT_COMPLETE",
+      "KNOWN_SAFETY_FAILURE_RECORD_INCOMPLETE"
+    ]
+  },
+  "historical_rule_audit_plan_items": [
+    {
+      "plan_item_id": "001_r1_e03_A",
+      "group": "A",
+      "invocation_attempts": [
+        "t2c48-001-invocation-1",
+        "t2c48-001-invocation-2",
+        "t2c48-001-scene-attempt-1"
+      ],
+      "scene_start_attempts": [
+        "t2c48-001-scene-attempt-1"
+      ],
+      "selected_attempt_id": "t2c48-001-scene-attempt-1",
+      "selected_run_id": "16465c346b8a4fd1b85c4548169fd6a2",
+      "selected_terminal": "ARRIVED",
+      "selected_safety_task_completion": "UNKNOWN",
+      "first_scene_attempt_id": "t2c48-001-scene-attempt-1",
+      "first_scene_terminal": "ARRIVED",
+      "first_scene_record_validity": "VALID",
+      "first_scene_navigation_result": "ARRIVED",
+      "first_scene_safety_task_completion": "UNKNOWN",
+      "confirmed_task_safety_failure_present": false,
+      "plan_status": "SELECTED_RESULT"
+    },
+    {
+      "plan_item_id": "034_r1_m2v2_d07_C_H0.20",
+      "group": "C",
+      "invocation_attempts": [
+        "t2h180-034-scene-attempt-1",
+        "t2h180-034-scene-attempt-2"
+      ],
+      "scene_start_attempts": [
+        "t2h180-034-scene-attempt-1",
+        "t2h180-034-scene-attempt-2"
+      ],
+      "selected_attempt_id": "t2h180-034-scene-attempt-1",
+      "selected_run_id": "1699cb934b7a4c73b2a666867eadf353",
+      "selected_terminal": "SYSTEM_SAFETY_ABORT",
+      "selected_safety_task_completion": false,
+      "first_scene_attempt_id": "t2h180-034-scene-attempt-1",
+      "first_scene_terminal": "SYSTEM_SAFETY_ABORT",
+      "first_scene_record_validity": "VALID",
+      "first_scene_navigation_result": "SYSTEM_SAFETY_ABORT",
+      "first_scene_safety_task_completion": false,
+      "confirmed_task_safety_failure_present": false,
+      "plan_status": "SELECTED_RESULT"
+    },
+    {
+      "plan_item_id": "t2-hold-function-A-m02",
+      "group": "A",
+      "invocation_attempts": [
+        "t2func-A-scene-attempt-1"
+      ],
+      "scene_start_attempts": [
+        "t2func-A-scene-attempt-1"
+      ],
+      "selected_attempt_id": "t2func-A-scene-attempt-1",
+      "selected_run_id": "4f452f21f03b4d8a9736716701a9f7da",
+      "selected_terminal": "ARRIVED",
+      "selected_safety_task_completion": "UNKNOWN",
+      "first_scene_attempt_id": "t2func-A-scene-attempt-1",
+      "first_scene_terminal": "ARRIVED",
+      "first_scene_record_validity": "VALID",
+      "first_scene_navigation_result": "ARRIVED",
+      "first_scene_safety_task_completion": "UNKNOWN",
+      "confirmed_task_safety_failure_present": false,
+      "plan_status": "SELECTED_RESULT"
+    }
+  ],
+  "historical_rule_audit_note": "Current formal rule does not auto-approve the historical d07/C substitute: controller-side read failure is directly observed, but independent publisher-side corroboration at the event is missing. Both actual starts remain in the all-start ledger.",
+  "historical_attempt_facts": [
+    {
+      "attempt_id": "t2h180-034-scene-attempt-1",
+      "plan_item_id": "034_r1_m2v2_d07_C_H0.20",
+      "kind": "scenario",
+      "group": "C",
+      "map": "d07.xml",
+      "parameters": "E=-0.05; H=0.20s",
+      "attempt_number": 1,
+      "output_directory": "/home/lidio/quadruped_robots/logs/02_T2_minimum_hold/hold_scan_180/20261018_192507_t2scan180/runs/034_r1_m2v2_d07_C_H0.20/result",
+      "run_directory": "/home/lidio/quadruped_robots/logs/02_T2_minimum_hold/hold_scan_180/20261018_192507_t2scan180/runs/034_r1_m2v2_d07_C_H0.20/result/C/rep_01/1699cb934b7a4c73b2a666867eadf353",
+      "scene_created": true,
+      "run_id": "1699cb934b7a4c73b2a666867eadf353",
+      "entered_rl": true,
+      "raw_terminal": "SYSTEM_SAFETY_ABORT",
+      "record_validity": "VALID",
+      "failure_stage": "motion; cycle 147 ray read failed: odd_sequence_writer_in_progress after 16 tries/12.545us; exact FAULTED frame persisted",
+      "cause_evidence": {
+        "class": "infrastructure_trigger_observed",
+        "references": [
+          "terminal.external_safety_events[0].ray_read_diagnostics",
+          "terminal.external_safety_events[0].fault_frame_ref"
+        ],
+        "independent_infrastructure_corroboration": false
+      },
+      "replaces_attempt_id": null,
+      "is_replacement": false,
+      "replacement_authorized": false,
+      "process_exit_code": 0,
+      "shutdown_complete": true,
+      "forced_termination": false,
+      "safety_task_completion": false,
+      "cleanup_evidence": "terminal: shutdown_complete=True, exit_code=0, forced_termination=False",
+      "post_detection_physics_is_exact_terminal_boundary": false,
+      "evidence": "logs/02_T2_minimum_hold/hold_scan_180/20261018_192507_t2scan180/runs/034_r1_m2v2_d07_C_H0.20/result/C/rep_01/1699cb934b7a4c73b2a666867eadf353/terminal.json"
+    },
+    {
+      "attempt_id": "t2h180-034-scene-attempt-2",
+      "plan_item_id": "034_r1_m2v2_d07_C_H0.20",
+      "kind": "scenario",
+      "group": "C",
+      "map": "d07.xml",
+      "parameters": "E=-0.05; H=0.20s",
+      "attempt_number": 2,
+      "output_directory": "/home/lidio/quadruped_robots/logs/02_T2_minimum_hold/hold_scan_180/20261018_192507_t2scan180/runs/034_r1_m2v2_d07_C_H0.20/attempt_02/result",
+      "run_directory": "/home/lidio/quadruped_robots/logs/02_T2_minimum_hold/hold_scan_180/20261018_192507_t2scan180/runs/034_r1_m2v2_d07_C_H0.20/attempt_02/result/C/rep_01/8a6cbbe58c3a4ad0af10f0928fbb856e",
+      "scene_created": true,
+      "run_id": "8a6cbbe58c3a4ad0af10f0928fbb856e",
+      "entered_rl": true,
+      "raw_terminal": "DIAGNOSTIC_SIM_TIME_LIMIT",
+      "record_validity": "VALID",
+      "failure_stage": "task limit at 20 sim s; 4.436 m from goal",
+      "cause_evidence": {
+        "class": "none",
+        "references": []
+      },
+      "replaces_attempt_id": "t2h180-034-scene-attempt-1",
+      "is_replacement": true,
+      "replacement_authorized": true,
+      "safety_task_completion": false,
+      "process_exit_code": 0,
+      "shutdown_complete": true,
+      "forced_termination": false,
+      "cleanup_evidence": "terminal: shutdown_complete=True, exit_code=0, forced_termination=False",
+      "evidence": "logs/02_T2_minimum_hold/hold_scan_180/20261018_192507_t2scan180/runs/034_r1_m2v2_d07_C_H0.20/attempt_02/result/C/rep_01/8a6cbbe58c3a4ad0af10f0928fbb856e/terminal.json"
+    },
+    {
+      "attempt_id": "t2c48-001-invocation-1",
+      "plan_item_id": "001_r1_e03_A",
+      "kind": "pre_scene_orchestration",
+      "group": "A",
+      "map": "e03.xml",
+      "parameters": "E=-0.05",
+      "invocation_number": 1,
+      "scene_created": false,
+      "run_id": null,
+      "entered_rl": false,
+      "raw_terminal": null,
+      "record_validity": "NOT_APPLICABLE",
+      "failure_stage": "pre-scene CLI validation",
+      "cause_evidence": {
+        "class": "parameter_dispatch_error",
+        "references": [
+          "logs/t2/combined_check_48/20261019_1358_01_seed2026101901/runs/001_r1_e03_A/console.log"
+        ]
+      },
+      "replaces_attempt_id": null,
+      "is_replacement": false,
+      "replacement_authorized": false,
+      "process_exit_code": null,
+      "shutdown_complete": true,
+      "cleanup_evidence": "process_inventory_after_failure=[]",
+      "evidence": "logs/t2/combined_check_48/20261019_1358_01_seed2026101901/runs/001_r1_e03_A/console.log"
+    },
+    {
+      "attempt_id": "t2c48-001-invocation-2",
+      "plan_item_id": "001_r1_e03_A",
+      "kind": "runner_resume_orchestration",
+      "group": "A",
+      "map": "e03.xml",
+      "parameters": "E=-0.05",
+      "invocation_number": 2,
+      "scene_created": false,
+      "run_id": null,
+      "entered_rl": false,
+      "raw_terminal": null,
+      "record_validity": "NOT_APPLICABLE",
+      "failure_stage": "resume directory allocation",
+      "cause_evidence": {
+        "class": "FileExistsError before child launch",
+        "references": [
+          "logs/02_T2_minimum_hold/combined_check_48/20261019_1358_01_seed2026101901/runner_resume_failure_02.json"
+        ]
+      },
+      "replaces_attempt_id": null,
+      "is_replacement": false,
+      "replacement_authorized": false,
+      "process_exit_code": null,
+      "shutdown_complete": true,
+      "cleanup_evidence": "no CLI child/MuJoCo process created"
+    },
+    {
+      "attempt_id": "t2c48-001-scene-attempt-1",
+      "plan_item_id": "001_r1_e03_A",
+      "kind": "scenario",
+      "group": "A",
+      "map": "e03.xml",
+      "parameters": "E=-0.05; no X/H fields",
+      "invocation_number": 3,
+      "attempt_number": 1,
+      "output_directory": "/home/lidio/quadruped_robots/logs/t2/combined_check_48/20261019_1358_01_seed2026101901/runs/001_r1_e03_A",
+      "run_directory": "/home/lidio/quadruped_robots/logs/t2/combined_check_48/20261019_1358_01_seed2026101901/runs/001_r1_e03_A/invocation_03/producer/A/rep_01/16465c346b8a4fd1b85c4548169fd6a2",
+      "scene_created": true,
+      "run_id": "16465c346b8a4fd1b85c4548169fd6a2",
+      "entered_rl": true,
+      "raw_terminal": "ARRIVED",
+      "record_validity": "VALID",
+      "failure_stage": "none; valid selected A result",
+      "cause_evidence": {
+        "class": "none",
+        "references": []
+      },
+      "replaces_attempt_id": null,
+      "is_replacement": false,
+      "replacement_authorized": false,
+      "safety_task_completion": "UNKNOWN",
+      "process_exit_code": 0,
+      "shutdown_complete": true,
+      "cleanup_evidence": "closeout_complete=True; process inventory empty",
+      "evidence": "logs/t2/combined_check_48/20261019_1358_01_seed2026101901/runs/001_r1_e03_A/invocation_03/producer/A/rep_01/16465c346b8a4fd1b85c4548169fd6a2"
+    },
+    {
+      "attempt_id": "t2func-A-scene-attempt-1",
+      "plan_item_id": "t2-hold-function-A-m02",
+      "kind": "scenario",
+      "group": "A",
+      "map": "m02.xml",
+      "parameters": "E=-0.05; hold disabled",
+      "attempt_number": 1,
+      "output_directory": "/home/lidio/quadruped_robots/logs/02_T2_minimum_hold/hold_function_check/20261018_190259_t2hold/runs/01_A_no_hold/result",
+      "run_directory": "/home/lidio/quadruped_robots/logs/02_T2_minimum_hold/hold_function_check/20261018_190259_t2hold/runs/01_A_no_hold/result/A/rep_01/4f452f21f03b4d8a9736716701a9f7da",
+      "scene_created": true,
+      "run_id": "4f452f21f03b4d8a9736716701a9f7da",
+      "entered_rl": true,
+      "raw_terminal": "ARRIVED",
+      "record_validity": "VALID",
+      "failure_stage": "initial reader lookup misclassified group A as missing; corrected from original plan/context/record",
+      "cause_evidence": {
+        "class": "reader_group_filter_bug",
+        "references": [
+          "docs/thesis_project/evidence/T2/hold_function_check/T2_HOLD_FUNCTION_CHECK_EXECUTION_REPORT.md"
+        ]
+      },
+      "replaces_attempt_id": null,
+      "is_replacement": false,
+      "replacement_authorized": false,
+      "safety_task_completion": "UNKNOWN",
+      "process_exit_code": 0,
+      "shutdown_complete": true,
+      "forced_termination": false,
+      "cleanup_evidence": "shutdown_complete=True; process_exit_code=0",
+      "evidence": "logs/02_T2_minimum_hold/hold_function_check/20261018_190259_t2hold/runs/01_A_no_hold/result/A/rep_01/4f452f21f03b4d8a9736716701a9f7da/terminal.json"
+    }
+  ],
+  "reader_correction_events": [
+    {
+      "batch": "T2 hold function check",
+      "plan_item_id": "t2-hold-function-A-m02",
+      "event": "read-side classification repair",
+      "scenario_attempts_before": "1",
+      "scenario_attempts_after": "1",
+      "run_id": "4f452f21f03b4d8a9736716701a9f7da",
+      "effect": "original valid A was restored; no scenario rerun"
+    }
+  ],
+  "constructed_checks": {
+    "status": "PASS",
+    "case_count": 21,
+    "cases": [
+      {
+        "case": "valid_arrival_not_repeated",
+        "expected_status": "PASS",
+        "actual_status": "PASS",
+        "errors": [],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 1,
+          "actual_scene_starts": 1,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 1,
+          "unique_run_ids": 1,
+          "replacement_scene_starts": 0
+        },
+        "plan_item_outcomes": {
+          "CONFIRMED_SAFE_COMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "run-a1",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "legal_COLLISION_TERMINATION_not_replaced",
+        "expected_status": "PASS",
+        "actual_status": "PASS",
+        "errors": [],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 1,
+          "actual_scene_starts": 1,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 1,
+          "unique_run_ids": 1,
+          "replacement_scene_starts": 0
+        },
+        "plan_item_outcomes": {
+          "KNOWN_NOT_COMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "run-a1",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "legal_FALL_TERMINATION_not_replaced",
+        "expected_status": "PASS",
+        "actual_status": "PASS",
+        "errors": [],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 1,
+          "actual_scene_starts": 1,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 1,
+          "unique_run_ids": 1,
+          "replacement_scene_starts": 0
+        },
+        "plan_item_outcomes": {
+          "KNOWN_NOT_COMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "run-a1",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "legal_DIAGNOSTIC_SIM_TIME_LIMIT_not_replaced",
+        "expected_status": "PASS",
+        "actual_status": "PASS",
+        "errors": [],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 1,
+          "actual_scene_starts": 1,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 1,
+          "unique_run_ids": 1,
+          "replacement_scene_starts": 0
+        },
+        "plan_item_outcomes": {
+          "KNOWN_NOT_COMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "run-a1",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "no_scene_invocation_does_not_consume_scene_budget",
+        "expected_status": "PASS",
+        "actual_status": "PASS",
+        "errors": [],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 2,
+          "actual_scene_starts": 1,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 1,
+          "unique_run_ids": 1,
+          "replacement_scene_starts": 0
+        },
+        "plan_item_outcomes": {
+          "CONFIRMED_SAFE_COMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "run-a2",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "started_without_run_id_consumes_scene_budget",
+        "expected_status": "PASS",
+        "actual_status": "PASS",
+        "errors": [],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 1,
+          "actual_scene_starts": 1,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 1,
+          "unique_run_ids": 0,
+          "replacement_scene_starts": 0
+        },
+        "plan_item_outcomes": {
+          "UNRESOLVED_SCENE_ATTEMPT": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": null,
+            "status": "UNRESOLVED_SCENE_ATTEMPT"
+          }
+        ]
+      },
+      {
+        "case": "group_A_uses_its_bound_run_not_other_group_directory",
+        "expected_status": "PASS",
+        "actual_status": "PASS",
+        "errors": [],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 1,
+          "actual_scene_starts": 1,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 1,
+          "unique_run_ids": 1,
+          "replacement_scene_starts": 0
+        },
+        "plan_item_outcomes": {
+          "CONFIRMED_SAFE_COMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "actual-A-run",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "replacement_bound_to_correct_plan_and_new_directory",
+        "expected_status": "PASS",
+        "actual_status": "PASS",
+        "errors": [],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 2,
+          "actual_scene_starts": 2,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 1,
+          "unique_run_ids": 2,
+          "replacement_scene_starts": 1
+        },
+        "plan_item_outcomes": {
+          "CONFIRMED_SAFE_COMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "replacement-run",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "same_run_id_cannot_be_used_by_two_items",
+        "expected_status": "REJECTED",
+        "actual_status": "REJECTED",
+        "errors": [
+          "run_id_reused:reused:p001:p002"
+        ],
+        "counts": {
+          "plan_items": 2,
+          "invocation_attempts": 2,
+          "actual_scene_starts": 2,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 2,
+          "unique_run_ids": 1,
+          "replacement_scene_starts": 0
+        },
+        "plan_item_outcomes": {
+          "CONFIRMED_SAFE_COMPLETE": 2
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "reused",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p002",
+            "run_id": "reused",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "wrong_plan_replacement_reference_rejected",
+        "expected_status": "REJECTED",
+        "actual_status": "REJECTED",
+        "errors": [
+          "replacement_wrong_plan_or_missing_prior_attempt:a2"
+        ],
+        "counts": {
+          "plan_items": 2,
+          "invocation_attempts": 2,
+          "actual_scene_starts": 2,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 1,
+          "unique_run_ids": 2,
+          "replacement_scene_starts": 1
+        },
+        "plan_item_outcomes": {
+          "CONFIRMED_SAFE_COMPLETE": 1,
+          "UNRESOLVED_ENGINEERING": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": null,
+            "status": "UNRESOLVED_ENGINEERING"
+          },
+          {
+            "item": "p002",
+            "run_id": "run-a2",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "same_item_second_replacement_rejected",
+        "expected_status": "REJECTED",
+        "actual_status": "REJECTED",
+        "errors": [
+          "plan_item_substitution_quota_exceeded:p001"
+        ],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 3,
+          "actual_scene_starts": 3,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 2,
+          "unique_run_ids": 3,
+          "replacement_scene_starts": 2
+        },
+        "plan_item_outcomes": {
+          "CONFIRMED_SAFE_COMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "run-a3",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "replacement_reusing_failed_directory_rejected",
+        "expected_status": "REJECTED",
+        "actual_status": "REJECTED",
+        "errors": [
+          "replacement_reuses_failed_run_directory:a2",
+          "replacement_run_outside_own_attempt_directory:a2",
+          "run_directory_reused:/tmp/a1/run"
+        ],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 2,
+          "actual_scene_starts": 2,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 1,
+          "unique_run_ids": 2,
+          "replacement_scene_starts": 1
+        },
+        "plan_item_outcomes": {
+          "CONFIRMED_SAFE_COMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "run-a2",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "replacement_without_own_directory_evidence_rejected",
+        "expected_status": "REJECTED",
+        "actual_status": "REJECTED",
+        "errors": [
+          "replacement_directory_evidence_missing:a2"
+        ],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 2,
+          "actual_scene_starts": 2,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 1,
+          "unique_run_ids": 2,
+          "replacement_scene_starts": 1
+        },
+        "plan_item_outcomes": {
+          "CONFIRMED_SAFE_COMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "run-a2",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "replacement_must_follow_its_failed_attempt",
+        "expected_status": "REJECTED",
+        "actual_status": "REJECTED",
+        "errors": [
+          "replacement_does_not_follow_replaced_attempt:a2"
+        ],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 2,
+          "actual_scene_starts": 2,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 1,
+          "unique_run_ids": 2,
+          "replacement_scene_starts": 1
+        },
+        "plan_item_outcomes": {
+          "CONFIRMED_SAFE_COMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "replacement-run",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "valid_system_safety_abort_is_plan_result_and_not_replaceable",
+        "expected_status": "PASS",
+        "actual_status": "PASS",
+        "errors": [],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 1,
+          "actual_scene_starts": 1,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 1,
+          "unique_run_ids": 1,
+          "replacement_scene_starts": 0
+        },
+        "plan_item_outcomes": {
+          "KNOWN_NOT_COMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "run-a1",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "system_abort_without_independent_infra_corroboration_not_replaced",
+        "expected_status": "REJECTED",
+        "actual_status": "REJECTED",
+        "errors": [
+          "replacement_not_supported_by_prior_attempt:a2"
+        ],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 2,
+          "actual_scene_starts": 2,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 2,
+          "unique_run_ids": 2,
+          "replacement_scene_starts": 1
+        },
+        "plan_item_outcomes": {
+          "KNOWN_NOT_COMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "run-a1",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "invalid_record_keeps_independently_confirmed_safety_failure",
+        "expected_status": "PASS",
+        "actual_status": "PASS",
+        "errors": [],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 1,
+          "actual_scene_starts": 1,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 1,
+          "unique_run_ids": 1,
+          "replacement_scene_starts": 0
+        },
+        "plan_item_outcomes": {
+          "KNOWN_SAFETY_FAILURE_RECORD_INCOMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": null,
+            "status": "KNOWN_SAFETY_FAILURE_RECORD_INCOMPLETE"
+          }
+        ]
+      },
+      {
+        "case": "safety_failure_claim_without_evidence_rejected",
+        "expected_status": "REJECTED",
+        "actual_status": "REJECTED",
+        "errors": [
+          "confirmed_safety_failure_missing_evidence:a1"
+        ],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 1,
+          "actual_scene_starts": 1,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 1,
+          "unique_run_ids": 1,
+          "replacement_scene_starts": 0
+        },
+        "plan_item_outcomes": {
+          "KNOWN_SAFETY_FAILURE_RECORD_INCOMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": null,
+            "status": "KNOWN_SAFETY_FAILURE_RECORD_INCOMPLETE"
+          }
+        ]
+      },
+      {
+        "case": "replacement_cannot_erase_confirmed_safety_event",
+        "expected_status": "REJECTED",
+        "actual_status": "REJECTED",
+        "errors": [
+          "replacement_cannot_erase_confirmed_safety_failure:a2"
+        ],
+        "counts": {
+          "plan_items": 1,
+          "invocation_attempts": 2,
+          "actual_scene_starts": 2,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 2,
+          "unique_run_ids": 2,
+          "replacement_scene_starts": 1
+        },
+        "plan_item_outcomes": {
+          "KNOWN_SAFETY_FAILURE_RECORD_INCOMPLETE": 1
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": null,
+            "status": "KNOWN_SAFETY_FAILURE_RECORD_INCOMPLETE"
+          }
+        ]
+      },
+      {
+        "case": "batch_substitution_cap_12_enforced",
+        "expected_status": "REJECTED",
+        "actual_status": "REJECTED",
+        "errors": [
+          "batch_substitution_quota_exceeded:13>12"
+        ],
+        "counts": {
+          "plan_items": 13,
+          "invocation_attempts": 26,
+          "actual_scene_starts": 26,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 13,
+          "unique_run_ids": 26,
+          "replacement_scene_starts": 13
+        },
+        "plan_item_outcomes": {
+          "CONFIRMED_SAFE_COMPLETE": 13
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "run-x1-2",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p002",
+            "run_id": "run-x2-2",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p003",
+            "run_id": "run-x3-2",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p004",
+            "run_id": "run-x4-2",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p005",
+            "run_id": "run-x5-2",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p006",
+            "run_id": "run-x6-2",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p007",
+            "run_id": "run-x7-2",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p008",
+            "run_id": "run-x8-2",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p009",
+            "run_id": "run-x9-2",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p010",
+            "run_id": "run-x10-2",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p011",
+            "run_id": "run-x11-2",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p012",
+            "run_id": "run-x12-2",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p013",
+            "run_id": "run-x13-2",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      },
+      {
+        "case": "same_rules_apply_to_all_groups",
+        "expected_status": "PASS",
+        "actual_status": "PASS",
+        "errors": [],
+        "counts": {
+          "plan_items": 4,
+          "invocation_attempts": 4,
+          "actual_scene_starts": 4,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 4,
+          "unique_run_ids": 4,
+          "replacement_scene_starts": 0
+        },
+        "plan_item_outcomes": {
+          "CONFIRMED_SAFE_COMPLETE": 4
+        },
+        "selected": [
+          {
+            "item": "p001",
+            "run_id": "run-A",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p002",
+            "run_id": "run-B",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p003",
+            "run_id": "run-C",
+            "status": "SELECTED_RESULT"
+          },
+          {
+            "item": "p004",
+            "run_id": "run-D",
+            "status": "SELECTED_RESULT"
+          }
+        ]
+      }
+    ],
+    "scope": "constructed attempt ledgers only; no subprocess or scene execution"
+  }
+}

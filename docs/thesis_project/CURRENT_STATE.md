@@ -1,6 +1,88 @@
 # 当前状态
 
 
+## 今日停止点（2026-10-19）
+
+用户决定今天结束，授权提交Git并推送GitHub。T2已COMPLETE；S7-01仍为唯一ACTIVE / PREPARATION。正式方法和240项平衡矩阵已获Director方法审阅通过，但候选文件的最终冻结状态固化及运行器准备尚待完成，**240项未启动、未获运行授权**。
+
+今天完成：T2的48项组合及离线收尾、H=0.20研究代表设置审阅；正式方法/调度/UNKNOWN规则准备；安全任务完成分类和工程补做/分母两项定向补强，均获Director有条件通过。正式分析必须使用同一冻结分析器；原始终局与旧派生保留。T2第34项旧工程替代证据有限，历史选择不改写，未来不得仅凭读取失败自动替代；独立佐证不机械限定为新增发布端监控，应以足以支持基础设施原因的现有证据判断。
+
+明日续接：不再扩展历史审计，回到最小正式运行器准备，接入分类层、attempt创建/恢复和计划项主结果/全启动可靠性/首次启动敏感性三种视图，明确无效/未启动的全计划分母。只在后续明确授权范围内实现和定向核验，不自动运行留出图。
+
+日志已按六类整理并保留旧路径兼容链接；此前授权清理范围和数据保留情况有记录。今天不再清理。最近各运行/离线报告确认相关进程已退出；本次Git收尾不启动仿真、ROS、模型或测试，不合并main。
+
+
+## 最新进展：S7-01工程补做与统计分母定向复核（2026-10-19）
+
+**S7-01仍是唯一`ACTIVE / PREPARATION`任务。** 对T2-180第34项、T2-48一个计划项的两次场景前失败及一次A运行、以及T2功能试跑A完成了小范围attempt核对。第34项的射线快照读取失败和安全veto有直接证据，但没有同一边界的独立发布端佐证；T2历史补做保留，不改原始数据，按当前正式方法不能仅凭这一读取失败自动批准未来同类替代。T2-48两次编排失败均未创建场景，A实际只运行一次；功能试跑A仅修正读回识别，没有重跑。
+
+新增纯attempt台账核对函数，21项构造检查通过。正式汇总建议明确分为：每计划项的机制主结果、全部实际场景启动的可靠性记录、仅首次实际启动的敏感性分析。计划项的安全完成上下界只将真正未定的结果计入潜在成功；已确认安全失败不因记录无效而抹去，未进RL不伪造导航结果。按当前规则复核所选历史T2账本返回REJECTED，原因仅为第34项历史替代未满足新明确的独立佐证门槛；不重写旧批次既有审核结论。
+
+复核报告：[工程补做、安全中止与统计分母](evidence/S7-01/attempt_accounting_check/ATTEMPT_ACCOUNTING_REVIEW.md)，机器事实表与检查结果见报告链接。完整批次运行器的实际创建落账、断点恢复、替代授权及三类汇总接入尚未实现/运行验证。**240项正式实验仍未启动、未获运行授权**；本轮没有启动运行环境，离线检查进程已退出。
+
+## 最新进展：S7-01安全任务完成分类定向补强（2026-10-19）
+
+**S7-01仍为唯一`ACTIVE / PREPARATION`任务。** 对正式主指标“安全任务完成”完成了字段/窗口/覆盖对照，并在生产分析路径增加薄分类层：输出原始终局、记录有效性/身份冲突、任务期各安全维度、`True / False / UNKNOWN`复合结果，以及独立的站立/清理状态。9条真实开发记录按类别选取，复合结果为2 True、6 False、1 UNKNOWN；另11条显式构造输入核对边界，均通过。上述计数只证明分支可追溯，不是成功率或组间结果。生产`motion_safety()`还用R1帧副本核对终止后跌倒不进入任务窗。
+
+R2、R9旧`metrics.json`保留；当前生产分析器从原始记录重读后的fall字段与旧派生有差异，本轮独立结果及差异已记录，不覆盖旧文件、不重写原始数据。ARRIVED但base_link边界或身份证据不足仍是UNKNOWN；R8 ARRIVED+物理步越界分类为False并保留终局/安全冲突。base_link点位覆盖不代表整机足迹或物理步间连续界内；MuJoCo命令消费继续UNKNOWN。详见[安全完成分类复核](evidence/S7-01/safety_completion_check/SAFETY_COMPLETION_REVIEW.md)及[独立分类输出](../../logs/07_formal_preparation/safety_completion_check/classification_check_results.json)。
+
+本轮未启动仿真、ROS、模型推理或留出运行；未实现完整批次运行器、未改参数、未全量重分析。240项正式运行仍未授权，S7-01保持PREPARATION并提交Director审阅。
+
+
+## 历史续接与补强建议（2026-10-19；安全分类项已由本轮完成）
+
+用户当时明确：最小运行器准备明天再做；240项运行仍未授权。此段是历史停止点；其中建议做的安全任务完成分类已由本轮定向离线补强完成。候选文件状态固化及实际运行准备仍待后续处理，不自动启动240项。
+
+S7-01仍是唯一ACTIVE / PREPARATION。该历史段落中的工程替代/安全中止分母问题已由顶部最新复核覆盖；初态、MuJoCo消费及感知外推仍限定结论，不默认扩展实验。详见[信心边界与最小补强建议](designs/S7/CONFIDENCE_REVIEW_AND_MINIMAL_REINFORCEMENT.md)。该建议稿记录当时状态，最新实际进展以顶部为准。
+
+当时仅记录了续接点，未启动环境；安全分类后由本轮完成。正式运行准备仍不会自动开始，等待单独授权。
+
+
+## 最新状态：T2 COMPLETE，S7-01为唯一ACTIVE任务（2026-10-19）
+
+Director有条件通过并关闭T2，接受机制研究代表设置：A `E=−0.05`；B `E=−0.05, X=−0.10`；C `E=−0.05, H=0.20仿真秒`；D `E=−0.05, X=−0.10, H=0.20仿真秒`。这些不是全局或部署最优值，不修改部署默认配置。自动保持时间搜索结束。
+
+保留T2限制：D在48项中4/12仿真时限，Recovery占用比B高约7.1个百分点；m06/d07推进退化；小样本、开发选图及非严格初态重放限制外推；d07/D有一个H到期前被终局截断的右删失episode；历史UNKNOWN/工程失败保留。未发现直接实现异常不等于排除所有下游问题；MuJoCo命令消费仍UNKNOWN。
+
+**当前唯一Active Task：S7-01 / PREPARATION**。用户已确认越界规则、统计推断、补做/资源上限及MuJoCo消费指标边界；修正后的正式方法和240项候选矩阵已生成并提交Director审阅。矩阵检查为30张M1 holdout × 2区组 × A/B/C/D，共240项，每组60项，四条Williams序列及组位置/相邻转换达到平衡。候选矩阵尚未成为正式运行冻结计划；240项未启动、未获授权。S7整体未完成。
+
+方法审阅见[正式方法复核稿](designs/S7/FORMAL_METHOD_REVIEW.md)，审阅摘要见[METHOD_FREEZE_REVIEW.md](designs/S7/METHOD_FREEZE_REVIEW.md)，候选文件见[CSV](designs/S7/formal_matrix_240.csv)、[JSON](designs/S7/formal_matrix_240.json)及[生成脚本](designs/S7/generate_formal_matrix.py)。T2参数依据见[研究代表参数记录](designs/T2/HOLD_TIME_SELECTION.md)。
+
+本轮只生成候选矩阵并进行定向离线校验、更新文档；没有启动仿真、ROS、模型推理或留出图策略运行，不清理数据、不提交Git。历史ACTIVE表述在后文按当时状态保留，不代表当前任务状态。
+
+
+
+
+## 当前计划：S7-01候选方法/矩阵审阅 → 最小运行准备 → 独立正式执行授权
+
+T2已COMPLETE；正式方案仍DRAFT。方法决策已按用户确认修正，240项矩阵是待Director审阅的候选，不代表正式运行冻结。下一步仅在审阅后完成最小派发/attempt准备；留出策略运行需要独立授权。见[方法审阅摘要](designs/S7/METHOD_FREEZE_REVIEW.md)和[正式实验方案草案](designs/S7/FORMAL_EXPERIMENT_PLAN_DRAFT.md)。
+
+## 历史状态快照说明
+
+下方带日期的T2/T1段落保留当时状态，不覆盖顶部当前状态。原始实验数据及历史失败未改写。
+
+
+## logs目录已按用途整理（2026-10-19）
+
+日志实体目录现按T1、T2、地图验证、B1、手动观察、启动控制六类编号整理。入口见[日志导航](../../logs/README.md)，映射与保留状态见[整理记录](../../archive/cleanup/20261019_logs_organization/README.md)。旧路径保留兼容符号链接，不是重复数据；原始run_id、批次ID和记录内容不改，当前文档链接已同步。此次不删除数据、不启动环境、不运行测试或提交Git，T2状态不变。
+
+
+## 工作区空间清理（2026-10-19）
+
+按用户授权删除日志中的临时overlay资源、整个logs/manual_abcd_compare（含本日D组手动观看）及五处子项目.git_backup。非手动批次233张PPM/BMP转PNG并核对像素后删除源图，转换失败0；保存609份配置文本、模型身份清单及5份去重模型副本。释放约4.71GiB，清理后可用约53.36GiB。T1/T2非手动批次原始记录及当前主仓库.git保留。
+
+旧overlay、手动测试、PPM路径不再可直接读取；删除范围和图片替代路径见[清理记录](../../archive/cleanup/20261019_workspace_cleanup/README.md)。未运行仿真/测试、未提交Git，T2状态不变。
+
+
+## 最新执行：T2 48项A/B/C/D组合核验完成，等待Director审阅（2026-10-19）
+
+**T2仍是唯一ACTIVE任务。** 在M2 selected_v2六张开发图e03/m02/m06/d02/d05/d07上完成A/B/C/D各两次，共48次实际场景启动，48项均VALID；另有2次未创建场景的编排失败，单独记账。终局为36 ARRIVED、5 COLLISION_TERMINATION、7 DIAGNOSTIC_SIM_TIME_LIMIT。实际组别参数正确消费：B/D为X=−0.10，C/D为H=0.20仿真秒；A/C保持单阈值，A/B关闭保持。记录器、cycle0、唯一终止帧和关闭流程核对通过。未启动RViz，批次结束相关进程已清理。
+
+模式边沿均具有有效仿真时间，任务窗口无策略周期缺口/无效时钟；C/D共416个保持episode，414完整、2不完整，未发现保持规则违规。主要代价是D的Recovery有效时间占比高于B，且D有4/12仿真时限；m06再次出现C 1/2、D 0/2到达，而A/B各2/2。每组仅12次，初态不是严格重放，不据此确认性能优劣或一般成功率。碰撞、跌倒与越界结论只适用于本批声明窗口；PASSIVE确认不完整，MuJoCo命令消费仍UNKNOWN。留出集未用，正式实验未启动。
+
+结果索引：[T2 48项结果](evidence/T2/combined_check_48/RESULT_INDEX.md)；报告：[执行报告](evidence/T2/combined_check_48/T2_COMBINED_CHECK_48_EXECUTION_REPORT.md)。该处为离线收尾复核之前的运行状态快照；当前T2仍为唯一ACTIVE，最新审阅建议见顶部及[收尾报告](evidence/T2/closeout_review/T2_CLOSEOUT_REVIEW.md)。未提交Git。
+
+
 ## 今日停止点（2026-10-18）
 
 用户决定今天结束，并明确：上一条“修正统计口径＋48项组合核验”提示词**尚未交由执行器执行**。未开始该轮分析修正、未创建48项运行批次、未启动场景。
@@ -8,8 +90,8 @@
 - T1 COMPLETE，研究代表E=−0.05、X=−0.10。
 - T2保持唯一ACTIVE。阶段2四次功能试跑和阶段3的180项扫描已完成；H=0.20s为有条件认可的组合核验候选，不是已完成冻结的最终参数。
 - 180项为142到达、18碰撞、19仿真时限、1跌倒；另有一次保留的工程中止，总场景181次。m06在H0.20两次超时、middle层退化、一个收尾不完整均保留。
-- 审阅指出：原表将参考A的UNKNOWN按碰撞计入后得到−19.4pp，对候选C更有利，不能称作“对候选最不利”。已知地图等权点估计差为−16.7pp；保守差值及区间须按候选与参考的UNKNOWN组合重新核对。**生成工具、表格和旧报告中的标签尚未修正。** 此处只是记录审阅意见，不伪称派生分析已重建。
-- 下次先完成该统计口径修正，确认候选资格不变，再按已给提示词核验6图×4组×2次=48项。计划图为e03、m02、m06、d02、d05、d07；B/D用X=−0.10，C/D用H=0.20。不得根据这条停止记录自动启动。
+- 历史审阅曾指出：原表将参考A的UNKNOWN按碰撞计入后得到−19.4pp，对候选C更有利，不能称作“对候选最不利”。该处是当时的待修事项；本轮S7方法稿已修正UNKNOWN情景差值方向和解释，并给出数学界公式。T2历史表和派生结果未重建或改写，不能把本次方法修正误读为旧表已重算。
+- 该统计口径修正和48项核验已由后续T2工作取代；不得根据这条历史停止记录自动启动运行。
 - 不继续搜索退出阈值，不使用留出集，不训练、不实机、不启动正式实验，不修改部署默认H。
 
 最近执行器报告确认运行环境已关闭。本次只记录停止点、整理并提交Git，不运行测试或仿真，不推送远程。
@@ -149,7 +231,7 @@ T1仍唯一ACTIVE，此次只整理命名及必要生产接入，不启动策略
 
 ## 最新状态：T1两档36图开发批次已完成，等待Director审阅（2026-10-18）
 
-T1仍为唯一ACTIVE任务。按[恢复提示词](../../archive/markdown/20261018/docs/thesis_project/T1_TWO_THRESHOLDS_36_RESUME_PROMPT.md)，保留前4条有效运行和第5项首次中断INVALID；第5项仅补做一次并有效，随后按冻结顺序完成原第6–144项。144个计划项均有有效任务结果，实际场景启动145次，含保留的第5项首次INVALID。终局为ARRIVED 121、COLLISION_TERMINATION 18、DIAGNOSTIC_SIM_TIME_LIMIT 5、FALL_TERMINATION 0。完整批次、分组与逐图结果见[T1两阈值36图执行报告](evidence/T1/two_thresholds_36_maps/T1_TWO_THRESHOLDS_36_EXECUTION_REPORT.md)和[批次结果目录](../../logs/t1/two_thresholds_36_maps/20261016_211029_3/)。
+T1仍为唯一ACTIVE任务。按[恢复提示词](../../archive/markdown/20261018/docs/thesis_project/T1_TWO_THRESHOLDS_36_RESUME_PROMPT.md)，保留前4条有效运行和第5项首次中断INVALID；第5项仅补做一次并有效，随后按冻结顺序完成原第6–144项。144个计划项均有有效任务结果，实际场景启动145次，含保留的第5项首次INVALID。终局为ARRIVED 121、COLLISION_TERMINATION 18、DIAGNOSTIC_SIM_TIME_LIMIT 5、FALL_TERMINATION 0。完整批次、分组与逐图结果见[T1两阈值36图执行报告](evidence/T1/two_thresholds_36_maps/T1_TWO_THRESHOLDS_36_EXECUTION_REPORT.md)和[批次结果目录](../../logs/01_T1_exit_threshold/two_thresholds_36_maps/20261016_211029_3/)。
 
 第1–4项可视运行；第5–10项MuJoCo窗口隐藏但ROS launch仍启动了本批RViz；在第10项清理后按用户要求暂停并修正。第11–144项已验证隐藏GLFW窗口且实际不启动RViz。所有阶段仍依赖生产MuJoCo和OpenGL，隐藏GLFW不等于真正headless；显示阶段差异已在报告中说明并补充敏感性比较。运行及分析完成，批次占用约1.21 GiB，相关仿真、ROS/controller、RViz及辅助进程已核对退出。
 
@@ -165,7 +247,7 @@ T1唯一ACTIVE，执行暂停，当前两档36图批次INCOMPLETE，不自动续
 
 ## 最新执行状态：T1 两档36图批次已停止，等待审阅（2026-10-16）
 
-T1仍为唯一ACTIVE任务，当前批次INCOMPLETE / STOPPED_OPERATOR。144项矩阵与配置离线检查通过；前4次场景运行有效并完成到达后站立观察，但只覆盖M1 dev08、dev19各一个参数档的一次运行。第5项 dev07 / X=−0.12 启动后保存336个策略帧；发现运行上下文沿用旧“expanded 400”批次标签后，按停止规则中断。第5项保留为INVALID，余下139项未启动。保留全部原始数据。详见[T1本轮执行报告](evidence/T1/two_thresholds_36_maps/T1_TWO_THRESHOLDS_36_EXECUTION_REPORT.md)及[批次目录](../../logs/t1/two_thresholds_36_maps/20261016_211029_3/)。
+T1仍为唯一ACTIVE任务，当前批次INCOMPLETE / STOPPED_OPERATOR。144项矩阵与配置离线检查通过；前4次场景运行有效并完成到达后站立观察，但只覆盖M1 dev08、dev19各一个参数档的一次运行。第5项 dev07 / X=−0.12 启动后保存336个策略帧；发现运行上下文沿用旧“expanded 400”批次标签后，按停止规则中断。第5项保留为INVALID，余下139项未启动。保留全部原始数据。详见[T1本轮执行报告](evidence/T1/two_thresholds_36_maps/T1_TWO_THRESHOLDS_36_EXECUTION_REPORT.md)及[批次目录](../../logs/01_T1_exit_threshold/two_thresholds_36_maps/20261016_211029_3/)。
 
 仿真与本次相关ROS进程已按来源清理，最终进程清单为空。分类标签修复和真实调用路径定向核验尚未完成；未经另行审阅不续跑。留出集未使用，本轮不支持参数比较、成功率或性能结论；没有提交Git。
 
@@ -177,7 +259,7 @@ T1唯一ACTIVE。用户授权M1开发集30图＋M2开发图6张，每图每档2�
 
 ## 最新状态：M2第二轮144项完成，等待Director审阅（2026-10-16）
 
-T1仍为唯一ACTIVE任务。第73项attempt_02有效补做后，原第74–144项按冻结顺序各运行一次；144/144计划项有有效任务结果和完整评分。终局为ARRIVED 98、碰撞终止26、仿真限时20。实际场景启动累计146/146；4条无场景失败另计（147条计划attempt记录中1条未确认场景启动，另3条独立wrapper失败；总账150）。原第73项INVALID、全部历史失败及原始数据未改写。详情见[M2第二轮执行报告](evidence/T1/m2_round2/T1_M2_ROUND2_EXECUTION_REPORT.md)、[结果索引](evidence/T1/m2_round2/RESULT_INDEX.md)和[批次目录](../../logs/t1/m2_exit_round2/20261016_174309_9/)。
+T1仍为唯一ACTIVE任务。第73项attempt_02有效补做后，原第74–144项按冻结顺序各运行一次；144/144计划项有有效任务结果和完整评分。终局为ARRIVED 98、碰撞终止26、仿真限时20。实际场景启动累计146/146；4条无场景失败另计（147条计划attempt记录中1条未确认场景启动，另3条独立wrapper失败；总账150）。原第73项INVALID、全部历史失败及原始数据未改写。详情见[M2第二轮执行报告](evidence/T1/m2_round2/T1_M2_ROUND2_EXECUTION_REPORT.md)、[结果索引](evidence/T1/m2_round2/RESULT_INDEX.md)和[批次目录](../../logs/01_T1_exit_threshold/m2_exit_round2/20261016_174309_9/)。
 
 旧第73项的物理覆盖不完整先于STALE；首次丢失诊断和构建不放宽安全门，补做run未重现缺口，根因仍UNKNOWN。第69项ARRIVED，但跌倒状态UNKNOWN，因此没有获准进入正常站立收尾。评分为开发批次描述，不等于最优参数或正式性能结论；M2无A对照、留出集未用。跌倒UNKNOWN、27项站立观察未完成/未知及其他安全覆盖限制保留。
 
@@ -197,7 +279,7 @@ T1是唯一ACTIVE任务，M2第二轮`STOPPED / INCOMPLETE`，等待Director审�
 
 当前144项矩阵有72项有效任务结果（47 ARRIVED、19 COLLISION_TERMINATION、6 DIAGNOSTIC_SIM_TIME_LIMIT），第73项为启动后INVALID，另71项未启动。实际场景启动累计74/145，UNKNOWN启动0；4条确认未创建场景的编排失败独立计数，不占场景额度。72项获完整分数、其余72项UNKNOWN；矩阵不完整，无完整重复单元，不用于阈值排名或选择。第69项虽然ARRIVED，站立观察未完成/未知，收尾状态与任务终局分开保留。
 
-运行报告、结果索引、批次台账、[第73项原始run](../../logs/t1/m2_exit_round2/20261016_174309_9/runs/073_r2_m2d01_x12/result/B/rep_01/bd6502665c9a40ac832c7d971e19214f/)、部分评分图表和停止后清理证据见[M2第二轮执行报告](evidence/T1/m2_round2/T1_M2_ROUND2_EXECUTION_REPORT.md)、[结果索引](evidence/T1/m2_round2/RESULT_INDEX.md)及[批次目录](../../logs/t1/m2_exit_round2/20261016_174309_9/)。第73项controller退出码0、shutdown/closeout均确认；最终相关进程清单为空，GLFW探针窗口关闭。没有提交Git。
+运行报告、结果索引、批次台账、[第73项原始run](../../logs/01_T1_exit_threshold/m2_exit_round2/20261016_174309_9/runs/073_r2_m2d01_x12/result/B/rep_01/bd6502665c9a40ac832c7d971e19214f/)、部分评分图表和停止后清理证据见[M2第二轮执行报告](evidence/T1/m2_round2/T1_M2_ROUND2_EXECUTION_REPORT.md)、[结果索引](evidence/T1/m2_round2/RESULT_INDEX.md)及[批次目录](../../logs/01_T1_exit_threshold/m2_exit_round2/20261016_174309_9/)。第73项controller退出码0、shutdown/closeout均确认；最终相关进程清单为空，GLFW探针窗口关闭。没有提交Git。
 
 下一步不自动续跑，不启动细选或使用留出集；待Director审阅是否另行授权处理第73项失败及剩余计划。
 
@@ -213,7 +295,7 @@ T1仍为唯一ACTIVE任务，M2第二轮STOPPED / INCOMPLETE，等待Director审
 
 同环境GLFW预检通过，但第6项真正启动前，批次dispatcher漏传显式恢复授权给`run_one()`，造成新的无场景启动拒绝。没有创建仿真子进程、MuJoCo场景或新run_id。该失败已记入原批次台账；随后只修正参数传递并完成编译和离线门测试，没有重启场景。
 
-最新账目：总attempt 10（6次实际场景启动、4条无场景失败），有效计划项5，未完成139。重复的工程历史摘要未重复计数；第5项原失败及有效attempt_02、此前第6项目录失败和旧恢复入口失败均保留。148有效额度现仅余138，少于139个未完成场景项；不得在当前授权下继续或自行追加额度。最新报告及逐项证据见[M2第二轮报告](evidence/T1/m2_round2/T1_M2_ROUND2_EXECUTION_REPORT.md)、[结果索引](evidence/T1/m2_round2/RESULT_INDEX.md)和[批次台账](../../logs/t1/m2_exit_round2/20261016_174309_9/m2_round2_plan.json)。最终进程扫描无本次相关残留，GLFW预检窗口已关闭。不提交Git。
+最新账目：总attempt 10（6次实际场景启动、4条无场景失败），有效计划项5，未完成139。重复的工程历史摘要未重复计数；第5项原失败及有效attempt_02、此前第6项目录失败和旧恢复入口失败均保留。148有效额度现仅余138，少于139个未完成场景项；不得在当前授权下继续或自行追加额度。最新报告及逐项证据见[M2第二轮报告](evidence/T1/m2_round2/T1_M2_ROUND2_EXECUTION_REPORT.md)、[结果索引](evidence/T1/m2_round2/RESULT_INDEX.md)和[批次台账](../../logs/01_T1_exit_threshold/m2_exit_round2/20261016_174309_9/m2_round2_plan.json)。最终进程扫描无本次相关残留，GLFW预检窗口已关闭。不提交Git。
 
 ## 历史授权快照：修正计数并续跑139项（执行前；结果见顶部）
 
@@ -227,7 +309,7 @@ T1仍为唯一ACTIVE任务，M2第二轮为STOPPED / INCOMPLETE，提交Director
 
 第5项原失败的具体拒绝字段仍UNKNOWN：旧采样只记录合并拒绝原因；后来姿态正常、四足接地、controller起立门槛通过且低高度episode关闭，不能反推原失败时是哪一字段拒绝。诊断记录现已拆分时间/覆盖/未知接触/身份/姿态等字段，但补做没有复现原拒绝，不证明原原因是代码故障。门槛和安全条件未放宽。
 
-启动器新增了首次/重试attempt目录隔离，并通过定向检查。第6项仍有工程阻塞：一次FileExistsError发生于子进程启动前，恢复入口的额度校验因预期总数过时而停止，亦未启动场景；随后把预期数修正为保留台账的8并通过离线定向检查，但未再次调用批次入口。两次错误均保留。按原147次总额度，累计计9次（原6、第五项补做1、第六项目录分配失败1、恢复入口失败1），仅余138次，不足第6–144项的139次场景运行，因此本批停止，不再重试。GLFW预检通过但只创建并关闭了探针窗口；第6项没有仿真证据。详见[M2第二轮执行报告](evidence/T1/m2_round2/T1_M2_ROUND2_EXECUTION_REPORT.md)、[结果索引](evidence/T1/m2_round2/RESULT_INDEX.md)和[批次目录](../../logs/t1/m2_exit_round2/20261016_174309_9/)。
+启动器新增了首次/重试attempt目录隔离，并通过定向检查。第6项仍有工程阻塞：一次FileExistsError发生于子进程启动前，恢复入口的额度校验因预期总数过时而停止，亦未启动场景；随后把预期数修正为保留台账的8并通过离线定向检查，但未再次调用批次入口。两次错误均保留。按原147次总额度，累计计9次（原6、第五项补做1、第六项目录分配失败1、恢复入口失败1），仅余138次，不足第6–144项的139次场景运行，因此本批停止，不再重试。GLFW预检通过但只创建并关闭了探针窗口；第6项没有仿真证据。详见[M2第二轮执行报告](evidence/T1/m2_round2/T1_M2_ROUND2_EXECUTION_REPORT.md)、[结果索引](evidence/T1/m2_round2/RESULT_INDEX.md)和[批次目录](../../logs/01_T1_exit_threshold/m2_exit_round2/20261016_174309_9/)。
 
 补做后共有5条VALID ARRIVED、139条未运行/工程未执行项评分UNKNOWN；5条只覆盖m2dev06的五个阈值单次结果，不用于排序、选参或成功率。没有M2 A参考，不计算B−A；留出集未使用。系统Python绘图因Matplotlib/NumPy ABI不兼容失败，改用已配置的Anaconda Python完成派生表图，原始run不变。task monitor最终检查无本次相关进程，补做process facts确认关闭完成、GLFW窗口已关闭。M2阶段仍不完整；需要任何进一步续跑须Director重新审阅额度和启动器恢复路径。无Git提交。
 
@@ -243,7 +325,7 @@ T1仍为唯一ACTIVE任务，M2第二轮为STOPPED / INCOMPLETE，提交Director
 
 T1仍为唯一ACTIVE任务，等待Director审阅。用户授权的M2第二轮计划为6张开发候选图×8档B组退出阈值×3次，共144项（E=−0.05，X=−0.06至−0.13，保持关闭）。本批按固定条件和随机顺序启动了5项：前4项在m2dev06的四个X各完成一次有效ARRIVED；第5项X=−0.11在站立准备阶段未能于墙钟上限内确认稳定，记录`PREPARATION_FAILURE / INVALID`，没有进入RL。另有一次不启动场景的wrapper冻结时间戳失败并修复。触发失败停止规则后，剩余139项未启动，不重试。
 
-四条有效run的任务记录周期/时钟与安全覆盖完整，频率约50.15–50.22 Hz，均完成5秒站立观察。单run辅助分数为89.768（X=−0.13）、86.337（−0.08）、84.943（−0.09）、87.447（−0.06）；每档仅同一地图一次，不能据此排序或推荐参数。个体分数完整4条、UNKNOWN 140条（含139未运行和1条无任务指标的准备失败）。没有M2 A组，不计算B−A；没有使用留出集。批次与图表/原始证据见[T1 M2第二轮报告](evidence/T1/m2_round2/T1_M2_ROUND2_EXECUTION_REPORT.md)、[结果索引](evidence/T1/m2_round2/RESULT_INDEX.md)、[冻结矩阵](evidence/T1/m2_round2/FROZEN_MATRIX_AND_METHOD.md)及[批次目录](../../logs/t1/m2_exit_round2/20261016_174309_9/)。
+四条有效run的任务记录周期/时钟与安全覆盖完整，频率约50.15–50.22 Hz，均完成5秒站立观察。单run辅助分数为89.768（X=−0.13）、86.337（−0.08）、84.943（−0.09）、87.447（−0.06）；每档仅同一地图一次，不能据此排序或推荐参数。个体分数完整4条、UNKNOWN 140条（含139未运行和1条无任务指标的准备失败）。没有M2 A组，不计算B−A；没有使用留出集。批次与图表/原始证据见[T1 M2第二轮报告](evidence/T1/m2_round2/T1_M2_ROUND2_EXECUTION_REPORT.md)、[结果索引](evidence/T1/m2_round2/RESULT_INDEX.md)、[冻结矩阵](evidence/T1/m2_round2/FROZEN_MATRIX_AND_METHOD.md)及[批次目录](../../logs/01_T1_exit_threshold/m2_exit_round2/20261016_174309_9/)。
 
 批次约0.28 GiB，低于4 GiB预算；文件系统可用约58.5 GiB，高于15 GiB保护线。5次场景诊断均报告清理完成，任务结束进程清单无相关残留，GLFW预检窗口已关闭。该批不自动续跑、不启动下一项实验、不提交Git。
 
@@ -263,7 +345,7 @@ T1仍唯一ACTIVE。第二轮属于开发选参，无A组运行、不用M1 A冒�
 
 ## 历史状态：400次实验的用户权重评分完成（2026-10-16；执行状态见顶部）
 
-用户确认到达40%、无终止性碰撞30%、效率20%、稳定性10%，并授权对已有400项计算。已生成独立[评分报告](../../logs/t1/b_exit_validation_400/20261016_131943_26/weighted_score_v1/REPORT.md)、逐run/逐地图/8档CSV和3张图。所有400项参与，先逐run计算，再每图5次平均、10图等权；固定效率上限20秒和频率参照257.8。输入表计算前后相同，原始run、旧指标与旧图未改动。
+用户确认到达40%、无终止性碰撞30%、效率20%、稳定性10%，并授权对已有400项计算。已生成独立[评分报告](../../logs/01_T1_exit_threshold/b_exit_validation_400/20261016_131943_26/weighted_score_v1/REPORT.md)、逐run/逐地图/8档CSV和3张图。所有400项参与，先逐run计算，再每图5次平均、10图等权；固定效率上限20秒和频率参照257.8。输入表计算前后相同，原始run、旧指标与旧图未改动。
 
 −0.07以79.485分排第一；随后−0.19（76.763）、−0.09（76.677）、−0.13（76.640）；A参考为74.943。各B−A分差95%地图聚类区间均含0，不据此冻结唯一最优阈值。评分是结果已知后确定的事后辅助分析；跌倒、足端撞击、UNKNOWN和收尾事件继续单列，不由总分替代安全判断。T1仍为唯一ACTIVE任务；M2第二轮矩阵尚未确定，未运行新仿真、模型或测试套件，未提交Git。分析进程已结束，本轮未启动运行环境。
 
@@ -279,7 +361,7 @@ T1仍唯一ACTIVE。第二轮属于开发选参，无A组运行、不用M1 A冒�
 
 用户授权的400项开发集验证已按冻结矩阵完成。固定dev01/03/05/09/11/15/17/23/27/29，八档X=-0.05至-0.19、每图每档5次；400项均有有效记录，A参考50项、B350项。另有1次运行前CLI参数解析失败并保留，去掉重复参数后对同计划项补做1次成功，因此总计401 attempts。终局为328 ARRIVED、50 COLLISION_TERMINATION、21 DIAGNOSTIC_SIM_TIME_LIMIT、1 FALL_TERMINATION。无未运行项；任务安全窗口有1条跌倒UNKNOWN，不能把所有ARRIVED解释为安全成功。
 
-执行报告、冻结方法、存储摘要、分组表格和图表索引见[400项执行报告](evidence/S6-12/expanded_400/S6-12_EXECUTION_REPORT.md)、[方法说明](evidence/S6-12/expanded_400/FROZEN_MATRIX_AND_METHOD.md)、[结果索引](evidence/S6-12/expanded_400/RESULT_INDEX.md)和[批次原始目录](../../logs/t1/b_exit_validation_400/20261016_131943_26/)。批次占用约3.5 GiB，最终系统可用空间约60 GiB；按冻结选择的8个run保存15张画面，无视频。
+执行报告、冻结方法、存储摘要、分组表格和图表索引见[400项执行报告](evidence/S6-12/expanded_400/S6-12_EXECUTION_REPORT.md)、[方法说明](evidence/S6-12/expanded_400/FROZEN_MATRIX_AND_METHOD.md)、[结果索引](evidence/S6-12/expanded_400/RESULT_INDEX.md)和[批次原始目录](../../logs/01_T1_exit_threshold/b_exit_validation_400/20261016_131943_26/)。批次占用约3.5 GiB，最终系统可用空间约60 GiB；按冻结选择的8个run保存15张画面，无视频。
 
 最终汇总图曾在所有运行结束后因分析绘图函数的默认lambda绑定错误失败退出；已修复派生分析并完成表图重建，未重跑场景、未改原始数据。首次退出码及修复记录均保留。T1仍为唯一ACTIVE任务，等待Director审阅；不启动细选、留出集、正式实验或实机测试，不提交Git。本次MuJoCo、controller/ROS及辅助进程已核对退出。
 
@@ -291,7 +373,7 @@ T1仍是唯一ACTIVE任务。按跌倒时间分析修复授权，生产分析器
 
 96项计划目前均有最新有效任务结果；累计99次attempt含历史两条INVALID，记录有效性97 VALID / 2 INVALID。最新96项终局为ARRIVED 65、碰撞19、仿真时限11、跌倒1；任务窗口跌倒字段True 1、False 94、UNKNOWN 1，碰撞True 19、False 77。有效记录和ARRIVED都不等于安全成功。全采集与任务窗口的覆盖范围继续区分。
 
-粗选结果、48行地图×阈值表、图表、第83项差异和本轮清理证据见[T1执行报告](evidence/S6-12/S6-12_EXECUTION_REPORT.md)及[批次结果目录](../../logs/s6_12/b_exit_coarse/20261015_192706_3/)。X=-0.11至-0.17可作为后续细选设计的探索候选带，但各档只有12项，运行跨越controller代码阶段并受地图、初态、早停和覆盖差异影响，不能据此得出稳定排名或最优值。细选尚未授权/启动，留出集未使用。
+粗选结果、48行地图×阈值表、图表、第83项差异和本轮清理证据见[T1执行报告](evidence/S6-12/S6-12_EXECUTION_REPORT.md)及[批次结果目录](../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/)。X=-0.11至-0.17可作为后续细选设计的探索候选带，但各档只有12项，运行跨越controller代码阶段并受地图、初态、早停和覆盖差异影响，不能据此得出稳定排名或最优值。细选尚未授权/启动，留出集未使用。
 
 本次MuJoCo、ROS/controller、RViz及辅助进程已按逐run清理事实和最终进程检查核对退出。T1保持ACTIVE等待Director审阅；无其他Active Task，不提交Git。
 
@@ -307,7 +389,7 @@ T1仍是唯一ACTIVE任务。按跌倒时间分析修复授权，生产分析器
 
 T1为当前唯一ACTIVE任务。按[执行提示词](../../archive/markdown/20261018/docs/thesis_project/T1_RAY_REPAIR_AND_COARSE_COMPLETION_PROMPT.md)，完成生产射线一致快照读取修复、定向验证、controller增量构建、同一获准执行环境GLFW预检和有界运行。代码阶段`cd6021faa96b0cc8`使用16次/250 μs重试上限，仅对seqlock未就绪/变化重读，语义错误仍拒绝；控制、RA、模型和参数未变。
 
-第66项补做及第67–82项共17项新增有效结果，均`ARRIVED`并通过周期记录、终止帧、最终排空、站立观察和进程清理检查。第83项dev29 A的源记录`VALID`且周期完整，但supervisor为`FALL_TERMINATION`，派生分析为`INVALID_TERMINAL_SAFETY_CONFLICT`、运动跌倒`UNKNOWN`，因此按停止规则停批；第84–96项13项未启动。总台账96项、83项有attempt、86次attempt、82项有效任务结果、1项安全分析冲突停止，全部attempt终局计数为ARRIVED 56、COLLISION_TERMINATION 18、DIAGNOSTIC_SIM_TIME_LIMIT 8、FALL_TERMINATION 1、SYSTEM_SAFETY_ABORT 1、PREPARATION_FAILURE 1、STARTUP_FAILURE 1。详情、图表、代码阶段及原始证据见[T1/S6-12执行报告](evidence/S6-12/S6-12_EXECUTION_REPORT.md)和[批次目录](../../logs/s6_12/b_exit_coarse/20261015_192706_3/)。
+第66项补做及第67–82项共17项新增有效结果，均`ARRIVED`并通过周期记录、终止帧、最终排空、站立观察和进程清理检查。第83项dev29 A的源记录`VALID`且周期完整，但supervisor为`FALL_TERMINATION`，派生分析为`INVALID_TERMINAL_SAFETY_CONFLICT`、运动跌倒`UNKNOWN`，因此按停止规则停批；第84–96项13项未启动。总台账96项、83项有attempt、86次attempt、82项有效任务结果、1项安全分析冲突停止，全部attempt终局计数为ARRIVED 56、COLLISION_TERMINATION 18、DIAGNOSTIC_SIM_TIME_LIMIT 8、FALL_TERMINATION 1、SYSTEM_SAFETY_ABORT 1、PREPARATION_FAILURE 1、STARTUP_FAILURE 1。详情、图表、代码阶段及原始证据见[T1/S6-12执行报告](evidence/S6-12/S6-12_EXECUTION_REPORT.md)和[批次目录](../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/)。
 
 新增粗选主要集中在dev27及dev29，且代码阶段与历史65个有效项不同；目前证据**区分不足**，不推荐细选阈值区间。留出集未使用，细选未启动。当前任务及相关MuJoCo、ROS/controller、RViz和辅助进程已核对退出；预检窗口已关闭。T1保持ACTIVE / INCOMPLETE等待Director审阅，不提交Git。下方2026-10-15内容保留为历史状态。
 
@@ -347,17 +429,17 @@ Director核对第2项RL准入原始边界快照为`INVALID / future_timestamp`�
 
 B1独立于S系列。Director有条件通过范围包括策略周期记录、去重、有界历史读取、最终排空与终止帧关联；运动、站立和清理窗口分离；去重路径安全证据传递及碰撞/跌倒覆盖分析；C/D限定保持审计；以及dev03 D一次真实收尾验证。该运行任务cycle 0–565共566帧、收尾49帧，最终producer=consumer=615，整份记录VALID，站立观察5.022仿真秒，9个保持episode通过。同一D记录独立重分析确认任务窗口覆盖完整，按当前规则碰撞/跌倒为False、足端接触/撞击为0；关闭未确认姿态候选和异常事实保留。
 
-限制仍包括：全采集及收尾安全覆盖不足，任务期False不代表无姿态异常、普遍安全或实机安全；历史失败、INVALID、缺帧、无效时钟、UNKNOWN、初态差异和保持删失均保留。base_link点不等于整机足迹始终在界内；命令写出或状态确认不等于MuJoCo已消费。单次/不同批次结果不能支持正式成功率、性能排名或最优参数结论。M1地图及30/30开发/留出划分不变，留出集未用于策略测试或参数选择。S6整体仍未完成。当前没有已授权的下一项Active Task；仅建议后续规划开发集阈值与保持时间预实验，不创建任务、不开始比较。详见[B1执行报告](evidence/B1/B1_EXECUTION_REPORT.md)、[指标可用性](evidence/B1/B1_METRIC_READINESS.md)、[运行矩阵](evidence/B1/B1_RUN_MATRIX.md)及[独立D重分析](../../logs/b1/historical_reanalysis/dev03_D_task_safety_scope_20261015/README.md)。
+限制仍包括：全采集及收尾安全覆盖不足，任务期False不代表无姿态异常、普遍安全或实机安全；历史失败、INVALID、缺帧、无效时钟、UNKNOWN、初态差异和保持删失均保留。base_link点不等于整机足迹始终在界内；命令写出或状态确认不等于MuJoCo已消费。单次/不同批次结果不能支持正式成功率、性能排名或最优参数结论。M1地图及30/30开发/留出划分不变，留出集未用于策略测试或参数选择。S6整体仍未完成。当前没有已授权的下一项Active Task；仅建议后续规划开发集阈值与保持时间预实验，不创建任务、不开始比较。详见[B1执行报告](evidence/B1/B1_EXECUTION_REPORT.md)、[指标可用性](evidence/B1/B1_METRIC_READINESS.md)、[运行矩阵](evidence/B1/B1_RUN_MATRIX.md)及[独立D重分析](../../logs/04_B1_recording_validation/historical_reanalysis/dev03_D_task_safety_scope_20261015/README.md)。
 
 
 ## 历史进展：B1 dev03 D 组真实收尾核验（当前审阅状态见顶部）
 
-（历史运行事实；当前B1状态及该运行的最新解释见顶部。）按一次性授权，在`dev03.xml / m1ssd01`完成D组真实收尾核验，固定E=-0.05、X=-0.08、H=0.30仿真秒和原目标/时限。终止cycle565完整持久化；任务cycle0–565连续，之后49个收尾策略帧单独保存。进程退出后producer=consumer=615，无未读损失、槽位复用、冲突或closeout错误，整份记录VALID。ARRIVED后站立观察5.022仿真秒/238样本完成；保持审计9/9完整通过。后续独立重分析确认任务期安全窗口覆盖完整、碰撞/足端接触/撞击/跌倒按当前规则均False；一个关闭未确认的姿态候选仍记录，全采集安全覆盖仍不完整。MuJoCo命令消费未确认。详见[B1执行报告](evidence/B1/B1_EXECUTION_REPORT.md)、[运行矩阵](evidence/B1/B1_RUN_MATRIX.md)和[独立D重分析](../../logs/b1/historical_reanalysis/dev03_D_task_safety_scope_20261015/README.md)。（历史状态：当时尚待Director审阅且B1为ACTIVE / INCOMPLETE；现已COMPLETE（Director有条件通过）。）
+（历史运行事实；当前B1状态及该运行的最新解释见顶部。）按一次性授权，在`dev03.xml / m1ssd01`完成D组真实收尾核验，固定E=-0.05、X=-0.08、H=0.30仿真秒和原目标/时限。终止cycle565完整持久化；任务cycle0–565连续，之后49个收尾策略帧单独保存。进程退出后producer=consumer=615，无未读损失、槽位复用、冲突或closeout错误，整份记录VALID。ARRIVED后站立观察5.022仿真秒/238样本完成；保持审计9/9完整通过。后续独立重分析确认任务期安全窗口覆盖完整、碰撞/足端接触/撞击/跌倒按当前规则均False；一个关闭未确认的姿态候选仍记录，全采集安全覆盖仍不完整。MuJoCo命令消费未确认。详见[B1执行报告](evidence/B1/B1_EXECUTION_REPORT.md)、[运行矩阵](evidence/B1/B1_RUN_MATRIX.md)和[独立D重分析](../../logs/04_B1_recording_validation/historical_reanalysis/dev03_D_task_safety_scope_20261015/README.md)。（历史状态：当时尚待Director审阅且B1为ACTIVE / INCOMPLETE；现已COMPLETE（Director有条件通过）。）
 
 
 ## 本轮前进展：B1 收尾生命周期离线定向修正（历史，2026-10-15）
 
-该阶段修正了任务边界封口与最终策略历史排空顺序，完成生产收尾路径离线联测，并只读重分析了更早的dev03 D原始记录。那份历史D记录仍为INVALID，终止后缺48条生产记录；它没有被本次新run修复或覆盖。详见[B1执行报告](evidence/B1/B1_EXECUTION_REPORT.md)、[历史D派生分析](../../logs/b1/historical_reanalysis/dev03_D_closeout_review/README.md)和[离线联测摘要](../../logs/b1/offline_closeout_lifecycle_20261015/summary.json)。其后的新关闭顺序真实运行证据见本节顶部。
+该阶段修正了任务边界封口与最终策略历史排空顺序，完成生产收尾路径离线联测，并只读重分析了更早的dev03 D原始记录。那份历史D记录仍为INVALID，终止后缺48条生产记录；它没有被本次新run修复或覆盖。详见[B1执行报告](evidence/B1/B1_EXECUTION_REPORT.md)、[历史D派生分析](../../logs/04_B1_recording_validation/historical_reanalysis/dev03_D_closeout_review/README.md)和[离线联测摘要](../../logs/04_B1_recording_validation/offline_closeout_lifecycle_20261015/summary.json)。其后的新关闭顺序真实运行证据见本节顶部。
 
 
 ## B1既有 C/D 运行结果（本轮收尾修正前的背景，2026-10-15）
@@ -416,7 +498,7 @@ S6-11 已完成24张替代地图与新版60张清单：原24张多路线分叉/�
 
 - 冻结规则见[MAP_RULES.md](designs/M1/MAP_RULES.md)：保留0.65m Go2平面包络和0.10m工程余量；场地范围x=[-0.5,8.0]m、y=[-3,3]m，目标7.5m。S型是“可行参考路线”，不输入策略，也不强迫策略遵循；主要障碍位置、尺寸、朝向和错列方式在全库变化。密度是几何标签，不代表风险或难度。
 - 四张新旧对照图：[缓和S稀疏](designs/M1/stage2_samples/comparison_gentle_s_sparse.png)、[缓和S中等](designs/M1/stage2_samples/comparison_gentle_s_medium.png)、[错位稀疏](designs/M1/stage2_samples/comparison_offset_route_sparse.png)、[错位中等](designs/M1/stage2_samples/comparison_offset_route_medium.png)。Director已通过图审，接受7.5m目标与扩大场地边界；阶段3全库已生成，详情见[阶段报告](evidence/M1/STAGE12_REVIEW.md)与[M1执行报告](evidence/M1/M1_EXECUTION_REPORT.md)。
-- 阶段3生产检查：60张（30开发/30留出）可复现布局通过几何、生产绑定和publisher→Python reader 60/60 LIVE握手；MuJoCo 3.3.3真实主程序构建通过。阶段4只运行开发集，留出集没有策略运行。90条计划项均有记录、每张开发图3次；首次来源基础设施故障仍为INVALID，修复后只重试一次。结果表和运行链接见[M1执行报告](evidence/M1/M1_EXECUTION_REPORT.md)及[批次结果索引](../../logs/manual_m1_a/library_v1/m1_results/development_A_results.md)。
+- 阶段3生产检查：60张（30开发/30留出）可复现布局通过几何、生产绑定和publisher→Python reader 60/60 LIVE握手；MuJoCo 3.3.3真实主程序构建通过。阶段4只运行开发集，留出集没有策略运行。90条计划项均有记录、每张开发图3次；首次来源基础设施故障仍为INVALID，修复后只重试一次。结果表和运行链接见[M1执行报告](evidence/M1/M1_EXECUTION_REPORT.md)及[批次结果索引](../../logs/03_map_validation/M1_A_library/library_v1/m1_results/development_A_results.md)。
 - supervisor终局为78 ARRIVED、8 COLLISION_TERMINATION、2 DIAGNOSTIC_SIM_TIME_LIMIT、2 WALL_CLOCK_GUARD_INCOMPLETE。后两条墙钟保护记录为不完整运行，不是普通仿真超时；`VALID`只表示来源/记录校验通过。78次ARRIVED不等于已证实安全且全程界内到达：88条边界结论因覆盖不全为UNKNOWN，另2条不适用；跌倒、碰撞事件链、周期与时钟覆盖等限制详见执行报告。该批不作为成功率或性能结论。
 - Director已对运行前冻结的边界、几何和规则给出有条件通过；`m1-mapset/1.0` 内容、命名、开发/留出划分及规则保持固定，没有按结果删图或更改规则。进程及批次包装器均核对已退出，不存在本次相关残留。当前没有已授权Active Task；先建议定向修正记录/指标覆盖并调查两次墙钟保护，再规划开发集参数预实验。
 

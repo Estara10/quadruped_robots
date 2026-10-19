@@ -11,6 +11,7 @@ from typing import Any
 
 from run_record import load_record, summarize_record
 from abs_collision import CollisionStatus
+from safety_task_completion import assess_task_identity, classify_safety_task_completion
 
 
 def quantile(values: list[float], q: float) -> float | None:
@@ -20,6 +21,16 @@ def quantile(values: list[float], q: float) -> float | None:
     pos = (len(ordered) - 1) * q
     lo, hi = math.floor(pos), math.ceil(pos)
     return ordered[lo] if lo == hi else ordered[lo] + (ordered[hi] - ordered[lo]) * (pos - lo)
+
+
+def _with_safety_task_completion(summary: dict[str, Any], context: dict[str, Any],
+                                 terminal: dict[str, Any] | None) -> dict[str, Any]:
+    identity = assess_task_identity(summary, context, terminal)
+    summary["task_source_identity"] = identity
+    summary["safety_task_completion"] = classify_safety_task_completion(
+        summary, context, terminal, identity)
+    summary["safety_task_completion_status"] = summary["safety_task_completion"]["status"]
+    return summary
 
 
 def summarize_policy_cadence(frames: list[dict[str, Any]]) -> dict[str, Any]:
@@ -856,16 +867,16 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
     if record_scene is not None and expected_scene[1] is not None and (
             record_scene.get("filename"), record_scene.get("scene_id"),
             record_scene.get("obstacle_count")) != expected_scene:
-        return {"run_id": context.get("run_id"), "scene": expected_scene[0] or context_scene_name,
+        return _with_safety_task_completion({"run_id": context.get("run_id"), "scene": expected_scene[0] or context_scene_name,
                 "scene_id": expected_scene[1], "record_validity": "INVALID",
                 "record_validity_reasons": ["run_context_record_scene_binding_mismatch"],
-                "terminal_result": "INVALID_SCENE_BINDING", "frame_count": len(data.frames)}
+                "terminal_result": "INVALID_SCENE_BINDING", "frame_count": len(data.frames)}, context, data.terminal)
     closeout_errors = context.get("lifecycle", {}).get("closeout_errors", [])
     frames = [line["payload"] for line in data.frames if line.get("status") == "LIVE" and isinstance(line.get("payload"), dict)]
     frames.sort(key=lambda p: (p["session_id"], p["rl_step"]))
     persisted_live_frame_count = len(frames)
     if closeout_errors:
-        return {
+        return _with_safety_task_completion({
             "run_id": context.get("run_id"), "record_validity": "INVALID",
             "record_validity_reason_count": len(closeout_errors),
             "record_validity_reasons": [f"closeout_error:{item.get('stage', 'unknown')}" for item in closeout_errors],
@@ -875,7 +886,7 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
             "all_derived_metrics": "UNKNOWN: run closeout reported an artifact or cleanup error",
             "external_safety_events": (data.terminal or {}).get("external_safety_events", []),
             "cleanup_events": (data.terminal or {}).get("cleanup_events", []),
-        }
+        }, context, data.terminal)
     task_closeout_recovery = None
     if base.get("record_validity") != "VALID":
         task_closeout_recovery = _closeout_only_task_window(data, context, base, frames)
@@ -887,7 +898,7 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
             record_result = (data.terminal or {}).get("run_terminal_result")
             final_result = ("STARTUP_FAILURE" if context_result == "STARTUP_FAILURE" and record_result == "STARTUP_FAILURE"
                             else "INCOMPLETE_UNTRUSTED_RECORD")
-            return {
+            return _with_safety_task_completion({
                 "run_id": context.get("run_id"), "record_validity": "INVALID",
                 "record_validity_reason_count": len(base.get("record_validity_reasons") or []),
                 "record_validity_reasons": sorted(set(base.get("record_validity_reasons") or [])),
@@ -901,7 +912,7 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
                 "external_safety_events": (data.terminal or {}).get("external_safety_events", []),
                 "cleanup_events": (data.terminal or {}).get("cleanup_events", []),
                 "command_consumption": "UNKNOWN",
-            }
+            }, context, data.terminal)
     gaps = 0
     cadence = summarize_policy_cadence(frames)
     periods_s: list[float] = []
@@ -1291,7 +1302,7 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
     validity_reasons = list(base.get("record_validity_reasons") or [])
     if terminal_frame_failure and terminal_frame_reason not in validity_reasons:
         validity_reasons.append(terminal_frame_reason)
-    return {
+    summary = {
         "run_id": context.get("run_id"),
         "scene": context_scene_name,
         "scene_id": settings.get("scene_id", "UNKNOWN"),
@@ -1340,6 +1351,7 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
             "start_cycle": active_cycle if policy_boundary_identity_complete else None,
             "end_cycle": terminal_cycle if policy_boundary_identity_complete else None,
             "cycle_identity_complete": policy_boundary_identity_complete,
+            "terminal_frame_payload_complete": terminal_frame_payload_complete,
             "elapsed_sim_s": policy_active_elapsed,
             "valid_continuous_sim_s": policy_active_valid_duration if policy_active_valid_duration else None,
             "valid_continuous_path_length_m": policy_active_path if policy_active_valid_duration else None,
@@ -1471,6 +1483,17 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
         "external_safety_events": (data.terminal or {}).get("external_safety_events", []),
         "command_consumption": "UNKNOWN",
     }
+    identity_boundaries = [item for item in
+                           (task_start_physics_snapshot, terminal_policy_physics_snapshot,
+                            task_boundary_snapshot, pre_task_bounds, terminal_bounds, active_bounds)
+                           if isinstance(item, dict)]
+    identity = assess_task_identity(summary, context, data.terminal,
+                                    policy_cycle_frames, identity_boundaries)
+    summary["task_source_identity"] = identity
+    summary["safety_task_completion"] = classify_safety_task_completion(
+        summary, context, data.terminal, identity)
+    summary["safety_task_completion_status"] = summary["safety_task_completion"]["status"]
+    return summary
 
 
 def make_timeline(record_path: Path, context_path: Path, output_path: Path,
@@ -1601,6 +1624,7 @@ def main() -> int:
             rows.append(summary)
     (args.output_dir / "run_results.json").write_text(json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     cols = ["run_id", "scene", "scene_id", "record_validity", "navigation_terminal_result",
+            "safety_task_completion_status",
             "s6_preparation_readiness", "task_window_safety", "nonfoot_collision_failure", "foot_contact_count", "foot_contact_duration_s",
             "foot_impact_count", "foot_impact_duration_s", "arrived_with_foot_contact",
             "arrived_with_foot_impact", "abs_reference_collision", "frame_count", "rl_step_gaps",

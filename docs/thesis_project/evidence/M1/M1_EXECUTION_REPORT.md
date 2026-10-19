@@ -51,7 +51,7 @@
 rtk proxy /usr/bin/python3 -u scripts/manual_m1_a_batch.py --resume --batch-root logs/manual_m1_a/library_v1
 ```
 
-运行时逐图目标、时限、候选和图身份由runner传递，controller配置、run context、原始记录和分析器均核对目标 `(7.5,0)`。A组运行参数和90条结果索引见 [`m1_a_batch_plan.json`](../../../../logs/manual_m1_a/library_v1/m1_a_batch_plan.json) 及 [`development_A_results.md`](../../../../logs/manual_m1_a/library_v1/m1_results/development_A_results.md)。
+运行时逐图目标、时限、候选和图身份由runner传递，controller配置、run context、原始记录和分析器均核对目标 `(7.5,0)`。A组运行参数和90条结果索引见 [`m1_a_batch_plan.json`](../../../../logs/03_map_validation/M1_A_library/library_v1/m1_a_batch_plan.json) 及 [`development_A_results.md`](../../../../logs/03_map_validation/M1_A_library/library_v1/m1_results/development_A_results.md)。
 
 M1当前地图使用入口由 `scripts/manual_m1_a_batch.py` 读取 `designs/M1/library_v1/layouts.json` 的开发清单；旧测试地图不属于该M1清单/批次入口。历史场景XML、资源及其引用因既有记录需要继续保留，不作批量删除。
 
@@ -61,8 +61,8 @@ M1当前地图使用入口由 `scripts/manual_m1_a_batch.py` 读取 `designs/M1/
 
 计划项 `m1sfd01 / repeat 1` 的首次诊断未进入策略，`ros2 pkg prefix go2_description` 仍选原安装路径。检查发现对比器用共享detached overlay做了配置预检，但启动诊断时传入了不存在的逐次overlay路径。修正为预检和启动共用同一解析路径，并做Python编译、路径helper与同shell ROS包来源定向核验后，仅重试这一个计划项。重试到达且记录VALID。首次 `STARTUP_FAILURE` 和原始文件不改写，分别保存于：
 
-- [首次INVALID记录](../../../../logs/manual_m1_a/library_v1/m1sfd01/rep_01_attempt_01/)
-- [定向修复后的有效重试](../../../../logs/manual_m1_a/library_v1/m1sfd01/rep_01_attempt_02/)
+- [首次INVALID记录](../../../../logs/03_map_validation/M1_A_library/library_v1/m1sfd01/rep_01_attempt_01/)
+- [定向修复后的有效重试](../../../../logs/03_map_validation/M1_A_library/library_v1/m1sfd01/rep_01_attempt_02/)
 
 ### 结果和覆盖
 
@@ -115,6 +115,6 @@ Director已对以下地图集和本批流程给出有条件通过。`m1-mapset/1
 - 生成与核验：`scripts/generate_m1_library.py`、`scripts/verify_m1_library.py`、`scripts/test_s6_11_scene_handshake.py`；runner/分析：`scripts/manual_m1_a_batch.py`、`scripts/manual_ab_compare.py`、`scripts/s1_run_diagnostic.py`、`scripts/s1_analyze_run.py`、`scripts/analyze_m1_a_batch.py`。
 - 注册及构建：`common/abs_scene_catalog.def`、MuJoCo CMake目标。实际主程序`unitree_mujoco/simulate/build2/unitree_mujoco`已构建；M1运行绑定指纹均由实际MuJoCo 3.3.3 C++生产算法生成。
 - 错误修正：`manual_ab_compare.py`现对共享overlay预检与诊断启动使用同一个解析路径；首次错误启动记录仍保留。
-- 结果：[`development_A_results.md`](../../../../logs/manual_m1_a/library_v1/m1_results/development_A_results.md)、[`development_A_results.csv`](../../../../logs/manual_m1_a/library_v1/m1_results/development_A_results.csv)、[`m1_a_batch_plan.json`](../../../../logs/manual_m1_a/library_v1/m1_a_batch_plan.json)。
+- 结果：[`development_A_results.md`](../../../../logs/03_map_validation/M1_A_library/library_v1/m1_results/development_A_results.md)、[`development_A_results.csv`](../../../../logs/03_map_validation/M1_A_library/library_v1/m1_results/development_A_results.csv)、[`m1_a_batch_plan.json`](../../../../logs/03_map_validation/M1_A_library/library_v1/m1_a_batch_plan.json)。
 - 每条诊断结束时process_facts均报告 `shutdown_complete=true` 与 `closeout_complete=true`。整个批次结束后检查确认本次run wrapper及相关MuJoCo/controller/RViz/ROS进程已退出；没有清理或影响其他会话。无Git提交。
 

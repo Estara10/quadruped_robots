@@ -499,7 +499,10 @@ def bootstrap(rows: list[dict], map_rows: list[dict]) -> dict:
             if level == REF_KEY:
                 continue
             for key in metrics:
-                pairs = [(values[(level, key)].get(m), values[(REF_KEY, key)].get(m)) for m in sampled]
+                # Scenario endpoints for a DIFFERENCE use opposite bounds.
+                ref_key = ("collision_rate_best" if key == "collision_rate_worst" else
+                           "collision_rate_worst" if key == "collision_rate_best" else key)
+                pairs = [(values[(level, key)].get(m), values[(REF_KEY, ref_key)].get(m)) for m in sampled]
                 pairs = [(a, b) for a, b in pairs if a is not None and b is not None]
                 if pairs:
                     samples[level][key].append(mean([a for a, _ in pairs]) - mean([b for _, b in pairs]))
@@ -511,7 +514,9 @@ def bootstrap(rows: list[dict], map_rows: list[dict]) -> dict:
             continue
         item = {"level": level}
         for key in metrics:
-            point = (by_level[level][key] - ref[key]) if by_level[level].get(key) is not None and ref.get(key) is not None else None
+            ref_key = ("collision_rate_best" if key == "collision_rate_worst" else
+                       "collision_rate_worst" if key == "collision_rate_best" else key)
+            point = (by_level[level][key] - ref[ref_key]) if by_level[level].get(key) is not None and ref.get(ref_key) is not None else None
             low, high = interval(samples[level][key])
             item[f"{key}_difference"] = point
             item[f"{key}_ci95_low"] = low
@@ -635,12 +640,14 @@ def candidate_levels(summary_rows: list[dict], deltas: dict) -> dict:
         arrival_pp = (row["arrival_rate"] - ref["arrival_rate"]) * 100.0 if row["arrival_rate"] is not None and ref["arrival_rate"] is not None else None
         known_pp = ((row["collision_rate_known"] - ref["collision_rate_known"]) * 100.0
                     if row["collision_rate_known"] is not None and ref["collision_rate_known"] is not None else None)
-        worst_pp = ((row["collision_rate_worst"] - ref["collision_rate_worst"]) * 100.0
-                    if row["collision_rate_worst"] is not None and ref["collision_rate_worst"] is not None else None)
+        worst_pp = ((row["collision_rate_worst"] - ref["collision_rate_best"]) * 100.0
+                    if row["collision_rate_worst"] is not None and ref["collision_rate_best"] is not None else None)
+        best_pp = ((row["collision_rate_best"] - ref["collision_rate_worst"]) * 100.0
+                   if row["collision_rate_best"] is not None and ref["collision_rate_worst"] is not None else None)
         ref_freq = ref["short_reverse_per_valid_min_mean"]
         freq = row["short_reverse_per_valid_min_mean"]
         relative = ((freq - ref_freq) / ref_freq) if ref_freq and freq is not None else None
-        task_best = arrival_pp is not None and arrival_pp >= -TOLERANCE_PP and known_pp is not None and known_pp <= TOLERANCE_PP
+        task_best = arrival_pp is not None and arrival_pp >= -TOLERANCE_PP and best_pp is not None and best_pp <= TOLERANCE_PP
         task_worst = arrival_pp is not None and arrival_pp >= -TOLERANCE_PP and worst_pp is not None and worst_pp <= TOLERANCE_PP
         task_ok = task_best and task_worst
         switch_ok = relative is not None and relative <= -SWITCH_IMPROVEMENT
@@ -654,6 +661,7 @@ def candidate_levels(summary_rows: list[dict], deltas: dict) -> dict:
             "collision_known_pp_vs_A": known_pp,
             "collision_rate_worst": row["collision_rate_worst"],
             "collision_worst_pp_vs_A": worst_pp,
+            "collision_best_pp_vs_A": best_pp,
             "short_reverse_per_valid_min": freq, "short_reverse_relative_vs_A": relative,
             "recovery_share": row["recovery_share_mean"],
             "fall_count": row["fall_count"], "fall_unknown": row["fall_unknown"],

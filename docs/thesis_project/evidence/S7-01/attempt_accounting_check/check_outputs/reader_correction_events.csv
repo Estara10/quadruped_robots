@@ -1,0 +1,2 @@
+batch,plan_item_id,event,scenario_attempts_before,scenario_attempts_after,run_id,effect
+T2 hold function check,t2-hold-function-A-m02,read-side classification repair,1,1,4f452f21f03b4d8a9736716701a9f7da,original valid A was restored; no scenario rerun

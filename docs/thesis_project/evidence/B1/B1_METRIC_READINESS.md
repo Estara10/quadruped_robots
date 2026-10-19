@@ -6,11 +6,11 @@
 
 本次对同一D原始记录调用生产`calculate()`独立重分析，没有覆盖源JSONL、context、terminal或历史metrics。任务cycle 0–565所附566个物理snapshot均为LIVE v5、同capture、发布覆盖连续、事件锁存完整且无碰撞/跌倒历史溢出；任务前边界及终止周期物理边界匹配。任务窗碰撞、非足端碰撞、足端接触、足端撞击和按当前确认规则的跌倒均可报告为False（接触/撞击计数为0）。任务期一条姿态候选在sim 10.294–10.438 s异常，后于终点前关闭且未确认；因此False意为“当前确认规则未判为跌倒”，不等于无姿态异常或安全成功。
 
-全采集安全覆盖仍不可用：49条终局后的收尾策略记录含STALE物理快照，捕获级附属样本序列有重复/间隔，不能支持全采集无事件结论；任务内LIVE样本各自声明的producer物理覆盖完整，二者范围不同。不能外推任务窗结论至站立/清理。整份run仍VALID / ARRIVED；任务时间、路径、切换和9/9保持审计与旧metrics一致。派生JSON、摘要和timeline见[独立D重分析目录](../../../../logs/b1/historical_reanalysis/dev03_D_task_safety_scope_20261015/)。之前“该run碰撞和跌倒均UNKNOWN，因为v5不兼容”的解释是修正前分析状态，现由本段取代；v5在生产路径受支持。
+全采集安全覆盖仍不可用：49条终局后的收尾策略记录含STALE物理快照，捕获级附属样本序列有重复/间隔，不能支持全采集无事件结论；任务内LIVE样本各自声明的producer物理覆盖完整，二者范围不同。不能外推任务窗结论至站立/清理。整份run仍VALID / ARRIVED；任务时间、路径、切换和9/9保持审计与旧metrics一致。派生JSON、摘要和timeline见[独立D重分析目录](../../../../logs/04_B1_recording_validation/historical_reanalysis/dev03_D_task_safety_scope_20261015/)。之前“该run碰撞和跌倒均UNKNOWN，因为v5不兼容”的解释是修正前分析状态，现由本段取代；v5在生产路径受支持。
 
 ## 历史运行证据：dev03 D 收尾顺序真实核验（安全解释见上方独立重分析）
 
-本次唯一新D运行（[metrics](../../../../logs/b1/closeout_runtime_verification/dev03_D_20261015/D/rep_01/6a0e402de1754d9a828704976d8ee32f/metrics.json)、[timeline](../../../../logs/b1/closeout_runtime_verification/dev03_D_20261015/D/rep_01/6a0e402de1754d9a828704976d8ee32f/timeline.png)）整份记录为`VALID`，cycle0–565任务窗完整。终止后额外49个策略帧在运行记录中正常保存，但任务耗时、路径、速度、模式边沿和Recovery指标均截至终止cycle565，不包含站立/收尾尾段。任务窗11.300s、路径10.070m、平均速度0.891m/s；18次模式边沿，Recovery 2.790s；9/9保持episode完整通过。最终drain producer=consumer=615，unread loss=0，slot reuse=0，冲突=0。
+本次唯一新D运行（[metrics](../../../../logs/04_B1_recording_validation/closeout_runtime_verification/dev03_D_20261015/D/rep_01/6a0e402de1754d9a828704976d8ee32f/metrics.json)、[timeline](../../../../logs/04_B1_recording_validation/closeout_runtime_verification/dev03_D_20261015/D/rep_01/6a0e402de1754d9a828704976d8ee32f/timeline.png)）整份记录为`VALID`，cycle0–565任务窗完整。终止后额外49个策略帧在运行记录中正常保存，但任务耗时、路径、速度、模式边沿和Recovery指标均截至终止cycle565，不包含站立/收尾尾段。任务窗11.300s、路径10.070m、平均速度0.891m/s；18次模式边沿，Recovery 2.790s；9/9保持episode完整通过。最终drain producer=consumer=615，unread loss=0，slot reuse=0，冲突=0。
 
 当时首次生成的metrics将碰撞/跌倒记为UNKNOWN，之后的独立任务窗口重分析已按上述范围修正；整份run和站立观察事实未变，命令消费层仍UNKNOWN。该运行只证明一次记录关闭流程正常，不给出D性能或一般安全结论。早先同场景D整份INVALID及48帧收尾缺口是独立历史记录，没有被修复或覆盖。
 
@@ -45,7 +45,7 @@
 - 去重帧仍只有一条持久化JSONL记录；调用方现在能从一致重复结果拿回该记录附带的LIVE/MISSING等物理snapshot及独立sample identity。生产组合测试证明：非足端碰撞和确认跌倒仍按原优先级处理，MISSING/STALE/INVALID或空安全证据不通过正常收尾gate。
 - dev25 A原始记录的安全快照publisher覆盖完整、同capture且历史无溢出；任务期0.092 s姿态候选在终点前已关闭且从未确认，修复后的独立分析为“按当前规则未判定跌倒”，并保留候选起止时刻。该结果不表示全程姿态正常，也不抹去低高度事件。
 - 同一run有一次FL足端撞击`ppt_obstacle_02`，所以不能将无非足端终止碰撞写为无碰撞。原normal-closeout gate未收到安全快照，5 s站立观察未执行；离线健康分支通过不替代运行态收尾验证。
-- 派生结果见[独立重分析metrics](../../../../logs/b1/historical_reanalysis/dev25_A_safety_review/metrics.json)、[事件摘要](../../../../logs/b1/historical_reanalysis/dev25_A_safety_review/README.md)及[生产组合离线用例](../../../../logs/b1/offline_merge_validation/dedupe_safety/summary.json)。源run原始记录和旧metrics保持原样。
+- 派生结果见[独立重分析metrics](../../../../logs/04_B1_recording_validation/historical_reanalysis/dev25_A_safety_review/metrics.json)、[事件摘要](../../../../logs/04_B1_recording_validation/historical_reanalysis/dev25_A_safety_review/README.md)及[生产组合离线用例](../../../../logs/04_B1_recording_validation/offline_merge_validation/dedupe_safety/summary.json)。源run原始记录和旧metrics保持原样。
 
 | 指标/判断 | 最新可用性 | 范围和剩余限制 |
 |---|---|---|
@@ -78,7 +78,7 @@
 | 终止与收尾边界 | `task_termination_boundary`只覆盖cycle0至终止帧；`final_closeout_drain`单独覆盖清理阶段最后一次排空 | 离线交错用例及dev25 A实际运行均确认终止payload与引用一致，任务边界完整；分析终点为cycle441，收尾信息未并入运动窗 | 本次到达后站立观察未完成；不是终止帧保存失败，需分开评价收尾状态 |
 | 写入失败和清理 | terminal帧写入失败使记录不完整；closeout仍先执行本次进程清理 | 注入终止帧写入错误后，清理callback执行、分析器判`INVALID`，原始失败原因留在合并审计 | 实际文件系统异常尚未实测 |
 
-可复核输出：[`offline_merge_validation/summary.json`](../../../../logs/b1/offline_merge_validation/summary.json)、[代表性JSONL/context/terminal/metrics](../../../../logs/b1/offline_merge_validation/terminal_race/)与[实际C++发布器→Python reader结果](../../../../logs/b1/offline_merge_validation/cpp_reader/summary.json)。这些是隔离离线fixture，不是场景运行。故本补证只提高生产工具链的离线可用性，**不解除当前参数比较阻塞**；原八条运行的周期缺口、无效时钟、保持删失、跌倒/越界UNKNOWN以及两条B INVALID记录均保持原结论。
+可复核输出：[`offline_merge_validation/summary.json`](../../../../logs/04_B1_recording_validation/offline_merge_validation/summary.json)、[代表性JSONL/context/terminal/metrics](../../../../logs/04_B1_recording_validation/offline_merge_validation/terminal_race/)与[实际C++发布器→Python reader结果](../../../../logs/04_B1_recording_validation/offline_merge_validation/cpp_reader/summary.json)。这些是隔离离线fixture，不是场景运行。故本补证只提高生产工具链的离线可用性，**不解除当前参数比较阻塞**；原八条运行的周期缺口、无效时钟、保持删失、跌倒/越界UNKNOWN以及两条B INVALID记录均保持原结论。
 
 
 ## 历史评估：dev03 C/D补证初次自动分析（2026-10-15；D后续重分析见下节）
@@ -89,7 +89,7 @@
 - **站立收尾：D本次实际完成。** 226个物理样本覆盖5.024仿真秒，controller反馈FIXEDSTAND且支撑/姿态样本正常；这是独立的收尾证据，即便策略记录整份INVALID仍可陈述。C因非足端碰撞没有走正常站立观察。controller状态和物理快照不等于MuJoCo command consumption确认。
 - **安全解释：** C/D运动前各有一个低高度episode，分别在sim 4.690s和5.036s关闭，随后策略任务才开始；历史保留，不计为任务期终局。不能把它们称作无异常启动。
 
-原始日志、自动分析和限定审计见[本批目录](../../../../logs/b1/cd_runtime_verification/dev03_C_D_20261015_170521/)、[D任务边界保持审计](../../../../logs/b1/cd_runtime_verification/dev03_C_D_20261015_170521/D_task_window_hold_audit.json)及[执行报告最新章节](B1_EXECUTION_REPORT.md)。两次单次诊断不构成有效C/D整体对照；（历史状态：当时B1保持ACTIVE / INCOMPLETE并等待审阅；现已获有条件通过。参数预实验仍须另行授权。）
+原始日志、自动分析和限定审计见[本批目录](../../../../logs/04_B1_recording_validation/cd_runtime_verification/dev03_C_D_20261015_170521/)、[D任务边界保持审计](../../../../logs/04_B1_recording_validation/cd_runtime_verification/dev03_C_D_20261015_170521/D_task_window_hold_audit.json)及[执行报告最新章节](B1_EXECUTION_REPORT.md)。两次单次诊断不构成有效C/D整体对照；（历史状态：当时B1保持ACTIVE / INCOMPLETE并等待审阅；现已获有条件通过。参数预实验仍须另行授权。）
 
 ## 最新补充：收尾顺序修正与 dev03 D 任务窗口重分析（2026-10-15）
 
@@ -106,4 +106,4 @@
 | 安全事件 | 非足端碰撞False；1次RL足端撞击/接触，约0.012s；跌倒按当前规则False | 完整任务期物理覆盖；两个已关闭未确认姿态候选仍作为异常事件报告，不是无姿态异常或安全成功 |
 | 站立观察 | 5.024仿真秒、226个物理样本 | 独立收尾证据，不计入任务耗时或路径；命令的MuJoCo消费仍UNKNOWN |
 
-“非足端碰撞False”不能简写成“无碰撞”：任务期间有RL足端接触/撞击`ppt_obstacle_02`。任务窗口指标从独立生产分析器结果得出，但整份记录仍无效，不能当作有效完整run或正式结果。派生文件见[D任务窗口重分析](../../../../logs/b1/historical_reanalysis/dev03_D_closeout_review/README.md)及[metrics JSON](../../../../logs/b1/historical_reanalysis/dev03_D_closeout_review/metrics_task_window.json)；原始自动metrics与记录未覆盖。新关闭顺序仍只有离线验证，未由新的运行验证。
+“非足端碰撞False”不能简写成“无碰撞”：任务期间有RL足端接触/撞击`ppt_obstacle_02`。任务窗口指标从独立生产分析器结果得出，但整份记录仍无效，不能当作有效完整run或正式结果。派生文件见[D任务窗口重分析](../../../../logs/04_B1_recording_validation/historical_reanalysis/dev03_D_closeout_review/README.md)及[metrics JSON](../../../../logs/04_B1_recording_validation/historical_reanalysis/dev03_D_closeout_review/metrics_task_window.json)；原始自动metrics与记录未覆盖。新关闭顺序仍只有离线验证，未由新的运行验证。

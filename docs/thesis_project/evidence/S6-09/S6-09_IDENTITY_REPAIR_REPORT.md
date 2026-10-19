@@ -30,7 +30,7 @@ XML 文件名和 PNG 文件名仍使用原完整描述性 slug；布局数据、
 
 - 地图：`scene_random_s6_09_sparse_single_side_bypass_dev_01.xml`，内部 ID `s609_sb_d01`；保留失败前同一独立 A overlay。
 - 条件：A、E=-0.05、目标 `(7,0)`、到达半径0.5 m、运动上限20仿真秒、墙钟120秒、到达后站立观察5仿真秒；沿用相同模型、启动增益交接和安全规则。
-- run：`24304f75bb974ebeb85452cb854f6f00`，记录目录 [`日志与记录`](../../../../logs/manual_scene_runs/s6_09_identity_repair_sparse_dev01_A/24304f75bb974ebeb85452cb854f6f00/)。
+- run：`24304f75bb974ebeb85452cb854f6f00`，记录目录 [`日志与记录`](../../../../logs/05_manual_observations/scene_runs/s6_09_identity_repair_sparse_dev01_A/24304f75bb974ebeb85452cb854f6f00/)。
 - 生产发布/读取：C++ 日志 `[ABS-SCENE-AUTHORITY]` 和 `[Ray2D]` 均打印 `scene_id=s609_sb_d01`，8 个障碍与 root/closure/model fingerprint 与所选 XML binding 一致。记录器得到373条策略 `frame`，373/373 `status=LIVE`；首条为同一 session 的 `rl_step=0, rl_entered=1, rl_active=1`，末条 `rl_step=378`。嵌入的 authority 快照身份同为 `s609_sb_d01`、`authoritative=true`、`status=LIVE`。生产 reader/analyzer 接受完整身份，run `record_validity=VALID`；这构成一次实际 MuJoCo publisher → 正常 reader 的端到端运行证据。
 - 终局：`VALID / ARRIVED`，终止帧距目标0.49982 m。任务窗口从仿真10.038 s至17.598 s；记录373策略帧，整体策略频率约50.01 Hz，含6个策略周期缺口和6个无效策略时钟帧。模式边沿62次。运动区间碰撞/跌倒覆盖由分析器判定完整；该结论只限任务窗口。
 - 安全边界：安全快照保留了一个在策略任务起点前已开始并关闭的低高度确认 episode（仿真0.25–8.368 s）；真实任务起点为10.038 s，故它不落入本次运动窗口。不得据此称全采集期无跌倒。

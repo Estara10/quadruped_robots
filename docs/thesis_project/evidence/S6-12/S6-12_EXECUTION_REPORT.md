@@ -10,13 +10,13 @@
 
 旧逻辑按物理快照的发布时间截断整个跌倒历史。本次改为按同一来源下事件自己的开始、确认、关闭时间和物理步判断任务窗口归属：终止后发布的同run边界快照可证明其内明确早于任务终止的确认事件；终止后才确认不倒算为任务期跌倒；终止后才关闭的候选不能当作终止前关闭；没有可用关闭时刻或物理步依据时保留UNKNOWN。准备期已关闭事件仍排除，跨入运动期且在任务期确认的事件纳入；来源冲突、历史溢出和无效姿态继续按原覆盖要求拒绝否定结论。新增回归核验覆盖这些边界、覆盖完整要求和实际生产分析入口。
 
-第83项原始记录未改写，派生分析位于[独立重分析目录](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/derived_reanalysis/fall_timefix_20261016_001/)。策略终止为13.874 s；周期205附带的同run物理快照发布时间为13.878 s、physics step 6939，其中低高度事件已在13.862 s、step 6931确认。快照身份与来源匹配，任务窗口物理发布覆盖完整且fall history无溢出。生产分析现确认该事件属于任务窗口，结果为`VALID / FALL_TERMINATION`、`motion_fall_result=true`；按合法失败保留，不重跑。
+第83项原始记录未改写，派生分析位于[独立重分析目录](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/derived_reanalysis/fall_timefix_20261016_001/)。策略终止为13.874 s；周期205附带的同run物理快照发布时间为13.878 s、physics step 6939，其中低高度事件已在13.862 s、step 6931确认。快照身份与来源匹配，任务窗口物理发布覆盖完整且fall history无溢出。生产分析现确认该事件属于任务窗口，结果为`VALID / FALL_TERMINATION`、`motion_fall_result=true`；按合法失败保留，不重跑。
 
 针对性验证与编译通过：`python3 -m py_compile`覆盖批次入口、分析器及两份受影响检查；`scripts/test_s1_04_contract.py`验证终止后发布的快照携带终止前确认、终止后确认/关闭、准备期关闭/跨界、来源冲突、溢出、无效姿态和完整覆盖要求；`scripts/test_s6_12_ray_repair_resume.py`验证只接受本批第83项派生重分析已完成且84–96未启动的精确恢复状态，并拒绝变更的批次/前缀/证据/后缀。
 
 全run捕获的碰撞覆盖仍有无效样本/producer覆盖不全事实，与任务窗口覆盖是不同统计范围。第83项的全采集限制仍保留，不能把本次修复解释为整个采集期覆盖完整。
 
-对修复前已经存在的86次 attempts 全部使用实际 `scripts/s1_analyze_run.py` 生产入口做独立派生分析，旧输出保留。对比显示两项安全解释变化：第51项仍是碰撞终局，但一个终止时未关闭的姿态候选使跌倒由False改为UNKNOWN；第83项从`INVALID_TERMINAL_SAFETY_CONFLICT / UNKNOWN`改为与监督器一致的`FALL_TERMINATION / true`。没有ARRIVED记录被重评为已确认的任务期跌倒。差异明细见[重分析差异表](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/derived_reanalysis/fall_timefix_20261016_001/reanalysis_delta.json)，86条 attempt 的派生结果与来源索引见[重分析结果](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/derived_reanalysis/fall_timefix_20261016_001/all_attempts_analysis/run_results.md)和`attempt_provenance.json`。原始JSONL、context、terminal以及原先指标/时间线没有被覆盖。
+对修复前已经存在的86次 attempts 全部使用实际 `scripts/s1_analyze_run.py` 生产入口做独立派生分析，旧输出保留。对比显示两项安全解释变化：第51项仍是碰撞终局，但一个终止时未关闭的姿态候选使跌倒由False改为UNKNOWN；第83项从`INVALID_TERMINAL_SAFETY_CONFLICT / UNKNOWN`改为与监督器一致的`FALL_TERMINATION / true`。没有ARRIVED记录被重评为已确认的任务期跌倒。差异明细见[重分析差异表](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/derived_reanalysis/fall_timefix_20261016_001/reanalysis_delta.json)，86条 attempt 的派生结果与来源索引见[重分析结果](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/derived_reanalysis/fall_timefix_20261016_001/all_attempts_analysis/run_results.md)和`attempt_provenance.json`。原始JSONL、context、terminal以及原先指标/时间线没有被覆盖。
 
 ### 最后13项运行结果
 
@@ -38,12 +38,12 @@
 |95|-0.05（A参考）|到达|0.492 m|8.220 s|False / False|完成|
 |96|-0.11|到达|0.497 m|7.620 s|False / False|完成|
 
-项目级完整指标见[96项结果表](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/coarse_run_results.csv)，全部99次attempt见[attempt表](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/coarse_attempt_results.csv)。当前计划项汇总和主要图表：
+项目级完整指标见[96项结果表](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/coarse_run_results.csv)，全部99次attempt见[attempt表](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/coarse_attempt_results.csv)。当前计划项汇总和主要图表：
 
-- [跨地图阈值汇总与候选建议](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/coarse_comparison_summary.md)；[地图×阈值48行明细](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/map_threshold_summary.csv)
-- [终局构成](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/terminal_composition.png)、[短反向切换](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/short_reverse_switch_count.png)、[Recovery有效运动时间占比](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/recovery_share_valid_motion_time.png)、[到达耗时](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/elapsed_task_duration_s.png)
-- [地图×阈值到达热图](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/map_threshold_heatmap.png)、[碰撞结果](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/collision_outcome_by_threshold.png)、[跌倒结果](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/fall_outcome_by_threshold.png)、[执行状态](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/execution_status.png)
-- [本轮同环境GLFW预检/renderer记录](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/glfw_t1_same_context_capture.json)；[13项清理核对](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/postrun_process_check_t1_fall_final13.json)
+- [跨地图阈值汇总与候选建议](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/coarse_comparison_summary.md)；[地图×阈值48行明细](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/map_threshold_summary.csv)
+- [终局构成](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/terminal_composition.png)、[短反向切换](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/short_reverse_switch_count.png)、[Recovery有效运动时间占比](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/recovery_share_valid_motion_time.png)、[到达耗时](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/elapsed_task_duration_s.png)
+- [地图×阈值到达热图](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/map_threshold_heatmap.png)、[碰撞结果](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/collision_outcome_by_threshold.png)、[跌倒结果](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/fall_outcome_by_threshold.png)、[执行状态](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/execution_status.png)
+- [本轮同环境GLFW预检/renderer记录](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/glfw_t1_same_context_capture.json)；[13项清理核对](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/postrun_process_check_t1_fall_final13.json)
 
 ### 全批粗选与候选范围
 
@@ -55,27 +55,27 @@
 
 ### 收尾
 
-每个新增run均有shutdown与closeout事实。最终通过精确进程名检查，未发现本轮MuJoCo、controller/ROS、RViz或批次辅助进程残留；批次wrapper退出码0、13个子运行清理事实完整，见[清理核对](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/postrun_process_check_t1_fall_final13.json)。原始第83项、其旧分析和所有历史失败均保留。T1保持ACTIVE等待Director最终审阅，不提交Git。
+每个新增run均有shutdown与closeout事实。最终通过精确进程名检查，未发现本轮MuJoCo、controller/ROS、RViz或批次辅助进程残留；批次wrapper退出码0、13个子运行清理事实完整，见[清理核对](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/postrun_process_check_t1_fall_final13.json)。原始第83项、其旧分析和所有历史失败均保留。T1保持ACTIVE等待Director最终审阅，不提交Git。
 
 以下各段记录本次授权前的停批、早期运行和历史分析，均按原状保留，不代表当前状态。
 
 ## 本轮射线修复、第66项补做及粗选续跑（2026-10-16）
 
-按[T1执行提示词](../../../../archive/markdown/20261018/docs/thesis_project/T1_RAY_REPAIR_AND_COARSE_COMPLETION_PROMPT.md)完成定向修复后，在同一获准桌面执行上下文中通过GLFW/OpenGL预检并运行批次。预检使用`DISPLAY=:0`、`XAUTHORITY=/run/user/1000/gdm/Xauthority`、`MUJOCO_GL=glfw`和系统`/usr/bin/python3`；实际renderer为Intel / Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6。窗口已关闭，详细环境记录见[本轮预检](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/ray_repair_display_preflight_20261016.json)。
+按[T1执行提示词](../../../../archive/markdown/20261018/docs/thesis_project/T1_RAY_REPAIR_AND_COARSE_COMPLETION_PROMPT.md)完成定向修复后，在同一获准桌面执行上下文中通过GLFW/OpenGL预检并运行批次。预检使用`DISPLAY=:0`、`XAUTHORITY=/run/user/1000/gdm/Xauthority`、`MUJOCO_GL=glfw`和系统`/usr/bin/python3`；实际renderer为Intel / Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6。窗口已关闭，详细环境记录见[本轮预检](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/ray_repair_display_preflight_20261016.json)。
 
 生产射线读取现在最多尝试16次、总读取预算250,000 ns（约为5 ms控制周期的5%），只对sequence未武装、奇数写入中或复制期间前后不一致进行有界重读。达到稳定一致快照后，才读取一次校验用单调时间；版本、magic、11维、零/未来/过期时间戳和非有限数等稳定帧语义错误仍直接拒绝。持续冲突继续走原安全停止路径。修复没有改变射线值、RA/状态机、控制周期或安全门。定向验证通过：生产helper的确定性C++交错检查、`python3 scripts/test_s1_04_contract.py`、`python3 scripts/test_s6_12_ray_repair_resume.py`、受影响Python文件`py_compile`及`colcon build --packages-select rl_quadruped_controller`。构建后的实际安装controller库和MuJoCo主程序已记录SHA-256。实际运行代码阶段为`cd6021faa96b0cc8`，冻结Git基点`8655995ff265ef2a18656c7a0b956ee889c64559`；controller库SHA-256为`c94903e50f5d1d751d4be1f9effb7a10be775d8daee0aec08736b794719327ac`，MuJoCo主程序SHA-256为`8ae02f1c6f20a00f51e7a9bbefa7ef31c718830460179df75120ceccbd4290d7`。完整源码阶段记录在冻结计划的`code_stages`中。
 
-第66项原失败attempt仍保留。独立`attempt_02`使用dev27、B组、E=-0.05、X=-0.09；实际controller来源日志确认本阶段配置、场景、模型路径及目标(7.5,0)。该次`ARRIVED`，终点距目标0.4805 m；cycle 0–291连续，终止cycle 291的同一策略快照完整持久化，共349帧，末次排空完整，约5仿真秒站立观察完成，record `VALID`，清理已确认。原始记录见[第66项修复后attempt](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/runs/066_m1dld01_x09_r1/attempt_02/result/B/rep_01/1f814d3311684f928e3c7e9fc719079a/)。策略频率50.26 Hz，中位周期19.985 ms、P95 20.838 ms；既有阶段记录约为50.15 Hz/19.991 ms/P95 25.829 ms，单次且阶段条件不同，不能据此归因或计算提速，但未见明显频率退化。该run未记录射线瞬时重读事件；它证明修复版本下读取与运行链可工作，但不能证明旧第66项一定由瞬时竞态造成，也没有在实测中复现竞态。原第66项历史原因仍不能唯一归因。
+第66项原失败attempt仍保留。独立`attempt_02`使用dev27、B组、E=-0.05、X=-0.09；实际controller来源日志确认本阶段配置、场景、模型路径及目标(7.5,0)。该次`ARRIVED`，终点距目标0.4805 m；cycle 0–291连续，终止cycle 291的同一策略快照完整持久化，共349帧，末次排空完整，约5仿真秒站立观察完成，record `VALID`，清理已确认。原始记录见[第66项修复后attempt](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/runs/066_m1dld01_x09_r1/attempt_02/result/B/rep_01/1f814d3311684f928e3c7e9fc719079a/)。策略频率50.26 Hz，中位周期19.985 ms、P95 20.838 ms；既有阶段记录约为50.15 Hz/19.991 ms/P95 25.829 ms，单次且阶段条件不同，不能据此归因或计算提速，但未见明显频率退化。该run未记录射线瞬时重读事件；它证明修复版本下读取与运行链可工作，但不能证明旧第66项一定由瞬时竞态造成，也没有在实测中复现竞态。原第66项历史原因仍不能唯一归因。
 
 随后依冻结顺序完成第67–82项，共16项新增有效结果，均为`ARRIVED`、record `VALID`，均保存cycle 0及完整终止帧、完成最终排空和站立观察，且每项的诊断进程关闭记录为完成。第66项补做加第67–82项共17个有效新增矩阵结果；没有重试合法任务终局，没有改变参数或运行顺序。
 
-第83项`083_m1dfd01_x05_r1`为dev29、A组，source/config及记录本身`VALID`，周期0–205连续，终止帧完整持久化，206帧完成最终排空。监督器终局为`FALL_TERMINATION`；controller确认PASSIVE，收尾进程退出。原始物理快照记录在sim_time 13.862 s确认`low_height`跌倒事件，至sim_time 13.878 s快照中事件仍未关闭。可是派生分析将`terminal_result`和`navigation_terminal_result`标为`INVALID_TERMINAL_SAFETY_CONFLICT`，`motion_fall_result=UNKNOWN`；碰撞覆盖摘要也显示全捕获区间有一个invalid sample及producer覆盖不完整。故该记录不能当作完整、可解释的跌倒任务结果来继续粗选。按提示词的安全/记录停止规则，保留原始run并停批；没有重跑第83项，也没有启动第84–96项。监督终局、原始跌倒事实、派生UNKNOWN/冲突状态分别保留，未将UNKNOWN改为false。原始证据见[第83项停止记录](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/runs/083_m1dfd01_x05_r1/result/A/rep_01/8fecf8c227d54c199a63b7530e51eab0/)。
+第83项`083_m1dfd01_x05_r1`为dev29、A组，source/config及记录本身`VALID`，周期0–205连续，终止帧完整持久化，206帧完成最终排空。监督器终局为`FALL_TERMINATION`；controller确认PASSIVE，收尾进程退出。原始物理快照记录在sim_time 13.862 s确认`low_height`跌倒事件，至sim_time 13.878 s快照中事件仍未关闭。可是派生分析将`terminal_result`和`navigation_terminal_result`标为`INVALID_TERMINAL_SAFETY_CONFLICT`，`motion_fall_result=UNKNOWN`；碰撞覆盖摘要也显示全捕获区间有一个invalid sample及producer覆盖不完整。故该记录不能当作完整、可解释的跌倒任务结果来继续粗选。按提示词的安全/记录停止规则，保留原始run并停批；没有重跑第83项，也没有启动第84–96项。监督终局、原始跌倒事实、派生UNKNOWN/冲突状态分别保留，未将UNKNOWN改为false。原始证据见[第83项停止记录](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/runs/083_m1dfd01_x05_r1/result/A/rep_01/8fecf8c227d54c199a63b7530e51eab0/)。
 
 本轮累计台账：96项计划；83项至少有一次attempt；总计86次attempt（含之前保留的三次失败attempt）；82项为有效任务结果；第83项为安全分析冲突停止项；13项未启动。全部attempt终局计数为ARRIVED 56、COLLISION_TERMINATION 18、DIAGNOSTIC_SIM_TIME_LIMIT 8、FALL_TERMINATION 1、SYSTEM_SAFETY_ABORT 1、PREPARATION_FAILURE 1、STARTUP_FAILURE 1。82个有效矩阵结果之外的第83项虽原始记录完整且来源验证通过，仍因安全分类冲突从有效任务结果分母中排除，不能把record `VALID`等同于安全指标完整。
 
-本轮自动重生成的逐项结果、attempt台账、部分汇总、执行状态图、终局/切换/Recovery/耗时图、地图×阈值图和代表时间线清单见[冻结批次目录](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/)。图表是混合修复前原65项和修复后新增结果的开发集粗选摘要；新增项有独立code-stage标记，不能将阶段差异归因于阈值。因新增覆盖主要集中在dev27及dev29部分档位，且13项未运行、一个安全分析冲突停止，当前证据为**区分不足**，不推荐任何细选区间。没有使用留出集或启动细选。
+本轮自动重生成的逐项结果、attempt台账、部分汇总、执行状态图、终局/切换/Recovery/耗时图、地图×阈值图和代表时间线清单见[冻结批次目录](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/)。图表是混合修复前原65项和修复后新增结果的开发集粗选摘要；新增项有独立code-stage标记，不能将阶段差异归因于阈值。因新增覆盖主要集中在dev27及dev29部分档位，且13项未运行、一个安全分析冲突停止，当前证据为**区分不足**，不推荐任何细选区间。没有使用留出集或启动细选。
 
-最终进程核对未发现本轮MuJoCo、controller/ROS、RViz或诊断/批次脚本残留，见[本轮清理检查](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/postrun_process_check_t1_ray_repair.json)。GLFW隐藏预检窗口已关闭。T1保持ACTIVE / INCOMPLETE，等待Director审阅；不提交Git。
+最终进程核对未发现本轮MuJoCo、controller/ROS、RViz或诊断/批次脚本残留，见[本轮清理检查](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/postrun_process_check_t1_ray_repair.json)。GLFW隐藏预检窗口已关闭。T1保持ACTIVE / INCOMPLETE，等待Director审阅；不提交Git。
 
 以下内容是此前阶段的历史记录，保留以说明旧的停批状态，不代表当前批次进度。
 
@@ -87,15 +87,15 @@
 
 按用户授权，保留首项原有结果，对计划项`002_m1ssd01_x17_r1`只补做一次。生产reader读后取校验时间的修复已通过定向离线检查；恢复入口也只接受冻结批次精确状态（首项有效、第2项恰有一个已清理的INVALID准备失败、其余94项未启动），并拒绝重复补跑、清理未确认和后续项已启动等变体。
 
-本次GLFW最小预检与实际续跑在同一获批沙箱外执行上下文中完成：`DISPLAY=:0`、`XAUTHORITY=/run/user/1000/gdm/Xauthority`、`MUJOCO_GL=glfw`、`/usr/bin/python3`；16×16窗口及OpenGL context创建成功，renderer为Intel / Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6。直接预检结果的结构化留档见[同权限上下文GLFW记录](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/glfw_t1_same_context_capture.json)；之前的系统库路径与`ldd`记录见[同环境预检详情](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/glfw_same_environment_preflight.json)。
+本次GLFW最小预检与实际续跑在同一获批沙箱外执行上下文中完成：`DISPLAY=:0`、`XAUTHORITY=/run/user/1000/gdm/Xauthority`、`MUJOCO_GL=glfw`、`/usr/bin/python3`；16×16窗口及OpenGL context创建成功，renderer为Intel / Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6。直接预检结果的结构化留档见[同权限上下文GLFW记录](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/glfw_t1_same_context_capture.json)；之前的系统库路径与`ldd`记录见[同环境预检详情](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/glfw_same_environment_preflight.json)。
 
-计划项2在独立的[attempt_02目录](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/runs/002_m1ssd01_x17_r1/attempt_02/result/B/rep_01/772774129dda4ef8aa78ed3d87b8a41d/)完成：实际消费B组、E=-0.05、X=-0.17、无保持，目标与冻结计划一致。任务以ARRIVED结束，距目标0.4995 m；策略cycle 0–451连续，终止帧完整持久化；共519个策略帧，末次排空无丢失/覆盖，完成约5秒站立观察，诊断器确认本次MuJoCo、ROS/controller和查询/命令会话退出，记录VALID、清理完成。原attempt仍为`PREPARATION_FAILURE / INVALID`，未改写。
+计划项2在独立的[attempt_02目录](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/runs/002_m1ssd01_x17_r1/attempt_02/result/B/rep_01/772774129dda4ef8aa78ed3d87b8a41d/)完成：实际消费B组、E=-0.05、X=-0.17、无保持，目标与冻结计划一致。任务以ARRIVED结束，距目标0.4995 m；策略cycle 0–451连续，终止帧完整持久化；共519个策略帧，末次排空无丢失/覆盖，完成约5秒站立观察，诊断器确认本次MuJoCo、ROS/controller和查询/命令会话退出，记录VALID、清理完成。原attempt仍为`PREPARATION_FAILURE / INVALID`，未改写。
 
-项2通过后按原顺序继续，未改参数、场景或顺序。运行器到第66项停止：计划项`066_m1dld01_x09_r1`（dev27，B，X=-0.09）收到`SYSTEM_SAFETY_ABORT`，command 1到PASSIVE已由controller日志确认，安全事件保留。该run的JSONL记录本身为`record_validity=VALID`，224帧cycle 0–223连续，最终producer/consumer排空完整；但终止发生时没有可关联的任务终止周期或终止物理快照，`motion_metric_time_boundary.end_sim_time_s=null`，碰撞/跌倒任务窗口分析均为UNKNOWN，原因`task_window_frames_or_time_bounds_missing`。因此它不是普通任务失败可继续的完整安全结果，而是本任务要求停止的安全记录覆盖缺口。原始数据见[第66项运行目录](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/runs/066_m1dld01_x09_r1/result/B/rep_01/a93bdb05a7fe4686856b7bffd79249ce/)；未重试，也未启动第67项。
+项2通过后按原顺序继续，未改参数、场景或顺序。运行器到第66项停止：计划项`066_m1dld01_x09_r1`（dev27，B，X=-0.09）收到`SYSTEM_SAFETY_ABORT`，command 1到PASSIVE已由controller日志确认，安全事件保留。该run的JSONL记录本身为`record_validity=VALID`，224帧cycle 0–223连续，最终producer/consumer排空完整；但终止发生时没有可关联的任务终止周期或终止物理快照，`motion_metric_time_boundary.end_sim_time_s=null`，碰撞/跌倒任务窗口分析均为UNKNOWN，原因`task_window_frames_or_time_bounds_missing`。因此它不是普通任务失败可继续的完整安全结果，而是本任务要求停止的安全记录覆盖缺口。原始数据见[第66项运行目录](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/runs/066_m1dld01_x09_r1/result/B/rep_01/a93bdb05a7fe4686856b7bffd79249ce/)；未重试，也未启动第67项。
 
 批次最终为96项计划、66项已尝试、68次attempt（包括首项和第2项各自保留的历史失败）、65项`VALID_TASK_RESULT`、1项因任务安全覆盖UNKNOWN停止、30项未启动。全部attempt终局计数为：ARRIVED 39、COLLISION_TERMINATION 18、DIAGNOSTIC_SIM_TIME_LIMIT 8、SYSTEM_SAFETY_ABORT 1、PREPARATION_FAILURE 1、STARTUP_FAILURE 1。此处每档最多两次且批次提前停止，只是开发集粗选流程记录，不构成成功率或性能排名；当前证据不足以估计细选区间。
 
-第66项停止后核对当前进程视图，没有本项目MuJoCo、controller、RViz或诊断runner进程；证据见[进程清理核对](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/postrun_process_check_t1.json)。运行器增加的第2项恢复入口有严格冻结状态门槛；停止后调用生产部分汇总时，发现旧绘图辅助函数在ARRIVED耗时序列引用局部变量错误，并且`attempted`字段按96行而不是有attempt的计划项计数。已做针对性修正、Python编译并重新生成当前部分结果表、图表和代表时间线清单；不涉及任何场景重跑。第67–96项保持未运行，需Director后续决定；本轮不细选、不用留出集、不提交Git。
+第66项停止后核对当前进程视图，没有本项目MuJoCo、controller、RViz或诊断runner进程；证据见[进程清理核对](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/postrun_process_check_t1.json)。运行器增加的第2项恢复入口有严格冻结状态门槛；停止后调用生产部分汇总时，发现旧绘图辅助函数在ARRIVED耗时序列引用局部变量错误，并且`attempted`字段按96行而不是有attempt的计划项计数。已做针对性修正、Python编译并重新生成当前部分结果表、图表和代表时间线清单；不涉及任何场景重跑。第67–96项保持未运行，需Director后续决定；本轮不细选、不用留出集、不提交Git。
 
 此前的reader离线修复和首次批次记录如下，均为历史阶段，不覆盖上述最新续跑状态。
 
@@ -128,17 +128,17 @@ reader源码在获取一致快照前调用`time.monotonic_ns()`，随后再打�
 | INVALID或停止项 | 1个计划项 | dev03 / B / X=-0.17，直接准入快照为`future_timestamp`；保留INVALID |
 | 未启动 | 94 | 计划项3–96 |
 
-逐计划项汇总、逐attempt台账、冻结计划和部分图表位于[批次目录](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/)。原始首项失败不改写；获准补做写入独立`attempt_02`目录。
+逐计划项汇总、逐attempt台账、冻结计划和部分图表位于[批次目录](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/)。原始首项失败不改写；获准补做写入独立`attempt_02`目录。
 
 ## GLFW执行环境一致性
 
 本次最小GLFW预检与真实批次入口在同一获准的沙箱外父执行进程中顺序运行。预检通过后，启动批次的Python进程及其MuJoCo/ROS子进程继承同一授权执行上下文。预检与仿真使用相同的用户`lidio`（uid/euid 1000）、`DISPLAY=:0`、`XAUTHORITY=/run/user/1000/gdm/Xauthority`、`MUJOCO_GL=glfw`及MuJoCo运行时`LD_LIBRARY_PATH`；授权文件可读。Anaconda Python没有加入仿真库搜索路径。
 
-预检建立并关闭16×16隐藏窗口，renderer为Intel / Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6。预检二进制和MuJoCo实际主程序都加载`/usr/lib/x86_64-linux-gnu/libglfw.so.3`；详细用户、环境、renderer及两者`ldd`输出见[同环境预检记录](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/glfw_same_environment_preflight.json)。此次实际MuJoCo成功初始化GLFW并发布本次物理authority，首项补跑通过；因此之前沙箱探针与实际仿真权限不一致的问题在本次补跑路径中得到运行证据支持。没有修改桌面授权、驱动或全局环境。
+预检建立并关闭16×16隐藏窗口，renderer为Intel / Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6。预检二进制和MuJoCo实际主程序都加载`/usr/lib/x86_64-linux-gnu/libglfw.so.3`；详细用户、环境、renderer及两者`ldd`输出见[同环境预检记录](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/glfw_same_environment_preflight.json)。此次实际MuJoCo成功初始化GLFW并发布本次物理authority，首项补跑通过；因此之前沙箱探针与实际仿真权限不一致的问题在本次补跑路径中得到运行证据支持。没有修改桌面授权、驱动或全局环境。
 
 ## 历史首项补跑：dev03 / B / X=-0.15
 
-计划项`001_m1ssd01_x15_r1`的原始attempt为`STARTUP_FAILURE / INVALID`，`mujoco.log`记录`could not initialize GLFW`；该记录保留在[原始attempt目录](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/runs/001_m1ssd01_x15_r1/result/B/rep_01/81cc988dca294a9d8490f1f287333919/)。用户授权的唯一补做保存到[attempt_02](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/runs/001_m1ssd01_x15_r1/attempt_02/result/B/rep_01/7d9ba20b205b4704af31ff6bac290f14/)，没有覆盖前一条。
+计划项`001_m1ssd01_x15_r1`的原始attempt为`STARTUP_FAILURE / INVALID`，`mujoco.log`记录`could not initialize GLFW`；该记录保留在[原始attempt目录](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/runs/001_m1ssd01_x15_r1/result/B/rep_01/81cc988dca294a9d8490f1f287333919/)。用户授权的唯一补做保存到[attempt_02](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/runs/001_m1ssd01_x15_r1/attempt_02/result/B/rep_01/7d9ba20b205b4704af31ff6bac290f14/)，没有覆盖前一条。
 
 实际来源确认controller/writer/session、模型及配置对应本次B overlay；消费组别B、E=-0.05、X约-0.15、滞回开启、保持关闭、目标(7.5,0)。采集器在启动前就绪。周期0与初态companion同session/cycle关联，周期0及终止帧payload均持久化。策略任务窗口cycle 0–1001连续、无周期缺口、无无效策略时钟；全run共保存1082帧，producer与consumer均为1082，最终排空完成。
 
@@ -163,21 +163,21 @@ reader源码在获取一致快照前调用`time.monotonic_ns()`，随后再打�
 
 原始attempt_01在修复前因pre-task base-bounds snapshot `INVALID / future_timestamp`、age -163750 ns而拒绝RL，结果为`PREPARATION_FAILURE / INVALID`，0策略帧、没有实际配置消费或任务指标；历史原始数据未改写。terminal稍后记录的step 3136 `STALE / snapshot_expired`属于另一个采集覆盖检查，不是准入失败原因。计划项同一冻结ID下的有效attempt_02和最新结果见本报告顶部。
 
-原始记录：[run_context](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/runs/002_m1ssd01_x17_r1/result/B/rep_01/33a9ddddc59a44e3a41e358e95b3704f/run_context.json)、[terminal](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/runs/002_m1ssd01_x17_r1/result/B/rep_01/33a9ddddc59a44e3a41e358e95b3704f/terminal.json)和[process facts](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/runs/002_m1ssd01_x17_r1/result/B/rep_01/33a9ddddc59a44e3a41e358e95b3704f/process_facts.json)。没有重试，也未启动计划项3–96。
+原始记录：[run_context](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/runs/002_m1ssd01_x17_r1/result/B/rep_01/33a9ddddc59a44e3a41e358e95b3704f/run_context.json)、[terminal](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/runs/002_m1ssd01_x17_r1/result/B/rep_01/33a9ddddc59a44e3a41e358e95b3704f/terminal.json)和[process facts](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/runs/002_m1ssd01_x17_r1/result/B/rep_01/33a9ddddc59a44e3a41e358e95b3704f/process_facts.json)。没有重试，也未启动计划项3–96。
 
 ## 图表与批次汇总（按2026-10-16停止状态重新生成）
 
-部分结果表按计划项显示最新attempt；完整历史attempt见[attempt台账CSV](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/coarse_attempt_results.csv)。计划项CSV、attempt CSV和[机器可读摘要](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/coarse_partial_summary.json)分别保留VALID结果、安全分析冲突停止项、历史INVALID attempt及未启动分母。最新摘要为83项有attempt、86次attempt、82项有效任务结果、第83项安全分析冲突停止、13项未启动；本段后续2026-10-15文字仅描述当时状态。
+部分结果表按计划项显示最新attempt；完整历史attempt见[attempt台账CSV](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/coarse_attempt_results.csv)。计划项CSV、attempt CSV和[机器可读摘要](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/coarse_partial_summary.json)分别保留VALID结果、安全分析冲突停止项、历史INVALID attempt及未启动分母。最新摘要为83项有attempt、86次attempt、82项有效任务结果、第83项安全分析冲突停止、13项未启动；本段后续2026-10-15文字仅描述当时状态。
 
 当前诊断图只纳入有VALID任务结果的计划项；无效启动/准备失败与安全覆盖UNKNOWN停止项留在台账/执行状态图中，不冒充导航终局：
 
-- [粗选计划执行状态：82有效、1安全分析冲突停止、13未启动](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/execution_status.png)
-- [有效记录终局构成](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/terminal_composition.png)
-- [短反向切换频率](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/short_reverse_switch_count.png)
-- [Recovery占比](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/recovery_share_valid_motion_time.png)
-- [到达耗时](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/elapsed_task_duration_s.png)：仅ARRIVED有效样本有到达耗时，样本数见图标题/表格。
-- [地图×阈值ARRIVED热图](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/map_threshold_heatmap.png)：只反映已运行且VALID的粗略计数，覆盖未满，不能排名。
-- [按预定规则选取的代表时间线清单](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/representative_timelines.json)；原始逐run时间线位于各计划项结果目录中。
+- [粗选计划执行状态：82有效、1安全分析冲突停止、13未启动](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/execution_status.png)
+- [有效记录终局构成](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/terminal_composition.png)
+- [短反向切换频率](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/short_reverse_switch_count.png)
+- [Recovery占比](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/recovery_share_valid_motion_time.png)
+- [到达耗时](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/elapsed_task_duration_s.png)：仅ARRIVED有效样本有到达耗时，样本数见图标题/表格。
+- [地图×阈值ARRIVED热图](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/map_threshold_heatmap.png)：只反映已运行且VALID的粗略计数，覆盖未满，不能排名。
+- [按预定规则选取的代表时间线清单](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/representative_timelines.json)；原始逐run时间线位于各计划项结果目录中。
 
 图仅展示部分粗选覆盖，不足以比较阈值优劣或估计细选区间。
 
@@ -186,7 +186,7 @@ reader源码在获取一致快照前调用`time.monotonic_ns()`，随后再打�
 - （历史截至2026-10-15）65个有效计划结果覆盖多个阈值，但粗选在第66项停批、30项未启动；当时不足以给出完整矩阵比较或细选区间。当前覆盖和结论以本报告顶部2026-10-16章节为准。
 - 第66项`SYSTEM_SAFETY_ABORT`与PASSIVE确认保留；其记录及最终排空完整，但任务终止周期/物理窗口边界缺失，所以碰撞和跌倒结论为UNKNOWN。该缺口触发停批，没有重试。
 - 第2项恢复入口、attempt级CSV和部分汇总已针对续跑核对；汇总工具的两个定向缺陷修正后，表、图和代表时间线清单重新生成。生产base-bounds读取标准没有放宽。
-- 最终[进程清理核对](../../../../logs/s6_12/b_exit_coarse/20261015_192706_3/postrun_process_check_t1.json)未发现本任务MuJoCo、controller、RViz或诊断runner残留。第2项及之后逐项process facts均显示shutdown/closeout完成；第66项controller PASSIVE转换已确认。GLFW预检窗口已关闭。
+- 最终[进程清理核对](../../../../logs/01_T1_exit_threshold/legacy_coarse_S6_12/b_exit_coarse/20261015_192706_3/postrun_process_check_t1.json)未发现本任务MuJoCo、controller、RViz或诊断runner残留。第2项及之后逐项process facts均显示shutdown/closeout完成；第66项controller PASSIVE转换已确认。GLFW预检窗口已关闭。
 - 留出集没有用于运行或选参；未启动细选、训练、正式实验或实机测试；未提交Git。历史原始运行保持不变。
 
 （历史截至2026-10-15：T1保持ACTIVE / INCOMPLETE，阶段2粗选尚未完成；第67–96项是否续跑、如何补足第66项终止边界等待Director审阅。当前状态以本报告顶部为准。）

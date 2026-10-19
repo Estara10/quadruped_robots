@@ -42,7 +42,7 @@
 
 ## 原始、派生结果与绘图
 
-原始逐run数据、context、terminal、process facts、metrics、运行器日志及分组分析保存在[本批原始目录](../../../../../logs/t1/b_exit_validation_400/20261016_131943_26/)。400行逐run表、401行attempt表、80行地图×阈值表、8档汇总和地图聚类区间均通过[结果索引](RESULT_INDEX.md)访问。
+原始逐run数据、context、terminal、process facts、metrics、运行器日志及分组分析保存在[本批原始目录](../../../../../logs/01_T1_exit_threshold/b_exit_validation_400/20261016_131943_26/)。400行逐run表、401行attempt表、80行地图×阈值表、8档汇总和地图聚类区间均通过[结果索引](RESULT_INDEX.md)访问。
 
 第一次完成400项后，运行器在生成短反向频率图时因绘图函数默认lambda引用未绑定的`field`而退出，`batch_runner_exit.json`保留了原退出码1。该错误发生在场景运行完成之后，不是运行或原始记录故障。已仅修正绘图函数的默认值绑定，重新生成派生汇总和图表；未重跑场景、未修改任何原始记录。400个成功attempt的台账状态也已从陈旧的`RUNNING`更新为`VALID_TASK_RESULT`，第一次解析失败仍单列为`ENGINEERING_FAILURE_REPAIRED`。
 

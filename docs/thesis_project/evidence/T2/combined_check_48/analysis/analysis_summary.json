@@ -1,0 +1,112 @@
+{
+  "runs": 48,
+  "valid": 48,
+  "terminals": {
+    "ARRIVED": 36,
+    "DIAGNOSTIC_SIM_TIME_LIMIT": 7,
+    "COLLISION_TERMINATION": 5
+  },
+  "groups": {
+    "A": {
+      "n": 12,
+      "arrived": 9,
+      "collision_termination": 2,
+      "simulation_time_limit": 1,
+      "nonfoot_collision": {
+        "False": 10,
+        "True": 2
+      },
+      "fall": {
+        "False": 12
+      },
+      "hold_audit": {
+        "not_observed": 12
+      },
+      "hold_episodes": 0,
+      "hold_episodes_complete": 0,
+      "hold_episodes_incomplete": 0,
+      "hold_violations": 0
+    },
+    "B": {
+      "n": 12,
+      "arrived": 10,
+      "collision_termination": 2,
+      "simulation_time_limit": 0,
+      "nonfoot_collision": {
+        "False": 10,
+        "True": 2
+      },
+      "fall": {
+        "False": 12
+      },
+      "hold_audit": {
+        "not_observed": 12
+      },
+      "hold_episodes": 0,
+      "hold_episodes_complete": 0,
+      "hold_episodes_incomplete": 0,
+      "hold_violations": 0
+    },
+    "C": {
+      "n": 12,
+      "arrived": 9,
+      "collision_termination": 1,
+      "simulation_time_limit": 2,
+      "nonfoot_collision": {
+        "False": 11,
+        "True": 1
+      },
+      "fall": {
+        "False": 12
+      },
+      "hold_audit": {
+        "pass": 11,
+        "incomplete": 1
+      },
+      "hold_episodes": 198,
+      "hold_episodes_complete": 197,
+      "hold_episodes_incomplete": 1,
+      "hold_violations": 0
+    },
+    "D": {
+      "n": 12,
+      "arrived": 8,
+      "collision_termination": 0,
+      "simulation_time_limit": 4,
+      "nonfoot_collision": {
+        "False": 12
+      },
+      "fall": {
+        "False": 12
+      },
+      "hold_audit": {
+        "pass": 11,
+        "incomplete": 1
+      },
+      "hold_episodes": 218,
+      "hold_episodes_complete": 217,
+      "hold_episodes_incomplete": 1,
+      "hold_violations": 0
+    }
+  },
+  "run_integrity_issue_count": 0,
+  "run_integrity_issues": [],
+  "all_shutdown_closeout_confirmed": true,
+  "all_cycle_history_drained": true,
+  "all_cycle0_exactly_persisted": true,
+  "pre_scene_orchestration_failures": [
+    {
+      "sequence": 1,
+      "attempt": 1,
+      "reason": "pre-scene CLI validation failure: manual_ab_compare validates X<E for all groups; A had received inert CLI fallback X=E, and rejected it before recorder/MuJoCo launch",
+      "evidence": "logs/t2/combined_check_48/20261019_1358_01_seed2026101901/runs/001_r1_e03_A/console.log",
+      "scene_attempts_consumed": 0
+    },
+    {
+      "sequence": 1,
+      "attempt": 2,
+      "reason": "The first no-scene CLI failure left its console/producer directory; runner did not allocate a fresh invocation subdirectory before retry and raised FileExistsError.",
+      "scene_attempts_consumed": 0
+    }
+  ]
+}

@@ -183,10 +183,10 @@ S=40a+30s+20e+10q，满分100。先逐run非线性变换，再对同地图同阈
 
 ## 9. 仓库来源索引
 
-- [第一轮400次评分说明](../../logs/t1/b_exit_validation_400/20261016_131943_26/weighted_score_v1/REPORT.md)
+- [第一轮400次评分说明](../../logs/01_T1_exit_threshold/b_exit_validation_400/20261016_131943_26/weighted_score_v1/REPORT.md)
 - [第一轮400次执行报告](evidence/S6-12/expanded_400/S6-12_EXECUTION_REPORT.md)
 - [第二轮M2报告](evidence/T1/m2_round2/T1_M2_ROUND2_EXECUTION_REPORT.md)
 - [第三轮两档36图报告](evidence/T1/two_thresholds_36_maps/T1_TWO_THRESHOLDS_36_EXECUTION_REPORT.md)
-- [第三轮结果摘要](../../logs/t1/two_thresholds_36_maps/20261016_211029_3/RESULTS_SUMMARY.md)
+- [第三轮结果摘要](../../logs/01_T1_exit_threshold/two_thresholds_36_maps/20261016_211029_3/RESULTS_SUMMARY.md)
 
 本文只汇集既有结果用于咨询；没有运行新仿真、模型或测试，没有修改原始记录或评分，也没有提交Git。

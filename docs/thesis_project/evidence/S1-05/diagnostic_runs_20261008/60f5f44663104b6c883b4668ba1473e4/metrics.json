@@ -1,0 +1,32 @@
+{
+  "run_id": "60f5f44663104b6c883b4668ba1473e4",
+  "record_validity": "INVALID",
+  "record_validity_reason_count": 1,
+  "record_validity_reasons": [
+    "no_frame_lines"
+  ],
+  "terminal_result": "STARTUP_FAILURE",
+  "run_terminal_result_context": "STARTUP_FAILURE",
+  "run_terminal_result_record": "STARTUP_FAILURE",
+  "session_ids_observed": [],
+  "frame_count": 0,
+  "all_derived_metrics": "UNKNOWN: record fails continuity/schema validation; no aggregation across sessions",
+  "collision_coverage": {
+    "available": false,
+    "reason": "versioned collision snapshot is missing, stale, invalid, has unknown contacts, or lacks contiguous publisher coverage",
+    "event_count": null,
+    "coverage": {
+      "samples": 0,
+      "live_samples": 0,
+      "unknown_contacts": 0,
+      "physics_step_gaps": 0,
+      "sampled_steps_contiguous": false,
+      "producer_physics_coverage_complete": false,
+      "complete_for_no_collision_claim": false,
+      "scope": "whole captured interval; motion boundary is evaluated by S1 analyzer"
+    }
+  },
+  "external_safety_events": [],
+  "cleanup_events": [],
+  "command_consumption": "UNKNOWN"
+}

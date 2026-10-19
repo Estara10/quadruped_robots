@@ -1,0 +1,41 @@
+{
+  "run_id": "121051ab9a1d474a820563ddde740856",
+  "record_validity": "INVALID",
+  "record_validity_reason_count": 974,
+  "record_validity_reasons": [
+    "invalid_payload:12:collision_snapshot_invalid_source",
+    "invalid_payload:132:collision_snapshot_invalid_source",
+    "invalid_payload:186:collision_snapshot_invalid_source",
+    "invalid_payload:211:collision_snapshot_invalid_source",
+    "invalid_payload:366:collision_snapshot_invalid_source",
+    "invalid_payload:384:collision_snapshot_invalid_source",
+    "invalid_payload:385:collision_snapshot_invalid_source",
+    "invalid_payload:423:collision_snapshot_invalid_source",
+    "invalid_payload:453:collision_snapshot_invalid_source",
+    "monotonic_time_not_strictly_increasing",
+    "rl_step_not_strictly_increasing",
+    "session_id_changed"
+  ],
+  "terminal_result": "INCOMPLETE_UNTRUSTED_RECORD",
+  "session_ids_observed": [
+    16478219458311,
+    16478220701166
+  ],
+  "frame_count": 832,
+  "all_derived_metrics": "UNKNOWN: record fails continuity/schema validation; no aggregation across sessions",
+  "collision_coverage": {
+    "available": false,
+    "reason": "formal collision snapshot is missing, stale, invalid, has unknown contacts, or lacks contiguous coverage",
+    "event_count": null,
+    "coverage": {
+      "samples": 823,
+      "live_samples": 823,
+      "unknown_contacts": 0,
+      "physics_step_gaps": 3571,
+      "sampled_steps_contiguous": false,
+      "complete_for_no_collision_claim": false
+    }
+  },
+  "external_safety_events": [],
+  "command_consumption": "UNKNOWN"
+}

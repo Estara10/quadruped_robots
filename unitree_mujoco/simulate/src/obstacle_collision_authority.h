@@ -3,25 +3,33 @@
 #include <mujoco/mujoco.h>
 
 #include <array>
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
 #include <limits>
+#include <iostream>
+#include <map>
 #include <string>
 #include <sys/mman.h>
 #include <unistd.h>
 #include <vector>
+#include <cstdio>
 
 #include "abs_collision_contract.h"
+#include "abs_base_bounds_contract.h"
 #include "abs_collision_model_fingerprint.h"
+#include "abs_scene_catalog.h"
+#include "abs_safety_rules.h"
+#include "foot_contact_policy.h"
+#include "physics_coverage_diagnostic.h"
 
-// Minimal Stage-B authority for the canonical obstacle_test1 model.  The
-// bridge's legacy integer telemetry is deliberately not consulted here.
+// Versioned collision authority for the explicitly supported S2 scene set.
 class ObstacleCollisionAuthority {
  public:
-  ObstacleCollisionAuthority() {
+  explicit ObstacleCollisionAuthority(const char* shm_name = abs_collision::kShmName) {
     const char* scenario = std::getenv("ABS_P1_10_SCENARIO_ID");
     const char* root = std::getenv("ABS_P1_10_ROOT_XML_SHA256");
     const char* closure = std::getenv("ABS_P1_10_MODEL_CLOSURE_SHA256");
@@ -32,12 +40,17 @@ class ObstacleCollisionAuthority {
     closure_sha256_ = closure == nullptr ? "" : closure;
     capture_id_ = capture == nullptr ? "" : capture;
     expected_fingerprint_ = expected == nullptr ? "" : expected;
-    capture_binding_valid_ = scenario_id_ == kScenarioId &&
-                             root_sha256_ == kSceneRootSha256 &&
-                             closure_sha256_ == kModelClosureSha256 &&
+    scene_spec_ = abs_scene::byId(scenario_id_);
+    capture_binding_valid_ = scene_spec_ != nullptr &&
+                             scenario_id_.size() < abs_collision::kScenarioIdBytes &&
+                             root_sha256_ == scene_spec_->root_sha256 &&
+                             closure_sha256_ == scene_spec_->closure_sha256 &&
+                             expected_fingerprint_ == scene_spec_->model_fingerprint &&
                              validHex(capture_id_, 32, "p1-10-capture-") &&
                              validHex(expected_fingerprint_, 64, "");
-    fd_ = shm_open(abs_collision::kShmName, O_CREAT | O_RDWR, 0666);
+    shm_name_ = shm_name == nullptr ? abs_collision::kShmName : shm_name;
+    const mode_t shm_mode = shm_name_ == abs_collision::kShmName ? 0666 : 0600;
+    fd_ = shm_open(shm_name_.c_str(), O_CREAT | O_RDWR, shm_mode);
     if (fd_ < 0) return;
     if (ftruncate(fd_, static_cast<off_t>(sizeof(abs_collision::Snapshot))) != 0) {
       close(fd_);
@@ -59,11 +72,15 @@ class ObstacleCollisionAuthority {
     abs_collision::storeRelease(&ptr_->magic, abs_collision::kMagic);
     abs_collision::storeRelease(&ptr_->version, abs_collision::kVersion);
     abs_collision::storeRelease(&ptr_->sequence, 2);
+    initBaseBoundsPublisher();
   }
 
   ~ObstacleCollisionAuthority() {
     if (ptr_ != nullptr && ptr_ != MAP_FAILED) munmap(ptr_, sizeof(abs_collision::Snapshot));
     if (fd_ >= 0) close(fd_);
+    if (bounds_ptr_ != nullptr && bounds_ptr_ != MAP_FAILED)
+      munmap(bounds_ptr_, sizeof(abs_base_bounds::Snapshot));
+    if (bounds_fd_ >= 0) close(bounds_fd_);
   }
 
   ObstacleCollisionAuthority(const ObstacleCollisionAuthority&) = delete;
@@ -77,6 +94,7 @@ class ObstacleCollisionAuthority {
   // No policy/controller inputs or physical state are modified.
   void publish(const mjModel* model, const mjData* data, uint64_t physics_step) {
     if (!available()) return;
+    current_model_ = model;
     abs_collision::Snapshot local{};
     local.magic = abs_collision::kMagic;
     local.version = abs_collision::kVersion;
@@ -85,6 +103,51 @@ class ObstacleCollisionAuthority {
     local.sim_time = data == nullptr ? std::numeric_limits<double>::quiet_NaN() : data->time;
     local.last_robot_geom_id = -1;
     local.last_obstacle_geom_id = -1;
+    local.v5 = foot_state_;
+    local.v5.nonfoot_obstacle_contacts = 0;
+    local.v5.foot_obstacle_contacts = 0;
+    local.v5.foot_contact_mask = 0;
+    local.v5.foot_impact_mask = 0;
+    local.v5.foot_impact_unknown_mask = 0;
+    local.v5.foot_force_valid_mask = 0;
+    std::memset(local.v5.foot_world_force, 0, sizeof(local.v5.foot_world_force));
+    std::memset(local.v5.foot_fxy, 0, sizeof(local.v5.foot_fxy));
+    std::memset(local.v5.foot_abs_fz, 0, sizeof(local.v5.foot_abs_fz));
+    std::memset(local.v5.foot_impact_threshold, 0, sizeof(local.v5.foot_impact_threshold));
+    local.collision_contact_steps = collision_contact_steps_;
+    local.collision_episode_count = collision_episode_count_;
+    local.last_collision_start_step = last_collision_start_step_;
+    local.last_collision_end_step = last_collision_end_step_;
+    local.collision_duration_s = collision_duration_s_;
+    local.last_collision_start_sim_time = last_collision_start_sim_time_;
+    local.last_collision_end_sim_time = last_collision_end_sim_time_;
+    local.fall_start_sim_time = fall_tracker_.start_sim_time;
+    local.fall_confirmed_sim_time = fall_tracker_.confirmed_sim_time;
+    local.fall_start_physics_step = fall_tracker_.start_physics_step;
+    local.fall_confirmed_physics_step = fall_tracker_.confirmed_physics_step;
+    local.fall_candidate = fall_tracker_.candidate ? 1U : 0U;
+    local.fall_confirmed = fall_tracker_.confirmed ? 1U : 0U;
+    local.collision_history_count = static_cast<uint32_t>(
+        std::min<uint64_t>(collision_episode_count_, abs_collision::kCollisionEventCapacity));
+    local.collision_history_overflow = collision_episode_count_ > abs_collision::kCollisionEventCapacity ? 1U : 0U;
+    local.physics_coverage_complete = physics_coverage_complete_ ? 1U : 0U;
+    local.unknown_contact_steps = unknown_contact_steps_;
+    local.unknown_contact_episodes = unknown_contact_episodes_;
+    local.first_unknown_contact_step = first_unknown_contact_step_;
+    local.last_unknown_contact_step = last_unknown_contact_step_;
+    local.first_unknown_contact_sim_time = first_unknown_contact_sim_time_;
+    local.last_unknown_contact_sim_time = last_unknown_contact_sim_time_;
+    local.invalid_posture_steps = invalid_posture_steps_;
+    local.invalid_posture_episodes = invalid_posture_episodes_;
+    local.first_invalid_posture_step = first_invalid_posture_step_;
+    local.last_invalid_posture_step = last_invalid_posture_step_;
+    local.first_invalid_posture_sim_time = first_invalid_posture_sim_time_;
+    local.last_invalid_posture_sim_time = last_invalid_posture_sim_time_;
+    local.fall_history_count = static_cast<uint32_t>(
+        std::min<uint64_t>(fall_tracker_.generation, abs_collision::kFallEventCapacity));
+    local.fall_history_overflow = fall_tracker_.generation > abs_collision::kFallEventCapacity ? 1U : 0U;
+    std::memcpy(local.fall_history, fall_history_.data(), sizeof(local.fall_history));
+    std::memcpy(local.collision_history, collision_history_.data(), sizeof(local.collision_history));
 
     std::vector<int> obstacle_ids;
     if (model != nullptr) {
@@ -99,19 +162,43 @@ class ObstacleCollisionAuthority {
     const bool fingerprint_bound = capture_binding_valid_ &&
                                    !runtime_fingerprint_.empty() &&
                                    runtime_fingerprint_ == expected_fingerprint_;
+    const bool scene_geometries_bound = model != nullptr &&
+        abs_scene::selectObstacleGeoms(model, scene_spec_, obstacle_ids, &scene_error_);
+    if (model != nullptr && !foot_geoms_resolved_) {
+      foot_geom_set_valid_ = abs_foot::resolveFootGeoms(model, &foot_geoms_, &foot_error_);
+      foot_geoms_resolved_ = true;
+    }
     const bool bound = model != nullptr && data != nullptr && physics_step > 0 &&
-                       capture_binding_valid_ && fingerprint_bound &&
-                       modelIdentityMatches(model, obstacle_ids);
+                       capture_binding_valid_ && fingerprint_bound && foot_geom_set_valid_ &&
+                       scene_geometries_bound;
+    publishBaseBounds(model, data, physics_step, bound);
     if (!bound) {
+      if (previous_physics_step_ != 0) {
+        markPhysicsCoverageIncomplete("authority_not_bound", model, data, physics_step,
+            local.sim_time, capture_binding_valid_, fingerprint_bound,
+            foot_geom_set_valid_, scene_geometries_bound);
+      }
+      fall_tracker_.candidate = false;
+      fall_tracker_.start_sim_time = 0.0;
+      fall_tracker_.start_physics_step = 0;
       local.invalid_reason = physics_step == 0 ? abs_collision::kInvalidPhysicsStep
                            : !capture_binding_valid_ ? abs_collision::kInvalidCaptureIdentity
                            : !fingerprint_bound ? abs_collision::kInvalidModelFingerprint
+                           : !foot_geom_set_valid_ ? abs_collision::kInvalidFootGeometryIdentity
                            : abs_collision::kInvalidModelIdentity;
       previous_valid_ = false;
       commit(local);
       return;
     }
     if (!std::isfinite(local.sim_time) || local.monotonic_ns == 0) {
+      if (previous_physics_step_ != 0) {
+        markPhysicsCoverageIncomplete("nonfinite_sim_time_or_monotonic_clock", model, data,
+            physics_step, local.sim_time, capture_binding_valid_, fingerprint_bound,
+            foot_geom_set_valid_, scene_geometries_bound);
+      }
+      fall_tracker_.candidate = false;
+      fall_tracker_.start_sim_time = 0.0;
+      fall_tracker_.start_physics_step = 0;
       local.invalid_reason = abs_collision::kInvalidNonFiniteState;
       previous_valid_ = false;
       commit(local);
@@ -122,10 +209,36 @@ class ObstacleCollisionAuthority {
     copyField(local.scenario_id, sizeof(local.scenario_id), scenario_id_);
     copyField(local.scene_root_sha256, sizeof(local.scene_root_sha256), root_sha256_);
     copyField(local.model_closure_sha256, sizeof(local.model_closure_sha256), closure_sha256_);
+    if (!scene_identity_logged_) {
+      std::cout << "[ABS-SCENE-AUTHORITY] scene_id=" << scenario_id_
+                << " root_sha256=" << root_sha256_
+                << " model_closure_sha256=" << closure_sha256_
+                << " runtime_model_fingerprint=" << runtime_fingerprint_
+                << " obstacle_count=" << obstacle_ids.size()
+                << " obstacle_ids=";
+      for (std::size_t i = 0; i < obstacle_ids.size(); ++i) {
+        if (i) std::cout << ",";
+        std::cout << obstacle_ids[i];
+      }
+      std::cout << std::endl;
+      scene_identity_logged_ = true;
+    }
 
+    const auto continuity = abs_physics_coverage::checkContinuity(
+        previous_physics_step_ != 0, previous_physics_step_, previous_sim_time_,
+        physics_step, local.sim_time, model->opt.timestep);
+    const bool continuous_step = continuity.continuous;
+    std::map<uint64_t, FootPairObservation> foot_pairs;
+    std::array<std::array<double, 3>, 4> net_foot_force{};
+    uint32_t force_valid_mask = 0xFU;
     for (int i = 0; i < data->ncon; ++i) {
       const mjContact& contact = data->contact[i];
       const auto kind = classifyContact(model, contact.geom1, contact.geom2, obstacle_ids);
+      const int foot1 = abs_foot::footIndex(foot_geoms_, contact.geom1);
+      const int foot2 = abs_foot::footIndex(foot_geoms_, contact.geom2);
+      const int foot_index = foot1 >= 0 ? foot1 : foot2;
+      const int foot_geom_id = foot1 >= 0 ? contact.geom1 : (foot2 >= 0 ? contact.geom2 : -1);
+      const int other_geom_id = foot1 >= 0 ? contact.geom2 : (foot2 >= 0 ? contact.geom1 : -1);
       if (kind == abs_collision::kContactUnknown) {
         ++local.unknown_contacts;
       } else {
@@ -133,50 +246,371 @@ class ObstacleCollisionAuthority {
         switch (kind) {
           case abs_collision::kContactRobotObstacle:
             ++local.robot_obstacle_contacts;
-            local.last_robot_geom_id = robotGeom(model, contact.geom1, contact.geom2);
-            local.last_obstacle_geom_id = obstacleGeom(contact.geom1, contact.geom2, obstacle_ids);
+            if (!abs_foot::isTerminalRobotObstacleContact(foot_index >= 0)) {
+              ++local.v5.foot_obstacle_contacts;
+              local.v5.foot_contact_mask |= (1U << foot_index);
+              const int obstacle_id = obstacleGeom(contact.geom1, contact.geom2, obstacle_ids);
+              foot_pairs[pairKey(foot_geom_id, obstacle_id)].foot_geom_id = foot_geom_id;
+              foot_pairs[pairKey(foot_geom_id, obstacle_id)].obstacle_geom_id = obstacle_id;
+            } else {
+              ++local.v5.nonfoot_obstacle_contacts;
+              local.last_robot_geom_id = robotGeom(model, contact.geom1, contact.geom2);
+              local.last_obstacle_geom_id = obstacleGeom(contact.geom1, contact.geom2, obstacle_ids);
+            }
             break;
-          case abs_collision::kContactGround: ++local.ground_contacts; break;
+          case abs_collision::kContactGround:
+            ++local.ground_contacts;
+            if (abs_foot::footIndex(foot_geoms_, contact.geom1) >= 0 ||
+                abs_foot::footIndex(foot_geoms_, contact.geom2) >= 0) {
+              ++local.foot_ground_contacts;
+            } else {
+              ++local.nonfoot_ground_contacts;
+            }
+            break;
           case abs_collision::kContactSelf: ++local.self_contacts; break;
           case abs_collision::kContactOther: ++local.other_contacts; break;
           default: break;
         }
         local.last_contact_class = kind;
       }
+      // Match the reference net body-force semantics: sum every known external
+      // foot contact (including floor and obstacle), excluding robot self-contact.
+      if (foot_index >= 0 && other_geom_id >= 0 && !robotGeom(model, other_geom_id)) {
+        if (kind == abs_collision::kContactUnknown || contact.efc_address < 0) {
+          force_valid_mask &= ~(1U << foot_index);
+        } else {
+          mjtNum force_torque[6]{};
+          std::array<double, 3> world{};
+          mj_contactForce(model, data, i, force_torque);
+          if (!abs_foot::contactForceOnFootWorld(contact, force_torque,
+                                                foot1 >= 0, &world)) {
+            force_valid_mask &= ~(1U << foot_index);
+          } else {
+            if (!abs_foot::accumulateWorldForce(&net_foot_force[foot_index], world)) {
+              force_valid_mask &= ~(1U << foot_index);
+            }
+          }
+        }
+      }
     }
-    local.current_collision = local.robot_obstacle_contacts > 0 ? 1 : 0;
-    local.collision_edge = (local.current_collision != 0 &&
-                            (!previous_valid_ || previous_current_collision_ == 0)) ? 1 : 0;
+    local.v5.foot_identity_valid = foot_geom_set_valid_ ? 1U : 0U;
+    local.v5.foot_force_valid_mask = force_valid_mask;
+    local.v5.foot_impact_mask = 0;
+    local.v5.foot_impact_unknown_mask = 0;
+    std::map<uint64_t, FootPairObservation> impact_pairs;
+    for (int foot = 0; foot < 4; ++foot) {
+      for (int axis = 0; axis < 3; ++axis) local.v5.foot_world_force[foot][axis] = net_foot_force[foot][axis];
+      const double fxy = std::hypot(net_foot_force[foot][0], net_foot_force[foot][1]);
+      const double abs_fz = std::fabs(net_foot_force[foot][2]);
+      const double threshold = abs_foot::kImpactVerticalMultiplier * abs_fz + abs_foot::kImpactOffsetN;
+      local.v5.foot_fxy[foot] = fxy;
+      local.v5.foot_abs_fz[foot] = abs_fz;
+      local.v5.foot_impact_threshold[foot] = threshold;
+      if ((local.v5.foot_contact_mask & (1U << foot)) == 0) continue;
+      for (auto& pair : foot_pairs) {
+        if (abs_foot::footIndex(foot_geoms_, pair.second.foot_geom_id) == foot) {
+          pair.second.force_known = (force_valid_mask & (1U << foot)) != 0;
+          pair.second.fxy = fxy;
+          pair.second.abs_fz = abs_fz;
+          pair.second.threshold = threshold;
+        }
+      }
+      if ((force_valid_mask & (1U << foot)) == 0 || !std::isfinite(fxy) ||
+          !std::isfinite(abs_fz) || !std::isfinite(threshold)) {
+        local.v5.foot_impact_unknown_mask |= (1U << foot);
+        continue;
+      }
+      if (!(fxy > threshold)) continue;
+      local.v5.foot_impact_mask |= (1U << foot);
+      for (auto& pair : foot_pairs) {
+        if (abs_foot::footIndex(foot_geoms_, pair.second.foot_geom_id) != foot) continue;
+        pair.second.force_known = true;
+        pair.second.fxy = fxy;
+        pair.second.abs_fz = abs_fz;
+        pair.second.threshold = threshold;
+        impact_pairs.emplace(pair.first, pair.second);
+      }
+    }
+    updateFootEvents(physics_step, local.sim_time, continuous_step, foot_pairs, impact_pairs,
+                     local.v5.foot_impact_unknown_mask, local.v5);
+    if (local.unknown_contacts > 0) {
+      ++unknown_contact_steps_;
+      if (!previous_unknown_contacts_) {
+        ++unknown_contact_episodes_;
+        if (first_unknown_contact_step_ == 0) {
+          first_unknown_contact_step_ = physics_step;
+          first_unknown_contact_sim_time_ = local.sim_time;
+        }
+      }
+      last_unknown_contact_step_ = physics_step;
+      last_unknown_contact_sim_time_ = local.sim_time;
+    }
+    // In v5 only a non-foot robot-obstacle contact is a navigation terminal.
+    local.current_collision = local.v5.nonfoot_obstacle_contacts > 0 ? 1 : 0;
+    local.collision_edge = abs_safety::newCollisionEdge(
+        local.current_collision != 0, previous_valid_, previous_current_collision_ != 0) ? 1 : 0;
+    if (local.collision_edge) {
+      ++collision_episode_count_;
+      last_collision_start_step_ = physics_step;
+      last_collision_start_sim_time_ = local.sim_time;
+      auto& episode = collision_history_[(collision_episode_count_ - 1U) %
+                                         abs_collision::kCollisionEventCapacity];
+      episode = {};
+      episode.start_physics_step = physics_step;
+      episode.end_physics_step = physics_step;
+      episode.start_sim_time = local.sim_time;
+      episode.end_sim_time = local.sim_time;
+      episode.robot_geom_id = local.last_robot_geom_id;
+      episode.obstacle_geom_id = local.last_obstacle_geom_id;
+      copyName(episode.robot_geom_name, sizeof(episode.robot_geom_name),
+               mj_id2name(model, mjOBJ_GEOM, episode.robot_geom_id));
+      copyName(episode.obstacle_geom_name, sizeof(episode.obstacle_geom_name),
+               mj_id2name(model, mjOBJ_GEOM, episode.obstacle_geom_id));
+      const std::size_t slot = (collision_episode_count_ - 1U) % abs_collision::kCollisionEventCapacity;
+      const int body_id = episode.robot_geom_id >= 0 ? model->geom_bodyid[episode.robot_geom_id] : -1;
+      local.v5.nonfoot_collision_body_ids[slot] = body_id;
+      copyName(local.v5.nonfoot_collision_body_names[slot],
+               sizeof(local.v5.nonfoot_collision_body_names[slot]),
+               body_id >= 0 ? mj_id2name(model, mjOBJ_BODY, body_id) : nullptr);
+      foot_state_.nonfoot_collision_body_ids[slot] = body_id;
+      copyName(foot_state_.nonfoot_collision_body_names[slot],
+               sizeof(foot_state_.nonfoot_collision_body_names[slot]),
+               body_id >= 0 ? mj_id2name(model, mjOBJ_BODY, body_id) : nullptr);
+    }
+    if (local.current_collision) {
+      ++collision_contact_steps_;
+      last_collision_end_step_ = physics_step;
+      last_collision_end_sim_time_ = local.sim_time;
+      if (previous_valid_ && previous_current_collision_ && physics_step == previous_physics_step_ + 1U &&
+          local.sim_time >= previous_sim_time_) {
+        collision_duration_s_ += local.sim_time - previous_sim_time_;
+      }
+      if (collision_episode_count_ > 0) {
+        auto& episode = collision_history_[(collision_episode_count_ - 1U) %
+                                           abs_collision::kCollisionEventCapacity];
+        episode.end_physics_step = physics_step;
+        episode.end_sim_time = local.sim_time;
+      }
+    }
+    if (!continuous_step) {
+      markPhysicsCoverageIncomplete(continuity.reason, model, data, physics_step,
+          local.sim_time, capture_binding_valid_, fingerprint_bound,
+          foot_geom_set_valid_, scene_geometries_bound);
+    }
+    updateFallState(model, data, physics_step, local.sim_time, continuous_step, local);
+    local.v5.reserved_flags = fall_tracker_.condition_flags;
+    if (fall_tracker_.generation > 0) {
+      auto& episode = fall_history_[(fall_tracker_.generation - 1U) % abs_collision::kFallEventCapacity];
+      if (episode.start_physics_step != fall_tracker_.start_physics_step) {
+        episode = {};
+        episode.start_physics_step = fall_tracker_.start_physics_step;
+        episode.start_sim_time = fall_tracker_.start_sim_time;
+      }
+      episode.start_physics_step = fall_tracker_.start_physics_step;
+      episode.end_physics_step = fall_tracker_.end_physics_step;
+      episode.start_sim_time = fall_tracker_.start_sim_time;
+      episode.end_sim_time = fall_tracker_.end_sim_time;
+      if (fall_tracker_.confirmed) {
+        episode.confirmed_physics_step = fall_tracker_.confirmed_physics_step;
+        episode.confirmed_sim_time = fall_tracker_.confirmed_sim_time;
+        episode.confirmed = 1U;
+      }
+      episode.closed = fall_tracker_.active ? 0U : 1U;
+    }
+    local.unknown_contact_steps = unknown_contact_steps_;
+    local.unknown_contact_episodes = unknown_contact_episodes_;
+    local.first_unknown_contact_step = first_unknown_contact_step_;
+    local.last_unknown_contact_step = last_unknown_contact_step_;
+    local.first_unknown_contact_sim_time = first_unknown_contact_sim_time_;
+    local.last_unknown_contact_sim_time = last_unknown_contact_sim_time_;
+    local.invalid_posture_steps = invalid_posture_steps_;
+    local.invalid_posture_episodes = invalid_posture_episodes_;
+    local.first_invalid_posture_step = first_invalid_posture_step_;
+    local.last_invalid_posture_step = last_invalid_posture_step_;
+    local.first_invalid_posture_sim_time = first_invalid_posture_sim_time_;
+    local.last_invalid_posture_sim_time = last_invalid_posture_sim_time_;
+    local.fall_history_count = static_cast<uint32_t>(
+        std::min<uint64_t>(fall_tracker_.generation, abs_collision::kFallEventCapacity));
+    local.fall_history_overflow = fall_tracker_.generation > abs_collision::kFallEventCapacity ? 1U : 0U;
+    std::memcpy(local.fall_history, fall_history_.data(), sizeof(local.fall_history));
+    previous_unknown_contacts_ = local.unknown_contacts > 0;
+    local.collision_contact_steps = collision_contact_steps_;
+    local.collision_episode_count = collision_episode_count_;
+    local.last_collision_start_step = last_collision_start_step_;
+    local.last_collision_end_step = last_collision_end_step_;
+    local.collision_duration_s = collision_duration_s_;
+    local.last_collision_start_sim_time = last_collision_start_sim_time_;
+    local.last_collision_end_sim_time = last_collision_end_sim_time_;
+    local.fall_start_sim_time = fall_tracker_.start_sim_time;
+    local.fall_confirmed_sim_time = fall_tracker_.confirmed_sim_time;
+    local.fall_start_physics_step = fall_tracker_.start_physics_step;
+    local.fall_confirmed_physics_step = fall_tracker_.confirmed_physics_step;
+    local.fall_candidate = fall_tracker_.candidate ? 1U : 0U;
+    local.fall_confirmed = fall_tracker_.confirmed ? 1U : 0U;
+    local.collision_history_count = static_cast<uint32_t>(
+        std::min<uint64_t>(collision_episode_count_, abs_collision::kCollisionEventCapacity));
+    local.collision_history_overflow = collision_episode_count_ > abs_collision::kCollisionEventCapacity ? 1U : 0U;
+    local.physics_coverage_complete = physics_coverage_complete_ ? 1U : 0U;
+    std::memcpy(local.collision_history, collision_history_.data(), sizeof(local.collision_history));
+    foot_state_ = local.v5;
     previous_current_collision_ = local.current_collision;
     previous_valid_ = true;
+    previous_physics_step_ = physics_step;
+    previous_sim_time_ = local.sim_time;
     commit(local);
   }
 
  private:
-  struct Signature { int type; double pos[3]; double size[3]; };
+  void markPhysicsCoverageIncomplete(const char* reason, const mjModel* model,
+                                     const mjData* data, uint64_t physics_step,
+                                     double sim_time, bool capture_binding_valid,
+                                     bool fingerprint_bound, bool foot_geometry_valid,
+                                     bool scene_geometries_bound) {
+    if (physics_coverage_complete_) {
+      const double timestep = model == nullptr
+          ? std::numeric_limits<double>::quiet_NaN() : model->opt.timestep;
+      const double delta = sim_time - previous_sim_time_;
+      std::cerr << "[ABS-PHYSICS-COVERAGE-FIRST-LOSS]"
+                << " reason=" << (reason == nullptr ? "unknown" : reason)
+                << " previous_step=" << previous_physics_step_
+                << " current_step=" << physics_step
+                << " expected_step=" << (previous_physics_step_ == 0 ? 1 : previous_physics_step_ + 1)
+                << " previous_sim_time=" << previous_sim_time_
+                << " current_sim_time=" << sim_time
+                << " delta_sim_time=" << delta
+                << " timestep=" << timestep
+                << " capture_id=" << capture_id_
+                << " scene_id=" << scenario_id_
+                << " capture_binding_valid=" << (capture_binding_valid ? 1 : 0)
+                << " fingerprint_bound=" << (fingerprint_bound ? 1 : 0)
+                << " foot_geometry_valid=" << (foot_geometry_valid ? 1 : 0)
+                << " scene_geometries_bound=" << (scene_geometries_bound ? 1 : 0)
+                << " runtime_fingerprint=" << runtime_fingerprint_
+                << " expected_fingerprint=" << expected_fingerprint_
+                << " data_present=" << (data != nullptr ? 1 : 0)
+                << std::endl;
+    }
+    physics_coverage_complete_ = false;
+  }
 
-  static constexpr const char* kScenarioId = "obstacle_test1";
-  static constexpr const char* kSceneRootSha256 =
-      "e12a69fa5463e723d115696b8872c27c71b03a9d029a9ef933343ae93ba6dd5e";
-  static constexpr const char* kModelClosureSha256 =
-      "6ca5da14be6909815ac9c41bf6db0f8108e07082aea5aba22c91e833e6181746";
-  static constexpr std::array<Signature, 7> kObstacleSignatures = {{
-      {mjGEOM_BOX, {4.77821, 1.39196, 0.319396}, {0.178009, 0.177997, 0.0656475}},
-      {mjGEOM_BOX, {4.39779, 0.60669, 0.368633}, {0.110292, 0.584955, 0.315243}},
-      {mjGEOM_BOX, {1.45553, -1.90905, 0.132532}, {0.252121, 0.362378, 0.0856493}},
-      {mjGEOM_BOX, {1.81053, 0.671117, 0.112772}, {0.246072, 0.283181, 0.0786285}},
-      {mjGEOM_BOX, {4.03329, -1.80196, 0.281405}, {0.396207, 0.123225, 0.190589}},
-      {mjGEOM_BOX, {1.26736, -2.60969, 0.476998}, {0.582816, 0.504199, 0.18007}},
-      {mjGEOM_CYLINDER, {1.69268, -1.29487, 0.609958}, {0.252499, 0.609958, 0.609958}},
-  }};
+  void initBaseBoundsPublisher() {
+    const char* configured_name = std::getenv("ABS_BASE_BOUNDS_SHM_NAME");
+    bounds_shm_name_ = configured_name == nullptr ? abs_base_bounds::kShmName : configured_name;
+    if (bounds_shm_name_.empty() || bounds_shm_name_[0] != '/' ||
+        bounds_shm_name_.find('/', 1) != std::string::npos || bounds_shm_name_.size() > 120) {
+      bounds_shm_name_.clear();
+      return;
+    }
+    const char* bx0 = std::getenv("ABS_FIELD_BOUNDS_X_MIN");
+    const char* bx1 = std::getenv("ABS_FIELD_BOUNDS_X_MAX");
+    const char* by0 = std::getenv("ABS_FIELD_BOUNDS_Y_MIN");
+    const char* by1 = std::getenv("ABS_FIELD_BOUNDS_Y_MAX");
+    bounds_config_valid_ = bx0 && bx1 && by0 && by1 &&
+        std::sscanf(bx0, "%lf", &bounds_xmin_) == 1 &&
+        std::sscanf(bx1, "%lf", &bounds_xmax_) == 1 &&
+        std::sscanf(by0, "%lf", &bounds_ymin_) == 1 &&
+        std::sscanf(by1, "%lf", &bounds_ymax_) == 1 &&
+        std::isfinite(bounds_xmin_) && std::isfinite(bounds_xmax_) &&
+        std::isfinite(bounds_ymin_) && std::isfinite(bounds_ymax_) &&
+        bounds_xmin_ < bounds_xmax_ && bounds_ymin_ < bounds_ymax_;
+    const mode_t bounds_mode = bounds_shm_name_ == abs_base_bounds::kShmName ? 0666 : 0600;
+    bounds_fd_ = shm_open(bounds_shm_name_.c_str(), O_CREAT | O_RDWR, bounds_mode);
+    if (bounds_fd_ < 0 || ftruncate(bounds_fd_, sizeof(abs_base_bounds::Snapshot)) != 0) {
+      if (bounds_fd_ >= 0) close(bounds_fd_);
+      bounds_fd_ = -1;
+      return;
+    }
+    bounds_ptr_ = static_cast<abs_base_bounds::Snapshot*>(mmap(
+        nullptr, sizeof(abs_base_bounds::Snapshot), PROT_READ | PROT_WRITE,
+        MAP_SHARED, bounds_fd_, 0));
+    if (bounds_ptr_ == MAP_FAILED) {
+      bounds_ptr_ = nullptr;
+      close(bounds_fd_);
+      bounds_fd_ = -1;
+      return;
+    }
+    abs_base_bounds::Snapshot initial{};
+    initial.magic = abs_base_bounds::kMagic;
+    initial.version = abs_base_bounds::kVersion;
+    initial.monotonic_ns = monotonicNowNs();
+    initial.producer_session_id = initial.monotonic_ns;
+    initial.physics_coverage_complete = 1;
+    initial.bounds_valid = bounds_config_valid_ ? 1U : 0U;
+    initial.xmin = bounds_xmin_; initial.xmax = bounds_xmax_;
+    initial.ymin = bounds_ymin_; initial.ymax = bounds_ymax_;
+    initial.min_observed_x = initial.min_observed_y = std::numeric_limits<double>::infinity();
+    initial.max_observed_x = initial.max_observed_y = -std::numeric_limits<double>::infinity();
+    copyField(initial.scenario_id, sizeof(initial.scenario_id), scenario_id_);
+    copyField(initial.capture_id, sizeof(initial.capture_id), capture_id_);
+    copyField(initial.runtime_model_fingerprint, sizeof(initial.runtime_model_fingerprint), expected_fingerprint_);
+    abs_base_bounds::storeRelease(&bounds_ptr_->sequence, 1U);
+    abs_base_bounds::storeRelease(&bounds_ptr_->magic, initial.magic);
+    abs_base_bounds::storeRelease(&bounds_ptr_->version, initial.version);
+    std::memcpy(reinterpret_cast<char*>(bounds_ptr_) + offsetof(abs_base_bounds::Snapshot, monotonic_ns),
+                reinterpret_cast<const char*>(&initial) + offsetof(abs_base_bounds::Snapshot, monotonic_ns),
+                sizeof(initial) - offsetof(abs_base_bounds::Snapshot, monotonic_ns));
+    abs_base_bounds::storeRelease(&bounds_ptr_->sequence, 2U);
+    initial.sequence = 2U;
+    bounds_state_ = initial;
+  }
+
+  void publishBaseBounds(const mjModel* model, const mjData* data,
+                         uint64_t physics_step, bool authoritative) {
+    if (bounds_ptr_ == nullptr || bounds_ptr_ == MAP_FAILED) return;
+    abs_base_bounds::Snapshot local = bounds_state_;
+    local.monotonic_ns = monotonicNowNs();
+    local.physics_step = physics_step;
+    local.bounds_valid = bounds_config_valid_ && authoritative ? 1U : 0U;
+    local.sim_time = data == nullptr ? std::numeric_limits<double>::quiet_NaN() : data->time;
+    if (last_bounds_step_ == 0) {
+      if (physics_step != 1U) local.physics_coverage_complete = 0U;
+    } else if (physics_step != last_bounds_step_ + 1U) {
+      local.physics_coverage_complete = 0U;
+    }
+    if (!authoritative) local.physics_coverage_complete = 0U;
+    int base_id = model == nullptr ? -1 : mj_name2id(model, mjOBJ_BODY, "base_link");
+    if (data != nullptr && base_id >= 0) {
+      local.base_x = data->xpos[3 * base_id];
+      local.base_y = data->xpos[3 * base_id + 1];
+    } else {
+      local.base_x = local.base_y = std::numeric_limits<double>::quiet_NaN();
+      local.bounds_valid = 0U;
+      local.physics_coverage_complete = 0U;
+    }
+    local.currently_outside = 0U;
+    if (local.bounds_valid && std::isfinite(local.base_x) && std::isfinite(local.base_y)) {
+      local.min_observed_x = std::min(local.min_observed_x, local.base_x);
+      local.max_observed_x = std::max(local.max_observed_x, local.base_x);
+      local.min_observed_y = std::min(local.min_observed_y, local.base_y);
+      local.max_observed_y = std::max(local.max_observed_y, local.base_y);
+      const bool outside = local.base_x < local.xmin || local.base_x > local.xmax ||
+                           local.base_y < local.ymin || local.base_y > local.ymax;
+      local.currently_outside = outside ? 1U : 0U;
+      if (outside) {
+        if (local.outside_physics_steps == 0) {
+          local.first_outside_step = physics_step;
+          local.first_outside_sim_time = local.sim_time;
+        }
+        ++local.outside_physics_steps;
+        local.last_outside_step = physics_step;
+        local.last_outside_sim_time = local.sim_time;
+      }
+    }
+    uint64_t sequence = abs_base_bounds::loadAcquire(&bounds_ptr_->sequence);
+    if (sequence & 1U) ++sequence;
+    abs_base_bounds::storeRelease(&bounds_ptr_->sequence, sequence + 1U);
+    std::memcpy(reinterpret_cast<char*>(bounds_ptr_) + offsetof(abs_base_bounds::Snapshot, monotonic_ns),
+                reinterpret_cast<const char*>(&local) + offsetof(abs_base_bounds::Snapshot, monotonic_ns),
+                sizeof(local) - offsetof(abs_base_bounds::Snapshot, monotonic_ns));
+    abs_base_bounds::storeRelease(&bounds_ptr_->sequence, sequence + 2U);
+    local.sequence = sequence + 2U;
+    bounds_state_ = local;
+    last_bounds_step_ = physics_step;
+  }
 
   static uint64_t monotonicNowNs() {
     return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
-  }
-
-  static bool nearlyEqual(double a, double b) {
-    return std::isfinite(a) && std::fabs(a - b) <= 1e-12;
   }
 
   static bool validHex(const std::string& value, std::size_t hex_count,
@@ -195,29 +629,6 @@ class ObstacleCollisionAuthority {
     std::memcpy(target, value.data(), value.size());
   }
 
-  bool modelIdentityMatches(const mjModel* model, std::vector<int>& ids) const {
-    if (model->ngeom <= 0) return false;
-    std::array<bool, kObstacleSignatures.size()> found{};
-    for (int geom_id = 0; geom_id < model->ngeom; ++geom_id) {
-      for (std::size_t i = 0; i < kObstacleSignatures.size(); ++i) {
-        const Signature& sig = kObstacleSignatures[i];
-        if (found[i] || model->geom_type[geom_id] != sig.type) continue;
-        bool match = true;
-        for (int axis = 0; axis < 3; ++axis) {
-          match = match && nearlyEqual(model->geom_pos[geom_id * 3 + axis], sig.pos[axis]);
-          match = match && nearlyEqual(model->geom_size[geom_id * 3 + axis], sig.size[axis]);
-        }
-        if (match) {
-          found[i] = true;
-          ids.push_back(geom_id);
-          break;
-        }
-      }
-    }
-    for (bool item : found) if (!item) return false;
-    return ids.size() == kObstacleSignatures.size();
-  }
-
   static bool contains(const std::vector<int>& ids, int geom_id) {
     for (int id : ids) if (id == geom_id) return true;
     return false;
@@ -231,6 +642,196 @@ class ObstacleCollisionAuthority {
     if (geom_id < 0 || geom_id >= model->ngeom) return false;
     const char* name = mj_id2name(model, mjOBJ_GEOM, geom_id);
     return name != nullptr && std::strcmp(name, "floor") == 0;
+  }
+
+  static void copyName(char* target, std::size_t capacity, const char* value) {
+    if (capacity == 0) return;
+    target[0] = '\0';
+    if (value == nullptr) return;
+    const std::size_t length = std::min(capacity - 1, std::strlen(value));
+    std::memcpy(target, value, length);
+    target[length] = '\0';
+  }
+
+  struct FootPairObservation {
+    int foot_geom_id = -1;
+    int obstacle_geom_id = -1;
+    bool force_known = false;
+    double fxy = 0.0;
+    double abs_fz = 0.0;
+    double threshold = 0.0;
+  };
+
+  static uint64_t pairKey(int foot_geom_id, int obstacle_geom_id) {
+    return (static_cast<uint64_t>(static_cast<uint32_t>(foot_geom_id)) << 32) |
+           static_cast<uint32_t>(obstacle_geom_id);
+  }
+
+  static unsigned bitCount4(uint32_t mask) {
+    unsigned count = 0;
+    for (unsigned bit = 0; bit < 4; ++bit) count += (mask >> bit) & 1U;
+    return count;
+  }
+
+  template <std::size_t Capacity>
+  void updateFootEventGroup(
+      uint64_t physics_step, double sim_time, bool continuous_step,
+      const std::map<uint64_t, FootPairObservation>& current,
+      std::map<uint64_t, uint32_t>& active,
+      abs_collision::Snapshot::V5Extension::FootEvent (&history)[Capacity],
+      uint64_t& episode_count, uint64_t& step_count, uint64_t& first_step,
+      uint64_t& last_step, double& duration_s, double& first_time, double& last_time) {
+    using Event = abs_collision::Snapshot::V5Extension::FootEvent;
+    if (!continuous_step) {
+      for (const auto& item : active) {
+        const std::size_t index = item.second;
+        if (index < Capacity) {
+          history[index].end_physics_step = previous_physics_step_;
+          history[index].end_sim_time = previous_sim_time_;
+          history[index].closed = 0;  // interrupted coverage: right-censored
+        }
+      }
+      active.clear();
+    } else {
+      for (auto it = active.begin(); it != active.end();) {
+        if (current.find(it->first) != current.end()) { ++it; continue; }
+        const std::size_t index = it->second;
+        if (index < Capacity) {
+          history[index].end_physics_step = previous_physics_step_;
+          history[index].end_sim_time = previous_sim_time_;
+          history[index].closed = 1;
+        }
+        it = active.erase(it);
+      }
+    }
+
+    if (!current.empty()) {
+      ++step_count;
+      const double dt = previous_physics_step_ == 0
+          ? sim_time : sim_time - previous_sim_time_;
+      if (continuous_step && dt >= 0.0 && std::isfinite(dt)) duration_s += dt;
+    }
+    for (const auto& item : current) {
+      const uint64_t key = item.first;
+      const FootPairObservation& observation = item.second;
+      auto found = active.find(key);
+      if (found == active.end()) {
+        ++episode_count;
+        if (first_step == 0) {
+          first_step = physics_step;
+          first_time = sim_time;
+        }
+        const std::size_t index = (episode_count - 1U) % Capacity;
+        Event event{};
+        event.start_physics_step = physics_step;
+        event.end_physics_step = physics_step;
+        event.start_sim_time = sim_time;
+        event.end_sim_time = sim_time;
+        event.foot_geom_id = observation.foot_geom_id;
+        event.obstacle_geom_id = observation.obstacle_geom_id;
+        event.closed = 0;
+        event.force_known = observation.force_known ? 1U : 0U;
+        event.trigger_fxy = observation.fxy;
+        event.trigger_abs_fz = observation.abs_fz;
+        event.trigger_threshold = observation.threshold;
+        copyName(event.foot_geom_name, sizeof(event.foot_geom_name),
+                 mj_id2name(current_model_, mjOBJ_GEOM, observation.foot_geom_id));
+        copyName(event.obstacle_geom_name, sizeof(event.obstacle_geom_name),
+                 mj_id2name(current_model_, mjOBJ_GEOM, observation.obstacle_geom_id));
+        history[index] = event;
+        active[key] = static_cast<uint32_t>(index);
+      } else {
+        Event& event = history[found->second];
+        event.end_physics_step = physics_step;
+        event.end_sim_time = sim_time;
+        event.closed = 0;
+      }
+      last_step = physics_step;
+      last_time = sim_time;
+    }
+  }
+
+  void updateFootEvents(uint64_t physics_step, double sim_time, bool continuous_step,
+                        const std::map<uint64_t, FootPairObservation>& contact_pairs,
+                        const std::map<uint64_t, FootPairObservation>& impact_pairs,
+                        uint32_t unknown_impact_mask,
+                        abs_collision::Snapshot::V5Extension& state) {
+    updateFootEventGroup(physics_step, sim_time, continuous_step, contact_pairs,
+        active_foot_contacts_, state.foot_contact_history, state.foot_contact_episode_count,
+        state.foot_contact_physics_steps, state.foot_contact_first_step,
+        state.foot_contact_last_step, state.foot_contact_duration_s,
+        state.foot_contact_first_sim_time, state.foot_contact_last_sim_time);
+    updateFootEventGroup(physics_step, sim_time, continuous_step, impact_pairs,
+        active_foot_impacts_, state.foot_impact_history, state.foot_impact_episode_count,
+        state.foot_impact_physics_steps, state.foot_impact_first_step,
+        state.foot_impact_last_step, state.foot_impact_duration_s,
+        state.foot_impact_first_sim_time, state.foot_impact_last_sim_time);
+    const unsigned unknown_legs = bitCount4(unknown_impact_mask);
+    state.foot_impact_unknown_steps += unknown_legs;
+    if (unknown_legs > 0) {
+      if (state.foot_impact_unknown_first_step == 0) {
+        state.foot_impact_unknown_first_step = physics_step;
+        state.foot_impact_unknown_first_sim_time = sim_time;
+      }
+      state.foot_impact_unknown_last_step = physics_step;
+      state.foot_impact_unknown_last_sim_time = sim_time;
+    }
+    state.foot_contact_history_count = static_cast<uint32_t>(
+        std::min<uint64_t>(state.foot_contact_episode_count, abs_collision::kFootEventCapacity));
+    state.foot_contact_history_overflow =
+        state.foot_contact_episode_count > abs_collision::kFootEventCapacity ? 1U : 0U;
+    state.foot_impact_history_count = static_cast<uint32_t>(
+        std::min<uint64_t>(state.foot_impact_episode_count, abs_collision::kFootEventCapacity));
+    state.foot_impact_history_overflow =
+        state.foot_impact_episode_count > abs_collision::kFootEventCapacity ? 1U : 0U;
+    foot_state_ = state;
+  }
+
+  void updateFallState(const mjModel* model, const mjData* data, uint64_t physics_step,
+                       double sim_time, bool continuous_step,
+                       abs_collision::Snapshot& local) {
+    const int base_id = mj_name2id(model, mjOBJ_BODY, "base_link");
+    const bool body_valid = base_id >= 0 && std::isfinite(sim_time);
+    if (body_valid) {
+      local.base_height_m = data->xpos[3 * base_id + 2];
+      const mjtNum* q = data->xquat + 4 * base_id;  // MuJoCo world quaternion: w,x,y,z.
+      const double w = q[0], x = q[1], y = q[2], z = q[3];
+      local.base_roll_rad = std::atan2(2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + y * y));
+      local.base_pitch_rad = std::asin(std::clamp(2.0 * (w * y - z * x), -1.0, 1.0));
+    }
+    const bool posture_valid = body_valid && std::isfinite(local.base_height_m) &&
+        std::isfinite(local.base_roll_rad) && std::isfinite(local.base_pitch_rad);
+    if (!posture_valid) {
+      ++invalid_posture_steps_;
+      if (!previous_invalid_posture_) {
+        ++invalid_posture_episodes_;
+        if (first_invalid_posture_step_ == 0) {
+          first_invalid_posture_step_ = physics_step;
+          first_invalid_posture_sim_time_ = sim_time;
+        }
+      }
+      last_invalid_posture_step_ = physics_step;
+      last_invalid_posture_sim_time_ = sim_time;
+    }
+    previous_invalid_posture_ = !posture_valid;
+    // The invalid-pose occurrence is preserved by the v4 latch above. Keep
+    // numeric payload fields finite so the ordinary reader can accept this
+    // otherwise authoritative snapshot and classify the motion window UNKNOWN.
+    if (!posture_valid) {
+      local.base_height_m = 0.0;
+      local.base_roll_rad = 0.0;
+      local.base_pitch_rad = 0.0;
+    }
+    abs_safety::updateFall(fall_tracker_, local.base_height_m, local.base_roll_rad,
+                           local.base_pitch_rad, physics_step, sim_time, posture_valid,
+                           continuous_step);
+    local.v5.reserved_flags = fall_tracker_.condition_flags;
+    local.fall_candidate = fall_tracker_.candidate ? 1U : 0U;
+    local.fall_confirmed = fall_tracker_.confirmed ? 1U : 0U;
+    local.fall_start_sim_time = fall_tracker_.start_sim_time;
+    local.fall_start_physics_step = fall_tracker_.start_physics_step;
+    local.fall_confirmed_sim_time = fall_tracker_.confirmed_sim_time;
+    local.fall_confirmed_physics_step = fall_tracker_.confirmed_physics_step;
   }
 
   static int robotGeom(const mjModel* model, int first, int second) {
@@ -252,15 +853,8 @@ class ObstacleCollisionAuthority {
     const bool obstacle_second = contains(obstacle_ids, second);
     const bool floor_first = floorGeom(model, first);
     const bool floor_second = floorGeom(model, second);
-    if ((robot_first && obstacle_second) || (robot_second && obstacle_first)) {
-      return abs_collision::kContactRobotObstacle;
-    }
-    if (floor_first || floor_second) return abs_collision::kContactGround;
-    if (robot_first && robot_second) return abs_collision::kContactSelf;
-    const bool known_first = robot_first || obstacle_first;
-    const bool known_second = robot_second || obstacle_second;
-    if (known_first && known_second) return abs_collision::kContactOther;
-    return abs_collision::kContactUnknown;
+    return abs_safety::classifyContact(robot_first, robot_second, obstacle_first,
+                                      obstacle_second, floor_first, floor_second);
   }
 
   void commit(abs_collision::Snapshot& local) {
@@ -276,12 +870,63 @@ class ObstacleCollisionAuthority {
   int fd_ = -1;
   abs_collision::Snapshot* ptr_ = nullptr;
   std::string scenario_id_;
+  std::string shm_name_;
   std::string root_sha256_;
   std::string closure_sha256_;
+  const abs_scene::SceneSpec* scene_spec_ = nullptr;
+  std::string scene_error_;
+  const mjModel* current_model_ = nullptr;
+  abs_foot::FootGeomSet foot_geoms_{};
+  bool foot_geoms_resolved_ = false;
+  bool foot_geom_set_valid_ = false;
+  std::string foot_error_;
+  abs_collision::Snapshot::V5Extension foot_state_{};
+  std::map<uint64_t, uint32_t> active_foot_contacts_;
+  std::map<uint64_t, uint32_t> active_foot_impacts_;
   std::string capture_id_;
   std::string expected_fingerprint_;
   std::string runtime_fingerprint_;
   bool capture_binding_valid_ = false;
+  bool scene_identity_logged_ = false;
   bool previous_valid_ = false;
   uint32_t previous_current_collision_ = 0;
+  uint64_t collision_contact_steps_ = 0;
+  uint64_t collision_episode_count_ = 0;
+  uint64_t last_collision_start_step_ = 0;
+  uint64_t last_collision_end_step_ = 0;
+  double collision_duration_s_ = 0.0;
+  double last_collision_start_sim_time_ = 0.0;
+  double last_collision_end_sim_time_ = 0.0;
+  uint64_t previous_physics_step_ = 0;
+  double previous_sim_time_ = 0.0;
+  abs_safety::FallTracker fall_tracker_{};
+  bool physics_coverage_complete_ = true;
+  bool previous_unknown_contacts_ = false;
+  bool previous_invalid_posture_ = false;
+  uint64_t unknown_contact_steps_ = 0;
+  uint64_t unknown_contact_episodes_ = 0;
+  uint64_t first_unknown_contact_step_ = 0;
+  uint64_t last_unknown_contact_step_ = 0;
+  double first_unknown_contact_sim_time_ = 0.0;
+  double last_unknown_contact_sim_time_ = 0.0;
+  uint64_t invalid_posture_steps_ = 0;
+  uint64_t invalid_posture_episodes_ = 0;
+  uint64_t first_invalid_posture_step_ = 0;
+  uint64_t last_invalid_posture_step_ = 0;
+  double first_invalid_posture_sim_time_ = 0.0;
+  double last_invalid_posture_sim_time_ = 0.0;
+  int bounds_fd_ = -1;
+  abs_base_bounds::Snapshot* bounds_ptr_ = nullptr;
+  std::string bounds_shm_name_;
+  abs_base_bounds::Snapshot bounds_state_{};
+  bool bounds_config_valid_ = false;
+  double bounds_xmin_ = 0.0;
+  double bounds_xmax_ = 0.0;
+  double bounds_ymin_ = 0.0;
+  double bounds_ymax_ = 0.0;
+  uint64_t last_bounds_step_ = 0;
+  std::array<abs_collision::Snapshot::FallEpisode,
+             abs_collision::kFallEventCapacity> fall_history_{};
+  std::array<abs_collision::Snapshot::CollisionEpisode,
+             abs_collision::kCollisionEventCapacity> collision_history_{};
 };

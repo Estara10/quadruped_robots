@@ -504,7 +504,8 @@ def scenario_pairing_key(scenario_id: str, scenario_sha256: str, root_seed: int)
 
 
 def resolve_variant_binding(variant: str, suite: Mapping[str, Any], baseline_manifest: Mapping[str, Any],
-                            switching_mode: str) -> Dict[str, Any]:
+                            switching_mode: str,
+                            controller_plugin_override: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
     """Return a binding only when the label has a real consumed path."""
     if variant not in ALL_VARIANTS:
         raise ValueError(f"invalid variant: {variant}")
@@ -524,12 +525,33 @@ def resolve_variant_binding(variant: str, suite: Mapping[str, Any], baseline_man
         raise ValueError("variant_binding_switching_mode_mismatch")
     if runtime.get("abs_controller_config_sha256") != abs_config.get("sha256"):
         raise ValueError("variant_binding_config_hash_mismatch")
-    if behavior.get("controller_plugin_sha256") != plugin.get("sha256"):
+    plugin_path = _resolve_repo_path(plugin["path"])
+    plugin_sha256 = plugin.get("sha256")
+    if controller_plugin_override is not None:
+        if not isinstance(controller_plugin_override, Mapping):
+            raise ValueError("variant_binding_controller_override_type")
+        override_path = controller_plugin_override.get("path")
+        override_sha256 = controller_plugin_override.get("sha256")
+        if not isinstance(override_path, str) or Path(override_path).is_absolute():
+            raise ValueError("variant_binding_controller_override_path")
+        if not isinstance(override_sha256, str) or not SHA256_RE.fullmatch(override_sha256):
+            raise ValueError("variant_binding_controller_override_hash")
+        plugin_path = _resolve_repo_path(override_path)
+        plugin_sha256 = override_sha256
+    if behavior.get("controller_plugin_sha256") != plugin_sha256:
+        if controller_plugin_override is None:
+            raise ValueError("variant_binding_controller_hash_mismatch")
+        binding = json.loads(canonical_json(binding))
+        binding["consumed_behavior"]["controller_plugin_path"] = str(controller_plugin_override["path"])
+        binding["consumed_behavior"]["controller_plugin_sha256"] = plugin_sha256
+        binding["binding_sha256"] = variant_binding_hash(binding)
+        behavior = binding["consumed_behavior"]
+    if behavior.get("controller_plugin_sha256") != plugin_sha256:
         raise ValueError("variant_binding_controller_hash_mismatch")
     try:
         if sha256_file(_resolve_repo_path(abs_config["path"])) != runtime["abs_controller_config_sha256"]:
             raise ValueError("variant_binding_actual_config_hash_mismatch")
-        if sha256_file(_resolve_repo_path(plugin["path"])) != behavior["controller_plugin_sha256"]:
+        if sha256_file(plugin_path) != behavior["controller_plugin_sha256"]:
             raise ValueError("variant_binding_actual_controller_hash_mismatch")
     except (KeyError, OSError, ValueError) as exc:
         if isinstance(exc, ValueError) and str(exc).startswith("variant_binding_actual_"):
@@ -566,7 +588,8 @@ def validate_resolved_variant_context(resolved: Mapping[str, Any]) -> None:
 
 
 def resolve_scenario(scenario_ref: str, root_seed: int, variant: str = "stabilized",
-                    suite_path: Path = SUITE_PATH) -> Dict[str, Any]:
+                    suite_path: Path = SUITE_PATH,
+                    controller_plugin_override: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
     if isinstance(root_seed, bool) or not isinstance(root_seed, int) or root_seed < 0:
         raise ValueError("root_seed must be a non-negative integer")
     if variant not in ALL_VARIANTS:
@@ -581,7 +604,9 @@ def resolve_scenario(scenario_ref: str, root_seed: int, variant: str = "stabiliz
     if errors:
         raise ValueError("scenario invalid: " + "; ".join(errors))
     baseline_result = _validate_baseline(scenario, suite, Path(suite_path))
-    variant_binding = resolve_variant_binding(variant, suite, baseline_result["manifest"], scenario["switching_mode"])
+    variant_binding = resolve_variant_binding(
+        variant, suite, baseline_result["manifest"], scenario["switching_mode"],
+        controller_plugin_override=controller_plugin_override)
     scene_result = _validate_scene(scenario, baseline_result["manifest"])
     runtime_initial = extract_runtime_initial_state(Path(scene_result["root_xml"]))
     errors = baseline_result["errors"] + scene_result["errors"]
@@ -774,7 +799,8 @@ def bind_capture_identity(resolved_context: Mapping[str, Any], capture_id: str) 
     return bound
 
 
-def prepare_capture_context(args: Any, suite_path: Path = SUITE_PATH) -> Dict[str, Any]:
+def prepare_capture_context(args: Any, suite_path: Path = SUITE_PATH,
+                            controller_plugin_override: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
     """Strictly compare capture CLI arguments with a resolved scenario."""
     missing = [name for name in ("scenario", "root_seed", "variant", "scene", "manifest", "window_s", "initial_state_source")
                if not hasattr(args, name) or getattr(args, name) in (None, "")]
@@ -785,7 +811,9 @@ def prepare_capture_context(args: Any, suite_path: Path = SUITE_PATH) -> Dict[st
         raise ValueError("scenario suite invalid: " + "; ".join(suite_result["errors"]))
     suite = suite_result["suite"]
     scenario_path, _ = _find_scenario(str(args.scenario), suite)
-    resolved = resolve_scenario(str(args.scenario), int(args.root_seed), str(args.variant), Path(suite_path))
+    resolved = resolve_scenario(
+        str(args.scenario), int(args.root_seed), str(args.variant), Path(suite_path),
+        controller_plugin_override=controller_plugin_override)
     validate_resolved_variant_context(resolved)
     validate_launch_arguments(args, resolved)
     resolved["launch_contract"]["scenario"] = str(args.scenario)

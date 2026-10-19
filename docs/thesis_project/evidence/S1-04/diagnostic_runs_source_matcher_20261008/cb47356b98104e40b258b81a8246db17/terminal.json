@@ -1,0 +1,66 @@
+{
+  "capture_id": "p1-10-capture-eea1351fafb24823bceb1043d798bb31",
+  "cleanup_events": [
+    {
+      "command": 1,
+      "event": "PASSIVE_STOP_REQUESTED",
+      "monotonic_ns": 20305964583116,
+      "phase": "cleanup"
+    },
+    {
+      "event": "GLOBAL_HARD_STOP",
+      "message": "[ros2_control_node-3] [ERROR] [1791438519.349740939] [rl_quadruped_controller]: [HARD-STOP] command=1 -> forcing PASSIVE",
+      "observed_monotonic_ns": 20306214893639,
+      "phase": "cleanup",
+      "source": "RlQuadrupedController/StateRL ROS log"
+    },
+    {
+      "confirmed": false,
+      "event": "STRATEGY_STOP_CONFIRMATION",
+      "monotonic_ns": 20306215184137,
+      "output_after_request_duration_ns": 250000000,
+      "phase": "cleanup"
+    }
+  ],
+  "collision_coverage": {
+    "complete_for_no_collision_claim": false,
+    "invalid_samples": 0,
+    "live_samples": 75,
+    "observed_robot_obstacle_event": false,
+    "physics_step_gaps": 641,
+    "sampled_steps_contiguous": false,
+    "samples": 75,
+    "unknown_samples": 0
+  },
+  "collision_events": "UNKNOWN",
+  "collision_events_reason": "formal collision snapshot is missing, stale, invalid, has unknown contacts, or lacks contiguous coverage",
+  "duration_ns": 1429240503,
+  "external_safety_events": [],
+  "fact_validation_errors": [],
+  "fall_events": "UNKNOWN",
+  "fall_events_reason": "no authoritative fall detection exists in the current runtime frame",
+  "first_frame_time_ns": 20302876683858,
+  "forced_termination": false,
+  "frames_observed": 75,
+  "kind": "terminal",
+  "last_frame_time_ns": 20304305924361,
+  "last_policy_state": "AGILE",
+  "last_ra_value": -0.9976622462272644,
+  "last_session_id": 20302804686619,
+  "normal_shutdown": true,
+  "process_exit_code": 0,
+  "reached_goal": "UNKNOWN",
+  "reached_goal_reason": "no authoritative reached-goal computation exists in the current runtime frame",
+  "run_id": "cb47356b98104e40b258b81a8246db17",
+  "run_terminal_monotonic_ns": 20304305924361,
+  "run_terminal_result": "ARRIVED",
+  "safety_fault_last": false,
+  "safety_fault_seen": false,
+  "shutdown_complete": true,
+  "shutdown_request_source": "S1-04 bounded supervisor SIGINT with TERM/KILL fallback",
+  "simulation_time_s": 24.527999999997284,
+  "simulation_time_s_reason": "authoritative collision snapshot sim_time from last sampled physics step",
+  "termination_reason": "FRAMES_ENDED_RC0",
+  "timeout": "UNKNOWN",
+  "timeout_reason": "no authoritative timeout marker exists in the current runtime frame"
+}

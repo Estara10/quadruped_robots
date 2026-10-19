@@ -1,0 +1,53 @@
+{
+  "checked_at_local": "2026-10-08",
+  "executor": {
+    "uid": 1000,
+    "user": "lidio",
+    "groups": [1000, 65534],
+    "environment": {
+      "DISPLAY": ":0",
+      "XAUTHORITY": "/run/user/1000/gdm/Xauthority",
+      "XDG_SESSION_TYPE": "x11",
+      "XDG_SESSION_ID": null,
+      "DBUS_SESSION_BUS_ADDRESS": "unix:path=/run/user/1000/bus",
+      "WAYLAND_DISPLAY": null
+    },
+    "namespace_and_session_visibility": {
+      "process_view": "executor PID namespace showed only codex-linux-sandbox and the current probe; no Xorg/Xwayland process was visible",
+      "loginctl": "list-sessions and seat-status failed: Failed to connect to bus: Operation not permitted",
+      "meaning": "the executor cannot inspect the host desktop session; this is not evidence that the host X server is stopped"
+    }
+  },
+  "x_socket": {
+    "path": "/tmp/.X11-unix/X0",
+    "filesystem_observation": "present, socket, mode 0777, owner lidio:lidio",
+    "connect_probe": "Python AF_UNIX connect from the executor raised PermissionError errno 1 (Operation not permitted)",
+    "meaning": "the sandbox denied the socket connection before the X server/session could be validated"
+  },
+  "authorization": {
+    "path": "/run/user/1000/gdm/Xauthority",
+    "owner_mode": "lidio:lidio 0700",
+    "readable_by_executor": true,
+    "parent_directory_mode": "lidio:lidio 0711; not writable by executor according to os.access(W_OK)",
+    "xauth_original": "xauth list failed with error in locking authority file",
+    "temporary_copy": "copied to /tmp/s1_03_Xauthority_preflight; xauth list succeeded without printing cookie contents",
+    "meaning": "the lock error is consistent with inability to create the lock in the protected parent directory; it does not show that the authorization file is corrupt. Original file and permissions were not changed. Temporary copy removed after probing."
+  },
+  "display_probe": {
+    "command": "xdpyinfo -display :0",
+    "with_original_XAUTHORITY": "FAIL: unable to open display :0",
+    "with_temporary_copy_in_XAUTHORITY": "FAIL: unable to open display :0",
+    "conclusion": "DISPLAY=:0 is set in the executor, but correspondence to a currently usable host desktop session remains UNKNOWN"
+  },
+  "opengl_and_glfw": {
+    "runtime_libraries": ["libglfw.so", "libOpenGL.so", "libGLX.so", "libEGL.so"],
+    "glxinfo": "not installed (previously recorded)",
+    "glfw_window_probe": "not run because the required X display connection failed at the sandbox socket boundary",
+    "mujoco": "not started; no repeated simulator attempt"
+  },
+  "decision": {
+    "result": "BLOCKED_FOR_RUNTIME_VALIDATION; S1-03 remains ACTIVE and INCOMPLETE",
+    "basis": "AF_UNIX connection to the existing X socket is explicitly denied with EPERM inside the executor; loginctl also cannot access the session bus. This is executor sandbox access restriction evidence, not a confirmed host display or Xauthority failure.",
+    "next_minimum_step": "run the same preflight and one short diagnostic from an executor with access to the active desktop X socket and session authorization, or provide an approved virtual display environment. No package installation or system service change is justified by this evidence."
+  }
+}

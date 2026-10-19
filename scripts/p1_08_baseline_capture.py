@@ -47,6 +47,7 @@ import mmap
 import os
 import signal
 import secrets
+import stat
 import struct
 import subprocess
 import sys
@@ -64,6 +65,12 @@ from p1_10_scenario_suite import (  # noqa: E402
     bind_capture_identity,
     prepare_capture_context,
     write_resolved_manifest,
+)
+from p1_10_common_start import (  # noqa: E402
+    CommonStartError,
+    GateClient,
+    bind_context as bind_common_start_context,
+    validate_anchor,
 )
 from run_record import RunRecordRecorder, summarize_record  # noqa: E402
 
@@ -129,6 +136,57 @@ def sha256_file(path: str) -> str:
         for chunk in iter(lambda: f.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def _stage_a_pair_identity(out: Path) -> dict:
+    """Read the already-frozen pair identity for a Stage-A run directory.
+
+    The capture harness never creates or edits the pair manifest.  The run
+    directory is required to be ``<pair>/run_A`` or ``<pair>/run_B`` so the
+    preflight evidence can bind the capture to the Director-frozen pair that
+    owns the output.
+    """
+    pair_dir = Path(out).resolve().parent
+    try:
+        pair_dir_stat = pair_dir.lstat()
+    except OSError as exc:
+        raise ValueError(f"Stage-A pair directory lstat failed: {exc}") from exc
+    if stat.S_ISLNK(pair_dir_stat.st_mode) or not stat.S_ISDIR(pair_dir_stat.st_mode):
+        raise ValueError("Stage-A pair directory must be a real directory")
+    try:
+        pair_rel = pair_dir.relative_to(REPO.resolve()).as_posix()
+    except ValueError as exc:
+        raise ValueError("Stage-A pair directory escapes repository") from exc
+    if pair_dir.parent != (REPO / "docs/evidence/P1-10").resolve():
+        raise ValueError("Stage-A pair directory must be a direct P1-10 evidence child")
+    pair_path = pair_dir / "pair_manifest.json"
+    try:
+        pair_stat = pair_path.lstat()
+    except OSError as exc:
+        raise ValueError(f"Stage-A pair manifest lstat failed: {exc}") from exc
+    if stat.S_ISLNK(pair_stat.st_mode) or not stat.S_ISREG(pair_stat.st_mode):
+        raise ValueError("Stage-A pair manifest must be a real regular file")
+    try:
+        pair = json.loads(pair_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"Stage-A pair manifest cannot be parsed: {exc}") from exc
+    if not isinstance(pair, dict):
+        raise ValueError("Stage-A pair manifest root must be an object")
+    if pair.get("schema") != "abs-go2-p1-10-same-seed-replay-pair/v3":
+        raise ValueError("Stage-A pair manifest schema mismatch")
+    if pair.get("evidence_dir") != pair_rel:
+        raise ValueError("Stage-A pair manifest evidence directory mismatch")
+    pair_id = pair.get("pair_id")
+    if not isinstance(pair_id, str) or not pair_id or pair_id in {"UNKNOWN", "None"}:
+        raise ValueError("Stage-A pair manifest pair_id is missing/unknown")
+    if pair.get("status_at_freeze") != "FROZEN_OFFLINE_PENDING_INDEPENDENT_REVIEW":
+        raise ValueError("Stage-A pair is not pending independent review")
+    return {
+        "pair_id": pair_id,
+        "pair_manifest_path": str(pair_path),
+        "pair_manifest_sha256": sha256_file(str(pair_path)),
+        "status": pair["status_at_freeze"],
+    }
 
 
 def run_cmd(cmd, timeout_s=10):
@@ -357,21 +415,24 @@ def verify_manifest_hashes(manifest_path: Path, mujoco_bin: str, scene_arg: str)
     return failures, evidence
 
 
-def clean_task_shms():
+def clean_task_shms(*, include_common_start: bool = False):
     """Narrow cleanup: only the task's exact named shms, only after the caller
     has confirmed no live process. Records before/after state. Returns
     (ok, evidence); an unlink failure or uncertain state is fail-closed."""
+    paths = list(TASK_SHM_CLEANUP)
+    if include_common_start:
+        paths.append("/dev/shm/mujoco_p1_10_stage_a_common_start")
     evidence = {"before": {}, "after": {}, "removed": []}
-    for p in TASK_SHM_CLEANUP:
+    for p in paths:
         evidence["before"][p] = "present" if os.path.exists(p) else "absent"
-    for p in TASK_SHM_CLEANUP:
+    for p in paths:
         if os.path.exists(p):
             try:
                 os.unlink(p)
                 evidence["removed"].append(p)
             except OSError as e:
                 return False, {**evidence, "error": f"unlink_failed {p}: {e}"}
-    for p in TASK_SHM_CLEANUP:
+    for p in paths:
         evidence["after"][p] = "present" if os.path.exists(p) else "absent"
         if os.path.exists(p):
             return False, {**evidence, "error": f"still_present_after_unlink {p}"}
@@ -409,22 +470,39 @@ def _read_process_record(pid: int, proc_root: Path = Path("/proc")) -> dict:
 
     The executable symlink is authoritative for identity.  argv is retained
     only to attribute ROS launch/controller processes to this capture stack.
-    Any read failure is an inspection error; callers must fail closed.
+    A per-PID read failure is retained as partial evidence.  The caller only
+    fails closed when the readable portion already identifies a runtime
+    candidate; unrelated uninspectable PIDs must not block the capture.
     """
     proc_dir = proc_root / str(pid)
+    record = {"pid": pid, "ppid": None, "state": None, "exe": None,
+              "argv": [], "identity_read_errors": []}
     try:
-        exe = os.path.realpath(os.readlink(proc_dir / "exe"))
-        raw_cmdline = (proc_dir / "cmdline").read_bytes()
-        stat_text = (proc_dir / "stat").read_text()
+        record["exe"] = os.path.realpath(os.readlink(proc_dir / "exe"))
     except (OSError, UnicodeError) as exc:
-        raise ProcessInspectionError(f"pid={pid}: unable to read identity: {exc}") from exc
-    argv = [part.decode("utf-8", errors="strict") for part in raw_cmdline.split(b"\0") if part]
-    state, ppid = _parse_proc_stat(stat_text)
-    return {"pid": pid, "ppid": ppid, "state": state, "exe": exe, "argv": argv}
+        record["identity_read_errors"].append(
+            {"source": "exe", "error": f"{type(exc).__name__}: {exc}"})
+    try:
+        raw_cmdline = (proc_dir / "cmdline").read_bytes()
+        record["argv"] = [part.decode("utf-8", errors="strict")
+                          for part in raw_cmdline.split(b"\0") if part]
+    except (OSError, UnicodeError) as exc:
+        record["identity_read_errors"].append(
+            {"source": "cmdline", "error": f"{type(exc).__name__}: {exc}"})
+    try:
+        state, ppid = _parse_proc_stat((proc_dir / "stat").read_text())
+        record["state"] = state
+        record["ppid"] = ppid
+    except (OSError, UnicodeError, ProcessInspectionError) as exc:
+        record["identity_read_errors"].append(
+            {"source": "stat", "error": f"{type(exc).__name__}: {exc}"})
+    if not record["identity_read_errors"]:
+        del record["identity_read_errors"]
+    return record
 
 
 def _read_process_records(proc_root: Path = Path("/proc")) -> list:
-    """Read all numeric /proc entries, failing closed on any inspection error."""
+    """Read all numeric /proc entries, retaining per-PID partial evidence."""
     try:
         pids = sorted(int(entry.name) for entry in proc_root.iterdir() if entry.name.isdigit())
     except (OSError, ValueError) as exc:
@@ -513,6 +591,22 @@ def _classify_runtime_process(record: dict, expected_mujoco: Path,
     return None, None
 
 
+def _record_is_runtime_candidate(record: dict, expected_mujoco: Path) -> bool:
+    """Identify runtime-shaped partial evidence without shell-text matching."""
+    exe = record.get("exe")
+    argv = record.get("argv")
+    expected = str(expected_mujoco.resolve())
+    if isinstance(exe, str) and (exe == expected or exe == expected + " (deleted)"):
+        return True
+    if not isinstance(argv, list):
+        return False
+    if argv and argv[0] in {expected, expected + " (deleted)"}:
+        return True
+    if argv and Path(str(argv[0])).name == "ros2_control_node":
+        return True
+    return _argv_has_ros2_launch(argv)
+
+
 def inspect_residual_processes(expected_mujoco: str | Path = DEFAULT_MUJOCO_BIN,
                                expected_controller_config: str | Path = DEFAULT_CONTROLLER_CONFIG,
                                *, process_records: list | None = None,
@@ -521,11 +615,14 @@ def inspect_residual_processes(expected_mujoco: str | Path = DEFAULT_MUJOCO_BIN,
     """Identity-based residual check: (state, structured evidence).
 
     Only an exact MuJoCo executable or an attributable ROS launch/controller
-    process is a match.  Inspection failures and ambiguous controller identity
-    are ``uncertain`` and must be rejected by preflight.  ``process_records`` /
-    ``inspector`` are deliberately injectable for offline tests.
+    process is a match.  A per-PID inspection failure is fail-closed when the
+    readable fields already identify a runtime candidate.  An uninspectable
+    non-candidate is retained in evidence and does not block preflight.
+    ``process_records`` / ``inspector`` are deliberately injectable for offline
+    tests.
     """
-    evidence = {"method": "proc_identity_v1", "matches": [], "excluded_pids": []}
+    evidence = {"method": "proc_identity_v2", "matches": [],
+                "uninspectable_non_candidates": [], "excluded_pids": []}
     try:
         if process_records is None:
             process_records = (inspector() if inspector is not None
@@ -538,7 +635,21 @@ def inspect_residual_processes(expected_mujoco: str | Path = DEFAULT_MUJOCO_BIN,
         evidence["excluded_pids"] = sorted(excluded_pids)
         for record in process_records:
             pid = int(record["pid"])
+            read_errors = record.get("identity_read_errors", [])
             if pid in excluded_pids:
+                if read_errors:
+                    evidence["uninspectable_non_candidates"].append(
+                        {"pid": pid, "status": "excluded_uninspectable_non_candidate",
+                         "read_errors": read_errors})
+                continue
+            if read_errors:
+                if _record_is_runtime_candidate(record, Path(expected_mujoco)):
+                    raise ProcessInspectionError(
+                        f"pid={pid}: runtime candidate identity inspection failed: "
+                        f"{read_errors!r}")
+                evidence["uninspectable_non_candidates"].append(
+                    {"pid": pid, "status": "uninspectable_non_candidate",
+                     "read_errors": read_errors})
                 continue
             kind, detail = _classify_runtime_process(
                 record, Path(expected_mujoco), Path(expected_controller_config))
@@ -566,7 +677,68 @@ def preflight(args, out: Path, capture_id: str):
 
     # P1-10 scenario/seed binding is checked before any runtime prerequisite.
     # The resolved context is not inferred from the legacy P1-08 defaults.
-    resolved_context = bind_capture_identity(prepare_capture_context(args), capture_id)
+    # Stage-B obstacle captures have a separate execution identity.  They may
+    # enter this harness only through that explicit manifest; the flat path
+    # below remains unchanged.
+    stage_b_manifest = getattr(args, "stage_b_execution_manifest", None)
+    stage_a_manifest = getattr(args, "stage_a_execution_manifest", None)
+    stage_a_common_manifest = getattr(args, "stage_a_common_start_execution_manifest", None)
+    selected_manifests = [value for value in
+                          (stage_b_manifest, stage_a_manifest, stage_a_common_manifest)
+                          if value is not None]
+    if len(selected_manifests) > 1:
+        raise ValueError("Stage-A, common-start Stage-A, and Stage-B manifests are mutually exclusive")
+    stage_b_validation = None
+    stage_a_validation = None
+    stage_a_common_validation = None
+    stage_a_pair = None
+    if stage_a_common_manifest is not None:
+        if str(args.scenario) != "flat_goal_forward":
+            raise ValueError("--stage-a-common-start-execution-manifest is only valid for flat_goal_forward")
+        from p1_10_stage_a_common_start import validate_manifest  # noqa: E402
+        stage_a_common_validation = validate_manifest(
+            Path(stage_a_common_manifest), expected_executable=str(args.mujoco_bin))
+        plugin_artifact = next(
+            item for item in stage_a_common_validation["identity_input"]["artifacts"]
+            if item.get("role") == "controller_plugin")
+        resolved_context = prepare_capture_context(
+            args, controller_plugin_override={
+                "path": plugin_artifact["path"],
+                "sha256": plugin_artifact["sha256"],
+            })
+        from p1_10_stage_a_common_start import validate_resolved_context  # noqa: E402
+        validate_resolved_context(resolved_context, stage_a_common_validation)
+    elif stage_a_manifest is not None:
+        if str(args.scenario) != "flat_goal_forward":
+            raise ValueError("--stage-a-execution-manifest is only valid for flat_goal_forward")
+        from p1_10_stage_a_execution import validate_manifest  # noqa: E402
+        stage_a_validation = validate_manifest(
+            Path(stage_a_manifest), expected_executable=str(args.mujoco_bin))
+        stage_a_pair = _stage_a_pair_identity(out)
+        resolved_context = prepare_capture_context(args)
+    elif stage_b_manifest is not None:
+        if str(args.scenario) != "obstacle_test1":
+            raise ValueError("--stage-b-execution-manifest is only valid for obstacle_test1")
+        from p1_10_stage_b_execution import (  # noqa: E402
+            build_stage_b_context, validate_manifest,
+        )
+        stage_b_validation = validate_manifest(
+            Path(stage_b_manifest), expected_executable=str(args.mujoco_bin))
+        resolved_context = build_stage_b_context(stage_b_validation)
+        if Path(str(args.manifest)).resolve() != (REPO / "docs/evidence/P1-08/P1-08_baseline_manifest.json").resolve():
+            raise ValueError("Stage-B capture must retain the accepted P1-08 baseline manifest as --manifest")
+        if float(args.window_s) != 25.0 or str(args.scene) != "scene_test1.xml":
+            raise ValueError("Stage-B capture arguments do not match the frozen scene/window")
+        if int(args.root_seed) != 20260902 or str(args.variant) != "stabilized" or str(args.initial_state_source) != "scene_default":
+            raise ValueError("Stage-B capture arguments do not match the frozen binding")
+    else:
+        if str(args.scenario) == "obstacle_test1":
+            raise ValueError("obstacle_test1 requires --stage-b-execution-manifest")
+        resolved_context = prepare_capture_context(args)
+    resolved_context = bind_capture_identity(resolved_context, capture_id)
+    if stage_a_common_validation is not None:
+        resolved_context = bind_common_start_context(
+            resolved_context, stage_a_common_validation, capture_id)
     env.update(resolved_context["process_context"]["environment"])
     evidence["checks"]["scenario_context"] = {
         "ok": True,
@@ -581,6 +753,16 @@ def preflight(args, out: Path, capture_id: str):
         "launch_contract": resolved_context["launch_contract"],
         "capture_id": capture_id,
     }
+    if stage_a_common_validation is not None:
+        evidence["checks"]["common_start"] = {
+            "enabled": True,
+            "manifest_path": stage_a_common_validation["manifest_path"],
+            "manifest_sha256": stage_a_common_validation["manifest_sha256"],
+            "identity_sha256": stage_a_common_validation["identity_sha256"],
+            "contract_schema": resolved_context["common_start_contract"]["schema"],
+            "contract_version": resolved_context["common_start_contract"]["version"],
+            "capture_id_source": "harness-generated",
+        }
     evidence["scenario_context"] = resolved_context
 
     # 1. residual processes: inspect executable identity and attributable argv.
@@ -610,7 +792,69 @@ def preflight(args, out: Path, capture_id: str):
         return False, evidence, env
 
     # 4. manifest identity binding (actual binary + scene + FULL closure)
-    if args.manifest:
+    if stage_a_common_validation is not None:
+        stage_identity = stage_a_common_validation["identity_input"]
+        binary = next(item for item in stage_identity["artifacts"]
+                      if item["role"] == "stage_a_mujoco_executable")
+        evidence["checks"]["manifest"] = {
+            "stage_a_common_start": True,
+            "manifest_path": str(Path(stage_a_common_manifest).resolve()),
+            "manifest_sha256": stage_a_common_validation["manifest_sha256"],
+            "identity_sha256": stage_a_common_validation["identity_sha256"],
+            "binary_sha256": binary["sha256"],
+            "binary_bytes": binary["bytes"],
+            "closure_sha256": stage_identity["scene"]["model_closure_sha256"],
+            "scene_root_sha256": stage_identity["scene"]["root_xml_sha256"],
+            "runtime_model_fingerprint": stage_identity["scene"]["runtime_model_fingerprint"],
+            "config_plugin": [item for item in stage_identity["artifacts"]
+                              if item["role"] in {"mujoco_simulate_config", "robot_control_config",
+                                                   "abs_controller_config", "mujoco_launch",
+                                                   "controller_plugin", "hardware_plugin"}],
+            "fixed_binding": stage_identity["fixed_binding"],
+            "initial_state_qpos_sha256": stage_identity["initial_state"]["qpos_sha256"],
+            "common_start_contract": stage_identity["common_start_contract"],
+            "anchor_contract": stage_identity["anchor_contract"],
+            "failures": [],
+        }
+    elif stage_a_validation is not None:
+        stage_identity = stage_a_validation["identity_input"]
+        binary = next(item for item in stage_identity["artifacts"]
+                      if item["role"] == "stage_a_mujoco_executable")
+        evidence["checks"]["manifest"] = {
+            "stage_a": True,
+            "pair_id": stage_a_pair["pair_id"],
+            "pair_manifest_path": stage_a_pair["pair_manifest_path"],
+            "pair_manifest_sha256": stage_a_pair["pair_manifest_sha256"],
+            "pair_status": stage_a_pair["status"],
+            "manifest_path": str(Path(stage_a_manifest).resolve()),
+            "manifest_sha256": stage_a_validation["manifest_sha256"],
+            "identity_sha256": stage_a_validation["identity_sha256"],
+            "binary_sha256": binary["sha256"],
+            "binary_bytes": binary["bytes"],
+            "closure_sha256": stage_identity["scene"]["model_closure_sha256"],
+            "scene_root_sha256": stage_identity["scene"]["root_xml_sha256"],
+            "config_plugin": [item for item in stage_identity["artifacts"]
+                              if item["role"] in {"mujoco_simulate_config", "robot_control_config",
+                                                   "abs_controller_config", "mujoco_launch",
+                                                   "controller_plugin", "hardware_plugin"}],
+            "fixed_binding": stage_identity["fixed_binding"],
+            "initial_state_qpos_sha256": stage_identity["initial_state"]["qpos_sha256"],
+            "failures": [],
+        }
+    elif stage_b_validation is not None:
+        evidence["checks"]["manifest"] = {
+            "stage_b": True,
+            "manifest_path": str(Path(stage_b_manifest).resolve()),
+            "manifest_sha256": stage_b_validation["manifest_sha256"],
+            "identity_sha256": stage_b_validation["identity_sha256"],
+            "binary_sha256": stage_b_validation["identity_input"]["artifacts"][0]["sha256"],
+            "binary_bytes": stage_b_validation["identity_input"]["artifacts"][0]["bytes"],
+            "closure_sha256": stage_b_validation["identity_input"]["scene"]["model_closure_sha256"],
+            "runtime_model_fingerprint": stage_b_validation["identity_input"]["scene"]["runtime_model_fingerprint"],
+            "collision_contract": stage_b_validation["identity_input"]["collision_contract"],
+            "failures": [],
+        }
+    elif args.manifest:
         failures, man_ev = verify_manifest_hashes(Path(args.manifest), args.mujoco_bin, args.scene)
         evidence["checks"]["manifest"] = man_ev
         if failures:
@@ -632,7 +876,7 @@ def preflight(args, out: Path, capture_id: str):
     evidence["checks"]["window_s"] = 25.0
 
     # 7. narrow shm cleanup (before/after/spawn checks)
-    ok, clean_ev = clean_task_shms()
+    ok, clean_ev = clean_task_shms(include_common_start=stage_a_common_validation is not None)
     evidence["checks"]["shm_cleanup"] = clean_ev
     if not ok:
         return False, evidence, env
@@ -786,7 +1030,8 @@ def _delivered(signals, sig_names):
                for s in signals)
 
 
-def build_process_facts(meta, run_id, start_wall, end_wall, scene, p1_10_context=None):
+def build_process_facts(meta, run_id, start_wall, end_wall, scene, p1_10_context=None,
+                        common_start_anchor=None):
     """Derive the top-level coordinator facts from per-child state.
 
     Semantics (fail-closed, no fabrication):
@@ -848,6 +1093,10 @@ def build_process_facts(meta, run_id, start_wall, end_wall, scene, p1_10_context
     if p1_10_context is not None:
         facts["capture_id"] = p1_10_context["capture_identity"]["capture_id"]
         facts["p1_10_context"] = p1_10_context
+        if p1_10_context.get("common_start_contract", {}).get("enabled") is True:
+            facts["common_start_anchor"] = common_start_anchor
+            facts["common_start_anchor_status"] = (
+                "PRESENT" if common_start_anchor is not None else "MISSING")
     return facts
 
 
@@ -926,7 +1175,8 @@ def _wait_or_escalate(proc, name, meta):
 
 
 def _finalize_capture(children, meta, recorder, run_id, start_wall, scene, stats, out,
-                      p1_10_context=None, mujoco_bin=DEFAULT_MUJOCO_BIN):
+                      p1_10_context=None, common_start_anchor=None,
+                      mujoco_bin=DEFAULT_MUJOCO_BIN):
     """Unified post-launch lifecycle (single path for success + all failures).
 
     Order: stop_sampling -> SIGINT + wait (TERM/KILL only on timeout) ->
@@ -1001,7 +1251,8 @@ def _finalize_capture(children, meta, recorder, run_id, start_wall, scene, stats
     # 5. build + write process_facts.json BEFORE finalize (never bypassed)
     end_wall = time.strftime("%Y-%m-%dT%H:%M:%S%z")
     facts = build_process_facts(meta, run_id, start_wall, end_wall, scene,
-                                p1_10_context=p1_10_context)
+                                p1_10_context=p1_10_context,
+                                common_start_anchor=common_start_anchor)
     try:
         (out / "process_facts.json").write_text(json.dumps(facts, indent=2) + "\n")
     except Exception as e:  # noqa: BLE001
@@ -1069,6 +1320,8 @@ def launch_and_run(env, out: Path, args) -> int:
     recorder = None
     run_id = None
     stats = None
+    common_start_anchor = None
+    gate_client = None
     result = 7  # default: exception/unknown
     LOG_F = open(out / "orchestrator_raw.log", "w")
     start_wall = time.strftime("%Y-%m-%dT%H:%M:%S%z")
@@ -1094,11 +1347,20 @@ def launch_and_run(env, out: Path, args) -> int:
                                   start_new_session=True)
         children["mujoco"] = mujoco
         log(f"MuJoCo pid={mujoco.pid} pgid={mujoco.pid}")
-        if not wait_sim_clock_advance(20.0):
-            log("FAIL: v2 sim clock never advanced")
-            result = 3
-            return result
-        log("v2 sim clock advancing")
+        common_start_enabled = bool(
+            p1_10_context and
+            p1_10_context.get("common_start_contract", {}).get("enabled") is True)
+        if common_start_enabled:
+            gate_client, gate_ready = wait_common_start_gate_ready(20.0)
+            log("common-start gate ready: "
+                f"capture_id={gate_ready['capture_id']} "
+                f"qpos_sha256={gate_ready['initial_qpos_sha256']}")
+        else:
+            if not wait_sim_clock_advance(20.0):
+                log("FAIL: v2 sim clock never advanced")
+                result = 3
+                return result
+            log("v2 sim clock advancing")
 
         ros_log = open(out / "ros2_launch_raw.log", "w")
         log("launch ros2: mujoco.launch.py simulation_test:=0")
@@ -1134,9 +1396,28 @@ def launch_and_run(env, out: Path, args) -> int:
         capture_id = p1_10_context["capture_identity"]["capture_id"]
         expected_fingerprint = p1_10_context["scene"]["runtime_model_fingerprint"]
         recorder = RunRecordRecorder(str(record_path), capture_id=capture_id,
-                                     expected_fingerprint=expected_fingerprint)
+                                     expected_fingerprint=expected_fingerprint,
+                                     common_start_required=common_start_enabled,
+                                     expected_initial_qpos_sha256=(
+                                         p1_10_context["initial_state"]["qpos_sha256"]
+                                         if common_start_enabled else None))
         run_id = recorder.start()
         log(f"runtime record started run_id={run_id}")
+
+        if common_start_enabled:
+            expected_qpos_sha256 = p1_10_context["initial_state"]["qpos_sha256"]
+            gate_client.release(capture_id)
+            common_start_anchor = gate_client.wait_anchor(
+                30.0, capture_id, expected_qpos_sha256)
+            validate_anchor(common_start_anchor,
+                            expected_capture_id=capture_id,
+                            expected_qpos_sha256=expected_qpos_sha256)
+            recorder.set_start_anchor(common_start_anchor)
+            (out / "common_start_anchor.json").write_text(
+                json.dumps(common_start_anchor, indent=2, sort_keys=True) + "\n")
+            log("common-start released and producer anchor accepted: "
+                f"first_physics_step={common_start_anchor['first_physics_step']} "
+                f"first_runtime_frame_sequence={common_start_anchor['first_runtime_frame_sequence']}")
 
         log(f"sampling for {args.window_s:.1f}s (fixed)")
         stats = sample_and_record(out, recorder, args.window_s)
@@ -1152,7 +1433,11 @@ def launch_and_run(env, out: Path, args) -> int:
         facts = _finalize_capture(children, meta, recorder, run_id, start_wall,
                                   args.scene, stats, out,
                                   p1_10_context=p1_10_context,
+                                  common_start_anchor=common_start_anchor,
                                   mujoco_bin=args.mujoco_bin)
+        if gate_client is not None:
+            gate_client.close()
+            gate_client = None
         if LOG_F:
             LOG_F.close()
             LOG_F = None
@@ -1224,6 +1509,24 @@ def wait_rl_active(timeout_s: float) -> bool:
     return False
 
 
+def wait_common_start_gate_ready(timeout_s: float):
+    """Open the simulator-owned gate and wait for data/qpos readiness."""
+    deadline = time.monotonic() + timeout_s
+    last_error = None
+    while time.monotonic() < deadline:
+        client = None
+        try:
+            client = GateClient()
+            remaining = max(0.01, min(0.25, deadline - time.monotonic()))
+            return client, client.wait_ready(remaining)
+        except Exception as exc:  # noqa: BLE001 - readiness remains fail-closed
+            last_error = exc
+            if client is not None:
+                client.close()
+            time.sleep(0.01)
+    raise CommonStartError(f"common-start gate readiness timeout: {last_error}")
+
+
 def _archive_preflight_fail(out: Path, evidence) -> None:
     p = Path(str(out) + "_preflight_fail.json")
     p.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n")
@@ -1259,6 +1562,10 @@ def build_p1_10_context(resolved_context):
     if "capture_identity" in resolved_context:
         context["capture_identity"] = resolved_context["capture_identity"]
         context["capture_identity_input"] = resolved_context["capture_identity_input"]
+    if "stage_b_execution_manifest" in resolved_context:
+        context["stage_b_execution_manifest"] = resolved_context["stage_b_execution_manifest"]
+    if "common_start_contract" in resolved_context:
+        context["common_start_contract"] = resolved_context["common_start_contract"]
     return context
 
 
@@ -1308,6 +1615,12 @@ def main() -> int:
     ap.add_argument("--scene", default="scene_flat.xml")
     ap.add_argument("--mujoco-bin", default=str(REPO / "unitree_mujoco" / "simulate" / "build2" / "unitree_mujoco"))
     ap.add_argument("--manifest", required=True)
+    ap.add_argument("--stage-b-execution-manifest", default=None,
+                    help="required for obstacle_test1; explicit frozen Stage-B execution identity")
+    ap.add_argument("--stage-a-execution-manifest", default=None,
+                    help="required for current-instrumented flat replay; explicit frozen Stage-A identity")
+    ap.add_argument("--stage-a-common-start-execution-manifest", default=None,
+                    help="required for new gated flat replay; explicit common-start Stage-A identity")
     ap.add_argument("--scenario", required=True,
                      help="registered P1-10 scenario ID or repository-relative JSON path")
     ap.add_argument("--root-seed", required=True, type=int)

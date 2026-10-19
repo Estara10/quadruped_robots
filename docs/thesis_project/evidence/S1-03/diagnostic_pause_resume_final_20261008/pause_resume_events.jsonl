@@ -1,0 +1,4 @@
+{"event": "pause_sent", "monotonic_ns": 8883296138123, "window_id": "0x6a00009", "simulator_pid": 138693, "key": "Space", "focus_verified": true}
+{"event": "pause_observation", "monotonic_ns": 8884558568794, "observation_s": 1.25, "policy_frame_count": 69, "last_frame": {"session_id": 8882229733386, "policy_cycle_id": 68, "sim_clock_status": 2, "sim_clock_valid": false, "sim_time_s": null, "sim_clock_sequence": 18640}, "sim_clock": {"sequence": 18640, "sim_time_s": 18.63800000000055, "source_monotonic_ns": 8883115882271}}
+{"event": "resume_sent", "monotonic_ns": 8884772950086, "window_id": "0x6a00009", "simulator_pid": 138693, "key": "Space", "focus_verified": true}
+{"event": "resume_observation", "monotonic_ns": 8887782636893, "observation_s": 3.0, "policy_frame_count": 69, "post_pause_new_policy_frames": 0, "post_pause_frames_last_5": [], "sim_clock": {"sequence": 21828, "sim_time_s": 21.825999999998782, "source_monotonic_ns": 8887780765275}}

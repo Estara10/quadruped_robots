@@ -1,0 +1,1304 @@
+{
+  "updated_at": "2026-10-18T17:49:41+08:00",
+  "planned": 216,
+  "completed": 216,
+  "confirmed_scene_starts": 216,
+  "items": [
+    {
+      "sequence": 1,
+      "map": "d03.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 2,
+      "map": "d03.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 3,
+      "map": "d03.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 4,
+      "map": "d03.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 5,
+      "map": "d03.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 6,
+      "map": "d03.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 7,
+      "map": "d07.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 8,
+      "map": "d07.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 9,
+      "map": "d07.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 10,
+      "map": "d07.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 11,
+      "map": "d07.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 12,
+      "map": "d07.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 13,
+      "map": "m02.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 14,
+      "map": "m02.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 15,
+      "map": "m02.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 16,
+      "map": "m02.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 17,
+      "map": "m02.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 18,
+      "map": "m02.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 19,
+      "map": "d05.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 20,
+      "map": "d05.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 21,
+      "map": "d05.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 22,
+      "map": "d05.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 23,
+      "map": "d05.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 24,
+      "map": "d05.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 25,
+      "map": "d09.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 26,
+      "map": "d09.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 27,
+      "map": "d09.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 28,
+      "map": "d09.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 29,
+      "map": "d09.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 30,
+      "map": "d09.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 31,
+      "map": "m04.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 32,
+      "map": "m04.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 33,
+      "map": "m04.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 34,
+      "map": "m04.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 35,
+      "map": "m04.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 36,
+      "map": "m04.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 37,
+      "map": "d08.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 38,
+      "map": "d08.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 39,
+      "map": "d08.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 40,
+      "map": "d08.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 41,
+      "map": "d08.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 42,
+      "map": "d08.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 43,
+      "map": "d06.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 44,
+      "map": "d06.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 45,
+      "map": "d06.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 46,
+      "map": "d06.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 47,
+      "map": "d06.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 48,
+      "map": "d06.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 49,
+      "map": "e02.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 50,
+      "map": "e02.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 51,
+      "map": "e02.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 52,
+      "map": "e02.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 53,
+      "map": "e02.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 54,
+      "map": "e02.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 55,
+      "map": "d01.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 56,
+      "map": "d01.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 57,
+      "map": "d01.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 58,
+      "map": "d01.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 59,
+      "map": "d01.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 60,
+      "map": "d01.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 61,
+      "map": "d02.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 62,
+      "map": "d02.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 63,
+      "map": "d02.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 64,
+      "map": "d02.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 65,
+      "map": "d02.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 66,
+      "map": "d02.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 67,
+      "map": "d04.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 68,
+      "map": "d04.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 69,
+      "map": "d04.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 70,
+      "map": "d04.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 71,
+      "map": "d04.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 72,
+      "map": "d04.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 73,
+      "map": "m06.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 74,
+      "map": "m06.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 75,
+      "map": "m06.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 76,
+      "map": "m06.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 77,
+      "map": "m06.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 78,
+      "map": "m06.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 79,
+      "map": "e03.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 80,
+      "map": "e03.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 81,
+      "map": "e03.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 82,
+      "map": "e03.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 83,
+      "map": "e03.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 84,
+      "map": "e03.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 85,
+      "map": "m01.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 86,
+      "map": "m01.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 87,
+      "map": "m01.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 88,
+      "map": "m01.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 89,
+      "map": "m01.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 90,
+      "map": "m01.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 91,
+      "map": "m03.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 92,
+      "map": "m03.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 93,
+      "map": "m03.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 94,
+      "map": "m03.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 95,
+      "map": "m03.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 96,
+      "map": "m03.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 97,
+      "map": "e01.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 98,
+      "map": "e01.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 99,
+      "map": "e01.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 100,
+      "map": "e01.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 101,
+      "map": "e01.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 102,
+      "map": "e01.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 103,
+      "map": "m05.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 104,
+      "map": "m05.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 105,
+      "map": "m05.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 106,
+      "map": "m05.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 107,
+      "map": "m05.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 108,
+      "map": "m05.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 109,
+      "map": "d05.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 110,
+      "map": "d05.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 111,
+      "map": "d05.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 112,
+      "map": "d05.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 113,
+      "map": "d05.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 114,
+      "map": "d05.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 115,
+      "map": "m02.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 116,
+      "map": "m02.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 117,
+      "map": "m02.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 118,
+      "map": "m02.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 119,
+      "map": "m02.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 120,
+      "map": "m02.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 121,
+      "map": "d02.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 122,
+      "map": "d02.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 123,
+      "map": "d02.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 124,
+      "map": "d02.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 125,
+      "map": "d02.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 126,
+      "map": "d02.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 127,
+      "map": "m01.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 128,
+      "map": "m01.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 129,
+      "map": "m01.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 130,
+      "map": "m01.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 131,
+      "map": "m01.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 132,
+      "map": "m01.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 133,
+      "map": "d07.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 134,
+      "map": "d07.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 135,
+      "map": "d07.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 136,
+      "map": "d07.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 137,
+      "map": "d07.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 138,
+      "map": "d07.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 139,
+      "map": "d06.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 140,
+      "map": "d06.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 141,
+      "map": "d06.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 142,
+      "map": "d06.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 143,
+      "map": "d06.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 144,
+      "map": "d06.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 145,
+      "map": "m03.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 146,
+      "map": "m03.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 147,
+      "map": "m03.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 148,
+      "map": "m03.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 149,
+      "map": "m03.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 150,
+      "map": "m03.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 151,
+      "map": "e03.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 152,
+      "map": "e03.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 153,
+      "map": "e03.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 154,
+      "map": "e03.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 155,
+      "map": "e03.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 156,
+      "map": "e03.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 157,
+      "map": "d04.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 158,
+      "map": "d04.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 159,
+      "map": "d04.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 160,
+      "map": "d04.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 161,
+      "map": "d04.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 162,
+      "map": "d04.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 163,
+      "map": "m05.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 164,
+      "map": "m05.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 165,
+      "map": "m05.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 166,
+      "map": "m05.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 167,
+      "map": "m05.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 168,
+      "map": "m05.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 169,
+      "map": "e02.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 170,
+      "map": "e02.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 171,
+      "map": "e02.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 172,
+      "map": "e02.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 173,
+      "map": "e02.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 174,
+      "map": "e02.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 175,
+      "map": "m06.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 176,
+      "map": "m06.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 177,
+      "map": "m06.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 178,
+      "map": "m06.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 179,
+      "map": "m06.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 180,
+      "map": "m06.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 181,
+      "map": "d03.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 182,
+      "map": "d03.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 183,
+      "map": "d03.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 184,
+      "map": "d03.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 185,
+      "map": "d03.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 186,
+      "map": "d03.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 187,
+      "map": "d08.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 188,
+      "map": "d08.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 189,
+      "map": "d08.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 190,
+      "map": "d08.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 191,
+      "map": "d08.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 192,
+      "map": "d08.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 193,
+      "map": "e01.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 194,
+      "map": "e01.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 195,
+      "map": "e01.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 196,
+      "map": "e01.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 197,
+      "map": "e01.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 198,
+      "map": "e01.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 199,
+      "map": "m04.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 200,
+      "map": "m04.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 201,
+      "map": "m04.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 202,
+      "map": "m04.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 203,
+      "map": "m04.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 204,
+      "map": "m04.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 205,
+      "map": "d01.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 206,
+      "map": "d01.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 207,
+      "map": "d01.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 208,
+      "map": "d01.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 209,
+      "map": "d01.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 210,
+      "map": "d01.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 211,
+      "map": "d09.xml",
+      "X": -0.07,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 212,
+      "map": "d09.xml",
+      "X": -0.11,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 213,
+      "map": "d09.xml",
+      "X": -0.09,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 214,
+      "map": "d09.xml",
+      "X": -0.1,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 215,
+      "map": "d09.xml",
+      "X": -0.08,
+      "status": "VALID_TASK_RESULT"
+    },
+    {
+      "sequence": 216,
+      "map": "d09.xml",
+      "X": -0.12,
+      "status": "VALID_TASK_RESULT"
+    }
+  ]
+}

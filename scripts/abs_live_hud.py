@@ -54,6 +54,9 @@ _LIVE_FIELD_LABELS = (
     "rl_step",
     "frame age",
     "policy_state",
+    "switching_mode",
+    "RA thresholds",
+    "Recovery hold",
     "safety_faulted",
     "ra_value",
     "lin_vel (actual)",
@@ -102,6 +105,14 @@ def _render_live(shown: Dict[str, object], now_ns: int) -> str:
         _line("rl_step", str(shown["rl_step"])),
         _line("frame age", f"{age_ns / 1e6:.1f} ms"),
         _line("policy_state", str(shown["policy_state"])),
+        _line("switching_mode", {0: "legacy", 1: "A", 2: "B", 3: "C", 4: "D"}.get(shown["switching_mode"], "UNKNOWN")),
+        _line("RA thresholds", f"E={shown['entry_threshold']:.3f}, Xeff={shown['exit_threshold']:.3f}"),
+        _line("Recovery hold", (
+            f"H={shown['recovery_min_hold_s']:.3f}s, remaining={shown['hold_remaining_sim_s']:.3f}s"
+            if shown["hold_status"] == 2 and shown["hold_remaining_sim_s"] is not None
+            else f"H={shown['recovery_min_hold_s']:.3f}s, status={shown['hold_status']}"
+            if shown["hold_enabled"] else "disabled"
+        )),
         _line("safety_faulted", str(int(shown["safety_faulted"]))),
         _line("ra_value", f"{shown['ra_value']:.4f}"),
         _line("lin_vel (actual)", _fmt_vec(shown["lin_vel"])),

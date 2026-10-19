@@ -1,0 +1,73 @@
+{
+  "test_shm_name": "/s1_05_xlang_51_b7e34d1b60",
+  "layout": {
+    "version": 4,
+    "bytes": 5760,
+    "expected_bytes": 5760,
+    "offsets_bytes": {
+      "version": 8,
+      "sequence": 16,
+      "physics_step": 32,
+      "sim_time": 40,
+      "ground_contacts": 72,
+      "foot_ground_contacts": 388,
+      "unknown_contact_steps": 536,
+      "invalid_posture_steps": 568,
+      "fall_history": 640,
+      "collision_history": 2432
+    }
+  },
+  "result": "PASS",
+  "actual_reader": "read_collision_snapshot -> classify_snapshot",
+  "field_checks": {
+    "version_bytes_size": [
+      4,
+      5760
+    ],
+    "ground_split": [
+      3,
+      2,
+      1
+    ],
+    "collision_history_count": 1,
+    "unknown_contact_steps": 1,
+    "invalid_posture_steps": 1,
+    "fall_history_count": 2,
+    "physics_coverage_complete": true
+  },
+  "fall_history": [
+    {
+      "start_physics_step": 13,
+      "end_physics_step": 163,
+      "confirmed_physics_step": 163,
+      "start_sim_time": 0.02600000000000001,
+      "end_sim_time": 0.32600000000000023,
+      "confirmed_sim_time": 0.32600000000000023,
+      "confirmed": true,
+      "closed": true
+    },
+    {
+      "start_physics_step": 183,
+      "end_physics_step": 360,
+      "confirmed_physics_step": 333,
+      "start_sim_time": 0.36600000000000027,
+      "end_sim_time": 0.7200000000000005,
+      "confirmed_sim_time": 0.6660000000000005,
+      "confirmed": true,
+      "closed": false
+    }
+  ],
+  "analysis": {
+    "crossing_start_fall": true,
+    "after_recovery_fall": true,
+    "after_recovery_events": 1,
+    "crossing_collision": false
+  },
+  "serialization": {
+    "terminal_lines": 1,
+    "payload_valid": true,
+    "terminal_payload_version": 4
+  },
+  "historical_v3_support": "covered by scripts/test_s1_05_safety.py; parsed as v3/3864, event latches incomplete, analyzer returns UNKNOWN for negative collision conclusion",
+  "mismatch_rejection": "covered by scripts/test_s1_05_safety.py: v3/5760, v4/3864, unknown version, truncated rejected"
+}

@@ -1,0 +1,2 @@
+S6-09 library checks passed: 60 maps; 15 balanced density/structure cells;
+30/30 development/held-out; disjoint seeds; geometry, route, and direct-line checks passed.

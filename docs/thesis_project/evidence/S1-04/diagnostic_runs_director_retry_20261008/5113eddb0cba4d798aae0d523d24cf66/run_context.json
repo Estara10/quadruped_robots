@@ -1,0 +1,101 @@
+{
+  "capture": {
+    "authoritative_collision_live_before_motion": false,
+    "capture_error": null,
+    "frames_written": 0,
+    "pre_run_shared_frames_ignored_by_session_timestamp": 0
+  },
+  "capture_id": "p1-10-capture-e92a4d529e0648549c6a7719fb64a9a5",
+  "classification": "short nonformal S1-04 workflow diagnostic; not a formal A-group result",
+  "commands": [],
+  "created_monotonic_ns": 17991717296658,
+  "events": [
+    {
+      "event": "STARTUP_FAILURE",
+      "frame_ref": null,
+      "monotonic_ns": 17991726198421,
+      "phase": "motion_end"
+    },
+    {
+      "event": "process_groups_stopped",
+      "monotonic_ns": 17991726211593,
+      "phase": "process_cleanup",
+      "processes": [
+        {
+          "exit_code": null,
+          "forced": false,
+          "name": "ros2_launch",
+          "started": false
+        },
+        {
+          "exit_code": null,
+          "forced": false,
+          "name": "mujoco",
+          "started": false
+        }
+      ]
+    }
+  ],
+  "lifecycle": {
+    "cleanup_complete_monotonic_ns": 17991726211593,
+    "cleanup_processes": [
+      {
+        "exit_code": null,
+        "forced": false,
+        "name": "ros2_launch",
+        "started": false
+      },
+      {
+        "exit_code": null,
+        "forced": false,
+        "name": "mujoco",
+        "started": false
+      }
+    ],
+    "motion_and_cleanup_are_separate": true,
+    "motion_start_event": "first observed base displacement >=0.10m from first valid strategy-frame pose",
+    "motion_start_interval_s": null,
+    "motion_start_sim_time_s": null,
+    "movement_end_monotonic_ns": null,
+    "post_terminal_strategy_stop": null,
+    "run_terminal_event": "STARTUP_FAILURE",
+    "startup_error": "TypeError: sequence item 0: expected str instance, dict found"
+  },
+  "preflight": {},
+  "result_contract": {
+    "classification": "STARTUP_FAILURE",
+    "command_consumption_by_mujoco": "UNKNOWN; no direct consumption acknowledgement",
+    "fall_detection": "UNKNOWN; no authoritative detector used",
+    "first_valid_frame_monotonic_ns": null,
+    "first_valid_sim_time_s": null,
+    "motion_start_sim_time_s": null,
+    "motion_start_unknown_reason": "no >=0.10m pose displacement observed",
+    "operator_abort": "not issued",
+    "policy_frames_observed": 0,
+    "startup_failure": "TypeError: sequence item 0: expected str instance, dict found",
+    "valid_collision_source_seen": false
+  },
+  "run_id": "5113eddb0cba4d798aae0d523d24cf66",
+  "schema": "s1-04-run-context-v1",
+  "settings": {
+    "arrival_threshold_m": 0.5,
+    "candidate": "paper_faithful_switch",
+    "controller_config": "/tmp/s1_04_overlay/share/go2_description/config/abs/config.yaml",
+    "diagnostic_sim_limit_after_motion_s": 6.0,
+    "display": ":0",
+    "goal_world_m": [
+      1.0,
+      0.0
+    ],
+    "model_paths": [
+      "/tmp/s1_04_overlay/share/go2_description/config/abs/policy.pt",
+      "/tmp/s1_04_overlay/share/go2_description/config/abs/ra_value.pt",
+      "/tmp/s1_04_overlay/share/go2_description/config/rec/policy.pt"
+    ],
+    "overlay": "/tmp/s1_04_overlay",
+    "runtime_model_fingerprint": "3e4d82cf204d5929ff98c11fed5b3918ba3b92f0d698215860097d734d239694",
+    "scene": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/scene_obstacle.xml",
+    "scene_id": "obstacle_test1",
+    "xauthority": "/run/user/1000/gdm/Xauthority"
+  }
+}

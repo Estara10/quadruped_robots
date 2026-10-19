@@ -1,0 +1,122 @@
+{
+  "classification": "single short non-formal pause-resume diagnostic; paper_faithful_switch; not a formal A-group result",
+  "runtime_config": "/tmp/s1_03_overlay/share/go2_description/config/abs/config.yaml",
+  "candidate": "paper_faithful_switch",
+  "models": {
+    "agile": "/tmp/s1_03_overlay/share/go2_description/config/abs/policy.pt",
+    "ra": "/tmp/s1_03_overlay/share/go2_description/config/abs/ra_value.pt",
+    "recovery": "/tmp/s1_03_overlay/share/go2_description/config/rec/policy.pt"
+  },
+  "scene": "/home/lidio/quadruped_robots/unitree_mujoco/scene_obstacle.xml",
+  "schedule": {
+    "hard_wall_clock_cap_s": 90,
+    "pause_after_normal_policy_frames_confirmed": true,
+    "pause_observation_s": 1.25,
+    "resume_immediately_after_pause_observation": true,
+    "post_resume_observation_s": 3.0,
+    "stop_after_post_resume_observation": true
+  },
+  "collector_ready_before_start": true,
+  "simulator_pid": 138693,
+  "verified_window_id": "0x6a00009",
+  "verified_window_pid_property": "_NET_WM_PID(CARDINAL) = 138693",
+  "normal_before_pause": {
+    "policy_frame_count": 42,
+    "last_frame": {
+      "session_id": 8882229733386,
+      "policy_cycle_id": 41,
+      "sim_clock_status": 1,
+      "sim_clock_valid": true,
+      "sim_time_s": 18.590000000000575,
+      "sim_clock_sequence": 18592
+    },
+    "sim_clock": {
+      "sequence": 18614,
+      "sim_time_s": 18.612000000000563,
+      "source_monotonic_ns": 8883089743081
+    }
+  },
+  "pause_key": {
+    "window_id": "0x6a00009",
+    "focused_window_id": "0x6a00009",
+    "keycode": 65
+  },
+  "during_pause": {
+    "policy_frame_count": 69,
+    "last_frame": {
+      "session_id": 8882229733386,
+      "policy_cycle_id": 68,
+      "sim_clock_status": 2,
+      "sim_clock_valid": false,
+      "sim_time_s": null,
+      "sim_clock_sequence": 18640
+    },
+    "sim_clock": {
+      "sequence": 18640,
+      "sim_time_s": 18.63800000000055,
+      "source_monotonic_ns": 8883115882271
+    }
+  },
+  "resume_deadline_from_start_s": 65,
+  "resume_key": {
+    "window_id": "0x6a00009",
+    "focused_window_id": "0x6a00009",
+    "keycode": 65
+  },
+  "after_resume": {
+    "policy_frame_count": 69,
+    "post_pause_new_policy_frames": 0,
+    "post_pause_frames_last_5": [],
+    "sim_clock": {
+      "sequence": 21828,
+      "sim_time_s": 21.825999999998782,
+      "source_monotonic_ns": 8887780765275
+    }
+  },
+  "event_boundary_audit": {
+    "first_stale_policy_frame": {
+      "policy_cycle_id": 49,
+      "monotonic_ns": 8883230765003,
+      "pause_sent_monotonic_ns": 8883296138123,
+      "frame_precedes_pause_request_ms": 65.37312
+    },
+    "last_clock_sample_before_pause_request": {
+      "sequence": 18640,
+      "sim_time_s": 18.63800000000055,
+      "source_monotonic_ns": 8883115882271,
+      "pause_sent_monotonic_ns": 8883296138123,
+      "sample_precedes_pause_request_ms": 180.255852
+    },
+    "first_clock_sample_after_pause_request": {
+      "sequence": 18642,
+      "sim_time_s": 18.640000000000548,
+      "source_monotonic_ns": 8884594437265,
+      "resume_sent_monotonic_ns": 8884772950086,
+      "sample_precedes_resume_request_ms": 178.513
+    },
+    "interpretation": "Clock sample boundaries do not pair with the two Space inputs: the last unchanged sample predates pause_sent, and the next advancing sample predates resume_sent. Do not attribute the stop/restart to these key inputs."
+  },
+  "safety_veto": {
+    "observed": true,
+    "ros_log": "[EMERGENCY] DDS timeout detected (100 steps frozen)! Forcing PASSIVE!",
+    "policy_frames_at_veto": 69,
+    "frames_after_resume_request": 0,
+    "safety_checks_disabled": false,
+    "response": "No retry; policy recovery remains unverified."
+  },
+  "result": "INCOMPLETE: clock advancement was observed during the post-resume observation, but had already started before resume_sent; the controller produced no new policy frame after the DDS safety stop.",
+  "elapsed_s_at_cleanup": 24.593125804,
+  "status": "INCOMPLETE_SAFETY_VETO_AND_UNPAIRED_CLOCK_BOUNDARIES",
+  "wrapper_returncode": -15,
+  "wrapper_cleanup_output": "diagnostic running; ros_pid=138797 sim_pid=138693; send SIGINT to stop\n",
+  "cleanup_followup": {
+    "wrapper_cleanup_complete_marker": false,
+    "collector_stopped_by_signal": true,
+    "collector_final_clock_sample": {
+      "sequence": 65906,
+      "sim_time_s": 65.9040000000278
+    },
+    "collector_final_runtime_frame_count": 69,
+    "interpretation": "The collector recorded clock progression beyond the planned 3-second post-resume window, with no further policy frames. This tail is retained but excluded from the pause/resume attribution. A process scan after collection found no MuJoCo simulator, ROS controller, or collector process; the exact simulator stop time is UNKNOWN."
+  }
+}

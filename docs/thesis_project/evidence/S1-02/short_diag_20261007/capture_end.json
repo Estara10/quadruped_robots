@@ -1,0 +1,9 @@
+{
+  "capture_start_monotonic_ns": 29524622061862,
+  "poll_s_requested": 0.001,
+  "clock_join_rule": "post-process bracketing on shared steady-clock monotonic_ns; no interpolation",
+  "capture_end_monotonic_ns": 29606452954168,
+  "distinct_clock_samples": 27406,
+  "distinct_runtime_frames": 1848,
+  "stopped_by_signal": true
+}

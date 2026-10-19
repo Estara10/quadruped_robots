@@ -1,0 +1,25 @@
+generated 01/24 s611_sl_d01 seed=9110001 attempt=1 area=0.0662
+generated 02/24 s611_sl_d02 seed=9110002 attempt=1 area=0.0642
+generated 03/24 s611_sl_h01 seed=9210001 attempt=1 area=0.0608
+generated 04/24 s611_sl_h02 seed=9210002 attempt=1 area=0.0632
+generated 05/24 s611_sq_d01 seed=9111001 attempt=1 area=0.0626
+generated 06/24 s611_sq_d02 seed=9111002 attempt=1 area=0.0630
+generated 07/24 s611_sq_h01 seed=9211001 attempt=4 area=0.0635
+generated 08/24 s611_sq_h02 seed=9211002 attempt=3 area=0.0644
+generated 09/24 s611_ml_d01 seed=9120001 attempt=2 area=0.0971
+generated 10/24 s611_ml_d02 seed=9120002 attempt=1 area=0.0952
+generated 11/24 s611_ml_h01 seed=9220001 attempt=2 area=0.0990
+generated 12/24 s611_ml_h02 seed=9220002 attempt=1 area=0.0965
+generated 13/24 s611_mq_d01 seed=9121001 attempt=1 area=0.0990
+generated 14/24 s611_mq_d02 seed=9121002 attempt=1 area=0.0981
+generated 15/24 s611_mq_h01 seed=9221001 attempt=2 area=0.0960
+generated 16/24 s611_mq_h02 seed=9221002 attempt=1 area=0.0956
+generated 17/24 s611_dl_d01 seed=9130001 attempt=1 area=0.1323
+generated 18/24 s611_dl_d02 seed=9130002 attempt=2 area=0.1307
+generated 19/24 s611_dl_h01 seed=9230001 attempt=1 area=0.1333
+generated 20/24 s611_dl_h02 seed=9230002 attempt=3 area=0.1306
+generated 21/24 s611_dq_d01 seed=9131001 attempt=2 area=0.1338
+generated 22/24 s611_dq_d02 seed=9131002 attempt=1 area=0.1321
+generated 23/24 s611_dq_h01 seed=9231001 attempt=1 area=0.1331
+generated 24/24 s611_dq_h02 seed=9231002 attempt=1 area=0.1319
+{"development": 30, "held_out": 30, "new_bindings": 24, "new_manifest_scenes": 60, "new_scenes": 24, "retained_scenes": 36}

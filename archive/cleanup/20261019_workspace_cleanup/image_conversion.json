@@ -1,0 +1,937 @@
+{
+  "converted": [
+    {
+      "old": "logs/manual_collision_viewing/20261016_093636/dev15_B/B/rep_01/85d0550d8ebb456a986bdd9d8f0c85e3/live_panel.ppm",
+      "new": "logs/manual_collision_viewing/20261016_093636/dev15_B/B/rep_01/85d0550d8ebb456a986bdd9d8f0c85e3/live_panel.png"
+    },
+    {
+      "old": "logs/manual_collision_viewing/20261016_093636/dev11_B/B/rep_01/a9265bb68e0e438296c7c00d91ef58bf/live_panel.ppm",
+      "new": "logs/manual_collision_viewing/20261016_093636/dev11_B/B/rep_01/a9265bb68e0e438296c7c00d91ef58bf/live_panel.png"
+    },
+    {
+      "old": "logs/manual_collision_viewing/20261016_093636/dev11_B/B/rep_01/a9265bb68e0e438296c7c00d91ef58bf/standing_hold.ppm",
+      "new": "logs/manual_collision_viewing/20261016_093636/dev11_B/B/rep_01/a9265bb68e0e438296c7c00d91ef58bf/standing_hold.png"
+    },
+    {
+      "old": "logs/manual_collision_viewing/20261016_093636/dev03_A/A/rep_01/c4a76d5401ff4bac8f826079d5630b47/live_panel.ppm",
+      "new": "logs/manual_collision_viewing/20261016_093636/dev03_A/A/rep_01/c4a76d5401ff4bac8f826079d5630b47/live_panel.png"
+    },
+    {
+      "old": "logs/manual_collision_viewing/20261016_093636/dev03_A/A/rep_01/c4a76d5401ff4bac8f826079d5630b47/standing_hold.ppm",
+      "new": "logs/manual_collision_viewing/20261016_093636/dev03_A/A/rep_01/c4a76d5401ff4bac8f826079d5630b47/standing_hold.png"
+    },
+    {
+      "old": "logs/manual_collision_viewing/20261016_dev15_only/B/rep_01/d5a83a637c2f47b99798809191d721f4/live_panel.ppm",
+      "new": "logs/manual_collision_viewing/20261016_dev15_only/B/rep_01/d5a83a637c2f47b99798809191d721f4/live_panel.png"
+    },
+    {
+      "old": "logs/b1/closeout_runtime_verification/dev03_D_20261015/D/rep_01/6a0e402de1754d9a828704976d8ee32f/live_panel.ppm",
+      "new": "logs/b1/closeout_runtime_verification/dev03_D_20261015/D/rep_01/6a0e402de1754d9a828704976d8ee32f/live_panel.png"
+    },
+    {
+      "old": "logs/b1/closeout_runtime_verification/dev03_D_20261015/D/rep_01/6a0e402de1754d9a828704976d8ee32f/standing_hold.ppm",
+      "new": "logs/b1/closeout_runtime_verification/dev03_D_20261015/D/rep_01/6a0e402de1754d9a828704976d8ee32f/standing_hold.png"
+    },
+    {
+      "old": "logs/b1/cd_runtime_verification/dev03_C_D_20261015_170521/D/rep_01/e8cae530962645ca8f0d25b0359e0345/live_panel.ppm",
+      "new": "logs/b1/cd_runtime_verification/dev03_C_D_20261015_170521/D/rep_01/e8cae530962645ca8f0d25b0359e0345/live_panel.png"
+    },
+    {
+      "old": "logs/b1/cd_runtime_verification/dev03_C_D_20261015_170521/D/rep_01/e8cae530962645ca8f0d25b0359e0345/standing_hold.ppm",
+      "new": "logs/b1/cd_runtime_verification/dev03_C_D_20261015_170521/D/rep_01/e8cae530962645ca8f0d25b0359e0345/standing_hold.png"
+    },
+    {
+      "old": "logs/b1/cd_runtime_verification/dev03_C_D_20261015_170521/C/rep_01/e1243039761e43ddaa909f431bb5011c/live_panel.ppm",
+      "new": "logs/b1/cd_runtime_verification/dev03_C_D_20261015_170521/C/rep_01/e1243039761e43ddaa909f431bb5011c/live_panel.png"
+    },
+    {
+      "old": "logs/b1/runs/m1dod01_B/B/rep_01/6edf02f841a64b508c25235aad9deba2/live_panel.ppm",
+      "new": "logs/b1/runs/m1dod01_B/B/rep_01/6edf02f841a64b508c25235aad9deba2/live_panel.png"
+    },
+    {
+      "old": "logs/b1/runs/m1ssd01_A/A/rep_01/2788e030fbdb496cbb6d77d58f0a5ddb/live_panel.ppm",
+      "new": "logs/b1/runs/m1ssd01_A/A/rep_01/2788e030fbdb496cbb6d77d58f0a5ddb/live_panel.png"
+    },
+    {
+      "old": "logs/b1/runs/m1ssd01_A/A/rep_01/2788e030fbdb496cbb6d77d58f0a5ddb/standing_hold.ppm",
+      "new": "logs/b1/runs/m1ssd01_A/A/rep_01/2788e030fbdb496cbb6d77d58f0a5ddb/standing_hold.png"
+    },
+    {
+      "old": "logs/b1/runs/flat_A_01/A/rep_01/be491dadee3f4f229e3f6ddc8c1034d0/live_panel.ppm",
+      "new": "logs/b1/runs/flat_A_01/A/rep_01/be491dadee3f4f229e3f6ddc8c1034d0/live_panel.png"
+    },
+    {
+      "old": "logs/b1/runs/flat_A_01/A/rep_01/be491dadee3f4f229e3f6ddc8c1034d0/standing_hold.ppm",
+      "new": "logs/b1/runs/flat_A_01/A/rep_01/be491dadee3f4f229e3f6ddc8c1034d0/standing_hold.png"
+    },
+    {
+      "old": "logs/b1/runs/flat_A_02/A/rep_01/e0d59210618a41c98138380c04480322/live_panel.ppm",
+      "new": "logs/b1/runs/flat_A_02/A/rep_01/e0d59210618a41c98138380c04480322/live_panel.png"
+    },
+    {
+      "old": "logs/b1/runs/flat_A_02/A/rep_01/e0d59210618a41c98138380c04480322/standing_hold.ppm",
+      "new": "logs/b1/runs/flat_A_02/A/rep_01/e0d59210618a41c98138380c04480322/standing_hold.png"
+    },
+    {
+      "old": "logs/b1/runs/m1dod01_C/C/rep_01/a0c8d5a30cbb46718ccd1acb7cb7f994/live_panel.ppm",
+      "new": "logs/b1/runs/m1dod01_C/C/rep_01/a0c8d5a30cbb46718ccd1acb7cb7f994/live_panel.png"
+    },
+    {
+      "old": "logs/b1/runs/m1dod01_C/C/rep_01/a0c8d5a30cbb46718ccd1acb7cb7f994/standing_hold.ppm",
+      "new": "logs/b1/runs/m1dod01_C/C/rep_01/a0c8d5a30cbb46718ccd1acb7cb7f994/standing_hold.png"
+    },
+    {
+      "old": "logs/b1/runs/m1ssd01_D/D/rep_01/b735497bb66345619c599e254b108254/live_panel.ppm",
+      "new": "logs/b1/runs/m1ssd01_D/D/rep_01/b735497bb66345619c599e254b108254/live_panel.png"
+    },
+    {
+      "old": "logs/b1/runs/m1ssd01_D/D/rep_01/b735497bb66345619c599e254b108254/standing_hold.ppm",
+      "new": "logs/b1/runs/m1ssd01_D/D/rep_01/b735497bb66345619c599e254b108254/standing_hold.png"
+    },
+    {
+      "old": "logs/b1/runs/m1ssd01_C/C/rep_01/69ddda58e6bd4d8ca9d4ed23e556a84b/live_panel.ppm",
+      "new": "logs/b1/runs/m1ssd01_C/C/rep_01/69ddda58e6bd4d8ca9d4ed23e556a84b/live_panel.png"
+    },
+    {
+      "old": "logs/b1/runs/m1ssd01_C/C/rep_01/69ddda58e6bd4d8ca9d4ed23e556a84b/standing_hold.ppm",
+      "new": "logs/b1/runs/m1ssd01_C/C/rep_01/69ddda58e6bd4d8ca9d4ed23e556a84b/standing_hold.png"
+    },
+    {
+      "old": "logs/b1/runs/m1dod01_B_retry_01/B/rep_01/8fa9e43785f34f41b73aa26af7b5ea34/live_panel.ppm",
+      "new": "logs/b1/runs/m1dod01_B_retry_01/B/rep_01/8fa9e43785f34f41b73aa26af7b5ea34/live_panel.png"
+    },
+    {
+      "old": "logs/b1/runs/m1dod01_A/attempt_01/A/rep_01/a79d150a1e544bc98c75f4db38345b94/live_panel.ppm",
+      "new": "logs/b1/runs/m1dod01_A/attempt_01/A/rep_01/a79d150a1e544bc98c75f4db38345b94/live_panel.png"
+    },
+    {
+      "old": "logs/b1/runs/m1dod01_D/D/rep_01/0f148c54215e409fbbcacb23955510de/live_panel.ppm",
+      "new": "logs/b1/runs/m1dod01_D/D/rep_01/0f148c54215e409fbbcacb23955510de/live_panel.png"
+    },
+    {
+      "old": "logs/b1/runs/m1dod01_D/D/rep_01/0f148c54215e409fbbcacb23955510de/standing_hold.ppm",
+      "new": "logs/b1/runs/m1dod01_D/D/rep_01/0f148c54215e409fbbcacb23955510de/standing_hold.png"
+    },
+    {
+      "old": "logs/b1/runs/m1ssd01_B/B/rep_01/923705d16d3b4e63b66f8e6ef3a95702/live_panel.ppm",
+      "new": "logs/b1/runs/m1ssd01_B/B/rep_01/923705d16d3b4e63b66f8e6ef3a95702/live_panel.png"
+    },
+    {
+      "old": "logs/b1/runs/m1ssd01_B/B/rep_01/923705d16d3b4e63b66f8e6ef3a95702/standing_hold.ppm",
+      "new": "logs/b1/runs/m1ssd01_B/B/rep_01/923705d16d3b4e63b66f8e6ef3a95702/standing_hold.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/001_r1_m2d06_x13/result/B/rep_01/f0659a4b363340939f540370bf6307ff/live_panel.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/001_r1_m2d06_x13/result/B/rep_01/f0659a4b363340939f540370bf6307ff/live_panel.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/001_r1_m2d06_x13/result/B/rep_01/f0659a4b363340939f540370bf6307ff/standing_hold.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/001_r1_m2d06_x13/result/B/rep_01/f0659a4b363340939f540370bf6307ff/standing_hold.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/007_r1_m2d06_x10/result/B/rep_01/5e7df8f871e540ccb2f8b71645964a94/live_panel.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/007_r1_m2d06_x10/result/B/rep_01/5e7df8f871e540ccb2f8b71645964a94/live_panel.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/007_r1_m2d06_x10/result/B/rep_01/5e7df8f871e540ccb2f8b71645964a94/standing_hold.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/007_r1_m2d06_x10/result/B/rep_01/5e7df8f871e540ccb2f8b71645964a94/standing_hold.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/006_r1_m2d06_x12/attempt_02/result/B/rep_01/971695ceeb0c4ea993c8d377a65a1829/live_panel.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/006_r1_m2d06_x12/attempt_02/result/B/rep_01/971695ceeb0c4ea993c8d377a65a1829/live_panel.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/006_r1_m2d06_x12/attempt_02/result/B/rep_01/971695ceeb0c4ea993c8d377a65a1829/standing_hold.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/006_r1_m2d06_x12/attempt_02/result/B/rep_01/971695ceeb0c4ea993c8d377a65a1829/standing_hold.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/008_r1_m2d06_x07/result/B/rep_01/04b62616582343989c6615ba6361a16d/live_panel.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/008_r1_m2d06_x07/result/B/rep_01/04b62616582343989c6615ba6361a16d/live_panel.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/008_r1_m2d06_x07/result/B/rep_01/04b62616582343989c6615ba6361a16d/standing_hold.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/008_r1_m2d06_x07/result/B/rep_01/04b62616582343989c6615ba6361a16d/standing_hold.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/003_r1_m2d06_x09/result/B/rep_01/0c5748cb8ec34de7b335d9dcab47b486/live_panel.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/003_r1_m2d06_x09/result/B/rep_01/0c5748cb8ec34de7b335d9dcab47b486/live_panel.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/003_r1_m2d06_x09/result/B/rep_01/0c5748cb8ec34de7b335d9dcab47b486/standing_hold.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/003_r1_m2d06_x09/result/B/rep_01/0c5748cb8ec34de7b335d9dcab47b486/standing_hold.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/004_r1_m2d06_x06/result/B/rep_01/ef9a62612b7549829a0e273e7c6069aa/live_panel.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/004_r1_m2d06_x06/result/B/rep_01/ef9a62612b7549829a0e273e7c6069aa/live_panel.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/004_r1_m2d06_x06/result/B/rep_01/ef9a62612b7549829a0e273e7c6069aa/standing_hold.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/004_r1_m2d06_x06/result/B/rep_01/ef9a62612b7549829a0e273e7c6069aa/standing_hold.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/002_r1_m2d06_x08/result/B/rep_01/c0e7bd8bb5994c9eb4ffd1efb9c79781/live_panel.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/002_r1_m2d06_x08/result/B/rep_01/c0e7bd8bb5994c9eb4ffd1efb9c79781/live_panel.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/002_r1_m2d06_x08/result/B/rep_01/c0e7bd8bb5994c9eb4ffd1efb9c79781/standing_hold.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/002_r1_m2d06_x08/result/B/rep_01/c0e7bd8bb5994c9eb4ffd1efb9c79781/standing_hold.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/005_r1_m2d06_x11/attempt_02/result/B/rep_01/a28a54aa81694e88b59d9be9d6a7ffab/live_panel.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/005_r1_m2d06_x11/attempt_02/result/B/rep_01/a28a54aa81694e88b59d9be9d6a7ffab/live_panel.png"
+    },
+    {
+      "old": "logs/t1/m2_exit_round2/20261016_174309_9/runs/005_r1_m2d06_x11/attempt_02/result/B/rep_01/a28a54aa81694e88b59d9be9d6a7ffab/standing_hold.ppm",
+      "new": "logs/t1/m2_exit_round2/20261016_174309_9/runs/005_r1_m2d06_x11/attempt_02/result/B/rep_01/a28a54aa81694e88b59d9be9d6a7ffab/standing_hold.png"
+    },
+    {
+      "old": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/008_r01_m1dsd01_x13/result/B/rep_01/c4617076ac2145ca85c81636077eae26/live_panel.ppm",
+      "new": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/008_r01_m1dsd01_x13/result/B/rep_01/c4617076ac2145ca85c81636077eae26/live_panel.png"
+    },
+    {
+      "old": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/008_r01_m1dsd01_x13/result/B/rep_01/c4617076ac2145ca85c81636077eae26/standing_hold.ppm",
+      "new": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/008_r01_m1dsd01_x13/result/B/rep_01/c4617076ac2145ca85c81636077eae26/standing_hold.png"
+    },
+    {
+      "old": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/005_r01_m1dsd01_x17/result/B/rep_01/5e9af92f702e42b195295723265fa9a5/live_panel.ppm",
+      "new": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/005_r01_m1dsd01_x17/result/B/rep_01/5e9af92f702e42b195295723265fa9a5/live_panel.png"
+    },
+    {
+      "old": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/006_r01_m1dsd01_x07/result/B/rep_01/5e0da75825ec4af48f05682f8a403d87/live_panel.ppm",
+      "new": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/006_r01_m1dsd01_x07/result/B/rep_01/5e0da75825ec4af48f05682f8a403d87/live_panel.png"
+    },
+    {
+      "old": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/006_r01_m1dsd01_x07/result/B/rep_01/5e0da75825ec4af48f05682f8a403d87/standing_hold.ppm",
+      "new": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/006_r01_m1dsd01_x07/result/B/rep_01/5e0da75825ec4af48f05682f8a403d87/standing_hold.png"
+    },
+    {
+      "old": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/004_r01_m1dsd01_x19/result/B/rep_01/1c1045782afa49a2b752c2be194a2ea5/live_panel.ppm",
+      "new": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/004_r01_m1dsd01_x19/result/B/rep_01/1c1045782afa49a2b752c2be194a2ea5/live_panel.png"
+    },
+    {
+      "old": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/004_r01_m1dsd01_x19/result/B/rep_01/1c1045782afa49a2b752c2be194a2ea5/standing_hold.ppm",
+      "new": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/004_r01_m1dsd01_x19/result/B/rep_01/1c1045782afa49a2b752c2be194a2ea5/standing_hold.png"
+    },
+    {
+      "old": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/002_r01_m1dsd01_x15/result/B/rep_01/ca78dc426d684f49869f0f547c9ee443/live_panel.ppm",
+      "new": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/002_r01_m1dsd01_x15/result/B/rep_01/ca78dc426d684f49869f0f547c9ee443/live_panel.png"
+    },
+    {
+      "old": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/002_r01_m1dsd01_x15/result/B/rep_01/ca78dc426d684f49869f0f547c9ee443/standing_hold.ppm",
+      "new": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/002_r01_m1dsd01_x15/result/B/rep_01/ca78dc426d684f49869f0f547c9ee443/standing_hold.png"
+    },
+    {
+      "old": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/003_r01_m1dsd01_x09/result/B/rep_01/5aa399d5fa30493586ee96f283bc6104/live_panel.ppm",
+      "new": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/003_r01_m1dsd01_x09/result/B/rep_01/5aa399d5fa30493586ee96f283bc6104/live_panel.png"
+    },
+    {
+      "old": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/003_r01_m1dsd01_x09/result/B/rep_01/5aa399d5fa30493586ee96f283bc6104/standing_hold.ppm",
+      "new": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/003_r01_m1dsd01_x09/result/B/rep_01/5aa399d5fa30493586ee96f283bc6104/standing_hold.png"
+    },
+    {
+      "old": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/001_r01_m1dsd01_x11/attempt_02/result/B/rep_01/0207cf4266a54dd38e7e981576c2e060/live_panel.ppm",
+      "new": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/001_r01_m1dsd01_x11/attempt_02/result/B/rep_01/0207cf4266a54dd38e7e981576c2e060/live_panel.png"
+    },
+    {
+      "old": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/001_r01_m1dsd01_x11/attempt_02/result/B/rep_01/0207cf4266a54dd38e7e981576c2e060/standing_hold.ppm",
+      "new": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/001_r01_m1dsd01_x11/attempt_02/result/B/rep_01/0207cf4266a54dd38e7e981576c2e060/standing_hold.png"
+    },
+    {
+      "old": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/007_r01_m1dsd01_x05/result/A/rep_01/81ad762ea9ae46ccb411b9c5e3092897/live_panel.ppm",
+      "new": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/007_r01_m1dsd01_x05/result/A/rep_01/81ad762ea9ae46ccb411b9c5e3092897/live_panel.png"
+    },
+    {
+      "old": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/007_r01_m1dsd01_x05/result/A/rep_01/81ad762ea9ae46ccb411b9c5e3092897/standing_hold.ppm",
+      "new": "logs/t1/b_exit_validation_400/20261016_131943_26/runs/007_r01_m1dsd01_x05/result/A/rep_01/81ad762ea9ae46ccb411b9c5e3092897/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/044_m1mbd01_x19_r2/result/B/rep_01/408122e66fba4764964cbedddaa662bd/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/044_m1mbd01_x19_r2/result/B/rep_01/408122e66fba4764964cbedddaa662bd/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/044_m1mbd01_x19_r2/result/B/rep_01/408122e66fba4764964cbedddaa662bd/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/044_m1mbd01_x19_r2/result/B/rep_01/408122e66fba4764964cbedddaa662bd/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/003_m1ssd01_x07_r1/result/B/rep_01/f87d3a06547e4321a0741d64d901859a/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/003_m1ssd01_x07_r1/result/B/rep_01/f87d3a06547e4321a0741d64d901859a/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/003_m1ssd01_x07_r1/result/B/rep_01/f87d3a06547e4321a0741d64d901859a/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/003_m1ssd01_x07_r1/result/B/rep_01/f87d3a06547e4321a0741d64d901859a/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/007_m1ssd01_x19_r1/result/B/rep_01/6bab3ba4acb64230bcb6cbb712ceb375/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/007_m1ssd01_x19_r1/result/B/rep_01/6bab3ba4acb64230bcb6cbb712ceb375/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/007_m1ssd01_x19_r1/result/B/rep_01/6bab3ba4acb64230bcb6cbb712ceb375/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/007_m1ssd01_x19_r1/result/B/rep_01/6bab3ba4acb64230bcb6cbb712ceb375/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/062_m1mod01_x15_r2/result/B/rep_01/bc157d5cc3d74aa09a18d9e06de6ff16/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/062_m1mod01_x15_r2/result/B/rep_01/bc157d5cc3d74aa09a18d9e06de6ff16/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/022_m1sfd01_x09_r1/result/B/rep_01/b3fdd066a6704c6493ff4bcdf4fae138/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/022_m1sfd01_x09_r1/result/B/rep_01/b3fdd066a6704c6493ff4bcdf4fae138/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/022_m1sfd01_x09_r1/result/B/rep_01/b3fdd066a6704c6493ff4bcdf4fae138/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/022_m1sfd01_x09_r1/result/B/rep_01/b3fdd066a6704c6493ff4bcdf4fae138/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/073_m1dld01_x13_r2/result/B/rep_01/20632fcc8c864650970fbe5d61d32cff/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/073_m1dld01_x13_r2/result/B/rep_01/20632fcc8c864650970fbe5d61d32cff/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/073_m1dld01_x13_r2/result/B/rep_01/20632fcc8c864650970fbe5d61d32cff/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/073_m1dld01_x13_r2/result/B/rep_01/20632fcc8c864650970fbe5d61d32cff/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/066_m1dld01_x09_r1/attempt_02/result/B/rep_01/1f814d3311684f928e3c7e9fc719079a/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/066_m1dld01_x09_r1/attempt_02/result/B/rep_01/1f814d3311684f928e3c7e9fc719079a/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/066_m1dld01_x09_r1/attempt_02/result/B/rep_01/1f814d3311684f928e3c7e9fc719079a/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/066_m1dld01_x09_r1/attempt_02/result/B/rep_01/1f814d3311684f928e3c7e9fc719079a/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/066_m1dld01_x09_r1/result/B/rep_01/a93bdb05a7fe4686856b7bffd79249ce/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/066_m1dld01_x09_r1/result/B/rep_01/a93bdb05a7fe4686856b7bffd79249ce/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/004_m1ssd01_x09_r1/result/B/rep_01/3d1acafc87084a3693cc09538298a242/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/004_m1ssd01_x09_r1/result/B/rep_01/3d1acafc87084a3693cc09538298a242/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/004_m1ssd01_x09_r1/result/B/rep_01/3d1acafc87084a3693cc09538298a242/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/004_m1ssd01_x09_r1/result/B/rep_01/3d1acafc87084a3693cc09538298a242/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/013_m1ssd01_x09_r2/result/B/rep_01/1ec79ee220bd4cffba57e5d978a90a6d/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/013_m1ssd01_x09_r2/result/B/rep_01/1ec79ee220bd4cffba57e5d978a90a6d/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/042_m1mbd01_x13_r2/result/B/rep_01/f5c2214dd60d434db2bb667843de5339/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/042_m1mbd01_x13_r2/result/B/rep_01/f5c2214dd60d434db2bb667843de5339/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/042_m1mbd01_x13_r2/result/B/rep_01/f5c2214dd60d434db2bb667843de5339/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/042_m1mbd01_x13_r2/result/B/rep_01/f5c2214dd60d434db2bb667843de5339/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/064_m1mod01_x11_r2/result/B/rep_01/7505dcaffed044fba2a58902882358c1/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/064_m1mod01_x11_r2/result/B/rep_01/7505dcaffed044fba2a58902882358c1/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/019_m1sfd01_x13_r1/result/B/rep_01/630d1a55d6ab45e0a4f20aaae0d39e4c/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/019_m1sfd01_x13_r1/result/B/rep_01/630d1a55d6ab45e0a4f20aaae0d39e4c/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/019_m1sfd01_x13_r1/result/B/rep_01/630d1a55d6ab45e0a4f20aaae0d39e4c/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/019_m1sfd01_x13_r1/result/B/rep_01/630d1a55d6ab45e0a4f20aaae0d39e4c/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/057_m1mod01_x19_r2/result/B/rep_01/a117d466e1184380bcb91630f71d1932/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/057_m1mod01_x19_r2/result/B/rep_01/a117d466e1184380bcb91630f71d1932/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/057_m1mod01_x19_r2/result/B/rep_01/a117d466e1184380bcb91630f71d1932/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/057_m1mod01_x19_r2/result/B/rep_01/a117d466e1184380bcb91630f71d1932/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/027_m1sfd01_x05_r2/result/A/rep_01/4e2c9dfb4c154038b3ed26c3c4ef7ef7/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/027_m1sfd01_x05_r2/result/A/rep_01/4e2c9dfb4c154038b3ed26c3c4ef7ef7/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/027_m1sfd01_x05_r2/result/A/rep_01/4e2c9dfb4c154038b3ed26c3c4ef7ef7/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/027_m1sfd01_x05_r2/result/A/rep_01/4e2c9dfb4c154038b3ed26c3c4ef7ef7/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/035_m1mbd01_x15_r1/result/B/rep_01/09da22e5f98648f8b5f6e9e7e8995a7f/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/035_m1mbd01_x15_r1/result/B/rep_01/09da22e5f98648f8b5f6e9e7e8995a7f/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/035_m1mbd01_x15_r1/result/B/rep_01/09da22e5f98648f8b5f6e9e7e8995a7f/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/035_m1mbd01_x15_r1/result/B/rep_01/09da22e5f98648f8b5f6e9e7e8995a7f/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/085_m1dfd01_x09_r1/result/B/rep_01/eb40439256a24fe285f513a1d78a1ce8/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/085_m1dfd01_x09_r1/result/B/rep_01/eb40439256a24fe285f513a1d78a1ce8/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/085_m1dfd01_x09_r1/result/B/rep_01/eb40439256a24fe285f513a1d78a1ce8/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/085_m1dfd01_x09_r1/result/B/rep_01/eb40439256a24fe285f513a1d78a1ce8/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/031_m1sfd01_x09_r2/result/B/rep_01/bead4d40e0274c17adcb682211c83812/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/031_m1sfd01_x09_r2/result/B/rep_01/bead4d40e0274c17adcb682211c83812/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/031_m1sfd01_x09_r2/result/B/rep_01/bead4d40e0274c17adcb682211c83812/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/031_m1sfd01_x09_r2/result/B/rep_01/bead4d40e0274c17adcb682211c83812/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/081_m1dfd01_x11_r1/result/B/rep_01/9d007655705f44a687edbcb7373da8a2/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/081_m1dfd01_x11_r1/result/B/rep_01/9d007655705f44a687edbcb7373da8a2/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/081_m1dfd01_x11_r1/result/B/rep_01/9d007655705f44a687edbcb7373da8a2/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/081_m1dfd01_x11_r1/result/B/rep_01/9d007655705f44a687edbcb7373da8a2/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/033_m1mbd01_x13_r1/result/B/rep_01/4ae77465708a44b8ad0ede33e2430702/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/033_m1mbd01_x13_r1/result/B/rep_01/4ae77465708a44b8ad0ede33e2430702/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/071_m1dld01_x07_r1/result/B/rep_01/35515c71bcca4e51984437f32d7064c3/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/071_m1dld01_x07_r1/result/B/rep_01/35515c71bcca4e51984437f32d7064c3/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/071_m1dld01_x07_r1/result/B/rep_01/35515c71bcca4e51984437f32d7064c3/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/071_m1dld01_x07_r1/result/B/rep_01/35515c71bcca4e51984437f32d7064c3/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/060_m1mod01_x17_r2/result/B/rep_01/e165ba83d0fc48fd9e4b6bfa164cc96c/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/060_m1mod01_x17_r2/result/B/rep_01/e165ba83d0fc48fd9e4b6bfa164cc96c/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/060_m1mod01_x17_r2/result/B/rep_01/e165ba83d0fc48fd9e4b6bfa164cc96c/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/060_m1mod01_x17_r2/result/B/rep_01/e165ba83d0fc48fd9e4b6bfa164cc96c/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/028_m1sfd01_x19_r2/result/B/rep_01/a69443d2b7e343a98ca98a9f766fb6e1/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/028_m1sfd01_x19_r2/result/B/rep_01/a69443d2b7e343a98ca98a9f766fb6e1/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/028_m1sfd01_x19_r2/result/B/rep_01/a69443d2b7e343a98ca98a9f766fb6e1/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/028_m1sfd01_x19_r2/result/B/rep_01/a69443d2b7e343a98ca98a9f766fb6e1/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/054_m1mod01_x17_r1/result/B/rep_01/a221b5b8a2c54bb3809ac0701d274255/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/054_m1mod01_x17_r1/result/B/rep_01/a221b5b8a2c54bb3809ac0701d274255/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/055_m1mod01_x15_r1/result/B/rep_01/0066ce3a608a4bd28b5f704b47ae4f45/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/055_m1mod01_x15_r1/result/B/rep_01/0066ce3a608a4bd28b5f704b47ae4f45/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/048_m1mbd01_x05_r2/result/A/rep_01/82d4e89986944c98a4b2f2ec8a0c3f6c/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/048_m1mbd01_x05_r2/result/A/rep_01/82d4e89986944c98a4b2f2ec8a0c3f6c/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/048_m1mbd01_x05_r2/result/A/rep_01/82d4e89986944c98a4b2f2ec8a0c3f6c/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/048_m1mbd01_x05_r2/result/A/rep_01/82d4e89986944c98a4b2f2ec8a0c3f6c/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/092_m1dfd01_x09_r2/result/B/rep_01/b34b0885ed144ac886408346d20bf032/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/092_m1dfd01_x09_r2/result/B/rep_01/b34b0885ed144ac886408346d20bf032/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/092_m1dfd01_x09_r2/result/B/rep_01/b34b0885ed144ac886408346d20bf032/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/092_m1dfd01_x09_r2/result/B/rep_01/b34b0885ed144ac886408346d20bf032/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/056_m1mod01_x05_r1/result/A/rep_01/07b965054ea2463f85f98c951dcb09e9/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/056_m1mod01_x05_r1/result/A/rep_01/07b965054ea2463f85f98c951dcb09e9/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/049_m1mod01_x11_r1/result/B/rep_01/ecbf6fae3c4541a380fb300ae7446954/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/049_m1mod01_x11_r1/result/B/rep_01/ecbf6fae3c4541a380fb300ae7446954/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/030_m1sfd01_x07_r2/result/B/rep_01/976c7bcc8db849ad8925bcfaf314ae7f/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/030_m1sfd01_x07_r2/result/B/rep_01/976c7bcc8db849ad8925bcfaf314ae7f/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/030_m1sfd01_x07_r2/result/B/rep_01/976c7bcc8db849ad8925bcfaf314ae7f/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/030_m1sfd01_x07_r2/result/B/rep_01/976c7bcc8db849ad8925bcfaf314ae7f/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/091_m1dfd01_x17_r2/result/B/rep_01/285638c912364ac49551839b7c24b716/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/091_m1dfd01_x17_r2/result/B/rep_01/285638c912364ac49551839b7c24b716/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/091_m1dfd01_x17_r2/result/B/rep_01/285638c912364ac49551839b7c24b716/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/091_m1dfd01_x17_r2/result/B/rep_01/285638c912364ac49551839b7c24b716/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/093_m1dfd01_x15_r2/result/B/rep_01/a03394a9649642e3947b8cd945b807fd/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/093_m1dfd01_x15_r2/result/B/rep_01/a03394a9649642e3947b8cd945b807fd/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/093_m1dfd01_x15_r2/result/B/rep_01/a03394a9649642e3947b8cd945b807fd/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/093_m1dfd01_x15_r2/result/B/rep_01/a03394a9649642e3947b8cd945b807fd/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/089_m1dfd01_x07_r2/result/B/rep_01/40da40ccfcc6438bae28a1fa24d54e16/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/089_m1dfd01_x07_r2/result/B/rep_01/40da40ccfcc6438bae28a1fa24d54e16/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/083_m1dfd01_x05_r1/result/A/rep_01/8fecf8c227d54c199a63b7530e51eab0/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/083_m1dfd01_x05_r1/result/A/rep_01/8fecf8c227d54c199a63b7530e51eab0/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/065_m1dld01_x13_r1/result/B/rep_01/1906c795dcf747b38afa9fde052b7ecc/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/065_m1dld01_x13_r1/result/B/rep_01/1906c795dcf747b38afa9fde052b7ecc/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/065_m1dld01_x13_r1/result/B/rep_01/1906c795dcf747b38afa9fde052b7ecc/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/065_m1dld01_x13_r1/result/B/rep_01/1906c795dcf747b38afa9fde052b7ecc/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/039_m1mbd01_x17_r1/result/B/rep_01/f3ad2a5444fe4205b1e14f41ceb75947/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/039_m1mbd01_x17_r1/result/B/rep_01/f3ad2a5444fe4205b1e14f41ceb75947/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/039_m1mbd01_x17_r1/result/B/rep_01/f3ad2a5444fe4205b1e14f41ceb75947/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/039_m1mbd01_x17_r1/result/B/rep_01/f3ad2a5444fe4205b1e14f41ceb75947/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/050_m1mod01_x13_r1/result/B/rep_01/c61b2850518a49c48952fba7f515dab5/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/050_m1mod01_x13_r1/result/B/rep_01/c61b2850518a49c48952fba7f515dab5/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/050_m1mod01_x13_r1/result/B/rep_01/c61b2850518a49c48952fba7f515dab5/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/050_m1mod01_x13_r1/result/B/rep_01/c61b2850518a49c48952fba7f515dab5/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/002_m1ssd01_x17_r1/attempt_02/result/B/rep_01/772774129dda4ef8aa78ed3d87b8a41d/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/002_m1ssd01_x17_r1/attempt_02/result/B/rep_01/772774129dda4ef8aa78ed3d87b8a41d/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/002_m1ssd01_x17_r1/attempt_02/result/B/rep_01/772774129dda4ef8aa78ed3d87b8a41d/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/002_m1ssd01_x17_r1/attempt_02/result/B/rep_01/772774129dda4ef8aa78ed3d87b8a41d/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/058_m1mod01_x07_r2/result/B/rep_01/b830aae25d064c0f8accb37f9d0fe630/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/058_m1mod01_x07_r2/result/B/rep_01/b830aae25d064c0f8accb37f9d0fe630/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/063_m1mod01_x13_r2/result/B/rep_01/aa62e7a3a86e4e85848c0b4c3e6ae9dd/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/063_m1mod01_x13_r2/result/B/rep_01/aa62e7a3a86e4e85848c0b4c3e6ae9dd/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/034_m1mbd01_x05_r1/result/A/rep_01/2b984df0d1f9425da8f26849d60a559a/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/034_m1mbd01_x05_r1/result/A/rep_01/2b984df0d1f9425da8f26849d60a559a/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/034_m1mbd01_x05_r1/result/A/rep_01/2b984df0d1f9425da8f26849d60a559a/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/034_m1mbd01_x05_r1/result/A/rep_01/2b984df0d1f9425da8f26849d60a559a/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/032_m1sfd01_x11_r2/result/B/rep_01/fab0f0e1d0b34d98824ec450e03e2c91/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/032_m1sfd01_x11_r2/result/B/rep_01/fab0f0e1d0b34d98824ec450e03e2c91/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/032_m1sfd01_x11_r2/result/B/rep_01/fab0f0e1d0b34d98824ec450e03e2c91/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/032_m1sfd01_x11_r2/result/B/rep_01/fab0f0e1d0b34d98824ec450e03e2c91/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/021_m1sfd01_x15_r1/result/B/rep_01/e2e77dbab4a04351819940ae4d6375de/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/021_m1sfd01_x15_r1/result/B/rep_01/e2e77dbab4a04351819940ae4d6375de/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/021_m1sfd01_x15_r1/result/B/rep_01/e2e77dbab4a04351819940ae4d6375de/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/021_m1sfd01_x15_r1/result/B/rep_01/e2e77dbab4a04351819940ae4d6375de/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/015_m1ssd01_x07_r2/result/B/rep_01/94ed404241ca4cd0b39ba45353ae6036/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/015_m1ssd01_x07_r2/result/B/rep_01/94ed404241ca4cd0b39ba45353ae6036/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/015_m1ssd01_x07_r2/result/B/rep_01/94ed404241ca4cd0b39ba45353ae6036/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/015_m1ssd01_x07_r2/result/B/rep_01/94ed404241ca4cd0b39ba45353ae6036/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/018_m1sfd01_x07_r1/result/B/rep_01/aae2e9caca874eb08460935dc05acb75/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/018_m1sfd01_x07_r1/result/B/rep_01/aae2e9caca874eb08460935dc05acb75/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/018_m1sfd01_x07_r1/result/B/rep_01/aae2e9caca874eb08460935dc05acb75/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/018_m1sfd01_x07_r1/result/B/rep_01/aae2e9caca874eb08460935dc05acb75/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/080_m1dld01_x09_r2/result/B/rep_01/8b3c7dba40ef449ba65d846230e38bdd/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/080_m1dld01_x09_r2/result/B/rep_01/8b3c7dba40ef449ba65d846230e38bdd/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/080_m1dld01_x09_r2/result/B/rep_01/8b3c7dba40ef449ba65d846230e38bdd/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/080_m1dld01_x09_r2/result/B/rep_01/8b3c7dba40ef449ba65d846230e38bdd/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/096_m1dfd01_x11_r2/result/B/rep_01/bf614347b632400fbe99215767eb00fd/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/096_m1dfd01_x11_r2/result/B/rep_01/bf614347b632400fbe99215767eb00fd/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/096_m1dfd01_x11_r2/result/B/rep_01/bf614347b632400fbe99215767eb00fd/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/096_m1dfd01_x11_r2/result/B/rep_01/bf614347b632400fbe99215767eb00fd/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/084_m1dfd01_x19_r1/result/B/rep_01/ab21b4cfdc5d4e9d859550916ceb8341/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/084_m1dfd01_x19_r1/result/B/rep_01/ab21b4cfdc5d4e9d859550916ceb8341/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/084_m1dfd01_x19_r1/result/B/rep_01/ab21b4cfdc5d4e9d859550916ceb8341/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/084_m1dfd01_x19_r1/result/B/rep_01/ab21b4cfdc5d4e9d859550916ceb8341/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/020_m1sfd01_x19_r1/result/B/rep_01/04148e30c72846de8f6923eefab31c3e/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/020_m1sfd01_x19_r1/result/B/rep_01/04148e30c72846de8f6923eefab31c3e/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/020_m1sfd01_x19_r1/result/B/rep_01/04148e30c72846de8f6923eefab31c3e/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/020_m1sfd01_x19_r1/result/B/rep_01/04148e30c72846de8f6923eefab31c3e/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/067_m1dld01_x19_r1/result/B/rep_01/855aa35643ec400d96fc0838273cc68c/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/067_m1dld01_x19_r1/result/B/rep_01/855aa35643ec400d96fc0838273cc68c/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/067_m1dld01_x19_r1/result/B/rep_01/855aa35643ec400d96fc0838273cc68c/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/067_m1dld01_x19_r1/result/B/rep_01/855aa35643ec400d96fc0838273cc68c/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/075_m1dld01_x19_r2/result/B/rep_01/ceca90b8ed7e4115b2797c8947b8725b/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/075_m1dld01_x19_r2/result/B/rep_01/ceca90b8ed7e4115b2797c8947b8725b/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/075_m1dld01_x19_r2/result/B/rep_01/ceca90b8ed7e4115b2797c8947b8725b/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/075_m1dld01_x19_r2/result/B/rep_01/ceca90b8ed7e4115b2797c8947b8725b/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/053_m1mod01_x09_r1/result/B/rep_01/24fb3942b6da4b8083074c8ddc3fb03f/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/053_m1mod01_x09_r1/result/B/rep_01/24fb3942b6da4b8083074c8ddc3fb03f/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/077_m1dld01_x07_r2/result/B/rep_01/1f236743faf04259838ae42d48812d56/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/077_m1dld01_x07_r2/result/B/rep_01/1f236743faf04259838ae42d48812d56/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/077_m1dld01_x07_r2/result/B/rep_01/1f236743faf04259838ae42d48812d56/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/077_m1dld01_x07_r2/result/B/rep_01/1f236743faf04259838ae42d48812d56/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/001_m1ssd01_x15_r1/attempt_02/result/B/rep_01/7d9ba20b205b4704af31ff6bac290f14/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/001_m1ssd01_x15_r1/attempt_02/result/B/rep_01/7d9ba20b205b4704af31ff6bac290f14/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/001_m1ssd01_x15_r1/attempt_02/result/B/rep_01/7d9ba20b205b4704af31ff6bac290f14/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/001_m1ssd01_x15_r1/attempt_02/result/B/rep_01/7d9ba20b205b4704af31ff6bac290f14/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/051_m1mod01_x19_r1/result/B/rep_01/7a8ddfd63f8a4505804e312abfbd1af5/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/051_m1mod01_x19_r1/result/B/rep_01/7a8ddfd63f8a4505804e312abfbd1af5/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/006_m1ssd01_x13_r1/result/B/rep_01/3b79cb8912044633bb940a5d074c5512/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/006_m1ssd01_x13_r1/result/B/rep_01/3b79cb8912044633bb940a5d074c5512/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/006_m1ssd01_x13_r1/result/B/rep_01/3b79cb8912044633bb940a5d074c5512/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/006_m1ssd01_x13_r1/result/B/rep_01/3b79cb8912044633bb940a5d074c5512/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/040_m1mbd01_x19_r1/result/B/rep_01/10e87ba5fa044647919b5bdfcee0e141/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/040_m1mbd01_x19_r1/result/B/rep_01/10e87ba5fa044647919b5bdfcee0e141/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/040_m1mbd01_x19_r1/result/B/rep_01/10e87ba5fa044647919b5bdfcee0e141/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/040_m1mbd01_x19_r1/result/B/rep_01/10e87ba5fa044647919b5bdfcee0e141/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/069_m1dld01_x05_r1/result/A/rep_01/ce5e572f333445ee92cfe0ce9839f637/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/069_m1dld01_x05_r1/result/A/rep_01/ce5e572f333445ee92cfe0ce9839f637/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/069_m1dld01_x05_r1/result/A/rep_01/ce5e572f333445ee92cfe0ce9839f637/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/069_m1dld01_x05_r1/result/A/rep_01/ce5e572f333445ee92cfe0ce9839f637/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/023_m1sfd01_x05_r1/result/A/rep_01/5ce2300a146c42cca0e63e0e96381e4f/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/023_m1sfd01_x05_r1/result/A/rep_01/5ce2300a146c42cca0e63e0e96381e4f/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/023_m1sfd01_x05_r1/result/A/rep_01/5ce2300a146c42cca0e63e0e96381e4f/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/023_m1sfd01_x05_r1/result/A/rep_01/5ce2300a146c42cca0e63e0e96381e4f/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/074_m1dld01_x11_r2/result/B/rep_01/c7a046df754d4eaab629ac3254c56710/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/074_m1dld01_x11_r2/result/B/rep_01/c7a046df754d4eaab629ac3254c56710/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/074_m1dld01_x11_r2/result/B/rep_01/c7a046df754d4eaab629ac3254c56710/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/074_m1dld01_x11_r2/result/B/rep_01/c7a046df754d4eaab629ac3254c56710/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/012_m1ssd01_x17_r2/result/B/rep_01/cd585646284040ff8226176d841447f9/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/012_m1ssd01_x17_r2/result/B/rep_01/cd585646284040ff8226176d841447f9/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/012_m1ssd01_x17_r2/result/B/rep_01/cd585646284040ff8226176d841447f9/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/012_m1ssd01_x17_r2/result/B/rep_01/cd585646284040ff8226176d841447f9/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/037_m1mbd01_x11_r1/result/B/rep_01/be58e372f9f14f11a4c2076b19f97ed8/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/037_m1mbd01_x11_r1/result/B/rep_01/be58e372f9f14f11a4c2076b19f97ed8/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/037_m1mbd01_x11_r1/result/B/rep_01/be58e372f9f14f11a4c2076b19f97ed8/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/037_m1mbd01_x11_r1/result/B/rep_01/be58e372f9f14f11a4c2076b19f97ed8/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/008_m1ssd01_x05_r1/result/A/rep_01/6af803cc2948426397f0df0882878637/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/008_m1ssd01_x05_r1/result/A/rep_01/6af803cc2948426397f0df0882878637/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/095_m1dfd01_x05_r2/result/A/rep_01/6bcbcdde36424799b21be0ab583ef6f0/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/095_m1dfd01_x05_r2/result/A/rep_01/6bcbcdde36424799b21be0ab583ef6f0/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/095_m1dfd01_x05_r2/result/A/rep_01/6bcbcdde36424799b21be0ab583ef6f0/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/095_m1dfd01_x05_r2/result/A/rep_01/6bcbcdde36424799b21be0ab583ef6f0/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/043_m1mbd01_x15_r2/result/B/rep_01/95879c1e2db4429b80026cd838311990/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/043_m1mbd01_x15_r2/result/B/rep_01/95879c1e2db4429b80026cd838311990/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/043_m1mbd01_x15_r2/result/B/rep_01/95879c1e2db4429b80026cd838311990/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/043_m1mbd01_x15_r2/result/B/rep_01/95879c1e2db4429b80026cd838311990/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/038_m1mbd01_x07_r1/result/B/rep_01/fec81983ca054f0293195a710145075a/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/038_m1mbd01_x07_r1/result/B/rep_01/fec81983ca054f0293195a710145075a/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/038_m1mbd01_x07_r1/result/B/rep_01/fec81983ca054f0293195a710145075a/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/038_m1mbd01_x07_r1/result/B/rep_01/fec81983ca054f0293195a710145075a/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/052_m1mod01_x07_r1/result/B/rep_01/0d7e879bd1e043f5b081b0aa261407bb/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/052_m1mod01_x07_r1/result/B/rep_01/0d7e879bd1e043f5b081b0aa261407bb/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/024_m1sfd01_x17_r1/result/B/rep_01/9954eba60f4047ac92ec091c9b3b9903/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/024_m1sfd01_x17_r1/result/B/rep_01/9954eba60f4047ac92ec091c9b3b9903/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/024_m1sfd01_x17_r1/result/B/rep_01/9954eba60f4047ac92ec091c9b3b9903/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/024_m1sfd01_x17_r1/result/B/rep_01/9954eba60f4047ac92ec091c9b3b9903/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/014_m1ssd01_x13_r2/result/B/rep_01/615aac4e0afd424dbe0ca30cc1276520/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/014_m1ssd01_x13_r2/result/B/rep_01/615aac4e0afd424dbe0ca30cc1276520/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/014_m1ssd01_x13_r2/result/B/rep_01/615aac4e0afd424dbe0ca30cc1276520/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/014_m1ssd01_x13_r2/result/B/rep_01/615aac4e0afd424dbe0ca30cc1276520/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/029_m1sfd01_x15_r2/result/B/rep_01/2dfb4b9309bf415f86530089bb72cff8/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/029_m1sfd01_x15_r2/result/B/rep_01/2dfb4b9309bf415f86530089bb72cff8/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/029_m1sfd01_x15_r2/result/B/rep_01/2dfb4b9309bf415f86530089bb72cff8/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/029_m1sfd01_x15_r2/result/B/rep_01/2dfb4b9309bf415f86530089bb72cff8/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/082_m1dfd01_x15_r1/result/B/rep_01/1a90040395c341e299087c4c15ddd6ef/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/082_m1dfd01_x15_r1/result/B/rep_01/1a90040395c341e299087c4c15ddd6ef/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/082_m1dfd01_x15_r1/result/B/rep_01/1a90040395c341e299087c4c15ddd6ef/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/082_m1dfd01_x15_r1/result/B/rep_01/1a90040395c341e299087c4c15ddd6ef/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/025_m1sfd01_x17_r2/result/B/rep_01/d2cfefc484e64a57ab0ecb62c5a01d17/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/025_m1sfd01_x17_r2/result/B/rep_01/d2cfefc484e64a57ab0ecb62c5a01d17/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/025_m1sfd01_x17_r2/result/B/rep_01/d2cfefc484e64a57ab0ecb62c5a01d17/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/025_m1sfd01_x17_r2/result/B/rep_01/d2cfefc484e64a57ab0ecb62c5a01d17/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/094_m1dfd01_x19_r2/result/B/rep_01/ce865fcdbf504034a35d1b923a59d09b/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/094_m1dfd01_x19_r2/result/B/rep_01/ce865fcdbf504034a35d1b923a59d09b/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/094_m1dfd01_x19_r2/result/B/rep_01/ce865fcdbf504034a35d1b923a59d09b/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/094_m1dfd01_x19_r2/result/B/rep_01/ce865fcdbf504034a35d1b923a59d09b/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/017_m1sfd01_x11_r1/result/B/rep_01/ac8006311d394ce8b6df7dba3a87094a/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/017_m1sfd01_x11_r1/result/B/rep_01/ac8006311d394ce8b6df7dba3a87094a/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/017_m1sfd01_x11_r1/result/B/rep_01/ac8006311d394ce8b6df7dba3a87094a/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/017_m1sfd01_x11_r1/result/B/rep_01/ac8006311d394ce8b6df7dba3a87094a/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/087_m1dfd01_x07_r1/result/B/rep_01/c9097a697cb4448993151422dc4e2e54/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/087_m1dfd01_x07_r1/result/B/rep_01/c9097a697cb4448993151422dc4e2e54/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/087_m1dfd01_x07_r1/result/B/rep_01/c9097a697cb4448993151422dc4e2e54/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/087_m1dfd01_x07_r1/result/B/rep_01/c9097a697cb4448993151422dc4e2e54/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/088_m1dfd01_x17_r1/result/B/rep_01/9f07023467944f65a71f30e4a28c888d/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/088_m1dfd01_x17_r1/result/B/rep_01/9f07023467944f65a71f30e4a28c888d/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/088_m1dfd01_x17_r1/result/B/rep_01/9f07023467944f65a71f30e4a28c888d/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/088_m1dfd01_x17_r1/result/B/rep_01/9f07023467944f65a71f30e4a28c888d/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/076_m1dld01_x17_r2/result/B/rep_01/6f2f1a1cee9c40b2b727859603a80b49/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/076_m1dld01_x17_r2/result/B/rep_01/6f2f1a1cee9c40b2b727859603a80b49/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/076_m1dld01_x17_r2/result/B/rep_01/6f2f1a1cee9c40b2b727859603a80b49/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/076_m1dld01_x17_r2/result/B/rep_01/6f2f1a1cee9c40b2b727859603a80b49/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/036_m1mbd01_x09_r1/result/B/rep_01/6e9e2effb7be44be8f38b4ae703b10fe/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/036_m1mbd01_x09_r1/result/B/rep_01/6e9e2effb7be44be8f38b4ae703b10fe/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/036_m1mbd01_x09_r1/result/B/rep_01/6e9e2effb7be44be8f38b4ae703b10fe/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/036_m1mbd01_x09_r1/result/B/rep_01/6e9e2effb7be44be8f38b4ae703b10fe/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/061_m1mod01_x09_r2/result/B/rep_01/0e6979ad0e8d4404a77fa610b837c492/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/061_m1mod01_x09_r2/result/B/rep_01/0e6979ad0e8d4404a77fa610b837c492/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/010_m1ssd01_x05_r2/result/A/rep_01/702e2b24562c4e4b9d7c5709037a2561/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/010_m1ssd01_x05_r2/result/A/rep_01/702e2b24562c4e4b9d7c5709037a2561/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/011_m1ssd01_x11_r2/result/B/rep_01/bce467a10b794096987b1779f0546fab/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/011_m1ssd01_x11_r2/result/B/rep_01/bce467a10b794096987b1779f0546fab/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/011_m1ssd01_x11_r2/result/B/rep_01/bce467a10b794096987b1779f0546fab/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/011_m1ssd01_x11_r2/result/B/rep_01/bce467a10b794096987b1779f0546fab/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/045_m1mbd01_x09_r2/result/B/rep_01/0097035fe73b4bb5a3bea9aee15408e0/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/045_m1mbd01_x09_r2/result/B/rep_01/0097035fe73b4bb5a3bea9aee15408e0/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/086_m1dfd01_x13_r1/result/B/rep_01/65e54a6ee043497ca33047ad9e83e23f/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/086_m1dfd01_x13_r1/result/B/rep_01/65e54a6ee043497ca33047ad9e83e23f/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/086_m1dfd01_x13_r1/result/B/rep_01/65e54a6ee043497ca33047ad9e83e23f/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/086_m1dfd01_x13_r1/result/B/rep_01/65e54a6ee043497ca33047ad9e83e23f/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/041_m1mbd01_x11_r2/result/B/rep_01/98fa18c46b0a4c30bea1d3a53a26c94a/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/041_m1mbd01_x11_r2/result/B/rep_01/98fa18c46b0a4c30bea1d3a53a26c94a/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/041_m1mbd01_x11_r2/result/B/rep_01/98fa18c46b0a4c30bea1d3a53a26c94a/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/041_m1mbd01_x11_r2/result/B/rep_01/98fa18c46b0a4c30bea1d3a53a26c94a/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/068_m1dld01_x11_r1/result/B/rep_01/9a1a6704908c4309a4e2d6b6ef5e4c0c/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/068_m1dld01_x11_r1/result/B/rep_01/9a1a6704908c4309a4e2d6b6ef5e4c0c/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/068_m1dld01_x11_r1/result/B/rep_01/9a1a6704908c4309a4e2d6b6ef5e4c0c/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/068_m1dld01_x11_r1/result/B/rep_01/9a1a6704908c4309a4e2d6b6ef5e4c0c/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/072_m1dld01_x17_r1/result/B/rep_01/1b82c0dd865c4a1babce05ebbed166b1/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/072_m1dld01_x17_r1/result/B/rep_01/1b82c0dd865c4a1babce05ebbed166b1/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/072_m1dld01_x17_r1/result/B/rep_01/1b82c0dd865c4a1babce05ebbed166b1/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/072_m1dld01_x17_r1/result/B/rep_01/1b82c0dd865c4a1babce05ebbed166b1/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/005_m1ssd01_x11_r1/result/B/rep_01/1ceb654a109b40d289f4e3ec71169fa5/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/005_m1ssd01_x11_r1/result/B/rep_01/1ceb654a109b40d289f4e3ec71169fa5/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/005_m1ssd01_x11_r1/result/B/rep_01/1ceb654a109b40d289f4e3ec71169fa5/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/005_m1ssd01_x11_r1/result/B/rep_01/1ceb654a109b40d289f4e3ec71169fa5/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/070_m1dld01_x15_r1/result/B/rep_01/2f9df51fd0b24d16b3d6fa791626e151/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/070_m1dld01_x15_r1/result/B/rep_01/2f9df51fd0b24d16b3d6fa791626e151/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/070_m1dld01_x15_r1/result/B/rep_01/2f9df51fd0b24d16b3d6fa791626e151/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/070_m1dld01_x15_r1/result/B/rep_01/2f9df51fd0b24d16b3d6fa791626e151/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/090_m1dfd01_x13_r2/result/B/rep_01/08ae62b687ac4419b24f14a0127a7366/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/090_m1dfd01_x13_r2/result/B/rep_01/08ae62b687ac4419b24f14a0127a7366/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/090_m1dfd01_x13_r2/result/B/rep_01/08ae62b687ac4419b24f14a0127a7366/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/090_m1dfd01_x13_r2/result/B/rep_01/08ae62b687ac4419b24f14a0127a7366/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/047_m1mbd01_x07_r2/result/B/rep_01/a1df6b70aca2405db347921e3ec3436d/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/047_m1mbd01_x07_r2/result/B/rep_01/a1df6b70aca2405db347921e3ec3436d/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/059_m1mod01_x05_r2/result/A/rep_01/c536d7b05617478fb746bd1e0c51c5d6/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/059_m1mod01_x05_r2/result/A/rep_01/c536d7b05617478fb746bd1e0c51c5d6/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/009_m1ssd01_x15_r2/result/B/rep_01/08bf0991cd5e436f9dfac1c0e5369b0e/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/009_m1ssd01_x15_r2/result/B/rep_01/08bf0991cd5e436f9dfac1c0e5369b0e/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/009_m1ssd01_x15_r2/result/B/rep_01/08bf0991cd5e436f9dfac1c0e5369b0e/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/009_m1ssd01_x15_r2/result/B/rep_01/08bf0991cd5e436f9dfac1c0e5369b0e/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/046_m1mbd01_x17_r2/result/B/rep_01/af3b02ff3d1e416789ca794f3182ab40/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/046_m1mbd01_x17_r2/result/B/rep_01/af3b02ff3d1e416789ca794f3182ab40/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/046_m1mbd01_x17_r2/result/B/rep_01/af3b02ff3d1e416789ca794f3182ab40/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/046_m1mbd01_x17_r2/result/B/rep_01/af3b02ff3d1e416789ca794f3182ab40/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/079_m1dld01_x15_r2/result/B/rep_01/7b49b603a5d846f5a4d07667fcbfa0a8/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/079_m1dld01_x15_r2/result/B/rep_01/7b49b603a5d846f5a4d07667fcbfa0a8/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/079_m1dld01_x15_r2/result/B/rep_01/7b49b603a5d846f5a4d07667fcbfa0a8/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/079_m1dld01_x15_r2/result/B/rep_01/7b49b603a5d846f5a4d07667fcbfa0a8/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/016_m1ssd01_x19_r2/result/B/rep_01/06a904866be6432a984e123dc153d7e1/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/016_m1ssd01_x19_r2/result/B/rep_01/06a904866be6432a984e123dc153d7e1/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/016_m1ssd01_x19_r2/result/B/rep_01/06a904866be6432a984e123dc153d7e1/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/016_m1ssd01_x19_r2/result/B/rep_01/06a904866be6432a984e123dc153d7e1/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/026_m1sfd01_x13_r2/result/B/rep_01/9247444c9be04785922ed5193916f670/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/026_m1sfd01_x13_r2/result/B/rep_01/9247444c9be04785922ed5193916f670/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/026_m1sfd01_x13_r2/result/B/rep_01/9247444c9be04785922ed5193916f670/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/026_m1sfd01_x13_r2/result/B/rep_01/9247444c9be04785922ed5193916f670/standing_hold.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/078_m1dld01_x05_r2/result/A/rep_01/6201f0b6c8fa48ecad5aab7432c20ad2/live_panel.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/078_m1dld01_x05_r2/result/A/rep_01/6201f0b6c8fa48ecad5aab7432c20ad2/live_panel.png"
+    },
+    {
+      "old": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/078_m1dld01_x05_r2/result/A/rep_01/6201f0b6c8fa48ecad5aab7432c20ad2/standing_hold.ppm",
+      "new": "logs/s6_12/b_exit_coarse/20261015_192706_3/runs/078_m1dld01_x05_r2/result/A/rep_01/6201f0b6c8fa48ecad5aab7432c20ad2/standing_hold.png"
+    }
+  ],
+  "failed": []
+}

@@ -1,0 +1,27 @@
+{
+  "cleanup_events": [
+    {
+      "command": 6,
+      "confirmed": true,
+      "event": "NORMAL_SHUTDOWN_REQUESTED",
+      "monotonic_ns": 39273952814645,
+      "phase": "cleanup"
+    },
+    {
+      "controller_state": "FIXEDSTAND",
+      "controller_stop_requested": false,
+      "event": "STANDING_HOLD_OBSERVATION_COMPLETE",
+      "monotonic_ns": 39282733744777,
+      "phase": "cleanup"
+    }
+  ],
+  "closeout_complete": true,
+  "closeout_errors": [],
+  "exit_code": 0,
+  "external_safety_events": [],
+  "forced_termination": false,
+  "run_terminal_monotonic_ns": 39273950034250,
+  "run_terminal_result": "ARRIVED",
+  "shutdown_complete": true,
+  "shutdown_request_source": "S1-04 bounded supervisor SIGINT with TERM/KILL fallback"
+}

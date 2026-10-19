@@ -1,0 +1,42 @@
+// Single supported-scene catalog consumed by common/abs_scene_catalog.h and
+// scripts/abs_scene.py. Keep the argument order stable.
+ABS_SCENE("scene_obstacle.xml", "obstacle_test1", 7, kLegacySignatures,
+          "e12a69fa5463e723d115696b8872c27c71b03a9d029a9ef933343ae93ba6dd5e",
+          "7b905219a13e327545ac5a32f44b7e0f88bfd2ad06c93326445a2d6608db38f5",
+          "3e4d82cf204d5929ff98c11fed5b3918ba3b92f0d698215860097d734d239694")
+ABS_SCENE("scene_flat.xml", "flat", 0, kNoObstacles,
+          "9ce83b3e61c722a523d0359536cee803f17610f95d2275fc32e96801ec3c1908",
+          "475d11f0ad0a491bb3f34190dfe4645d22db72eb8b81d7390c7395d298efa251",
+          "7a516b363665a9e7108b07d3b6383d180a709c783bb095f177864cc452d23f86")
+ABS_SCENE("scene_ppt_sparse.xml", "ppt_sparse", 4, kNamedPptObstacles,
+          "55e467f424d8cba7ed3fce44810892de76271b30fe8319ac5104976a67db01fc",
+          "cf3dd4d610384d34e543950502f2f6e626d1eeea18c307f93b9a5b111da6b379",
+          "93dad130d91701f77d16375cded5c02d823d8b6703973e4259ba7407f9f7cd72")
+ABS_SCENE("scene_ppt_medium.xml", "ppt_medium", 7, kNamedPptObstacles,
+          "02c7f97032b81d95a783b1e918b5c41c77713e0a0c5e786804e950adb3392840",
+          "09d961a184eef340cb50d0c137b96562645d61be3c8d005be91b4ee577fca3a3",
+          "7a21069c30569b4528352464cf08cb83ec65bf63f9e5fe5e0b7cec254ed859a9")
+ABS_SCENE("scene_ppt_dense.xml", "ppt_dense", 11, kNamedPptObstacles,
+          "d2213a3e6440082999c7bb22962fe1e1942505280455a78db4d9815e4c76bbcc",
+          "127ad7dfa1005eb34a2eeb822d353896d994c7bf59ef37a8b68c26748d9bf6b8",
+          "9c6d4aa56dfdb452a8a017d25ee963e3118b9c0bfd7c75fdb1e0fd3357cb5e16")
+ABS_SCENE("scene_random_01.xml", "random_01", 15, kNamedPptObstacles,
+          "57b8577d66cccf2c6fac1ee88024c2a6fa0c8330dfaa9173abca63d7523e9ecd",
+          "5c3917d635df3d2d96e16bf0778937f19c49e626109cf88f19a456aa60881377",
+          "1f787bea62cc15ec7141f8656f5614ffc162880a6e664bec32ccc100049c1418")
+ABS_SCENE("scene_random_02.xml", "random_02", 17, kNamedPptObstacles,
+          "d844047dc89b5ec6c5d10a00fdde14924a6a556af448e3526dc5dd1ea2c518ed",
+          "35ac607270894fbcf6c94c9d92428b7a69d63be240de3637d432ad48ef678af0",
+          "71a620878e25374fe702958f42e7622680079a4c96d8a2c641d646db6b01ad18")
+ABS_SCENE("scene_random_03.xml", "random_03", 18, kNamedPptObstacles,
+          "b24fd53fada39b983fce09e301558e84716f55bbfe4007fcb38e50c88295de9e",
+          "65c21aff75adeea797934e31fcbe634e2c38d19902a4583eac59f78ee50cb8fb",
+          "ee6ffe7c9448b5b67ea024f9ee7b250ba4d04395b7934190d5eb0c62cba5267a")
+ABS_SCENE("scene_random_04.xml", "random_04", 19, kNamedPptObstacles,
+          "4ce8256271b475f21094f3cbdc75be1af73766ab022bb98526bff9229e29bb06",
+          "86f0c77c383e731825be8ca1750ff9e2626ada3ed9b51df876a143d98935e022",
+          "8ac55fa1e09853f8a7a0b35e96b966b7d919154ae2b8eecd143625a6b8460694")
+ABS_SCENE("scene_random_05.xml", "random_05", 20, kNamedPptObstacles,
+          "ecaaa4d501dea6a7b6e6bbf865e236679ffd3faf1cba0c2e5fee9f4fa41fa07f",
+          "4ff729f1871aeb268ed10982ebd6c657647aeba76719baeef9804cad70fa21d8",
+          "7a12e1ae949eb4e46f18302356cae00e3155050eb36a9f77b4614f9336d2ea4a")

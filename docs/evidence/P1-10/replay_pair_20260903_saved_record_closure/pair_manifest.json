@@ -1,7 +1,8 @@
 {
   "schema": "abs-go2-p1-10-same-seed-replay-pair/v3",
   "pair_id": "P1-10-REPLAY-20260903-saved-record-closure-flat_goal_forward-stabilized",
-  "status_at_freeze": "FROZEN_OFFLINE_PENDING_INDEPENDENT_REVIEW",
+  "status_at_freeze": "SUPERSEDED_NOT_RUN",
+  "superseded_reason": "required P1-08 executable identity 1e9b330f... is not the current build2 artifact; current build2 is independently frozen as Stage-A instrumented execution identity",
   "evidence_dir": "docs/evidence/P1-10/replay_pair_20260903_saved_record_closure",
   "baseline": {
     "manifest_path": "docs/evidence/P1-08/P1-08_baseline_manifest.json",

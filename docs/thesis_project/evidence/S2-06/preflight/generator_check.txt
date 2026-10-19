@@ -1,0 +1,5 @@
+scene_random_01.xml: seed=3101 obstacles=15 check=ok declared_bounds_overrun=none
+scene_random_02.xml: seed=3102 obstacles=17 check=ok declared_bounds_overrun=none
+scene_random_03.xml: seed=3103 obstacles=18 check=ok declared_bounds_overrun=none
+scene_random_04.xml: seed=3104 obstacles=19 check=ok declared_bounds_overrun=[{'obstacle_index_1based': 14, 'overrun_m': {'y_min_m': 0.05637522464399014}}]
+scene_random_05.xml: seed=3105 obstacles=20 check=ok declared_bounds_overrun=none

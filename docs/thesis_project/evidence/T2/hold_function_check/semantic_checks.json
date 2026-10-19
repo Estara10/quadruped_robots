@@ -1,0 +1,31 @@
+{
+  "a_runs": 1,
+  "a_hold_enabled_any": false,
+  "a_hold_field_nonzero_any": false,
+  "c_runs": 3,
+  "c_hold_enabled_all": true,
+  "c_hold_values": [
+    0.1,
+    0.3,
+    0.5
+  ],
+  "c_episodes": 34,
+  "early_exits_before_H": 0,
+  "expired_low_risk_without_prompt_exit": 0,
+  "expired_high_risk_continued_recovery": 4,
+  "episodes_high_risk_at_expiry": 4,
+  "episodes_entry_time_changed_within_episode": 0,
+  "episodes_with_risk_re_rise_within_episode": 6,
+  "risk_re_rise_episodes_with_entry_time_changed": 0,
+  "distinct_entry_times": 34,
+  "clock_incomplete_episodes": 0,
+  "audit_violations": 0,
+  "audit_statuses": [
+    "pass"
+  ],
+  "safety_abort_runs": 0,
+  "episodes_with_first_clear_before_H": 32,
+  "episodes_with_first_clear_after_H": 2,
+  "exits_with_reentry_within_0_5s": 22,
+  "exits_observed": 34
+}

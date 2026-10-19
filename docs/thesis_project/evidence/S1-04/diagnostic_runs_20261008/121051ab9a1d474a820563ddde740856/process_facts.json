@@ -1,0 +1,7 @@
+{
+  "exit_code": 0,
+  "external_safety_events": [],
+  "forced_termination": false,
+  "shutdown_complete": true,
+  "shutdown_request_source": "S1-04 bounded supervisor SIGINT with TERM/KILL fallback"
+}

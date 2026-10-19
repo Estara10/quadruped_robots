@@ -1,0 +1,107 @@
+{
+  "scope": "S6-10 same-scene physics snapshot INVALID diagnosis and repair",
+  "historical_run": {
+    "run_id": "d1f349bb02764dae98bfc310232b88c3",
+    "status": "INVALID",
+    "last_physics_step": 3578,
+    "last_sim_time_s": 7.155999999999434,
+    "last_snapshot_status": "INVALID",
+    "policy_frames": 0,
+    "controller_or_rl_started": false,
+    "raw_snapshot_bytes_retained": false
+  },
+  "fingerprint_reproduction": {
+    "scene_id": "s610_dar_d01",
+    "scene_xml": "scene_random_s6_10_dense_alternating_relaxed_dev_01.xml",
+    "registered_expected_before_repair": "88021a444ce8a218810c017cc29ceafc3a2799d81df066fab909fec1cc9e3b82",
+    "cpp_runtime_actual": "a94d4d5b11db0920557978a17275c611183bc93c03140979000233f1e9c4e783",
+    "authority_invalid_reason": 5,
+    "invalid_reason_name": "kInvalidModelFingerprint",
+    "python_reader_first_rejection": {
+      "field": "runtime_model_fingerprint",
+      "actual": "a94d4d5b11db0920557978a17275c611183bc93c03140979000233f1e9c4e783",
+      "expected": "88021a444ce8a218810c017cc29ceafc3a2799d81df066fab909fec1cc9e3b82"
+    },
+    "generator_mujoco_python_version": "3.2.3",
+    "runtime_mujoco_cpp_version": "3.3.3",
+    "same_xml": true,
+    "compiled_model_counts": {
+      "nbody": 18,
+      "ngeom": 64
+    },
+    "compiled_discrete_geometry_fields_match": true,
+    "compiled_derived_float_geometry_fields_differ": true,
+    "interpretation": "The exact model fingerprint differs for the compared MuJoCo versions because compiled geom float fields differ. The evidence does not attribute every difference to a specific internal MuJoCo mechanism."
+  },
+  "catalog_repair": {
+    "registered_scene_count_verified": 77,
+    "fingerprints_recomputed_with": "production C++ abs_collision_model::compute and MuJoCo 3.3.3",
+    "generated_scene_fingerprints_updated": 67,
+    "preexisting_scene_fingerprints_unchanged": 10,
+    "xml_or_layout_changed": false,
+    "obstacle_geometry_changed": false,
+    "development_heldout_membership_changed": false,
+    "all_scenes_loaded_and_obstacle_sets_matched": true
+  },
+  "production_handshake_after_repair": {
+    "snapshot_version": 5,
+    "status": "LIVE",
+    "scene_id": "s610_dar_d01",
+    "runtime_model_fingerprint": "a94d4d5b11db0920557978a17275c611183bc93c03140979000233f1e9c4e783",
+    "authoritative": 1,
+    "invalid_reason": 0,
+    "physics_step": 3,
+    "sim_time_s": 0.006,
+    "temporary_shared_memory_removed": true,
+    "publisher_exit_code": 0
+  },
+  "reader_diagnostic_mismatch_recheck": {
+    "status": "INVALID",
+    "field": "runtime_model_fingerprint",
+    "actual": "a94d4d5b11db0920557978a17275c611183bc93c03140979000233f1e9c4e783",
+    "expected": "88021a444ce8a218810c017cc29ceafc3a2799d81df066fab909fec1cc9e3b82",
+    "purpose": "Confirm the diagnostic reports the first field and values for the former stale expectation; the production validity predicate was not changed.",
+    "publisher_exit_code": 0,
+    "temporary_shared_memory_removed": true
+  },
+  "runs_after_repair": {
+    "batch": "20261013_192635_6b7696",
+    "scene_id": "s610_dar_d01",
+    "A": {
+      "run_id": "74b284f0f1844df9b83cf9676ad899b4",
+      "record_validity": "VALID",
+      "terminal": "ARRIVED",
+      "target_distance_m": 0.4757640705057165,
+      "frames": 484,
+      "mode_transitions": 38,
+      "transitions_with_valid_sim_time": 35,
+      "recovery_hold_audit": "not_observed",
+      "motion_safety_coverage": "incomplete; collision and fall UNKNOWN",
+      "standing_observation": "COMPLETE",
+      "process_shutdown_complete": true,
+      "closeout_complete": true
+    },
+    "C": {
+      "run_id": "8fc1b61f1ed9403d91b40d74ad826999",
+      "record_validity": "VALID",
+      "terminal": "ARRIVED",
+      "target_distance_m": 0.4986569561144766,
+      "frames": 351,
+      "mode_transitions": 8,
+      "transitions_with_valid_sim_time": 8,
+      "recovery_hold_s_sim": 0.3,
+      "hold_audit": {
+        "status": "incomplete",
+        "episodes_total": 4,
+        "episodes_complete": 3,
+        "episodes_incomplete": 1,
+        "violations": 0
+      },
+      "motion_safety_coverage": "complete for declared motion window; no collision/fall event recorded",
+      "standing_observation": "COMPLETE",
+      "process_shutdown_complete": true,
+      "closeout_complete": true
+    }
+  },
+  "git": "not committed"
+}

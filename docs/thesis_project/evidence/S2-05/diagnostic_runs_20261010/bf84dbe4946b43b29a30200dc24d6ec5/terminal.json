@@ -1,0 +1,300 @@
+{
+  "capture_id": "p1-10-capture-37412485f64b428c9f05513a58562c8f",
+  "cleanup_events": [
+    {
+      "command": 1,
+      "event": "PASSIVE_STOP_REQUESTED",
+      "monotonic_ns": 26549144879813,
+      "phase": "cleanup",
+      "publish_return_monotonic_ns": 26549144967851,
+      "publisher_invoked_monotonic_ns": 26549144784686
+    },
+    {
+      "confirmed": true,
+      "event": "STRATEGY_STOP_CONFIRMATION",
+      "evidence": {
+        "command": 1,
+        "controller_steady_monotonic_ns": 26549146014912,
+        "event": "hard_stop_transition_complete",
+        "message": "[ros2_control_node-3] [INFO] [1791619046.824398674] [rl_quadruped_controller]: [HARD-STOP-CONFIRMED] command=1 state=PASSIVE steady_ns=26549146014912 changed=1",
+        "state": "PASSIVE"
+      },
+      "monotonic_ns": 26549146014912,
+      "observation_window_monotonic_ns": [
+        26549145076900,
+        26549150837904
+      ],
+      "phase": "cleanup"
+    },
+    {
+      "event": "GLOBAL_HARD_STOP",
+      "event_monotonic_ns": null,
+      "event_time_interval_monotonic_ns": [
+        26549144879813,
+        26549146014912
+      ],
+      "event_time_source": "not embedded in source line",
+      "message": "[ros2_control_node-3] [ERROR] [1791619046.824298842] [rl_quadruped_controller]: [HARD-STOP] command=1 -> forcing PASSIVE",
+      "observer_received_monotonic_ns": 26549781124425,
+      "phase": "cleanup",
+      "source": "RlQuadrupedController/StateRL ROS log"
+    }
+  ],
+  "collision_coverage": {
+    "complete_for_captured_interval": true,
+    "complete_for_motion_no_collision_claim": false,
+    "contact_duration_s_max": 0.005999999999996675,
+    "contact_physics_steps_max": 4,
+    "episode_count_max": 1,
+    "event_history_overflow": false,
+    "invalid_samples": 0,
+    "last_snapshot": {
+      "authoritative": true,
+      "available": true,
+      "base_height_m": 0.3312253542167752,
+      "base_pitch_rad": 0.01237879339780762,
+      "base_roll_rad": 0.017289922610949002,
+      "capture_id": "p1-10-capture-37412485f64b428c9f05513a58562c8f",
+      "classified_contacts": 3,
+      "collision_contact_steps": 4,
+      "collision_duration_s": 0.005999999999996675,
+      "collision_edge": false,
+      "collision_episode_count": 1,
+      "collision_history": [
+        {
+          "end_physics_step": 14819,
+          "end_sim_time": 29.637999999994452,
+          "obstacle_geom_id": 3,
+          "obstacle_geom_name": "ppt_obstacle_03",
+          "robot_body_id": 12,
+          "robot_body_name": "RL_calf",
+          "robot_geom_id": 46,
+          "robot_geom_name": "",
+          "start_physics_step": 14816,
+          "start_sim_time": 29.631999999994456
+        }
+      ],
+      "collision_history_count": 1,
+      "collision_history_overflow": false,
+      "current_collision": true,
+      "event_latches_complete": true,
+      "fall_candidate": false,
+      "fall_confirmed": false,
+      "fall_confirmed_physics_step": 13210,
+      "fall_confirmed_sim_time": 26.419999999996236,
+      "fall_history": [
+        {
+          "closed": true,
+          "confirmed": true,
+          "confirmed_physics_step": 275,
+          "confirmed_sim_time": 0.5500000000000004,
+          "end_physics_step": 10603,
+          "end_sim_time": 21.205999999999126,
+          "start_physics_step": 125,
+          "start_sim_time": 0.25000000000000017
+        },
+        {
+          "closed": true,
+          "confirmed": true,
+          "confirmed_physics_step": 13210,
+          "confirmed_sim_time": 26.419999999996236,
+          "end_physics_step": 13340,
+          "end_sim_time": 26.67999999999609,
+          "start_physics_step": 13059,
+          "start_sim_time": 26.117999999996403
+        }
+      ],
+      "fall_history_count": 2,
+      "fall_history_overflow": false,
+      "fall_start_physics_step": 13059,
+      "fall_start_sim_time": 26.117999999996403,
+      "first_invalid_posture_sim_time": 0.0,
+      "first_invalid_posture_step": 0,
+      "first_unknown_contact_sim_time": 0.0,
+      "first_unknown_contact_step": 0,
+      "foot_abs_fz": [
+        51.46243715939425,
+        0.0,
+        1.859182566664055,
+        0.0
+      ],
+      "foot_contact_duration_s": 0.009999999999994458,
+      "foot_contact_episode_count": 1,
+      "foot_contact_first_sim_time": 29.629999999994457,
+      "foot_contact_first_step": 14815,
+      "foot_contact_history": [
+        {
+          "closed": false,
+          "end_physics_step": 14819,
+          "end_sim_time": 29.637999999994452,
+          "foot_geom_id": 48,
+          "foot_geom_name": "RL",
+          "force_known": true,
+          "obstacle_geom_id": 3,
+          "obstacle_geom_name": "ppt_obstacle_03",
+          "start_physics_step": 14815,
+          "start_sim_time": 29.629999999994457,
+          "trigger_abs_fz": 35.00417598776081,
+          "trigger_fxy": 216.8426928905845,
+          "trigger_threshold": 80.00835197552162
+        }
+      ],
+      "foot_contact_history_count": 1,
+      "foot_contact_history_overflow": false,
+      "foot_contact_last_sim_time": 29.637999999994452,
+      "foot_contact_last_step": 14819,
+      "foot_contact_mask": 4,
+      "foot_contact_physics_steps": 5,
+      "foot_force_valid_mask": 15,
+      "foot_fxy": [
+        8.13580493176796,
+        0.0,
+        47.35674913571542,
+        0.0
+      ],
+      "foot_ground_contacts": 1,
+      "foot_identity_valid": true,
+      "foot_impact_duration_s": 0.009999999999994458,
+      "foot_impact_episode_count": 1,
+      "foot_impact_first_sim_time": 29.629999999994457,
+      "foot_impact_first_step": 14815,
+      "foot_impact_history": [
+        {
+          "closed": false,
+          "end_physics_step": 14819,
+          "end_sim_time": 29.637999999994452,
+          "foot_geom_id": 48,
+          "foot_geom_name": "RL",
+          "force_known": true,
+          "obstacle_geom_id": 3,
+          "obstacle_geom_name": "ppt_obstacle_03",
+          "start_physics_step": 14815,
+          "start_sim_time": 29.629999999994457,
+          "trigger_abs_fz": 35.00417598776081,
+          "trigger_fxy": 216.8426928905845,
+          "trigger_threshold": 80.00835197552162
+        }
+      ],
+      "foot_impact_history_count": 1,
+      "foot_impact_history_overflow": false,
+      "foot_impact_last_sim_time": 29.637999999994452,
+      "foot_impact_last_step": 14819,
+      "foot_impact_mask": 4,
+      "foot_impact_physics_steps": 5,
+      "foot_impact_threshold": [
+        112.9248743187885,
+        10.0,
+        13.71836513332811,
+        10.0
+      ],
+      "foot_impact_unknown_first_sim_time": 0.0,
+      "foot_impact_unknown_first_step": 0,
+      "foot_impact_unknown_last_sim_time": 0.0,
+      "foot_impact_unknown_last_step": 0,
+      "foot_impact_unknown_mask": 0,
+      "foot_impact_unknown_steps": 0,
+      "foot_obstacle_contacts": 1,
+      "foot_world_force": [
+        [
+          -2.864484158614387,
+          -7.614857345533605,
+          51.46243715939425
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -46.57099277091171,
+          -8.590944129417458,
+          -1.859182566664055
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "ground_contacts": 1,
+      "invalid_posture_episodes": 0,
+      "invalid_posture_steps": 0,
+      "invalid_reason": 0,
+      "last_collision_end_sim_time": 29.637999999994452,
+      "last_collision_end_step": 14819,
+      "last_collision_start_sim_time": 29.631999999994456,
+      "last_collision_start_step": 14816,
+      "last_contact_class": 1,
+      "last_invalid_posture_sim_time": 0.0,
+      "last_invalid_posture_step": 0,
+      "last_obstacle_geom_id": 3,
+      "last_robot_geom_id": 46,
+      "last_unknown_contact_sim_time": 0.0,
+      "last_unknown_contact_step": 0,
+      "model_closure_sha256": "cf3dd4d610384d34e543950502f2f6e626d1eeea18c307f93b9a5b111da6b379",
+      "monotonic_ns": 26549142017762,
+      "nonfoot_collision_bodies": [
+        {
+          "robot_body_id": 12,
+          "robot_body_name": "RL_calf"
+        }
+      ],
+      "nonfoot_ground_contacts": 0,
+      "nonfoot_obstacle_contacts": 1,
+      "other_contacts": 0,
+      "physics_coverage_complete": true,
+      "physics_step": 14819,
+      "reason": null,
+      "robot_obstacle_contacts": 2,
+      "runtime_model_fingerprint": "93dad130d91701f77d16375cded5c02d823d8b6703973e4259ba7407f9f7cd72",
+      "scenario_id": "ppt_sparse",
+      "scene_root_sha256": "55e467f424d8cba7ed3fce44810892de76271b30fe8319ac5104976a67db01fc",
+      "self_contacts": 0,
+      "sequence": 29640,
+      "sim_time": 29.637999999994452,
+      "status": "LIVE",
+      "unknown_contact_episodes": 0,
+      "unknown_contact_steps": 0,
+      "unknown_contacts": 0,
+      "version": 5
+    },
+    "live_samples": 149,
+    "observed_robot_obstacle_event": true,
+    "physics_step_gaps": 1324,
+    "producer_physics_coverage_complete": true,
+    "publisher_physics_coverage_complete": true,
+    "samples": 149,
+    "unknown_samples": 0
+  },
+  "collision_events": true,
+  "collision_events_reason": "authoritative non-foot robot-obstacle contact observed",
+  "duration_ns": 2960258870,
+  "external_safety_events": [],
+  "fact_validation_errors": [],
+  "fall_events": true,
+  "fall_events_reason": "confirmed posture rule observed",
+  "first_frame_time_ns": 26546182055637,
+  "forced_termination": false,
+  "frames_observed": 149,
+  "kind": "terminal",
+  "last_frame_time_ns": 26549142314507,
+  "last_policy_state": "AGILE",
+  "last_ra_value": -0.9831767678260803,
+  "last_session_id": 26545441952957,
+  "normal_shutdown": true,
+  "process_exit_code": 0,
+  "reached_goal": "UNKNOWN",
+  "reached_goal_reason": "no authoritative reached-goal computation exists in the current runtime frame",
+  "run_id": "bf84dbe4946b43b29a30200dc24d6ec5",
+  "run_terminal_monotonic_ns": 26549142314507,
+  "run_terminal_result": "COLLISION_TERMINATION",
+  "safety_fault_last": false,
+  "safety_fault_seen": false,
+  "shutdown_complete": true,
+  "shutdown_request_source": "S1-04 bounded supervisor SIGINT with TERM/KILL fallback",
+  "simulation_time_s": 29.637999999994452,
+  "simulation_time_s_reason": "authoritative collision snapshot sim_time from last sampled physics step",
+  "termination_reason": "FRAMES_ENDED_RC0",
+  "timeout": "UNKNOWN",
+  "timeout_reason": "no authoritative timeout marker exists in the current runtime frame"
+}

@@ -1,0 +1,296 @@
+{
+  "capture": {
+    "authoritative_collision_live_before_motion": true,
+    "capture_error": null,
+    "frames_written": 75,
+    "pre_run_shared_frames_ignored_by_session_timestamp": 0
+  },
+  "capture_id": "p1-10-capture-f1144299d4f7495c8d97596346eea5a9",
+  "classification": "short nonformal S1-04 workflow diagnostic; not a formal A-group result",
+  "commands": [
+    {
+      "command": 2,
+      "monotonic_ns": 20352666319227,
+      "output": "publisher: beginning loop\npublishing #1: control_input_msgs.msg.Inputs(command=2, lx=0.0, ly=0.0, rx=0.0, ry=0.0)\n\n",
+      "returncode": 0
+    },
+    {
+      "command": 2,
+      "monotonic_ns": 20354683087710,
+      "output": "publisher: beginning loop\npublishing #1: control_input_msgs.msg.Inputs(command=2, lx=0.0, ly=0.0, rx=0.0, ry=0.0)\n\n",
+      "returncode": 0
+    },
+    {
+      "command": 3,
+      "monotonic_ns": 20360203089634,
+      "output": "publisher: beginning loop\npublishing #1: control_input_msgs.msg.Inputs(command=3, lx=0.0, ly=0.0, rx=0.0, ry=0.0)\n\n",
+      "returncode": 0
+    }
+  ],
+  "created_monotonic_ns": 20334900296555,
+  "events": [
+    {
+      "event": "recorder_ready",
+      "monotonic_ns": 20336292033413,
+      "phase": "startup_preparation"
+    },
+    {
+      "event": "mujoco_started",
+      "monotonic_ns": 20339292635279,
+      "phase": "startup_preparation"
+    },
+    {
+      "event": "collision_source_live",
+      "monotonic_ns": 20339292905902,
+      "phase": "startup_preparation"
+    },
+    {
+      "event": "controller_active",
+      "monotonic_ns": 20348650429216,
+      "phase": "startup_preparation"
+    },
+    {
+      "command": 3,
+      "event": "rl_policy_requested",
+      "monotonic_ns": 20360703440822,
+      "phase": "motion"
+    },
+    {
+      "candidate": "paper_faithful_switch",
+      "entry_threshold": -0.05000000074505806,
+      "event": "runtime_source_bound",
+      "exit_threshold": -0.05000000074505806,
+      "goal_world_m": [
+        1.0,
+        0.0
+      ],
+      "monotonic_ns": 20360707291316,
+      "phase": "motion",
+      "session_id": 20359911390477,
+      "source_evidence_wait_s": 0.0
+    },
+    {
+      "displacement_from_initial_m": 0.10418151964942111,
+      "event": "motion_start",
+      "monotonic_ns": 20360892932267,
+      "phase": "motion",
+      "rl_step": 48,
+      "session_id": 20359911390477,
+      "sim_time_s": 23.79599999999769
+    },
+    {
+      "event": "ARRIVED",
+      "frame_ref": {
+        "monotonic_ns": 20361434181949,
+        "rl_step": 75,
+        "session_id": 20359911390477,
+        "sim_time_s": 24.33799999999739,
+        "source_sequence": 152
+      },
+      "monotonic_ns": 20361434181949,
+      "phase": "motion_end"
+    },
+    {
+      "command": 1,
+      "event": "PASSIVE_STOP_REQUESTED",
+      "monotonic_ns": 20362984814402,
+      "phase": "cleanup"
+    },
+    {
+      "event": "GLOBAL_HARD_STOP",
+      "message": "[ros2_control_node-3] [ERROR] [1791438576.356682255] [rl_quadruped_controller]: [HARD-STOP] command=1 -> forcing PASSIVE",
+      "observed_monotonic_ns": 20363235275490,
+      "phase": "cleanup",
+      "source": "RlQuadrupedController/StateRL ROS log"
+    },
+    {
+      "confirmed": false,
+      "event": "STRATEGY_STOP_CONFIRMATION",
+      "monotonic_ns": 20363235668180,
+      "output_after_request_duration_ns": 250000000,
+      "phase": "cleanup"
+    },
+    {
+      "event": "process_groups_stopped",
+      "monotonic_ns": 20363916015353,
+      "phase": "process_cleanup",
+      "processes": [
+        {
+          "exit_code": 0,
+          "forced": false,
+          "name": "ros2_launch",
+          "started": true
+        },
+        {
+          "exit_code": 0,
+          "forced": false,
+          "name": "mujoco",
+          "started": true
+        }
+      ]
+    }
+  ],
+  "lifecycle": {
+    "arrival_observed": {
+      "distance_m": 0.4847159577767004,
+      "rl_step": 75,
+      "session_id": 20359911390477,
+      "sim_time_s": 24.33799999999739,
+      "threshold_m": 0.5
+    },
+    "cleanup_complete_monotonic_ns": 20363916015353,
+    "cleanup_processes": [
+      {
+        "exit_code": 0,
+        "forced": false,
+        "name": "ros2_launch",
+        "started": true
+      },
+      {
+        "exit_code": 0,
+        "forced": false,
+        "name": "mujoco",
+        "started": true
+      }
+    ],
+    "controller_ready_monotonic_ns": 20351186878158,
+    "motion_and_cleanup_are_separate": true,
+    "motion_start_event": "first valid pose >=0.10m from first valid policy pose",
+    "motion_start_interval_s": [
+      23.7759999999977,
+      23.79599999999769
+    ],
+    "motion_start_observed_sim_time_s": 23.79599999999769,
+    "motion_start_sim_time_s": null,
+    "movement_end_monotonic_ns": 20361434181949,
+    "movement_end_sim_time_s": 24.33799999999739,
+    "mujoco_started_monotonic_ns": 20351186877168,
+    "post_terminal_strategy_stop": {
+      "command": 1,
+      "confirmation_scope": "FSM transition log only; not a MuJoCo command-consumption acknowledgement",
+      "monotonic_ns": 20362984814402,
+      "output": "publisher: beginning loop\npublishing #1: control_input_msgs.msg.Inputs(command=1, lx=0.0, ly=0.0, rx=0.0, ry=0.0)\n\n",
+      "returncode": 0,
+      "strategy_stop_confirmed_by_ros_transition_log": false
+    },
+    "rl_entry_command_monotonic_ns": 20360703451850,
+    "ros_launch_started_monotonic_ns": 20351186877878,
+    "run_terminal_event": "ARRIVED",
+    "terminal_frame_ref": {
+      "monotonic_ns": 20361434181949,
+      "rl_step": 75,
+      "session_id": 20359911390477,
+      "sim_time_s": 24.33799999999739,
+      "source_sequence": 152
+    }
+  },
+  "preflight": {
+    "active_controller_list": "\u001b[92mjoint_state_broadcaster\u001b[0m joint_state_broadcaster/JointStateBroadcaster  \u001b[92mactive\u001b[0m\n\u001b[92mimu_sensor_broadcaster \u001b[0m imu_sensor_broadcaster/IMUSensorBroadcaster    \u001b[92mactive\u001b[0m\n\u001b[92mrl_quadruped_controller\u001b[0m rl_quadruped_controller/LeggedGymController    \u001b[92mactive\u001b[0m",
+    "ament_share_lookup_same_shell": "/tmp/s1_04_overlay/share/go2_description",
+    "candidate_config_candidate_verified": true,
+    "candidate_config_goal_x_m_verified": true,
+    "candidate_config_path": "/tmp/s1_04_overlay/share/go2_description/config/abs/config.yaml",
+    "controller_nodes": [
+      "/controller_manager",
+      "/rl_quadruped_controller"
+    ],
+    "controller_processes_before_launch": [],
+    "launch_command": "source /opt/ros/humble/setup.bash; source workspace/install/setup.bash; export the same AMENT_PREFIX_PATH; ros2 launch ...",
+    "launch_shell_controller_prefix": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/rl_quadruped_controller",
+    "launch_shell_go2_description_prefix": "/tmp/s1_04_overlay",
+    "launched_manager_process_evidence": [
+      {
+        "cmdline": "/opt/ros/humble/lib/controller_manager/ros2_control_node --ros-args --params-file /tmp/s1_04_overlay/share/go2_description/config/robot_control.yaml -r ~/robot_description:=/robot_description",
+        "comm": "ros2_control_no",
+        "pgid": 192014,
+        "pid": 192046
+      }
+    ]
+  },
+  "result_contract": {
+    "classification": "ARRIVED",
+    "command_consumption_by_mujoco": "UNKNOWN; no direct consumption acknowledgement",
+    "fall_detection": "UNKNOWN; no authoritative detector used",
+    "first_valid_frame_monotonic_ns": 20360693343667,
+    "first_valid_sim_time_s": 23.5979999999978,
+    "motion_start_sim_time_s": 23.79599999999769,
+    "motion_start_unknown_reason": null,
+    "operator_abort": "not issued",
+    "policy_frames_observed": 75,
+    "startup_failure": null,
+    "supervisor_loop_frames_observed": 38,
+    "valid_collision_source_seen": true
+  },
+  "run_id": "22e64352d7c042708b96608a16a89221",
+  "runtime_config_observed": {
+    "entry_threshold": -0.05000000074505806,
+    "exit_threshold": -0.05000000074505806,
+    "goal_log_matches_expected": true,
+    "session_id": 20359911390477,
+    "source_binding": {
+      "agile_model": "/tmp/s1_04_overlay/share/go2_description/config/abs/policy.pt",
+      "candidate": "paper_faithful_switch",
+      "config": "/tmp/s1_04_overlay/share/go2_description/config/abs/config.yaml",
+      "controller_pid": 192046,
+      "entry_threshold": -0.05,
+      "exit_threshold": -0.05000000074505806,
+      "goal_world_m": [
+        1.0,
+        0.0
+      ],
+      "launch_node": "ros2_control_node-3",
+      "package_share": "/tmp/s1_04_overlay/share/go2_description",
+      "ra_model": "/tmp/s1_04_overlay/share/go2_description/config/abs/ra_value.pt",
+      "recovery_model": "/tmp/s1_04_overlay/share/go2_description/config/rec/policy.pt",
+      "session_id": 20359911390477,
+      "writer_pid": 192046
+    },
+    "switching_mode": 1
+  },
+  "runtime_source_validation": {
+    "evidence": {
+      "agile_model": "/tmp/s1_04_overlay/share/go2_description/config/abs/policy.pt",
+      "candidate": "paper_faithful_switch",
+      "config": "/tmp/s1_04_overlay/share/go2_description/config/abs/config.yaml",
+      "controller_pid": 192046,
+      "entry_threshold": -0.05,
+      "exit_threshold": -0.05000000074505806,
+      "goal_world_m": [
+        1.0,
+        0.0
+      ],
+      "launch_node": "ros2_control_node-3",
+      "package_share": "/tmp/s1_04_overlay/share/go2_description",
+      "ra_model": "/tmp/s1_04_overlay/share/go2_description/config/abs/ra_value.pt",
+      "recovery_model": "/tmp/s1_04_overlay/share/go2_description/config/rec/policy.pt",
+      "session_id": 20359911390477,
+      "writer_pid": 192046
+    },
+    "reason": "all_source_events_match",
+    "status": "confirmed",
+    "wait_limit_s": 3.0
+  },
+  "schema": "s1-04-run-context-v1",
+  "session_id": 20359911390477,
+  "settings": {
+    "arrival_threshold_m": 0.5,
+    "candidate": "paper_faithful_switch",
+    "controller_config": "/tmp/s1_04_overlay/share/go2_description/config/abs/config.yaml",
+    "diagnostic_sim_limit_after_motion_s": 6.0,
+    "display": ":0",
+    "goal_world_m": [
+      1.0,
+      0.0
+    ],
+    "model_paths": [
+      "/tmp/s1_04_overlay/share/go2_description/config/abs/policy.pt",
+      "/tmp/s1_04_overlay/share/go2_description/config/abs/ra_value.pt",
+      "/tmp/s1_04_overlay/share/go2_description/config/rec/policy.pt"
+    ],
+    "overlay": "/tmp/s1_04_overlay",
+    "runtime_model_fingerprint": "3e4d82cf204d5929ff98c11fed5b3918ba3b92f0d698215860097d734d239694",
+    "scene": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/scene_obstacle.xml",
+    "scene_id": "obstacle_test1",
+    "xauthority": "/run/user/1000/gdm/Xauthority"
+  }
+}

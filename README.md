@@ -19,9 +19,11 @@ Reference code: https://github.com/LeCAR-Lab/ABS
 - 当前状态与 Active Task：[`docs/thesis_project/CURRENT_STATE.md`](docs/thesis_project/CURRENT_STATE.md)
 - 新路线：[`docs/thesis_project/ROADMAP.md`](docs/thesis_project/ROADMAP.md)
 - 实验设计：[`docs/thesis_project/EXPERIMENT_PLAN.md`](docs/thesis_project/EXPERIMENT_PLAN.md)
-- 当前任务：[`docs/thesis_project/tasks/S1-01.md`](docs/thesis_project/tasks/S1-01.md)
+- 最近完成任务：[`docs/thesis_project/tasks/T1.md`](docs/thesis_project/tasks/T1.md)
 
-当前主要任务是 **S1-01：统一 A/B/C/D 切换合同与时间语义**。正式实验、模型重训和实机 RL 均未获准；实机状态为 **NO-GO**。
+**T1退出阈值开发选参已完成（Director有条件通过），代表退出阈值为−0.10；当前唯一Active Task为[T2最小保持时间规划](docs/thesis_project/tasks/T2.md)，尚未授权场景运行。** 当前进度与后续范围以CURRENT_STATE为准。正式实验、模型重训和实机RL不得由旧提示词自动授权；实机状态为 **NO-GO**。
+
+已结束任务、旧提示词、旧P1治理和日报已归入[Markdown历史资料](archive/markdown/20261018/README.md)，只供历史参考；当前文档入口见[项目文档导航](docs/thesis_project/README.md)。
 
 ---
 
@@ -37,7 +39,7 @@ Reference code: https://github.com/LeCAR-Lab/ABS
 | `quadruped_ros2_control_humble/controllers/rl_quadruped_controller/doc/real_go2_deployment.md` | Go2 真机部署说明 |
 | `scene.txt` | 场景列表和推荐测试顺序 |
 | `command.txt` / `命令.txt` | 常用命令速查 |
-| `lab_notes/` | 实验记录 |
+| `archive/lab_notes/` | 历史实验笔记（归档，非当前任务指令） |
 
 ---
 

@@ -1,0 +1,27 @@
+{
+  "task": "S2-05",
+  "scope": "one bounded nonformal sparse-scene diagnostic plus read-only graphical preflight",
+  "authorization": "existing user authorization for this task's local display/OpenGL preflight and diagnostic; temporary sandbox-external execution",
+  "display": ":0",
+  "xauthority": "/run/user/1000/gdm/Xauthority",
+  "normal_sandbox_socket_probe": {
+    "result": "EPERM",
+    "socket": "/tmp/.X11-unix/X0"
+  },
+  "sandbox_external_x11_probe": {
+    "command": "rtk xdpyinfo -display :0",
+    "result": "PASS",
+    "display_server": "X.Org 1.21.1.4",
+    "screen": "1920x1080"
+  },
+  "glfw_opengl": {
+    "command": "rtk /tmp/s2_04_glfw_preflight",
+    "result": "PASS",
+    "method": "existing system-native hidden GLFW window probe",
+    "vendor": "Intel",
+    "renderer": "Mesa Intel(R) Graphics (RPL-P)",
+    "version": "4.6 (Compatibility Profile) Mesa 23.2.1-1ubuntu3.1~22.04.4"
+  },
+  "temporary_system_changes": "none",
+  "desktop_authorization_or_permissions_changed": false
+}

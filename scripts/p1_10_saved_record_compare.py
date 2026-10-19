@@ -328,8 +328,10 @@ def validate_pair_manifest(pair: Mapping[str, Any]) -> List[str]:
         errors.append("pair_id is not this frozen pair")
     if pair.get("evidence_dir") != EXPECTED_EVIDENCE_DIR:
         errors.append("evidence_dir is not this frozen pair")
-    if pair.get("status_at_freeze") != "FROZEN_OFFLINE_PENDING_INDEPENDENT_REVIEW":
-        errors.append("pair is not frozen pending independent review")
+    if pair.get("status_at_freeze") not in {
+        "FROZEN_OFFLINE_PENDING_INDEPENDENT_REVIEW", "SUPERSEDED_NOT_RUN",
+    }:
+        errors.append("pair is not frozen or explicitly superseded")
     actual = _binding_from_pair(pair)
     for key, expected in EXPECTED_BINDING.items():
         if type(actual.get(key)) is not type(expected) or actual.get(key) != expected:

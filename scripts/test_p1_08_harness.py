@@ -72,10 +72,12 @@ def make_frame(magic=FRAME_MAGIC, version=FRAME_VERSION, seq=2, mono=0,
     import time as _t
     if mono == 0:
         mono = _t.monotonic_ns()
-    vals = [magic, version, seq, mono, session, rl_step, 0]  # 7Q
-    vals += [source, 1, 1, rl_active, 0, 0, 1, 1, 0, 0, 0]   # 11I
-    floats = [ra_value] + [0.0] * 80
-    return _FRAME_STRUCT.pack(*(vals + floats))
+    vals = [magic, version, seq, mono, session, rl_step, 0,
+            2, mono - 1, 1, 1, mono, 0, 0]  # 14Q
+    vals += [source, 1, 1, rl_active, 0, 0, 1, 1, 0, 0,
+             0, 1, 1, 0, 0, 2, 0, 1, 1, 0]  # 20I
+    floats = [-0.05, -0.08, ra_value] + [0.0] * 80
+    return _FRAME_STRUCT.pack(*(vals + [0.01] + floats))
 
 
 # ---------------------------------------------------------------------------
@@ -150,12 +152,16 @@ def test_closure_escape_cycle_missing_mutation():
         check(any("missing" in f for f in c5["failures"]), "missing include detected")
 
 
-def test_manifest_closure_positive():
-    # positive: real manifest + real scene + real binary -> no closure failures
+def test_manifest_closure_rejects_stage_b_binary_without_p1_08_mutation():
+    # The current build2 executable is the separately identified Stage-B
+    # instrumented artifact.  P1-08 must reject it against the accepted
+    # baseline manifest; this preserves the P1-08 boundary without changing
+    # the accepted manifest or raw capture.
     man = REPO / "docs" / "evidence" / "P1-08" / "P1-08_baseline_manifest.json"
     binp = str(REPO / "unitree_mujoco" / "simulate" / "build2" / "unitree_mujoco")
     failures, _ = verify_manifest_hashes(man, binp, "scene_flat.xml")
-    check(failures == [], f"real manifest closure+binary verifies clean (got {failures[:2]})")
+    check(any("binary mismatch" in failure for failure in failures),
+          f"P1-08 rejects Stage-B binary against accepted manifest (got {failures[:2]})")
 
 
 # ---------------------------------------------------------------------------
@@ -282,6 +288,43 @@ def test_residual_process_identity_fail_closed():
         excluded_pids={1})
     check(state == "uncertain" and "zombie" in ev["inspection_error"],
           "relevant zombie identity -> fail closed")
+
+
+def test_residual_process_uninspectable_non_candidate():
+    """A permission-denied unrelated /proc identity is audit-only."""
+    mujoco = str(capmod.DEFAULT_MUJOCO_BIN.resolve())
+    with tempfile.TemporaryDirectory() as td:
+        proc_root = Path(td)
+        proc_dir = proc_root / "301"
+        proc_dir.mkdir()
+        (proc_dir / "cmdline").write_bytes(b"/usr/bin/python3\0worker.py\0")
+        (proc_dir / "stat").write_text("(worker) S 1")
+        with mock.patch.object(capmod.os, "readlink",
+                               side_effect=PermissionError("/proc/301/exe")):
+            record = capmod._read_process_record(301, proc_root)
+        state, evidence = capmod.inspect_residual_processes(
+            mujoco, process_records=[record], excluded_pids={1})
+    check(state == "none" and evidence["matches"] == []
+          and evidence["uninspectable_non_candidates"][0]["status"]
+          == "uninspectable_non_candidate",
+          "unrelated /proc exe PermissionError -> continue with audit status")
+
+    candidate = {"pid": 302, "ppid": 1, "state": "S", "exe": None,
+                 "argv": [mujoco, "-s", "scene_flat.xml"],
+                 "identity_read_errors": [{"source": "exe",
+                                            "error": "PermissionError"}]}
+    state, evidence = capmod.inspect_residual_processes(
+        mujoco, process_records=[candidate], excluded_pids={1})
+    check(state == "uncertain" and "runtime candidate" in evidence["inspection_error"],
+          "runtime-shaped partial identity -> fail closed")
+
+    stat_failure = {"pid": 303, "ppid": 1, "state": "S", "exe": mujoco,
+                    "argv": [], "identity_read_errors": [{"source": "stat",
+                                                             "error": "PermissionError"}]}
+    state, evidence = capmod.inspect_residual_processes(
+        mujoco, process_records=[stat_failure], excluded_pids={1})
+    check(state == "uncertain" and "runtime candidate" in evidence["inspection_error"],
+          "identified MuJoCo with stat read failure -> fail closed")
 
 
 def test_binary_scene_mismatch():
@@ -785,9 +828,10 @@ def test_record_fail_closed_and_top_level_facts():
 def main() -> int:
     test_stride2_gap_math()
     test_closure_escape_cycle_missing_mutation()
-    test_manifest_closure_positive()
+    test_manifest_closure_rejects_stage_b_binary_without_p1_08_mutation()
     test_ldd()
     test_residual_process_identity_fail_closed()
+    test_residual_process_uninspectable_non_candidate()
     test_binary_scene_mismatch()
     test_preflight_exception_and_lock()
     test_build_process_facts_semantics()

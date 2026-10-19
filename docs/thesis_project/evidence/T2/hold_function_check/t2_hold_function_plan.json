@@ -1,0 +1,596 @@
+{
+  "schema": "t2-hold-function-check-v1",
+  "batch_id": "20261018_190259_t2hold",
+  "classification": "T2 保持时间功能试跑，非正式实验",
+  "authority": "docs/thesis_project/T2_HOLD_FUNCTION_CHECK_EXECUTOR_PROMPT.md",
+  "created_at": "2026-10-18T19:03:03+08:00",
+  "versions": {
+    "git_commit": "929c704bfcdb4429c138ea7a6aa658198015eaed",
+    "catalog_sha256": "1d3eeb59ae3c1d1ca2884dd1b7de3034b9d6cb843c770d960ce0348ad9187801",
+    "mujoco_binary": {
+      "path": "/home/lidio/quadruped_robots/unitree_mujoco/simulate/build2/unitree_mujoco",
+      "sha256": "5435be585128af6153eb89cfc6d922b9ff74f9f73ceb5ae7f08ea0b0f36fdeb9"
+    },
+    "controller_library": {
+      "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/rl_quadruped_controller/lib/rl_quadruped_controller/librl_quadruped_controller.so",
+      "sha256": "c94903e50f5d1d751d4be1f9effb7a10be775d8daee0aec08736b794719327ac"
+    },
+    "models": {
+      "abs/policy.pt": {
+        "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/policy.pt",
+        "sha256": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf"
+      },
+      "abs/ra_value.pt": {
+        "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/ra_value.pt",
+        "sha256": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7"
+      },
+      "rec/policy.pt": {
+        "path": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/rec/policy.pt",
+        "sha256": "e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171"
+      }
+    },
+    "runtime_mujoco_version": "3.3.3",
+    "recorded_at": "2026-10-18T19:03:03+08:00"
+  },
+  "contract": {
+    "groups_order": [
+      {
+        "group": "A",
+        "hold_s": null
+      },
+      {
+        "group": "C",
+        "hold_s": 0.1
+      },
+      {
+        "group": "C",
+        "hold_s": 0.3
+      },
+      {
+        "group": "C",
+        "hold_s": 0.5
+      }
+    ],
+    "entry_threshold_E": -0.05,
+    "single_threshold_exit": -0.05,
+    "cli_exit_threshold_fallback": -0.1,
+    "a_cli_hold_fallback_s": 0.3,
+    "fallback_note": "manual_ab_compare/s1 require X<E and H>0 as CLI validation; A/C overlays do not contain exit_threshold or (A) recovery_min_hold_s",
+    "goal_world_m": [
+      7.5,
+      0.0
+    ],
+    "arrival_radius_m": 0.5,
+    "sim_limit_s": 20.0,
+    "wall_cap_s": 120.0,
+    "standing_observation_sim_s": 2.0,
+    "standing_wall_cap_s": 30.0
+  },
+  "rendering": {
+    "backend": "GLFW",
+    "requested_mode": "hidden",
+    "env": "ABS_MUJOCO_NO_WINDOW=1",
+    "rviz": "start_rviz:=false",
+    "framebuffer_capture": false
+  },
+  "budget": {
+    "base_scene_starts": 4,
+    "max_scene_starts": 5,
+    "max_engineering_repairs": 1
+  },
+  "counters": {
+    "confirmed_scene_starts": 4,
+    "engineering_repairs": 0,
+    "orchestration_corrections": 0
+  },
+  "items": [
+    {
+      "sequence": 1,
+      "plan_item_id": "01_A_no_hold",
+      "group": "A",
+      "hold_s": null,
+      "hold_consumed": false,
+      "cli_hold_fallback_s": 0.3,
+      "cli_exit_fallback": -0.1,
+      "scene": "m02.xml",
+      "scene_id": "m2v2_m02",
+      "difficulty_label": "middle",
+      "source_set": "M2",
+      "source_filename": "m2dev06.xml",
+      "layout_revision": null,
+      "field_bounds_m": {
+        "x": [
+          -0.5,
+          8.0
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "xml_sha256": "d61db8e000566eb96e37a4debeecc573b74e1dbde8ca68214ef58fe54ed1542b",
+      "goal_world_m": [
+        7.5,
+        0.0
+      ],
+      "entry_threshold": -0.05,
+      "sim_limit_s": 20.0,
+      "wall_cap_s": 120.0,
+      "standing_observation_sim_s": 2.0,
+      "standing_observation_wall_cap_s": 30.0,
+      "status": "VALID_TASK_RESULT",
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "status": "VALID_TASK_RESULT",
+          "started_at": "2026-10-18T19:03:57+08:00",
+          "finished_at": "2026-10-18T19:03:57+08:00",
+          "result_root": "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/runs/01_A_no_hold/result",
+          "classification": "T2 保持时间功能试跑，非正式实验",
+          "render_mode": "hidden GLFW",
+          "rviz": "disabled",
+          "child_exit_code": 0,
+          "run_id": "4f452f21f03b4d8a9736716701a9f7da",
+          "run_directory": "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/runs/01_A_no_hold/result/A/rep_01/4f452f21f03b4d8a9736716701a9f7da",
+          "terminal_result": "ARRIVED",
+          "record_validity": "VALID",
+          "runtime_source_validation": "confirmed",
+          "actual_group": "A",
+          "actual_entry_threshold": -0.05,
+          "actual_exit_threshold": -0.05000000074505806,
+          "actual_hold": "false",
+          "actual_recovery_min_hold_s": 0.0,
+          "hold_audit_status": "not_observed",
+          "hold_episode_count": 0,
+          "hold_violation_count": 0,
+          "process_shutdown_complete": true,
+          "closeout_complete": true,
+          "mujoco_started": true,
+          "muJoCo_window_log": {
+            "log_line": "[MUJOCO-WINDOW] backend=GLFW requested=hidden visible=0 renderer=Mesa Intel(R) Graphics (RPL-P)",
+            "matching_line_count": 1,
+            "same_run_log": "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/runs/01_A_no_hold/result/A/rep_01/4f452f21f03b4d8a9736716701a9f7da/mujoco.log",
+            "status": "OBSERVED"
+          },
+          "initial_state": {
+            "status": "CAPTURED",
+            "sim_time_s": 6.49,
+            "world_position_xy_m": [
+              -0.0389860868,
+              1.2426648e-05
+            ],
+            "world_yaw_rad": -7.10936451e-05
+          },
+          "failure_reasons": []
+        }
+      ],
+      "failure_reasons": [],
+      "finished_at": "2026-10-18T19:03:57+08:00",
+      "classification_repair": {
+        "previous_status": "ORCHESTRATION_FAILURE",
+        "reason": "older read_run looked only for group B; the group A/C run was valid and is recovered without rerunning",
+        "run_id": "4f452f21f03b4d8a9736716701a9f7da",
+        "at": "2026-10-18T19:03:57+08:00"
+      }
+    },
+    {
+      "sequence": 2,
+      "plan_item_id": "02_C_H0.10",
+      "group": "C",
+      "hold_s": 0.1,
+      "hold_consumed": true,
+      "cli_hold_fallback_s": 0.1,
+      "cli_exit_fallback": -0.1,
+      "scene": "m02.xml",
+      "scene_id": "m2v2_m02",
+      "difficulty_label": "middle",
+      "source_set": "M2",
+      "source_filename": "m2dev06.xml",
+      "layout_revision": null,
+      "field_bounds_m": {
+        "x": [
+          -0.5,
+          8.0
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "xml_sha256": "d61db8e000566eb96e37a4debeecc573b74e1dbde8ca68214ef58fe54ed1542b",
+      "goal_world_m": [
+        7.5,
+        0.0
+      ],
+      "entry_threshold": -0.05,
+      "sim_limit_s": 20.0,
+      "wall_cap_s": 120.0,
+      "standing_observation_sim_s": 2.0,
+      "standing_observation_wall_cap_s": 30.0,
+      "status": "VALID_TASK_RESULT",
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "status": "VALID_TASK_RESULT",
+          "started_at": "2026-10-18T19:03:57+08:00",
+          "result_root": "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/runs/02_C_H0.10/result",
+          "classification": "T2 保持时间功能试跑，非正式实验",
+          "render_mode": "hidden GLFW",
+          "rviz": "disabled",
+          "command": [
+            "/usr/bin/python3",
+            "-u",
+            "/home/lidio/quadruped_robots/scripts/manual_ab_compare.py",
+            "--groups",
+            "C",
+            "--repeats",
+            "1",
+            "--scene",
+            "m02.xml",
+            "--goal-x",
+            "7.5",
+            "--goal-y",
+            "0",
+            "--entry-threshold",
+            "-0.05",
+            "--exit-threshold",
+            "-0.1",
+            "--hold-s",
+            "0.1",
+            "--sim-limit-s",
+            "20",
+            "--wall-cap-s",
+            "120",
+            "--standing-observation-sim-s",
+            "2",
+            "--result-root",
+            "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/runs/02_C_H0.10/result",
+            "--prepared-overlay",
+            "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/overlays/C_H0.10",
+            "--display",
+            ":0",
+            "--xauthority",
+            "/run/user/1000/gdm/Xauthority",
+            "--plot-python",
+            "/home/lidio/anaconda3/bin/python3",
+            "--classification",
+            "T2 保持时间功能试跑，非正式实验",
+            "--no-window",
+            "--disable-framebuffer-capture"
+          ],
+          "finished_at": "2026-10-18T19:04:23+08:00",
+          "child_exit_code": 0,
+          "run_id": "8c92b95c55494b9aa3105ba484adcb3b",
+          "run_directory": "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/runs/02_C_H0.10/result/C/rep_01/8c92b95c55494b9aa3105ba484adcb3b",
+          "terminal_result": "ARRIVED",
+          "record_validity": "VALID",
+          "runtime_source_validation": "confirmed",
+          "actual_group": "C",
+          "actual_entry_threshold": -0.05,
+          "actual_exit_threshold": -0.05000000074505806,
+          "actual_hold": "true",
+          "actual_recovery_min_hold_s": 0.1,
+          "hold_audit_status": "pass",
+          "hold_episode_count": 16,
+          "hold_violation_count": 0,
+          "process_shutdown_complete": true,
+          "closeout_complete": true,
+          "mujoco_started": true,
+          "muJoCo_window_log": {
+            "log_line": "[MUJOCO-WINDOW] backend=GLFW requested=hidden visible=0 renderer=Mesa Intel(R) Graphics (RPL-P)",
+            "matching_line_count": 1,
+            "same_run_log": "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/runs/02_C_H0.10/result/C/rep_01/8c92b95c55494b9aa3105ba484adcb3b/mujoco.log",
+            "status": "OBSERVED"
+          },
+          "initial_state": {
+            "status": "CAPTURED",
+            "sim_time_s": 6.4,
+            "world_position_xy_m": [
+              -0.0389842205,
+              1.25848437e-05
+            ],
+            "world_yaw_rad": -7.19905822e-05
+          },
+          "failure_reasons": []
+        }
+      ],
+      "finished_at": "2026-10-18T19:04:23+08:00",
+      "stop_class": null
+    },
+    {
+      "sequence": 3,
+      "plan_item_id": "03_C_H0.30",
+      "group": "C",
+      "hold_s": 0.3,
+      "hold_consumed": true,
+      "cli_hold_fallback_s": 0.3,
+      "cli_exit_fallback": -0.1,
+      "scene": "m02.xml",
+      "scene_id": "m2v2_m02",
+      "difficulty_label": "middle",
+      "source_set": "M2",
+      "source_filename": "m2dev06.xml",
+      "layout_revision": null,
+      "field_bounds_m": {
+        "x": [
+          -0.5,
+          8.0
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "xml_sha256": "d61db8e000566eb96e37a4debeecc573b74e1dbde8ca68214ef58fe54ed1542b",
+      "goal_world_m": [
+        7.5,
+        0.0
+      ],
+      "entry_threshold": -0.05,
+      "sim_limit_s": 20.0,
+      "wall_cap_s": 120.0,
+      "standing_observation_sim_s": 2.0,
+      "standing_observation_wall_cap_s": 30.0,
+      "status": "VALID_TASK_RESULT",
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "status": "VALID_TASK_RESULT",
+          "started_at": "2026-10-18T19:04:23+08:00",
+          "result_root": "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/runs/03_C_H0.30/result",
+          "classification": "T2 保持时间功能试跑，非正式实验",
+          "render_mode": "hidden GLFW",
+          "rviz": "disabled",
+          "command": [
+            "/usr/bin/python3",
+            "-u",
+            "/home/lidio/quadruped_robots/scripts/manual_ab_compare.py",
+            "--groups",
+            "C",
+            "--repeats",
+            "1",
+            "--scene",
+            "m02.xml",
+            "--goal-x",
+            "7.5",
+            "--goal-y",
+            "0",
+            "--entry-threshold",
+            "-0.05",
+            "--exit-threshold",
+            "-0.1",
+            "--hold-s",
+            "0.3",
+            "--sim-limit-s",
+            "20",
+            "--wall-cap-s",
+            "120",
+            "--standing-observation-sim-s",
+            "2",
+            "--result-root",
+            "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/runs/03_C_H0.30/result",
+            "--prepared-overlay",
+            "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/overlays/C_H0.30",
+            "--display",
+            ":0",
+            "--xauthority",
+            "/run/user/1000/gdm/Xauthority",
+            "--plot-python",
+            "/home/lidio/anaconda3/bin/python3",
+            "--classification",
+            "T2 保持时间功能试跑，非正式实验",
+            "--no-window",
+            "--disable-framebuffer-capture"
+          ],
+          "finished_at": "2026-10-18T19:04:52+08:00",
+          "child_exit_code": 0,
+          "run_id": "b418a5bb53944fb9a9cb84bf7d43fd06",
+          "run_directory": "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/runs/03_C_H0.30/result/C/rep_01/b418a5bb53944fb9a9cb84bf7d43fd06",
+          "terminal_result": "ARRIVED",
+          "record_validity": "VALID",
+          "runtime_source_validation": "confirmed",
+          "actual_group": "C",
+          "actual_entry_threshold": -0.05,
+          "actual_exit_threshold": -0.05000000074505806,
+          "actual_hold": "true",
+          "actual_recovery_min_hold_s": 0.3,
+          "hold_audit_status": "pass",
+          "hold_episode_count": 10,
+          "hold_violation_count": 0,
+          "process_shutdown_complete": true,
+          "closeout_complete": true,
+          "mujoco_started": true,
+          "muJoCo_window_log": {
+            "log_line": "[MUJOCO-WINDOW] backend=GLFW requested=hidden visible=0 renderer=Mesa Intel(R) Graphics (RPL-P)",
+            "matching_line_count": 1,
+            "same_run_log": "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/runs/03_C_H0.30/result/C/rep_01/b418a5bb53944fb9a9cb84bf7d43fd06/mujoco.log",
+            "status": "OBSERVED"
+          },
+          "initial_state": {
+            "status": "CAPTURED",
+            "sim_time_s": 8.754,
+            "world_position_xy_m": [
+              -0.0389525183,
+              1.71895754e-05
+            ],
+            "world_yaw_rad": -8.71712351e-05
+          },
+          "failure_reasons": []
+        }
+      ],
+      "finished_at": "2026-10-18T19:04:52+08:00",
+      "stop_class": null
+    },
+    {
+      "sequence": 4,
+      "plan_item_id": "04_C_H0.50",
+      "group": "C",
+      "hold_s": 0.5,
+      "hold_consumed": true,
+      "cli_hold_fallback_s": 0.5,
+      "cli_exit_fallback": -0.1,
+      "scene": "m02.xml",
+      "scene_id": "m2v2_m02",
+      "difficulty_label": "middle",
+      "source_set": "M2",
+      "source_filename": "m2dev06.xml",
+      "layout_revision": null,
+      "field_bounds_m": {
+        "x": [
+          -0.5,
+          8.0
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "xml_sha256": "d61db8e000566eb96e37a4debeecc573b74e1dbde8ca68214ef58fe54ed1542b",
+      "goal_world_m": [
+        7.5,
+        0.0
+      ],
+      "entry_threshold": -0.05,
+      "sim_limit_s": 20.0,
+      "wall_cap_s": 120.0,
+      "standing_observation_sim_s": 2.0,
+      "standing_observation_wall_cap_s": 30.0,
+      "status": "VALID_TASK_RESULT",
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "status": "VALID_TASK_RESULT",
+          "started_at": "2026-10-18T19:04:52+08:00",
+          "result_root": "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/runs/04_C_H0.50/result",
+          "classification": "T2 保持时间功能试跑，非正式实验",
+          "render_mode": "hidden GLFW",
+          "rviz": "disabled",
+          "command": [
+            "/usr/bin/python3",
+            "-u",
+            "/home/lidio/quadruped_robots/scripts/manual_ab_compare.py",
+            "--groups",
+            "C",
+            "--repeats",
+            "1",
+            "--scene",
+            "m02.xml",
+            "--goal-x",
+            "7.5",
+            "--goal-y",
+            "0",
+            "--entry-threshold",
+            "-0.05",
+            "--exit-threshold",
+            "-0.1",
+            "--hold-s",
+            "0.5",
+            "--sim-limit-s",
+            "20",
+            "--wall-cap-s",
+            "120",
+            "--standing-observation-sim-s",
+            "2",
+            "--result-root",
+            "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/runs/04_C_H0.50/result",
+            "--prepared-overlay",
+            "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/overlays/C_H0.50",
+            "--display",
+            ":0",
+            "--xauthority",
+            "/run/user/1000/gdm/Xauthority",
+            "--plot-python",
+            "/home/lidio/anaconda3/bin/python3",
+            "--classification",
+            "T2 保持时间功能试跑，非正式实验",
+            "--no-window",
+            "--disable-framebuffer-capture"
+          ],
+          "finished_at": "2026-10-18T19:05:21+08:00",
+          "child_exit_code": 0,
+          "run_id": "c6c7d3ab4b5e415c8c0df3c2614a819b",
+          "run_directory": "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/runs/04_C_H0.50/result/C/rep_01/c6c7d3ab4b5e415c8c0df3c2614a819b",
+          "terminal_result": "ARRIVED",
+          "record_validity": "VALID",
+          "runtime_source_validation": "confirmed",
+          "actual_group": "C",
+          "actual_entry_threshold": -0.05,
+          "actual_exit_threshold": -0.05000000074505806,
+          "actual_hold": "true",
+          "actual_recovery_min_hold_s": 0.5,
+          "hold_audit_status": "pass",
+          "hold_episode_count": 8,
+          "hold_violation_count": 0,
+          "process_shutdown_complete": true,
+          "closeout_complete": true,
+          "mujoco_started": true,
+          "muJoCo_window_log": {
+            "log_line": "[MUJOCO-WINDOW] backend=GLFW requested=hidden visible=0 renderer=Mesa Intel(R) Graphics (RPL-P)",
+            "matching_line_count": 1,
+            "same_run_log": "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/runs/04_C_H0.50/result/C/rep_01/c6c7d3ab4b5e415c8c0df3c2614a819b/mujoco.log",
+            "status": "OBSERVED"
+          },
+          "initial_state": {
+            "status": "CAPTURED",
+            "sim_time_s": 8.914,
+            "world_position_xy_m": [
+              -0.0389769189,
+              1.62569959e-05
+            ],
+            "world_yaw_rad": -8.40934233e-05
+          },
+          "failure_reasons": []
+        }
+      ],
+      "finished_at": "2026-10-18T19:05:21+08:00",
+      "stop_class": null
+    }
+  ],
+  "preflight": {
+    "started_unix_ns": 1792321437841499131,
+    "python": "/usr/bin/python3",
+    "uid": 1000,
+    "euid": 1000,
+    "environment": {
+      "DISPLAY": ":0",
+      "XAUTHORITY": "/run/user/1000/gdm/Xauthority",
+      "MUJOCO_GL": "glfw",
+      "LD_LIBRARY_PATH": "/home/lidio/catkin_ws/devel/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib:/home/lidio/Libraries/mujoco/lib:/home/lidio/Libraries/libfranka/lib:/home/lidio/Libraries/mujoco/lib:/home/lidio/Libraries/libfranka/lib",
+      "LIBGL_DRIVERS_PATH": null
+    },
+    "xauthority_readable": true,
+    "glfw_init": true,
+    "window_created": true,
+    "vendor": "Intel",
+    "renderer": "Mesa Intel(R) Graphics (RPL-P)",
+    "version": "4.6 (Compatibility Profile) Mesa 23.2.1-1ubuntu3.1~22.04.4",
+    "window_closed": true,
+    "status": "PASS",
+    "finished_unix_ns": 1792321437910885354,
+    "same_execution_context_as_scene_runs": true,
+    "returncode": 0,
+    "stderr_tail": ""
+  },
+  "status": "COMPLETE",
+  "runner_pid": 1075003,
+  "stop_sequence": 1,
+  "stop_reason": "runner_exit=0",
+  "stop_class": "orchestration",
+  "classification_repairs": [
+    {
+      "sequence": 1,
+      "plan_item_id": "01_A_no_hold",
+      "run_id": "4f452f21f03b4d8a9736716701a9f7da",
+      "scene_rerun": false,
+      "at": "2026-10-18T19:03:57+08:00"
+    }
+  ],
+  "analysis": {
+    "status": "COMPLETE",
+    "log": "/home/lidio/quadruped_robots/logs/t2/hold_function_check/20261018_190259_t2hold/analysis_stdout.log",
+    "derived_analysis_rerun": true,
+    "derived_analysis_note": "Enhanced hold-episode semantics and config/display check regenerated; no scene rerun."
+  },
+  "finished_at": "2026-10-18T19:05:22+08:00",
+  "ledger_note": "The first A run was valid and completed, but an older read_run helper looked only for group B and mislabeled it as no-scene. The item was recovered from its raw batch_plan/metrics/terminal without rerunning; confirmed scene starts remain 4 and engineering repairs 0."
+}

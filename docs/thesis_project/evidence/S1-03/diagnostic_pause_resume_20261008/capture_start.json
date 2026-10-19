@@ -1,0 +1,5 @@
+{
+  "capture_start_monotonic_ns": 8153786452462,
+  "poll_s_requested": 0.001,
+  "clock_join_rule": "post-process bracketing on shared steady-clock monotonic_ns; no interpolation"
+}

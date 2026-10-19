@@ -1,0 +1,10 @@
+{
+  "display": ":0",
+  "xauthority": "/run/user/1000/gdm/Xauthority",
+  "x11_connection": "PASS (sandbox escalation; /usr/bin/xdpyinfo)",
+  "glfw": "3.3.6 system GLFW; hidden 16x16 window create/destroy passed",
+  "opengl_vendor": "Intel",
+  "renderer": "Mesa Intel(R) Graphics (RPL-P)",
+  "opengl_version": "4.6 Compatibility Profile Mesa 23.2.1-1ubuntu3.1~22.04.4",
+  "system_or_desktop_changes": "none"
+}

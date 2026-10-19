@@ -1,0 +1,42 @@
+{
+  "classification": "short non-formal S1-03 diagnostic; not an official A-group result",
+  "scene": "/home/lidio/quadruped_robots/unitree_mujoco/scene_obstacle.xml",
+  "candidate": "paper_faithful_switch",
+  "runtime_config": "/tmp/s1_03_overlay/share/go2_description/config/abs/config.yaml",
+  "model_paths": {
+    "agile_policy": "/tmp/s1_03_overlay/share/go2_description/config/abs/policy.pt",
+    "ra_value": "/tmp/s1_03_overlay/share/go2_description/config/abs/ra_value.pt",
+    "recovery_policy": "/tmp/s1_03_overlay/share/go2_description/config/rec/policy.pt"
+  },
+  "launch": {
+    "simulator": "unitree_mujoco -s scene_obstacle.xml",
+    "controller": "ros2 launch rl_quadruped_controller mujoco.launch.py simulation_test:=false",
+    "policy_input": "existing short-diagnostic stand-up sequence, then forward command lx=1.0"
+  },
+  "capture": {
+    "collector": "/home/lidio/quadruped_robots/docs/thesis_project/evidence/S1-02/short_diag_20261007/collect_runtime.py",
+    "poll_s": 0.001,
+    "started_before_first_simulator_attempt": true,
+    "files": ["policy_frames.jsonl", "sim_clock.jsonl", "runtime_record.jsonl", "collector_ready.json", "capture_start.json"]
+  },
+  "startup_attempts": [
+    {
+      "result": "simulator started and published clock; ROS launch failed before controller startup",
+      "reason": "temporary go2_description overlay lacked xacro/robot.xacro",
+      "log": "ros_launch_overlay_failure.log",
+      "handling": "simulator was stopped; existing installed package resource directories were linked into the temporary overlay; abs/rec config candidate copies were retained"
+    },
+    {
+      "result": "controller activated; all three models loaded; 1796 policy frames captured",
+      "logs": ["mujoco.log", "ros_launch.log"],
+      "handling": "one timed short run; wrapper cleanup completed and collector was stopped"
+    }
+  ],
+  "stop_and_scope": {
+    "stop": "timed SIGINT; wrapper reported cleanup complete; post-run process check found no simulator/controller",
+    "pause_resume": "not performed in this policy-transition capture; a separate targeted pause observation is documented in ../diagnostic_pause_resume_20261008/",
+    "simulation_consumer_confirmation": "not available; Recovery events prove control-interface command writes only",
+    "workspace_model_or_config_changes": false,
+    "formal_experiment_training_or_hardware_test": false
+  }
+}

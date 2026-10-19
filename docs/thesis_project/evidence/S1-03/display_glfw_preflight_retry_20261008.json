@@ -1,0 +1,34 @@
+{
+  "checked_at_local": "2026-10-08",
+  "execution_access": {
+    "sandbox_external_request": "accepted; probe ran as uid 1000 with host desktop groups visible",
+    "DISPLAY": ":0",
+    "XAUTHORITY": "/run/user/1000/gdm/Xauthority",
+    "XDG_SESSION_TYPE": "x11",
+    "x_socket_connect": "OK",
+    "xdpyinfo": {
+      "result": "OK",
+      "server": "X.Org 1.21.1.4",
+      "screen": "1920x1080"
+    },
+    "interpretation": "The prior EPERM and loginctl bus denial were executor sandbox restrictions; the existing host desktop session is accessible when the escalation is applied."
+  },
+  "authorization_safety": "Used existing DISPLAY and XAUTHORITY. Did not modify, chmod, remove locks from, or replace the original authorization file; did not use xhost. No packages or system services changed.",
+  "glfw_probes": {
+    "anaconda_python_ctypes": {
+      "glfwInit": "OK",
+      "glfwCreateWindow": "FAIL",
+      "mesa_loader": "Attempted iris and swrast and reported them unopenable",
+      "root_cause": "The DRI files exist. Loading iris_dri.so through /home/lidio/anaconda3 Python failed because Anaconda libstdc++.so.6 lacks GLIBCXX_3.4.30 required by system libLLVM-15.so.1. This is an interpreter library-path conflict, not proof of missing system DRI components."
+    },
+    "system_compiler_probe": {
+      "binary": "/tmp/s1_03_glfw_preflight",
+      "compiler": "/usr/bin/g++ 11.4.0",
+      "temporary_environment": "Existing DISPLAY/XAUTHORITY; LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu for the isolated native probe",
+      "glfwInit": "OK",
+      "glfwCreateWindow": "OK, hidden 16x16 window",
+      "OpenGL_VERSION": "4.6 (Compatibility Profile) Mesa 23.2.1-1ubuntu3.1~22.04.4"
+    }
+  },
+  "decision": "Display and native GLFW/OpenGL preflights passed outside the sandbox. Short S1-03 runs then produced controller/clock evidence; the main policy-transition capture and the separate targeted pause capture are under diagnostic_display_retry_20261008/ and diagnostic_pause_resume_20261008/."
+}

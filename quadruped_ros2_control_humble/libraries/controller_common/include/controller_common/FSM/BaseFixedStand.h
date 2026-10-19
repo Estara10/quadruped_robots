@@ -25,6 +25,8 @@ public:
 protected:
     double target_pos_[12] = {};
     double start_pos_[12] = {};
+    double start_kp_[12] = {};
+    double start_kd_[12] = {};
     rclcpp::Time start_time_;
 
     double kp_, kd_;
@@ -35,4 +37,5 @@ protected:
 
     int soft_start_step_ = 0;
     int soft_start_steps_ = 250;
+    bool stand_transition_ready_logged_ = false;
 };

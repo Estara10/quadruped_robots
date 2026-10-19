@@ -1,0 +1,72 @@
+{
+  "purpose": "Direct source diagnosis of the S1-04 mixed session/candidate run and cleanup",
+  "previous_invalid_run_id": "121051ab9a1d474a820563ddde740856",
+  "previous_invalid_run_frame_groups": {
+    "16478219458311": {
+      "frames": 425,
+      "rl_step_min": 0,
+      "rl_step_max": 447,
+      "switching_modes": [
+        1
+      ],
+      "thresholds": [
+        [
+          -0.05000000074505806,
+          -0.05000000074505806
+        ]
+      ]
+    },
+    "16478220701166": {
+      "frames": 407,
+      "rl_step_min": 0,
+      "rl_step_max": 418,
+      "switching_modes": [
+        0
+      ],
+      "thresholds": [
+        [
+          -0.05000000074505806,
+          -0.07999999821186066
+        ]
+      ]
+    }
+  },
+  "direct_preflight_process_observation": [
+    {
+      "pid": 138797,
+      "pgid": 138670,
+      "comm": "ros2",
+      "cmdline": "/usr/bin/python3 /opt/ros/humble/bin/ros2 launch rl_quadruped_controller mujoco.launch.py simulation_test:=false"
+    },
+    {
+      "pid": 138827,
+      "pgid": 138670,
+      "comm": "robot_state_pub",
+      "cmdline": "/opt/ros/humble/lib/robot_state_publisher/robot_state_publisher --ros-args -r __node:=robot_state_publisher --params-file /tmp/launch_params_wb8ku8kt"
+    },
+    {
+      "pid": 138829,
+      "pgid": 138670,
+      "comm": "ros2_control_no",
+      "cmdline": "/opt/ros/humble/lib/controller_manager/ros2_control_node --ros-args --params-file /tmp/s1_03_overlay/share/go2_description/config/robot_control.yaml -r ~/robot_description:=/robot_description"
+    }
+  ],
+  "cross_reference": {
+    "s1_03_launch_log": "docs/thesis_project/evidence/S1-03/diagnostic_pause_resume_final_20261008/ros_launch.log",
+    "logged_runtime_session_id": 16478219458311,
+    "matches_previous_invalid_paper_candidate_session": true,
+    "s1_03_report_candidate": "paper_faithful_switch",
+    "s1_03_overlay": "/tmp/s1_03_overlay",
+    "other_previous_invalid_session": "16478220701166",
+    "workspace_run_ros_launch_log": "docs/thesis_project/evidence/S1-04/diagnostic_runs_20261008/121051ab9a1d474a820563ddde740856/ros_launch.log",
+    "s1_03_session_id_line": 434
+  },
+  "root_cause": "A still-running S1-03 ROS launch/controller and the S1-04 workspace-configured controller shared the global /mujoco_rt_frame mapping. The S1-03 launch log directly logs session 16478219458311, matching the paper_faithful_switch stream in the preserved mixed record. The S1-04 launch log shows its manager parameters came from the workspace install and its runtime stream was stabilized_switch. The frame ABI had no writer PID, which prevented identifying this from the original mixed record alone.",
+  "cleanup": {
+    "signal": "SIGINT",
+    "target_process_group": 138670,
+    "verified_remaining_pids": [],
+    "remaining_controller_manager_processes": []
+  },
+  "scope_note": "Original S1-04 raw runtime_record.jsonl and logs were not changed."
+}

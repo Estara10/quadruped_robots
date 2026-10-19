@@ -16,7 +16,7 @@ import unittest
 from pathlib import Path
 from typing import Any, Dict, List
 
-from abs_rt_frame import RuntimeFrame
+from abs_rt_frame import FRAME_MAGIC, FRAME_VERSION, RuntimeFrame
 from formal_runtime_binding import BindingError, bind_runtime_record
 from run_record import frame_availability, frame_payload
 
@@ -33,11 +33,19 @@ def make_payload(
     safety_faulted: int = 0,
 ) -> Dict[str, Any]:
     frame = RuntimeFrame(
-        magic=0x414253525446524D, version=1, sequence=sequence,
+        magic=FRAME_MAGIC, version=FRAME_VERSION, sequence=sequence,
         monotonic_ns=monotonic, session_id=session, rl_step=rl_step, ray_age_ns=1,
+        sim_clock_sequence=2, sim_clock_monotonic_ns=monotonic,
+        sim_clock_segment_id=1, sim_clock_age_ns=1,
+        risk_evaluation_ns=monotonic, risk_condition_entered_ns=0, mode_change_ns=0,
         source=source, controller_active=1, rl_entered=1, rl_active=1,
         safety_faulted=safety_faulted, policy_state=policy_state, ray_origin=1,
         ray_valid=1, collision_origin=0, torque_saturated_computed=0, reserved_pad=0,
+        mode_before=policy_state, switching_mode=1,
+        action_source=1 if policy_state == 0 else 2,
+        transition_reason=0, risk_condition_met=0, risk_condition_entered=2,
+        policy_mode_changed=0, sim_clock_status=1, sim_clock_valid=1,
+        sim_time_s=0.1, entry_threshold=-0.05, exit_threshold=-0.08,
         ra_value=-0.9, lin_vel=(0.3, 0.2, 0.0), command=(0.5, 0.5, 0.1),
         world_pose=(1.0, 2.0, 0.3), ray2d=tuple(float(i) for i in range(11)),
         action_raw=tuple(float(i) for i in range(12)),
@@ -57,15 +65,30 @@ def live_line(payload: Dict[str, Any], run_id: str) -> Dict[str, Any]:
 
 def _to_frame(payload: Dict[str, Any]) -> RuntimeFrame:
     return RuntimeFrame(
-        magic=0x414253525446524D, version=1, sequence=payload["source_sequence"],
+        magic=FRAME_MAGIC, version=FRAME_VERSION, sequence=payload["source_sequence"],
         monotonic_ns=payload["monotonic_ns"], session_id=payload["session_id"],
         rl_step=payload["rl_step"], ray_age_ns=payload["ray_age_ns"],
+        sim_clock_sequence=payload["sim_clock_sequence"],
+        sim_clock_monotonic_ns=payload["sim_clock_monotonic_ns"],
+        sim_clock_segment_id=payload["sim_clock_segment_id"],
+        sim_clock_age_ns=payload["sim_clock_age_ns"],
+        risk_evaluation_ns=payload["risk_evaluation_ns"],
+        risk_condition_entered_ns=payload["risk_condition_entered_ns"] or 0,
+        mode_change_ns=payload["mode_change_ns"] or 0,
         source=payload["source"], controller_active=payload["controller_active"],
         rl_entered=payload["rl_entered"], rl_active=payload["rl_active"],
         safety_faulted=payload["safety_faulted"], policy_state=payload["policy_state"],
         ray_origin=payload["ray_origin"], ray_valid=payload["ray_valid"],
         collision_origin=payload["collision_origin"],
         torque_saturated_computed=payload["torque_saturated_computed"], reserved_pad=0,
+        mode_before=payload["mode_before"], switching_mode=payload["switching_mode"],
+        action_source=payload["action_source"], transition_reason=payload["transition_reason"],
+        risk_condition_met=int(payload["risk_condition_met"]),
+        risk_condition_entered=payload["risk_condition_entered"],
+        policy_mode_changed=int(payload["policy_mode_changed"]),
+        sim_clock_status=payload["sim_clock_status"], sim_clock_valid=int(payload["sim_clock_valid"]),
+        sim_time_s=payload["sim_time_s"] if payload["sim_time_s"] is not None else 0.0,
+        entry_threshold=payload["entry_threshold"], exit_threshold=payload["exit_threshold"],
         ra_value=payload["ra_value"], lin_vel=tuple(payload["lin_vel"]),
         command=tuple(payload["command"]), world_pose=tuple(payload["world_pose"]),
         ray2d=tuple(payload["ray2d"]), action_raw=tuple(payload["action_raw"]),

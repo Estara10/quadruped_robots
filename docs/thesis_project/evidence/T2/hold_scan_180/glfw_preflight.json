@@ -1,0 +1,22 @@
+{
+  "started_unix_ns": 1792323667832162613,
+  "python": "/usr/bin/python3",
+  "uid": 1000,
+  "euid": 1000,
+  "environment": {
+    "DISPLAY": ":0",
+    "XAUTHORITY": "/run/user/1000/gdm/Xauthority",
+    "MUJOCO_GL": "glfw",
+    "LD_LIBRARY_PATH": "/home/lidio/catkin_ws/devel/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib:/home/lidio/Libraries/mujoco/lib:/home/lidio/Libraries/libfranka/lib:/home/lidio/Libraries/mujoco/lib:/home/lidio/Libraries/libfranka/lib",
+    "LIBGL_DRIVERS_PATH": null
+  },
+  "xauthority_readable": true,
+  "glfw_init": true,
+  "window_created": true,
+  "vendor": "Intel",
+  "renderer": "Mesa Intel(R) Graphics (RPL-P)",
+  "version": "4.6 (Compatibility Profile) Mesa 23.2.1-1ubuntu3.1~22.04.4",
+  "window_closed": true,
+  "status": "PASS",
+  "finished_unix_ns": 1792323667903015107
+}

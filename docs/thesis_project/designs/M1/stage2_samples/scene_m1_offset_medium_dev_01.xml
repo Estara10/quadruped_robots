@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="m1_offset_route_medium_dev_01">
+  <include file="../../../../../unitree_mujoco/unitree_robots/go2/go2.xml" />
+  <statistic center="3.75 0 0.1" extent="8.5" />
+  <worldbody>
+    <geom name="floor" type="plane" pos="3.75 0 0" size="4.25 3.0 0.05" rgba="0.2 0.3 0.4 1" />
+    <geom name="ppt_obstacle_01" type="box" pos="1.25 -0.36 0.22" euler="0 0 0" size="0.1 0.37 0.22" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_02" type="box" pos="3.75 0.36 0.22" euler="0 0 0" size="0.1 0.37 0.22" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_03" type="box" pos="6.25 -0.36 0.22" euler="0 0 0" size="0.1 0.37 0.22" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_04" type="cylinder" pos="0.75 2.35 0.2" size="0.2 0.2" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_05" type="cylinder" pos="2.55 -2.4 0.2" size="0.2 0.2" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_06" type="cylinder" pos="4.45 2.4 0.2" size="0.2 0.2" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_07" type="cylinder" pos="6.8 -2.4 0.2" size="0.2 0.2" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_08" type="cylinder" pos="7.45 2.38 0.2" size="0.2 0.2" rgba="0.26 0.28 0.31 1" />
+  </worldbody>
+</mujoco>

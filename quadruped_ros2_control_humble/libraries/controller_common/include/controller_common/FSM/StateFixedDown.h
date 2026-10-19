@@ -28,6 +28,8 @@ public:
 private:
     double target_pos_[12] = {};
     double start_pos_[12] = {};
+    double start_kp_[12] = {};
+    double start_kd_[12] = {};
     rclcpp::Time start_time_;
 
     double kp_, kd_;

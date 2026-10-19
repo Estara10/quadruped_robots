@@ -23,17 +23,20 @@ BaseFixedStand::BaseFixedStand(CtrlInterfaces& ctrl_interfaces, const std::vecto
 void BaseFixedStand::enter()
 {
     soft_start_step_ = 0;
+    stand_transition_ready_logged_ = false;
     for (int i = 0; i < 12; i++)
     {
         start_pos_[i] = ctrl_interfaces_.joint_position_state_interface_[i].get().get_value();
+        start_kp_[i] = ctrl_interfaces_.joint_kp_command_interface_[i].get().get_value();
+        start_kd_[i] = ctrl_interfaces_.joint_kd_command_interface_[i].get().get_value();
     }
     for (int i = 0; i < 12; i++)
     {
         ctrl_interfaces_.joint_position_command_interface_[i].get().set_value(start_pos_[i]);
         ctrl_interfaces_.joint_velocity_command_interface_[i].get().set_value(0);
         ctrl_interfaces_.joint_torque_command_interface_[i].get().set_value(0);
-        ctrl_interfaces_.joint_kp_command_interface_[i].get().set_value(0.0);
-        ctrl_interfaces_.joint_kd_command_interface_[i].get().set_value(0.0);
+        ctrl_interfaces_.joint_kp_command_interface_[i].get().set_value(start_kp_[i]);
+        ctrl_interfaces_.joint_kd_command_interface_[i].get().set_value(start_kd_[i]);
     }
     ctrl_interfaces_.control_inputs_.command = 0;
 }
@@ -49,12 +52,21 @@ void BaseFixedStand::run(const rclcpp::Time&/*time*/, const rclcpp::Duration&/*p
 
     percent_ += 1 / duration_;
     phase = std::tanh(percent_);
+    if (percent_ >= 1.5 && !stand_transition_ready_logged_)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("BaseFixedStand"),
+                    "[STAND-READY] command3_gate=passed percent=%.6f phase=%.6f",
+                    percent_, phase);
+        stand_transition_ready_logged_ = true;
+    }
     for (int i = 0; i < 12; i++)
     {
         ctrl_interfaces_.joint_position_command_interface_[i].get().set_value(
             phase * target_pos_[i] + (1 - phase) * start_pos_[i]);
-        ctrl_interfaces_.joint_kp_command_interface_[i].get().set_value(kp_ * ratio);
-        ctrl_interfaces_.joint_kd_command_interface_[i].get().set_value(kd_ * ratio);
+        ctrl_interfaces_.joint_kp_command_interface_[i].get().set_value(
+            start_kp_[i] + (kp_ - start_kp_[i]) * ratio);
+        ctrl_interfaces_.joint_kd_command_interface_[i].get().set_value(
+            start_kd_[i] + (kd_ - start_kd_[i]) * ratio);
     }
 
     static int stand_symm_count = 0;

@@ -1,0 +1,62 @@
+{
+  "run_id": "7089073a2a684328b6523efa8c06c384",
+  "classification": "INVALID_INCOMPLETE_POSTRUN_CONTEXT",
+  "failure": {
+    "phase": "post-run final context serialization",
+    "exception": "AttributeError: 'RunRecordRecorder' object has no attribute 'error'",
+    "source_line": "scripts/s1_run_diagnostic.py capture summary used recorder.error or recorder.recorder.error; recorder is FrameCapture, whose error field exists, while underlying RunRecordRecorder has no error field.",
+    "effect": "The run loop and process cleanup had completed, but final run_context updates and recorder.finalize() were skipped. No terminal.json or process_facts.json was written. Original context and raw runtime_record remain unchanged."
+  },
+  "direct_run_evidence": {
+    "source_binding": "confirmed",
+    "controller_pid": 203918,
+    "writer_pid": 203918,
+    "session_id": 22412744739286,
+    "candidate": "paper_faithful_switch",
+    "entry_threshold": -0.05,
+    "exit_threshold": -0.05000000074505806,
+    "goal_world_m": [1.0, 0.0],
+    "arrival_threshold_m": 0.5,
+    "scene": "scene_obstacle.xml",
+    "models": [
+      "/tmp/s1_04_overlay/share/go2_description/config/abs/policy.pt",
+      "/tmp/s1_04_overlay/share/go2_description/config/abs/ra_value.pt",
+      "/tmp/s1_04_overlay/share/go2_description/config/rec/policy.pt"
+    ],
+    "runtime_frames": 38,
+    "policy_cycles": "continuous rl_step 38 through 75",
+    "sim_clock_valid_frames": 38,
+    "last_saved_policy_payload": {
+      "session_id": 22412744739286,
+      "source_sequence": 152,
+      "rl_step": 75,
+      "sim_time_s": 23.81199999999768,
+      "ra_value": -0.9971550703048706,
+      "mode_after": "AGILE",
+      "action_source": 1,
+      "world_pose_m": [0.5004969835281372, -0.016394030302762985],
+      "distance_to_goal_m": 0.4997719756989761,
+      "interpretation": "The final saved policy payload is inside the 0.5 m threshold, but no persisted terminal event/reference links this frame to the run terminal. Do not classify the run as ARRIVED from this frame alone."
+    },
+    "terminal_ref": null,
+    "terminal_record_lines": 0,
+    "record_validity": "INVALID",
+    "record_validity_reasons": [
+      "missing_terminal_line",
+      "terminal_not_at_record_boundary",
+      "terminal_not_unique"
+    ],
+    "raw_cycle_statistics_only": {
+      "period_pairs": 37,
+      "frequency_hz": 50.38647227696395,
+      "median_period_ms": 20.102125,
+      "p95_period_ms": 27.7530604,
+      "minimum_period_ms": 6.981553,
+      "maximum_period_ms": 28.652606,
+      "scope": "Descriptive adjacent intervals of the single-session saved raw frame sequence; not a valid run acceptance metric because the terminal record is missing."
+    },
+    "collision_snapshots": "38 LIVE samples with 325 physics-step gaps; not sufficient for a no-collision conclusion.",
+    "safety_log": "No ABS-CONTRACT safety veto or EMERGENCY event matched the saved log. A cleanup command 1 emitted [HARD-STOP]; it is a stop request, not a MuJoCo-consumption acknowledgement.",
+    "cleanup": "The helper log shows SIGINT teardown of ROS/controller, robot_state_publisher and RViz. A post-run /proc check found no unitree_mujoco, rviz2, ros2_control_node, controller_manager or S1 recorder process. Exit-code/process_facts evidence was not serialized because of the final-context exception."
+  }
+}

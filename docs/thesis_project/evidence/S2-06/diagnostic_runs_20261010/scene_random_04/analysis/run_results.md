@@ -1,0 +1,3 @@
+| run_id | scene | scene_id | record_validity | navigation_terminal_result | nonfoot_collision_failure | foot_contact_count | foot_contact_duration_s | foot_impact_count | foot_impact_duration_s | arrived_with_foot_contact | arrived_with_foot_impact | abs_reference_collision | frame_count | rl_step_gaps | invalid_clock_frames | policy_frequency_hz_overall | mode_transitions | recovery_share_valid_motion_time | target_distance_final_m | mean_path_speed_mps |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1173da3d307f474d91f034ebf1582476 | scene_random_04.xml | random_04 | VALID | ARRIVED | False | 0 | 0.0000 | 0 | 0.0000 | False | False | False | 601 | 0 | 15 | 50.0126 | 128 | 0.2987 | 0.4874 | 0.6976 |

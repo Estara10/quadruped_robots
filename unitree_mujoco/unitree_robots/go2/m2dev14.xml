@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="go2 m2dev14">
+  <include file="go2.xml" />
+  <statistic center="3.75 0 0.1" extent="8.5" />
+  <visual><headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0" />
+    <rgba haze="0.15 0.25 0.35 1" /><global azimuth="135" elevation="-40" /></visual>
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072" />
+    <texture type="2d" name="s6_08_groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300" />
+    <material name="s6_08_groundplane" texture="s6_08_groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2" />
+  </asset>
+  <worldbody><light pos="1 0 7" dir="0 0 -1" directional="true" />
+    <geom name="floor" type="plane" pos="3.75 0 0" size="4 3.5 0.05" material="s6_08_groundplane" />
+    <geom name="ppt_obstacle_01" type="box" pos="2.513118 0.077522999999999995 0.196717" euler="0 0 0.371475" size="0.36841600000000002 0.22450200000000001 0.196717" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_02" type="cylinder" pos="5.3565009999999997 -0.023126000000000001 0.25878000000000001" size="0.24734200000000001 0.25878000000000001" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_03" type="box" pos="2.2683939999999998 2.172895 0.198599" euler="0 0 0.42806300000000003" size="0.304369 0.23174500000000001 0.198599" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_04" type="cylinder" pos="4.4088940000000001 2.5463830000000001 0.25519399999999998" size="0.27832400000000002 0.25519399999999998" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_05" type="box" pos="6.0615129999999997 1.868331 0.27680250000000001" euler="0 0 -0.25515900000000002" size="0.32361899999999999 0.174155 0.27680250000000001" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_06" type="box" pos="5.0917659999999998 -2.3926460000000001 0.273586" euler="0 0 0.072047" size="0.36130200000000001 0.24760699999999999 0.273586" rgba="0.26 0.28 0.31 1" />
+  </worldbody>
+</mujoco>

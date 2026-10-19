@@ -1,0 +1,300 @@
+// Current M1 maps; historical scene catalog is in archive/maps_before_short_names_20261015.zip
+ABS_SCENE("scene_obstacle.xml", "obstacle_test1", 7, kLegacySignatures,
+          "e12a69fa5463e723d115696b8872c27c71b03a9d029a9ef933343ae93ba6dd5e",
+          "7b905219a13e327545ac5a32f44b7e0f88bfd2ad06c93326445a2d6608db38f5",
+          "3e4d82cf204d5929ff98c11fed5b3918ba3b92f0d698215860097d734d239694")
+ABS_SCENE("scene_flat.xml", "flat", 0, kNoObstacles,
+          "9ce83b3e61c722a523d0359536cee803f17610f95d2275fc32e96801ec3c1908",
+          "475d11f0ad0a491bb3f34190dfe4645d22db72eb8b81d7390c7395d298efa251",
+          "7a516b363665a9e7108b07d3b6383d180a709c783bb095f177864cc452d23f86")
+ABS_SCENE("dev01.xml", "m1sbd01", 4, kNamedPptObstacles,
+          "9a8a55fb1d5bb516524db899e7a6612ef36182a167617d6d56302120ab185612", "85299b75eee343c76d8a56a1403ff23a47b11796d98630c23b72f2a8702abcae",
+          "35d61555fc43a7268b49bd58342fcac5d62718da5dcbebd83556c2044ea5c112")
+ABS_SCENE("dev02.xml", "m1sbd02", 2, kNamedPptObstacles,
+          "f2979dee68b45b8b557f8e6405345334948afe96bf157f08ce8929bc50c3a092", "3dda9f86741acb5815c47ee4cdfa175b191a8eb99f9912dd299a490a678723a4",
+          "6662f5939e7b8b7fffcafe209fd31640e7d1fda5afee2e20b4750b3bcefc0499")
+ABS_SCENE("holdout01.xml", "m1sbh01", 4, kNamedPptObstacles,
+          "af64b97a47e8191daca60549b00b189d6a3618c595b3c3d584ffcecfa1504457", "5cf85453fc489642d3bb55f8d08531c0e070edbee72cfb4252760086f2b52cd3",
+          "fdbd378a30e745165d1f60f4e6a15b3b87387ecdac36da91d5f7fcd6b10bef21")
+ABS_SCENE("holdout02.xml", "m1sbh02", 4, kNamedPptObstacles,
+          "b94526035dfa69b362085891790b960df8ad90e4a3cf19fc86d368a652f0c124", "94490e389140c7787051fa18d2b0f8ac59f9eb561cb2fcb99b0efc3133c66c56",
+          "5d1eae1e45185c31b48bc8471005e672f98ba15ad9757de1fba825b06ca2cd0c")
+ABS_SCENE("dev03.xml", "m1ssd01", 4, kNamedPptObstacles,
+          "1d0a9ca0e0a0c6861475d532bc6db96f527635db89ee67af03eee9e1478093ae", "624e811ce47e5545d7bde46974c012c166c9f53b35009c7afbee68049f0e1242",
+          "bb792fe9a00e34d080696fe8a556794fd3fbf61487ea8a1699f674954152543a")
+ABS_SCENE("dev04.xml", "m1ssd02", 4, kNamedPptObstacles,
+          "a19e0d445a333d5761071a189edd820ad26dc9b0f938080107a3110a0ea3b218", "d73a57233a62fd1e43959bf05a0a0eb279c383caee642f8aad4ebda2608585ae",
+          "92ee100e4cd974a49b581ea7c90436efa685f64eab1c50804530f3d777effe87")
+ABS_SCENE("holdout03.xml", "m1ssh01", 4, kNamedPptObstacles,
+          "625f213dc334f71755dd53454753863a05a105af90f0a6411cad7336c33dca26", "1a8d6d422bfca8f6196b02164e1e453d8b5fa483f599adf0c1c3011f3655f66b",
+          "6714c872dc43e520c8f05b5cd4bf4ddec07927c2db43041c9f2565d67ad15606")
+ABS_SCENE("holdout04.xml", "m1ssh02", 4, kNamedPptObstacles,
+          "768868581a4dd289292a8620468f6eeaaabc7cfaf357973534ba8e78a8c4b5d4", "67f30a3791e8812cf3795c2f835bed674f2d98a62ea6c009fd9b3125e11b454f",
+          "140f7807ecfd9499cf289f33c7d430f098840013cb0846fabe1c515377cecaba")
+ABS_SCENE("dev05.xml", "m1sod01", 4, kNamedPptObstacles,
+          "723a399a0eec72a1efdf0a5e81486f9664854095db7e1ddcf515beb89a5a524f", "90e8a5a75d9e47488ae120d3cfa92e0eaeadee0a544d98c425b8157fdfd2a1f2",
+          "a4ceb4a000be222f74c785187795190a06cc6b4a11205082a2eb292b10f34049")
+ABS_SCENE("dev06.xml", "m1sod02", 3, kNamedPptObstacles,
+          "47482b8764826ca4cbf3baa88a2e784b00366955ee6ec911499e809e1ecf0a5d", "dbe474e5897c61c5bcccd2f62c01605d40c9666351a4f93b6b6184f139d6d7d6",
+          "e3c14acd2e80d0a20e70afe22ae54424b291080aea2c1fabc8cecef5285d8496")
+ABS_SCENE("holdout05.xml", "m1soh01", 4, kNamedPptObstacles,
+          "e18ec2fd39401ae92cb354d2d23c610b76193d564553dcf4213e2abcf6f8d0d0", "c3cbb76c1e3e4cf629b263c38a68bc55f6c935b84eeb98c4ee80a364cc2a80f4",
+          "48ae843a0510951ded1bf3b903c10a782ff57edf45b78b1766ca7c8b423c9cf1")
+ABS_SCENE("holdout06.xml", "m1soh02", 4, kNamedPptObstacles,
+          "e8308ef4358cb0e6d56cde0b699219f434bce72be801197f6e3350ef72d0ec47", "5b3010c2fb309025f1e5106846d0829061bbfe032a05821e9ce04be4a7565f8d",
+          "2428b0635ac65d3de42fc49682db819d5992aacb35f8964a50fcafabef867434")
+ABS_SCENE("dev07.xml", "m1sld01", 3, kNamedPptObstacles,
+          "3db5da5358a7189df747087235cd3b629cd1b436f04b380e65ed39c71f7833a7", "04ff6dc64e1dda5992bc96a5f8f305ac8d38c1c552d58b9ba5686d6715d18e18",
+          "361c6d978782f26f7aee3821695e016b24346181ca6b4f0c0e51b09b0b6040a1")
+ABS_SCENE("dev08.xml", "m1sld02", 4, kNamedPptObstacles,
+          "21b38b72b9b969c58541b4bbf0e9f6013a480a88010a7e5e8befe5a0f3274a35", "b4231eeec8d9f1d4747607d771c2d9c35370375f916753b99507df5ea1518eb9",
+          "ae5b77e5401310a2b3e18d21d8235c9f2b9e364a7de7cb6b77dfa83b9caca471")
+ABS_SCENE("holdout07.xml", "m1slh01", 4, kNamedPptObstacles,
+          "d8eff08a0b06b5d9ea3fd9c98ef18ccfc10b02f8c90a94c7f4e04f1a0e22c218", "2159baa55bc8b2da9aa84952193ac7e92f6e6aedfab2b5047f97633656b58ff4",
+          "21c89c6d5b36a7f117ac0013c47d581829627671fac4bd56c831079d7e45e0a2")
+ABS_SCENE("holdout08.xml", "m1slh02", 4, kNamedPptObstacles,
+          "20567a539f74e1953ea64c334eb94605796d094b0513b23149dca64ee733416b", "12643dc374da2dd7e7a7efa9d0dbe88cdbc27f6df0918255d3767d9d27e9e04e",
+          "6ebe31a9c82dadf2f406734911a0c46ff7295b091e43ba0f3a99a6183c04b9fc")
+ABS_SCENE("dev09.xml", "m1sfd01", 4, kNamedPptObstacles,
+          "a79130a8edee519cfad55fbf264129f9e1019c5c7565c22c5603f8395d083bac", "4b196bf35866672dd012ca15f6f49b7fdb9e9e050dd06709aa8b2e2092400da7",
+          "df6ca050f1fd64dd468b52d9b94c77f47370713c8fee4275eea01a5af3f86d71")
+ABS_SCENE("dev10.xml", "m1sfd02", 3, kNamedPptObstacles,
+          "b14da75afe06720ad7c173f94cdea03d7535c3b91c3635dd02447d5182b571e9", "bef577c29a18ef61622409c24aedbf55d0b4486e7b492dc4a6ae74748cf45ab8",
+          "25918dce36ce1398101963bcfba981715f9e042490789839e055e446538f71d3")
+ABS_SCENE("holdout09.xml", "m1sfh01", 4, kNamedPptObstacles,
+          "224880c16934c6584ea4f698ef6987e46f5afe888e52f6b12b7ef51d0dbea8b7", "8b0d4cff30c807c8e314f761556fc0fc858e02578f4b0d5f9f0090867b3ce82d",
+          "cd58769c543ac112d749ad98e7c7000f1d40b330084cd88954ed842595105e77")
+ABS_SCENE("holdout10.xml", "m1sfh02", 3, kNamedPptObstacles,
+          "66ad13f7e6c92e086638038fe965426d6c8ca2a67e1c36fb5ffb9c81e5f923e5", "5b877c1ae8542c2bf93a1ea88014d45dc4d0aba82f20add8b3d639d2e5715139",
+          "23c5af7ffb9ad762792dd6670494aa315edb41a8c505d5b074f88d4b1a32cbdb")
+ABS_SCENE("dev11.xml", "m1mbd01", 7, kNamedPptObstacles,
+          "50ee48516f9c29aa78d93165e0bbfc3decdf317f949a0516de1b2f42d89f2954", "fe173e1cb01831c3d08a7fd20f1cd657caf863d50fb4b50cda739a2ecbc72a48",
+          "d83f177b14b4be601082aeb0e2298de51d902c7ed963824c888e0c74abaa9906")
+ABS_SCENE("dev12.xml", "m1mbd02", 6, kNamedPptObstacles,
+          "78224d054f1f8510c5eddc28fbefa24b49b5d8e3f8fc9463189aa931ce2c6f9d", "628ef504ccf65813ecfceec410286b897d572d011cfa520c183fc2f142c8de08",
+          "b5598587149586ab4916e2ff48d6f9ec39292d2f17121045a038f133256317a2")
+ABS_SCENE("holdout11.xml", "m1mbh01", 6, kNamedPptObstacles,
+          "07b60fbf6f3e5e09b3ef742e8d6f144b04ff1978bc11c834b202c792c20dc947", "c5d37a03f0fa6fc4909f992f2a36615387eda98c7afc90c61817cf210581b62d",
+          "f006f7bfcc876147509e99ef04307349b4720f91cd0509dde237137c860eb114")
+ABS_SCENE("holdout12.xml", "m1mbh02", 6, kNamedPptObstacles,
+          "7c14c8adbd826b14713d1e0d17c3389b12b8c6f71d18e107335ab2983071d484", "bad84410f3d566518629499700d6a41e567cdaab1425d94ad9fbf0d0f18722a6",
+          "1b0c8410f9ee46ac8431485dad93bd4086e2301fd98f3a29065b141187c47c89")
+ABS_SCENE("dev13.xml", "m1msd01", 6, kNamedPptObstacles,
+          "4c904e921e76a786567c17ed420b4946d2aa7e53de79e74b7c0c3fa68e024dc3", "719fc55b1c39301acef45938b45fd6dd4d89283fb5a21e2e5bac7c5ebdbef2b8",
+          "21dbd594bc7ff14a52a2495d7d679ddf10246e913e2f93d34c0949918c5ccfec")
+ABS_SCENE("dev14.xml", "m1msd02", 6, kNamedPptObstacles,
+          "fb3bb22a7db28c13b0fdbe88403b8c12d7e0fcdf90211498a062d44ee247b93a", "91e8ccd45c22849b28be087ad8f172e15184c7ee0779d9291967558481193abb",
+          "8982caa0cca072bd45772baa9deeee2a197e0e3322a814218d13957cfb10e8d4")
+ABS_SCENE("holdout13.xml", "m1msh01", 7, kNamedPptObstacles,
+          "c6098723a04abf9082e57d18fc4bf562474dc01fee81128f099eb24117bf0227", "53822eccbe5295243a626543c40e11092f674b41a2869dfa8e54df4a61428623",
+          "465ae37c199f24a9a92cbc6f01041deb6d9d63bb70204c9fdb32bec1a99840f9")
+ABS_SCENE("holdout14.xml", "m1msh02", 7, kNamedPptObstacles,
+          "2aecebc63de4e2f9cb83c6ecf2d73d7a02cfc56daa67edb4865b60dcaf66f10e", "b7dcb609ec3f0e067027677913ab2022c0b0958708c0246951d5d4444bf4cd78",
+          "7ee7be7295c2a388fc17f445ba63ce3a99ebaf5e26bf43f18f137c5fd9c81dda")
+ABS_SCENE("dev15.xml", "m1mod01", 6, kNamedPptObstacles,
+          "9a5392c0f6e0d36e80072b339ad0208b3e9404f0ab0436eba3bf655e5242559a", "4d1d3619a4ecb795d44483d1c35bd04b6e4997c34c3d430823ebb3a7fe0996c3",
+          "834e737829c87bf375ccab6caeb9cc6917ae3d10c8c006ae32772a2085fb2837")
+ABS_SCENE("dev16.xml", "m1mod02", 6, kNamedPptObstacles,
+          "fa9055b5f6193dde641cd2ffb6d7005414062be719fd83c05dcbb8d63ab1be55", "d8f2e4953540f09c502bfb91c387e18100a54dba83965c262f2ca4c31dd7f1e9",
+          "0efaf396eb1e30ebb8604cfb4d9100cd6a075bc09138d03d4653a169f330b525")
+ABS_SCENE("holdout15.xml", "m1moh01", 6, kNamedPptObstacles,
+          "8c85bc58255650b5d6caeea4cda076f9ffea579f40104d3b3fd77a82298a9e63", "009d00695c42f24748257c8297ea58a08c3b470a10ccbe2f27a8c9b9f08d44ef",
+          "8a680cce0cdf02816de3f98b18cf0b8401de70184c61ea438eefd8484fbf4d58")
+ABS_SCENE("holdout16.xml", "m1moh02", 7, kNamedPptObstacles,
+          "561869158311ca1b85560ad61f9140d3e34169c21aad4a54721a0624b7282d68", "65cbc20bd7d7f2dfac086edc76a4461d1606503b1a410fea6f6444b504f38c2c",
+          "96d0767ebd50d9a604acaf2e7e2fb0618ca9d156604ed8a1db08200de0f024f2")
+ABS_SCENE("dev17.xml", "m1mld01", 6, kNamedPptObstacles,
+          "ec312f7248a187fa5eef5b4b806a1d28a8f26d327a670fe056b886108deca88d", "2237251756096b2d5041bb92f6d314db85b3e26584f6e58ca47a503190b655ca",
+          "d28c82ed9d4e9fadf0b78922738a3ed205851ac982014a375f4d329597a44d33")
+ABS_SCENE("dev18.xml", "m1mld02", 7, kNamedPptObstacles,
+          "314dd7c3a3fbd51c2955ce74ce9cbcfa0bcab9f105c694ff89b6f16d5ae2d68b", "b9fc6f7f79280170065285441e92301bf23b2fa6adf7c8e0af2b4db3d93a098a",
+          "2a0b54beed421cf5db9de37c8e59dde1ac0567959f99642c65d9d86059a5b98b")
+ABS_SCENE("holdout17.xml", "m1mlh01", 7, kNamedPptObstacles,
+          "02d286cabb5d4a1251738fb58c8612595767ad69f022a36b77ebc53dbac67d49", "2312c2b0b4f7968d37b828b6769fddc53bcdcbdacbc70e57c5a7e4bfb2424f19",
+          "6bb57f295bccee65b0f184579955b59b02cd759fc75b02234004b93c2a11974b")
+ABS_SCENE("holdout18.xml", "m1mlh02", 5, kNamedPptObstacles,
+          "2e1e89e173bc631e1aeb2c7b27e76d839f055b0dc82919a3b63d2080ab0fe9ae", "94c6ab8b166bb316f96ce1979d4db7d2129237fb5ccaa20b1ba8842e054602db",
+          "151d14a270b65deaa1b3c9212088c091227d560a0398594bcaa042d21aa8daea")
+ABS_SCENE("dev19.xml", "m1mfd01", 7, kNamedPptObstacles,
+          "53f0edb2fee2c7b070692c0c2cb37b6f614b3f5d1c9cf1b8c3ed4399a46e6527", "4cc755c424e56a4e22a5f0620ea57591e010119f9db4d2ec070dd87ee02af331",
+          "89558ba766a45867c7f2a1bd6fd24135bf728b7a4228ed3a0cac28b3967da1b4")
+ABS_SCENE("dev20.xml", "m1mfd02", 5, kNamedPptObstacles,
+          "70d9b559bf2033fa86cd24999a48837d7f0d0c6dc2afb4d95d64f465ae9684df", "e471d71beda9bc76753cc3659cd7fe5d484c05083713a6d49418efab47245941",
+          "c0c278cbbaaa4cf1c552e9e6e33192e98b53f75a7ded31a71e69d235529c2f3e")
+ABS_SCENE("holdout19.xml", "m1mfh01", 6, kNamedPptObstacles,
+          "24b8c5079c7efa83cf4f11ae80c7a93029f7f23c613d27e71ebfdd7998554a00", "297fafbc0277eb0d6e5452207d5ca33b491777a3208e498ceb7693e3fc6ed7b1",
+          "ad718670ac8e0b6c559a3b88a993881fc10d5e3f1446d91ec55c6aa66ea868c9")
+ABS_SCENE("holdout20.xml", "m1mfh02", 5, kNamedPptObstacles,
+          "e98f720cbb6d69f1f40fe100533c653a2cccb39776fe07d2534157f18873ab41", "de613789729f9cc99d067e3a4a93cb09a7764f1f86ab2fe2011a5c358a56ae34",
+          "af1fbc03a049cfa1a0b9b4dd21d4f2a01f9cb2b4c5fdc74b17847721f8567bc8")
+ABS_SCENE("dev21.xml", "m1dbd01", 10, kNamedPptObstacles,
+          "ddce7c32ad18b3954bac888851fe9948113cea5be07881f21e94ae69f629f2e9", "51bfe6d08cf39b167831cb26978fb12e180214e6d790360abf96d69924f0e204",
+          "cac0c4b25bef95f76fb4cf1b9a6b67803578fef84186e5523c93569808de876e")
+ABS_SCENE("dev22.xml", "m1dbd02", 8, kNamedPptObstacles,
+          "6e1b10b1a71972a8e662dd2a8b3b6db28ce14d075ac4d21b03d7474f29f5eee0", "443f461f259beaa7816f2e2e37a5b132dea7b8655bcf3b04977c40fe8970f25f",
+          "e023e5d3fbedac8b44b863aa4925cf2d425437068042d1ebbc276412acec899e")
+ABS_SCENE("holdout21.xml", "m1dbh01", 11, kNamedPptObstacles,
+          "bef78015c084d3644ab9bd7c57678c582fa7ded65cc9f67ed1f7cd38ddd9c13e", "6ad3cdd782804f1ae184794195706ddd655564114f450b63861d76caf3884a37",
+          "10254ab85e65dc1dc1e9f983147ae37f19055632e173afccc7901726f86d093a")
+ABS_SCENE("holdout22.xml", "m1dbh02", 10, kNamedPptObstacles,
+          "8815f3d107ebb03b62403227c9316ab78ced59abd84e5f76d27fa75dce161e5e", "28f9944c822abb7eee9c874db3d998139aa27b4127b199abf8c8238ee37ddfab",
+          "987c318126084a0581d3cfa0b8eace3a326792c8b0ec2c78dd7e28e6577b28c3")
+ABS_SCENE("dev23.xml", "m1dsd01", 10, kNamedPptObstacles,
+          "fe9878cbadef21f7063cb6a1df7bb36b0005d5438d59cf563e24c6f8c0ff03bf", "c5a07e9c8b0a1442b04f891407b310f883b7093cb303cd0413426d54cd1e14a6",
+          "e41bc3553fc506cb966ec64f0f20ac1457d60456b36db558fb2b1181857f13e4")
+ABS_SCENE("dev24.xml", "m1dsd02", 10, kNamedPptObstacles,
+          "0d2a7597e96ba949941f4523d0fffc43f3f432abd22fe09f74cc15a1d0983109", "ecc506c1434cb5079e70d80ff44c6a803706c6492daca47eb3c0d90b9aae7e65",
+          "5267f51f31109b660798201e899c21c3f56ec007202c4ff7ab8ce13aa53a107c")
+ABS_SCENE("holdout23.xml", "m1dsh01", 10, kNamedPptObstacles,
+          "de4994923d906dc965c390c0256fe6e094883e21aa8d3e7fc536d2f1e8604361", "3b363bd723b84ff02f7603eea6a56329d6af037ea0b75d20cac9630f8f602d6b",
+          "6719d7281fc15774aff8dbf7e8703f4ac86a2fd3ca12fb9bd57de0eb1c238fbc")
+ABS_SCENE("holdout24.xml", "m1dsh02", 10, kNamedPptObstacles,
+          "d2567c838288ef46edbb66c03c38718ec6d968095982799dfd2e031c32d5f98e", "b5f58f1ae719d6c60aefe43ec386458b995652cb1fd91ef3e79f3591b3bb60a7",
+          "866e1037a14ff93b3d42c795d70b74e44d72cad9fe7e4084b8b7594297f77928")
+ABS_SCENE("dev25.xml", "m1dod01", 9, kNamedPptObstacles,
+          "e9f2ed9553d49280b581f61081a0922b63d3a65ef48b5c7c4113546af2ca9f7e", "e21b9556a70dd130dece75902b98a99e2dd61cc87f5846da6c47d6a46d975030",
+          "9c33f8cd447bed72cf21e0be91f79d8cad73a1395216c543e5af44e630c76ba5")
+ABS_SCENE("dev26.xml", "m1dod02", 11, kNamedPptObstacles,
+          "f6bfe682b165fea1e5198185596d2948f0ef92e4f0a7b380ab553cfc5ee156d0", "e6ae7e1d788e8011dfaf353345bf44cd811fd38756ab82f64726297ddc40896f",
+          "0b2d955c7877ee63f9bca836caf2fcce67ab9ac5ffff77100071b7e18a36532c")
+ABS_SCENE("holdout25.xml", "m1doh01", 9, kNamedPptObstacles,
+          "9f879ec057c22c572dd2eba711becaa283a4341add56d0992a5935bb4561eb4e", "031ba92ec6fbb20a67e157150bfce03b4eb68b3544d0e0861c2de8d2f12105a6",
+          "73108cecf91c32fc375db2b9790482c20d9e94fc2cf1706229fe35b9b8f61e8a")
+ABS_SCENE("holdout26.xml", "m1doh02", 8, kNamedPptObstacles,
+          "88f5ad9db313ca93595ed458c664444c66a3d9b9ff78518004f09abe197d6c6b", "65ac144b3ee125fa45f8a6fe3fb769eb53a8d371cb60fbf649b7066b05078e98",
+          "860b684b89b6ce1f408f1e766f324bb8927fb5a50bc423472997638164d7cdaa")
+ABS_SCENE("dev27.xml", "m1dld01", 8, kNamedPptObstacles,
+          "093a406e42fcf47d18b59830989b5b8f051539789aa40de5772e3a58e5f9680f", "1c2c1a62648ee589948e56ae865b5c174f0ff5ac53abc91a8278390da75d1391",
+          "8a67f16e8629c72d1168bf5be0c7d7ad19f99583d1f54b873e524becc044ec15")
+ABS_SCENE("dev28.xml", "m1dld02", 10, kNamedPptObstacles,
+          "76be1d6f12942a2ffb3c8ff17d5d41a214aa01b745ce8d870c828191e87c1f72", "b2915367d63d4a282d025a38f39cdc1bec9dbfae255c20010f61d4c45427a5f7",
+          "722928051e4a5643a2295395c12d6668ec24e2091a7e7cf1f172785b7d38c20f")
+ABS_SCENE("holdout27.xml", "m1dlh01", 10, kNamedPptObstacles,
+          "d15fb6551f00db4b2a94a649dc61e4386fd6c28634382519f09dbabfab8fafed", "cd121742f0c0821ac03f93bb804780c49cbe4aa75e707daa9088bc67d0a98632",
+          "e5b7299ec4718d6bdd42731f88f1b67ca2fb5f768c64e5ee1e318e76271a7da4")
+ABS_SCENE("holdout28.xml", "m1dlh02", 12, kNamedPptObstacles,
+          "2dc6cfb48573fe5b5f3ebe19d882ad2f5f179da8fb130b51b05e7cf500383c7e", "a240964078d045d03b9b19ebdc9e931a3428ccd73a415ad60106d9485baade35",
+          "2f6f0da37cb4703ed97fc547c6b4bc9317812b9f6403a8b4afb56e5ed32f21a3")
+ABS_SCENE("dev29.xml", "m1dfd01", 10, kNamedPptObstacles,
+          "018563e818a938b8d358046650695eff14f2be8605cba4d6bd52bb49024d6017", "6dd4695c5f45f0b276c9fcb063f9f1137b68943c715121f6f4d772b1ca8c8112",
+          "6d68777fd36f82b8013ff5423340dfb72f68a3c6ca27d4ea71e2797bb9fdc339")
+ABS_SCENE("dev30.xml", "m1dfd02", 9, kNamedPptObstacles,
+          "6ea049b7f4b538c7396ec2b5c62ec15be156e3336290e960b3371391baab9cad", "8acb6dfa0cdeb6e3d908473ff08c7476213a0593cf21ca46e62f48b4dd47b963",
+          "7b1040d117758ccbcd66d1e1d1f403926a2e09469c326e466486a9be8eb43664")
+ABS_SCENE("holdout29.xml", "m1dfh01", 11, kNamedPptObstacles,
+          "d0557c1f09a067eb0bdf142a1d72cbe6b13566b2096b8128c13c7b7a42262ab1", "16ccc3c76d9e3fac90cd8be44f76031f17456ae030490ce7caabf5dd0c68a0c4",
+          "030531c23013856c91b6169e4dbda86d878ff70dcf10929011610716caf352c1")
+ABS_SCENE("holdout30.xml", "m1dfh02", 10, kNamedPptObstacles,
+          "3a4579eed54f3896b6b0e6a5876ee1d939c48403e84d8dab90f85fc1e15e700c", "f00d94eef6e40cdba15a3358c16d0b89547844470d7b5f44e45145cbdbf607f1",
+          "2ab0eef73f38075e2caee7bac4fe6292eedba66263054845de56c027ff05e8f0")
+ABS_SCENE("m2dev01.xml", "m2d01", 10, kNamedPptObstacles,
+          "5efcbef08595265ef0f8ac060ed4630a2d33aa8a8995769e0692e3cecb64c7ae", "258f4b32db29d122d63348a6d4fb55c8d762092bb458b3e3cbc386ec392599c1",
+          "fd126e940736a9a230d6d4ec7eb2b77865481795edf4f91c4e96eccb11b97167")
+ABS_SCENE("m2dev02.xml", "m2d02", 9, kNamedPptObstacles,
+          "18f2d8de697c3200f67f8786af897c450dc30cc9fd5ea85b34bd4c4ccd9de916", "e69130636871eff4e763d25b12b9cdbabc7a0649e84e04b075f5851eec82cfbc",
+          "7cb9dfcb09f8288cfb2f9a4f3cd5e0c2845c6092cf9851ccc29b5c1cff8b8465")
+ABS_SCENE("m2dev03.xml", "m2d03", 10, kNamedPptObstacles,
+          "01acd1010e43153431b4c60ea498937c3d3a1f4803e756359bb3e19d1beaafb4", "b457f6b0263dce008adafe7a44adf18aa81511102787a802cc391956667069d8",
+          "e919d28347e3688f42489ca7c9a89e019c28b7b0eb30f7856dff1b36e7558cea")
+ABS_SCENE("m2dev04.xml", "m2d04", 9, kNamedPptObstacles,
+          "addf2d3a6b191a534c7bc93000f121c49a31b07226592ed98ef9602bca6b0708", "698dcd97f97184d98b1b1b3dde34f1210ce73d2d652fde3f75c1ab41a9924128",
+          "a59e6f4b4e2531ea2319b9c87922439df353cf14c87eb01e8ee8fbefd5063e63")
+ABS_SCENE("m2dev05.xml", "m2d05", 10, kNamedPptObstacles,
+          "7c6caed391e3c542fdae1da7536d677b9c32f1c3156dc0e1795c54e34add3bc1", "73659c473323ab7816774b4d3de22e55bd7b858fcc1c6924803d3a5061bf2bdf",
+          "e0b60a6139a73b654012375499054161e847424137621c6cf57be227d303614c")
+ABS_SCENE("m2dev06.xml", "m2d06", 9, kNamedPptObstacles,
+          "714bb71a6d1d5f01d18d2d7d67563cc90b5ab74d01cde1033981cc40ecc0a3d4", "e12e9f1e10528937dd5e80ab126e629273a895b374fe2afaaecdae09ebce860e",
+          "af2a79e8c05f32a4211bd88800d6d3f7f580d308f08096dafb2bb166cd135901")
+ABS_SCENE("m2dev07.xml", "m2d07", 4, kNamedPptObstacles,
+          "074564bfed9ca771baee2feac4b2bfb8facbc59609bb1fbc2c6430fe3869d9ba", "543cbf297bc5d0f624f3fc63ec3c7abb43e685cd29f7755c299a7f7d32a0cc37",
+          "bb792fe9a00e34d080696fe8a556794fd3fbf61487ea8a1699f674954152543a")
+ABS_SCENE("m2dev08.xml", "m2d08", 4, kNamedPptObstacles,
+          "9d9a33a6bdb09ac830a6680ad10fc674441461a6434f4324788811c4ece27b03", "c5ea27ae1b7f4ad7ddde1a20712d571638a525be73b405652541841b17302704",
+          "92ee100e4cd974a49b581ea7c90436efa685f64eab1c50804530f3d777effe87")
+ABS_SCENE("m2dev09.xml", "m2d09", 4, kNamedPptObstacles,
+          "7a3d12b9f59184c389643af607dbb69d28c4f8878162117a4a36c793e477e255", "9566f1a4ac6f230dd461030963642ed98a9f6349dfa1f76c4f2ab8d09b26554b",
+          "ae5b77e5401310a2b3e18d21d8235c9f2b9e364a7de7cb6b77dfa83b9caca471")
+ABS_SCENE("m2dev10.xml", "m2d10", 7, kNamedPptObstacles,
+          "d050f4d68f60ae7fc2611814087c248b7e95239c487518b41cacb539cf96ff04", "635c04826defec07648fdbb88d61d8525253484af36edb7cb72b65807f1578c2",
+          "d83f177b14b4be601082aeb0e2298de51d902c7ed963824c888e0c74abaa9906")
+ABS_SCENE("m2dev11.xml", "m2d11", 7, kNamedPptObstacles,
+          "34ad2f9aeee647685f36d9723d389f255b02c700727caa90e56a5d28c750d6a3", "40fe3cf5566ea3895aaa411f413f8efa9b8188c768daa0e08eb8fb060dfd20c1",
+          "89558ba766a45867c7f2a1bd6fd24135bf728b7a4228ed3a0cac28b3967da1b4")
+ABS_SCENE("m2dev12.xml", "m2d12", 10, kNamedPptObstacles,
+          "2a257cf48f4b4f75f97e9ccd596ab7b99d0c97686fc99d9aa7f8ce6812bc889c", "521b30fc5fe6b51b06ed9e203c2aaabd3e2a9086a63eea916aa8f9098a264603",
+          "5267f51f31109b660798201e899c21c3f56ec007202c4ff7ab8ce13aa53a107c")
+ABS_SCENE("m2dev13.xml", "m2d13", 6, kNamedPptObstacles,
+          "1c4e5bd09f0482f175d3f2410b3b423caff14ba67e47f73f4deeb98052773223", "c7b54e5923f32935ad5cc549d7fb3187ea1750b89935ba2296c0d2e8a21f7dbf",
+          "21dbd594bc7ff14a52a2495d7d679ddf10246e913e2f93d34c0949918c5ccfec")
+ABS_SCENE("m2dev14.xml", "m2d14", 6, kNamedPptObstacles,
+          "e175e19b4391c2d0de0861e4435e157bfcee19f21818629a3bc3b1158ecccfe7", "5a9371facceabeb6aca9dbaad78ed27c6b08baf7b4878d81c8ff16d88c389244",
+          "d28c82ed9d4e9fadf0b78922738a3ed205851ac982014a375f4d329597a44d33")
+ABS_SCENE("m2dev15.xml", "m2d15", 11, kNamedPptObstacles,
+          "95f58408d48d1a368ee8d7fec1011ebb188c4210a8078fb1e44b461d6f032ee5", "6fdc2e870d1f532ef810e96cfd117ea3837e013653fcb4b5cc434928cad7707e",
+          "0b2d955c7877ee63f9bca836caf2fcce67ab9ac5ffff77100071b7e18a36532c")
+ABS_SCENE("m2dev16.xml", "m2d16", 10, kNamedPptObstacles,
+          "a8652b170d5a99e12a1b4b1ce06af0927209a0ff4b4893040a009c5ee5249ffc", "2af85b9cc070764ce931c0df93a91f20d9eb011c2547709a08baa95063467cac",
+          "6d68777fd36f82b8013ff5423340dfb72f68a3c6ca27d4ea71e2797bb9fdc339")
+ABS_SCENE("m2dev17.xml", "m2d17", 4, kNamedPptObstacles,
+          "6ded5d60058379e0840de04a13fce80fc277f684f6f9cd53f972f4f69e966329", "b0f7c63bf66cdd34efdae5fa280c6f03a78ffb99f49d99a8855a2977e11e8fd4",
+          "35d61555fc43a7268b49bd58342fcac5d62718da5dcbebd83556c2044ea5c112")
+ABS_SCENE("m2dev18.xml", "m2d18", 6, kNamedPptObstacles,
+          "b5377b48db67323cc635c2d438cb77f175bdbf3be83fccb1e30d08d2eb9ac4fe", "4e991bb30d490f6a3a0ce7d6415fc464ae7a062dcb3d3581a1ea60ea8873da1d",
+          "b5598587149586ab4916e2ff48d6f9ec39292d2f17121045a038f133256317a2")
+ABS_SCENE("m2dev19.xml", "m2d19", 8, kNamedPptObstacles,
+          "bbbb095230ad67cab8bd213cd954269306c4b66054a89aa7b837d7c82684be3b", "3b30ef8cc32a1563dc37f7a3992b8812a70d21015baedcc2fa1b47098b585354",
+          "e023e5d3fbedac8b44b863aa4925cf2d425437068042d1ebbc276412acec899e")
+ABS_SCENE("e01.xml", "m2v2_e01", 4, kNamedPptObstacles,
+          "52aedbce7fd9c6aeec52d887f705219fc14e1d0d1e10464c1d05212df0395506", "a886197aa6b37f057bde89662229b381cd0b1ca3e79e1d32ee982057d135ed71",
+          "35d61555fc43a7268b49bd58342fcac5d62718da5dcbebd83556c2044ea5c112")
+ABS_SCENE("e02.xml", "m2v2_e02", 6, kNamedPptObstacles,
+          "f320d31258847ed5592659967816bde0a212c1711f36d25f09dba84f3d73bdd8", "5b6f46026aaeb89310da3e856c7736a3a1a6928e0efb4e0619ded306b75ec306",
+          "b5598587149586ab4916e2ff48d6f9ec39292d2f17121045a038f133256317a2")
+ABS_SCENE("e03.xml", "m2v2_e03", 8, kNamedPptObstacles,
+          "a54437ffb9d7b8aef7e1dd3cb8a81664f3a2bea33eb0d0d1640cbde532b2fabb", "5a4126fd855e1c0b184ff7589a785dcfe41b3414a3e0c3f960fe7b651a46be48",
+          "e023e5d3fbedac8b44b863aa4925cf2d425437068042d1ebbc276412acec899e")
+ABS_SCENE("m01.xml", "m2v2_m01", 9, kNamedPptObstacles,
+          "a7b2cee27b559f1b0c097afc3b0d31734060eab87b1a9d432e51cf1514eecc98", "0790fe72476fc31d26d42851f1b19515e6621bc7d90081b888db8a2277402ed4",
+          "a59e6f4b4e2531ea2319b9c87922439df353cf14c87eb01e8ee8fbefd5063e63")
+ABS_SCENE("m02.xml", "m2v2_m02", 9, kNamedPptObstacles,
+          "d61db8e000566eb96e37a4debeecc573b74e1dbde8ca68214ef58fe54ed1542b", "983e88a1a1f53a8ef690a25f557758a9e34d6483ff491814a9a3c17db0e0d4e2",
+          "af2a79e8c05f32a4211bd88800d6d3f7f580d308f08096dafb2bb166cd135901")
+ABS_SCENE("m03.xml", "m2v2_m03", 6, kNamedPptObstacles,
+          "5d8ff6d7381fe53e4e1e4773900e47a246ecdc6994dec0860c9789bb8bebfde9", "c33e5dccdda3fa566b21ad31f5f6a5e9d0598bbdd377cfa4e81b564796adfd07",
+          "21dbd594bc7ff14a52a2495d7d679ddf10246e913e2f93d34c0949918c5ccfec")
+ABS_SCENE("m04.xml", "m2v2_m04", 6, kNamedPptObstacles,
+          "2259529188867e59552e44aa42f6059dc7ea1e3f5bf7569999ed6e2502ae1004", "ccd27c72652255bf0564f3fe46360dedba45985e2cf793375250717624cae92f",
+          "d28c82ed9d4e9fadf0b78922738a3ed205851ac982014a375f4d329597a44d33")
+ABS_SCENE("m05.xml", "m2v2_m05", 11, kNamedPptObstacles,
+          "f758ce128cabacba5536579d8de917a008288f77ec9dc021fc2342514f603e3a", "9ddcb44f03c3f17264e7f73a9381fe89e58b37c7a42945bb2afe5421ea6efd41",
+          "0b2d955c7877ee63f9bca836caf2fcce67ab9ac5ffff77100071b7e18a36532c")
+ABS_SCENE("m06.xml", "m2v2_m06", 10, kNamedPptObstacles,
+          "fa75eaf41c5cff8968375b8a978d2d84ff6efeb83700cd2ad31f9b35c1bee2fe", "0cf2c061676bb359ce571836ba7be77a84fea8d2c7bdcf538c14a04b3324f834",
+          "6d68777fd36f82b8013ff5423340dfb72f68a3c6ca27d4ea71e2797bb9fdc339")
+ABS_SCENE("d01.xml", "m2v2_d01", 10, kNamedPptObstacles,
+          "9f49048fc37e8780a23237216d34ec3a05242abb2f6f057bed666337ca49d49d", "46088eeb7f079875999c42665ecaa4947affd896a097a46c656045b46f49fad2",
+          "e919d28347e3688f42489ca7c9a89e019c28b7b0eb30f7856dff1b36e7558cea")
+ABS_SCENE("d02.xml", "m2v2_d02", 10, kNamedPptObstacles,
+          "7ae2dea3ee18dda1802bf8ee5f578179b7a2fbc9fcccaffe2ad19fce4b82a21f", "f1ccd0b5743be95b1573f508184b81a8d1538c74b271aa98bd1623c8647362df",
+          "e0b60a6139a73b654012375499054161e847424137621c6cf57be227d303614c")
+ABS_SCENE("d03.xml", "m2v2_d03", 9, kNamedPptObstacles,
+          "8fd5d211ede3739e78f2ac9ae00b56f08cf76eff9f7d0eb11ecbabc1a415cdaa", "70f56157df10c2124d5270bef2e1904fe25987a2d1db647af2c7a978ea852b5f",
+          "7cb9dfcb09f8288cfb2f9a4f3cd5e0c2845c6092cf9851ccc29b5c1cff8b8465")
+ABS_SCENE("d04.xml", "m2v2_d04", 4, kNamedPptObstacles,
+          "69de51074b3cde9dc1cdc004216fbb846d1dc5b2f7874530e6be19f2a6e3a9ab", "7b58af237547a5cb4712e9ca1c32d16b708c0769adefa6d7337ef417cde8b935",
+          "bb792fe9a00e34d080696fe8a556794fd3fbf61487ea8a1699f674954152543a")
+ABS_SCENE("d05.xml", "m2v2_d05", 4, kNamedPptObstacles,
+          "512c04904aa910e9587f28ada435dbb47b12e8b93804d4056a68a31f1243e41b", "bbed39db481bff166ad61883ad45ff0b9149f3e1c17efda6ae54575a6b058dcb",
+          "92ee100e4cd974a49b581ea7c90436efa685f64eab1c50804530f3d777effe87")
+ABS_SCENE("d06.xml", "m2v2_d06", 4, kNamedPptObstacles,
+          "d46b6fc549e1dbecf1e8eed208a4b69e3d90610e93b697d3af1decff046da907", "b14f669ed5e5079371ac6116f8e075e3d25a22dc4dc292ec0639a2dfa5365b22",
+          "ae5b77e5401310a2b3e18d21d8235c9f2b9e364a7de7cb6b77dfa83b9caca471")
+ABS_SCENE("d07.xml", "m2v2_d07", 7, kNamedPptObstacles,
+          "b484a5fd8247807fad0ccc379f261ec45be097cdcd2791ac3a1226b6c89fa971", "892f759fb107ca47966229c3dd40526cd6526e66755be82da837e3a417dbb6c1",
+          "d83f177b14b4be601082aeb0e2298de51d902c7ed963824c888e0c74abaa9906")
+ABS_SCENE("d08.xml", "m2v2_d08", 7, kNamedPptObstacles,
+          "ab9ae7a6339033d926255f29435ae6ef986443dd27124f2ed037fd925fc1698f", "0a9f71872f42c9efd26815ff756a5a18907ccbc07e630a2f79fc7661ebeaece3",
+          "89558ba766a45867c7f2a1bd6fd24135bf728b7a4228ed3a0cac28b3967da1b4")
+ABS_SCENE("d09.xml", "m2v2_d09", 10, kNamedPptObstacles,
+          "aade897eb10fd45b7690264b294c1500e849f22cafcf2cd0acae7adf888b4153", "4fa7a8dda932048bfc77f9685241ebc42d77cefa52170d9911cbcf6dcae58a89",
+          "5267f51f31109b660798201e899c21c3f56ec007202c4ff7ab8ce13aa53a107c")

@@ -1,0 +1,9 @@
+{
+  "ready": true,
+  "reader": "/home/lidio/quadruped_robots/docs/thesis_project/evidence/S1-02/short_diag_20261007/collect_runtime.py",
+  "runtime_frame_size": 424,
+  "sim_clock_size": 40,
+  "sim_clock_path": "/dev/shm/mujoco_sim_clock",
+  "preflight_monotonic_ns": 29524621925493,
+  "note": "clock mapping is awaited during capture; this preflight does not claim a simulator is running"
+}

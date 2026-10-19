@@ -1,0 +1,55 @@
+{
+  "publisher": "unitree_mujoco/simulate/build2/s6_11_scene_identity_probe",
+  "reader": "scripts/abs_collision.py",
+  "scene_count": 4,
+  "results": [
+    {
+      "scene_id": "s611_obj_sl_d01",
+      "filename": "scene_s6_11_sparse_local_objects_dev_01.xml",
+      "obstacle_count": 23,
+      "reader_status": "LIVE",
+      "reader_sequence": 4,
+      "physics_step": 1,
+      "runtime_model_fingerprint": "efbdf346a901d0dc867bdc5f6bb1703a7ed267eee8d05981266490d59594f47c",
+      "mujoco_version": "3.3.3",
+      "cleanup_exit_code": 0,
+      "shm_removed": true
+    },
+    {
+      "scene_id": "s611_obj_ml_d01",
+      "filename": "scene_s6_11_medium_local_objects_dev_01.xml",
+      "obstacle_count": 27,
+      "reader_status": "LIVE",
+      "reader_sequence": 4,
+      "physics_step": 1,
+      "runtime_model_fingerprint": "46b624c58d11a8c090c7b16b5d790794706a1c1d669417e4be812613743f97ea",
+      "mujoco_version": "3.3.3",
+      "cleanup_exit_code": 0,
+      "shm_removed": true
+    },
+    {
+      "scene_id": "s611_obj_sq_d01",
+      "filename": "scene_s6_11_sparse_offset_objects_dev_01.xml",
+      "obstacle_count": 13,
+      "reader_status": "LIVE",
+      "reader_sequence": 4,
+      "physics_step": 1,
+      "runtime_model_fingerprint": "3b50869f8e9df7a5853d0ff027b73cd7cf3ac608a3eac8d55087d680def14faf",
+      "mujoco_version": "3.3.3",
+      "cleanup_exit_code": 0,
+      "shm_removed": true
+    },
+    {
+      "scene_id": "s611_obj_mq_d01",
+      "filename": "scene_s6_11_medium_offset_objects_dev_01.xml",
+      "obstacle_count": 24,
+      "reader_status": "LIVE",
+      "reader_sequence": 4,
+      "physics_step": 1,
+      "runtime_model_fingerprint": "bffbb4a07e1a1a92b0da057e44e6988a4d43a40ab59f10661cd5644e93034b31",
+      "mujoco_version": "3.3.3",
+      "cleanup_exit_code": 0,
+      "shm_removed": true
+    }
+  ]
+}

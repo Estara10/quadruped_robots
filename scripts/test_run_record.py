@@ -19,40 +19,53 @@ from typing import Dict, List, Optional, Tuple
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from abs_rt_frame import (  # noqa: E402
+    FRAME_MAGIC,
+    FRAME_VERSION,
     RuntimeFrame,
     SOURCE_AUTHORITATIVE_RUNTIME,
     SOURCE_SYNTHETIC_TEST,
+    _FRAME_STRUCT,
 )
 from run_record import (  # noqa: E402
     RunRecordRecorder,
+    _validate_base_bounds_payload,
+    _validate_live_payload,
     frame_availability,
     frame_payload,
     load_record,
     summarize_record,
 )
 
-# Mirror "<7Q11I81f" (see abs_rt_frame._FRAME_STRUCT).
-_FRAME_STRUCT = struct.Struct("<7Q11I81f")
-
-
 def pack_frame(frame: RuntimeFrame) -> bytes:
     ints = [
         frame.magic, frame.version, frame.sequence, frame.monotonic_ns,
         frame.session_id, frame.rl_step, frame.ray_age_ns,
+        frame.sim_clock_sequence, frame.sim_clock_monotonic_ns,
+        frame.sim_clock_segment_id, frame.sim_clock_age_ns,
+        frame.risk_evaluation_ns, frame.risk_condition_entered_ns,
+        frame.mode_change_ns,
     ]
     flags = [
         frame.source, frame.controller_active, frame.rl_entered, frame.rl_active,
         frame.safety_faulted, frame.policy_state, frame.ray_origin, frame.ray_valid,
-        frame.collision_origin, frame.torque_saturated_computed, frame.reserved_pad,
+        frame.collision_origin, frame.torque_saturated_computed,
+        frame.mode_before, frame.switching_mode, frame.action_source,
+        frame.transition_reason, frame.risk_condition_met,
+        frame.risk_condition_entered, frame.policy_mode_changed,
+        frame.sim_clock_status, frame.sim_clock_valid, frame.reserved_pad,
     ]
     floats = [
+        frame.entry_threshold, frame.exit_threshold,
         frame.ra_value,
         *frame.lin_vel, *frame.command, *frame.world_pose,
         *frame.ray2d,
         *frame.action_raw, *frame.action_clipped,
         *frame.joint_target_rad, *frame.torque_nm, *frame.torque_saturated,
     ]
-    return _FRAME_STRUCT.pack(*ints, *flags, *floats)
+    return _FRAME_STRUCT.pack(*ints, *flags, frame.sim_time_s, *floats,
+                              frame.hold_status, frame.hold_enabled,
+                              frame.recovery_min_hold_s, frame.hold_enter_sim_time_s,
+                              frame.hold_elapsed_sim_s)
 
 
 def fixture(
@@ -70,12 +83,22 @@ def fixture(
     torque_saturated_computed=0,
 ):
     return RuntimeFrame(
-        magic=0x414253525446524D, version=1, sequence=sequence,
+        magic=FRAME_MAGIC, version=FRAME_VERSION, sequence=sequence,
         monotonic_ns=monotonic_ns, session_id=session_id, rl_step=rl_step,
-        ray_age_ns=1, source=source, controller_active=1, rl_entered=1,
+        ray_age_ns=1, sim_clock_sequence=2,
+        sim_clock_monotonic_ns=max(1, monotonic_ns - 1),
+        sim_clock_segment_id=1,
+        sim_clock_age_ns=monotonic_ns - max(1, monotonic_ns - 1),
+        risk_evaluation_ns=monotonic_ns,
+        risk_condition_entered_ns=0, mode_change_ns=0,
+        source=source, controller_active=1, rl_entered=1,
         rl_active=rl_active, safety_faulted=safety_faulted, policy_state=policy_state,
         ray_origin=1, ray_valid=1, collision_origin=0,
-        torque_saturated_computed=torque_saturated_computed, reserved_pad=0,
+        torque_saturated_computed=torque_saturated_computed,
+        mode_before=policy_state, switching_mode=1, action_source=1,
+        transition_reason=0, risk_condition_met=0, risk_condition_entered=2,
+        policy_mode_changed=0, sim_clock_status=1, sim_clock_valid=1,
+        reserved_pad=0, sim_time_s=0.1, entry_threshold=-0.05, exit_threshold=-0.08,
         ra_value=ra_value, lin_vel=lin_vel, command=(0.5, 0.5, 0.1),
         world_pose=(1.0, 2.0, 0.3), ray2d=tuple(float(i) for i in range(11)),
         action_raw=tuple(float(i) for i in range(12)),
@@ -524,6 +547,53 @@ def test_valid_facts_with_proper_types_ok():
         assert summary["termination_reason"] == "FRAMES_ENDED_RC0"
 
 
+def test_policy_cycle_history_incomplete_invalidates_new_record():
+    with tempfile.TemporaryDirectory() as tmp:
+        path = str(Path(tmp) / "run.jsonl")
+        _record(path, [_fresh(fixture(monotonic_ns=100))],
+                {"exit_code": 0, "forced_termination": False, "shutdown_complete": True,
+                 "shutdown_request_source": "SIGINT",
+                 "policy_cycle_history": {"complete_at_last_drain": False,
+                                           "producer_count_at_last_drain": 2,
+                                           "consumer_cursor": 1,
+                                           "producer_overwritten_count": 1}})
+        summary = summarize_record(path)
+        assert summary["record_validity"] == "INVALID"
+        assert "policy_cycle_history_incomplete" in summary["record_validity_reasons"]
+
+
+def test_policy_cycle_history_complete_is_accepted():
+    with tempfile.TemporaryDirectory() as tmp:
+        path = str(Path(tmp) / "run.jsonl")
+        _record(path, [_fresh(fixture(monotonic_ns=100))],
+                {"exit_code": 0, "forced_termination": False, "shutdown_complete": True,
+                 "shutdown_request_source": "SIGINT",
+                 "policy_cycle_history": {"status": "OK", "complete_at_last_drain": True,
+                                           "producer_count_at_last_drain": 1,
+                                           "consumer_cursor": 1,
+                                           "producer_overwritten_count": 0,
+                                           "history_frames_persisted": 1,
+                                           "runtime_record_unique_frames": 1,
+                                           "error": None}})
+        assert summarize_record(path)["record_validity"] == "VALID"
+
+
+def test_optional_startup_observation_summary_is_preserved_in_terminal():
+    with tempfile.TemporaryDirectory() as tmp:
+        path = str(Path(tmp) / "run.jsonl")
+        observation = {"terminal_classification": "STARTUP_OBSERVATION_LIMIT",
+                       "physics_source_status_at_stop": "LIVE",
+                       "strategy_policy_clock_invalid_frame_count": 1,
+                       "recovered": True, "actual_observation_physics_s": 4.0,
+                       "cleanup_result": "all owned run processes exited"}
+        terminal = _record(path, [_fresh(fixture(monotonic_ns=100))],
+                           {"exit_code": 0, "forced_termination": False,
+                            "shutdown_complete": True, "shutdown_request_source": "SIGINT",
+                            "startup_recovery_observation": observation})
+        assert terminal["startup_recovery_observation"] == observation
+        assert summarize_record(path)["record_validity"] == "VALID"
+
+
 # ------------------------------------------------------------------- run identity
 def test_run_identity_mismatch_invalid():
     with tempfile.TemporaryDirectory() as tmp:
@@ -623,6 +693,32 @@ def _live_payload(**overrides: object) -> Dict[str, object]:
     payload: Dict[str, object] = frame_payload(fixture())
     payload.update(overrides)
     return payload
+
+
+def test_d_hold_frame_payload_is_accepted():
+    payload = _live_payload(
+        policy_state=1, policy_state_name="RECOVERY", mode_before=0,
+        switching_mode=4, action_source=2, transition_reason=1,
+        policy_mode_changed=True, mode_change_ns=99,
+        entry_threshold=-0.05, exit_threshold=-0.08,
+        hold_enabled=True, hold_status=2, recovery_min_hold_s=0.30,
+        hold_enter_sim_time_s=0.1, hold_elapsed_sim_s=0.1,
+        sim_time_s=0.2,
+    )
+    assert _validate_live_payload(payload) == []
+
+
+def test_d_hold_frame_payload_is_accepted():
+    payload = _live_payload(
+        policy_state=1, policy_state_name="RECOVERY", mode_before=0,
+        switching_mode=4, action_source=2, transition_reason=1,
+        policy_mode_changed=True, mode_change_ns=99,
+        entry_threshold=-0.05, exit_threshold=-0.08,
+        hold_enabled=True, hold_status=2, recovery_min_hold_s=0.30,
+        hold_enter_sim_time_s=0.1, hold_elapsed_sim_s=0.1,
+        sim_time_s=0.2,
+    )
+    assert _validate_live_payload(payload) == []
 
 
 def _live_line_payload(run_id: str = "r", payload: Optional[Dict[str, object]] = None,
@@ -1023,6 +1119,26 @@ def test_stopped_record_not_polluted_by_controller_exit_frames():
         summary = summarize_record(path)
         assert summary["record_validity"] == "VALID"
         assert summary["live_frame_count"] == 1
+
+
+def test_base_bounds_live_payload_validates_identity_and_physical_fields():
+    capture = "p1-10-capture-" + "a" * 32
+    fingerprint = "b" * 64
+    binding = {"scene_id": "m1dod01"}
+    payload = {"status": "LIVE", "available": True, "version": 1,
+        "sequence": 4, "monotonic_ns": 100, "physics_step": 2,
+        "producer_session_id": 90, "physics_coverage_complete": 1,
+        "bounds_valid": 1, "currently_outside": 0, "outside_physics_steps": 0,
+        "first_outside_step": 0, "last_outside_step": 0,
+        "sim_time": 0.004, "base_x": 0.0, "base_y": 0.0,
+        "xmin": -0.5, "xmax": 8.0, "ymin": -3.0, "ymax": 3.0,
+        "scenario_id": "m1dod01", "capture_id": capture,
+        "runtime_model_fingerprint": fingerprint}
+    assert _validate_base_bounds_payload(payload, binding, capture, fingerprint) == []
+    assert _validate_base_bounds_payload({**payload, "scenario_id": "wrong"},
+                                         binding, capture, fingerprint) == ["base_bounds_scene_mismatch"]
+    assert _validate_base_bounds_payload({**payload, "physics_step": True},
+                                         binding, capture, fingerprint) == ["base_bounds_physics_step_invalid"]
 
 
 if __name__ == "__main__":

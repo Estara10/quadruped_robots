@@ -1,0 +1,53 @@
+{
+  "classification": "S6-07 ordinary A startup-flow verification; not a formal experiment",
+  "scene": "scene_flat.xml",
+  "goal_world_m": [
+    7.0,
+    0.0
+  ],
+  "arrival_radius_m": 0.5,
+  "sim_limit_s": 20.0,
+  "wall_cap_s": 120.0,
+  "standing_observation_sim_s": 5.0,
+  "standing_wall_cap_s": 30.0,
+  "groups_order": [
+    "A"
+  ],
+  "repeats_per_group": 1,
+  "parameters": {
+    "entry_threshold_E": -0.05,
+    "exit_threshold_X_BD": -0.08,
+    "recovery_min_hold_H_CD_sim_s": 0.3
+  },
+  "run_statuses": [
+    {
+      "group": "A",
+      "repeat": 1,
+      "status": "FINISHED",
+      "run_id": "e8b15af3b4a34424ad365f0283c4ea03",
+      "result": "STARTUP_FAILURE"
+    }
+  ],
+  "overlay_preflight": {
+    "A": {
+      "status": "PRODUCTION_CONFIG_VALIDATED",
+      "validator": "s1_run_diagnostic.overlay_configuration_matches",
+      "config_path": "/home/lidio/quadruped_robots/logs/manual_abcd_compare/20261013_144145_e18899/overlays/A/share/go2_description/config/abs/config.yaml",
+      "group": "A",
+      "entry_threshold_E": -0.05,
+      "exit_threshold_X": null,
+      "hold_H_sim_s": null,
+      "goal_world_m": [
+        7.0,
+        0.0
+      ],
+      "overlay_is_independent_tree": true,
+      "independent_regular_files": [
+        "share/go2_description/config/abs/config.yaml",
+        "share/go2_description/config/abs/policy.pt",
+        "share/go2_description/config/abs/ra_value.pt",
+        "share/go2_description/config/rec/policy.pt"
+      ]
+    }
+  }
+}

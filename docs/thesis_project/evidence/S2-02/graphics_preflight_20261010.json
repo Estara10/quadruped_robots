@@ -1,0 +1,18 @@
+{
+  "date_local": "2026-10-10",
+  "scope": "one short S2-02 live panel display verification",
+  "display": ":0",
+  "xauthority": "/run/user/1000/gdm/Xauthority",
+  "x11_connection": "PASS; xdpyinfo connected",
+  "glxinfo_binary": "not installed; no installation attempted",
+  "glfw_probe": {
+    "method": "temporary system g++ probe; hidden 16x16 GLFW window; destroyed before exit",
+    "glfw_init": "PASS",
+    "window_creation": "PASS",
+    "vendor": "Intel",
+    "renderer": "Mesa Intel(R) Graphics (RPL-P)",
+    "version": "4.6 (Compatibility Profile) Mesa 23.2.1-1ubuntu3.1~22.04.4"
+  },
+  "screenshot_method": "MuJoCo mjr_readPixels from the actual 1280x720 RGB scene framebuffer when panel classification was LIVE, saved as PPM and losslessly converted to PNG",
+  "temporary_changes": "No X authorization, permissions, global environment, driver, service, or installed component changed"
+}

@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-19",
+  "mapping": {
+    "t1": "01_T1_exit_threshold",
+    "t2": "02_T2_minimum_hold",
+    "manual_m1_a": "03_map_validation/M1_A_library",
+    "manual_a_map_survey": "03_map_validation/A_map_survey",
+    "b1": "04_B1_recording_validation",
+    "manual_collision_viewing": "05_manual_observations/collision_review",
+    "manual_scene_runs": "05_manual_observations/scene_runs",
+    "manual_single_run_01": "05_manual_observations/single_run_01",
+    "manual_single_run_02": "05_manual_observations/single_run_02",
+    "manual_s6_05": "06_startup_and_control/gain_transition_S6_05",
+    "manual_startup_observation": "06_startup_and_control/startup_observation",
+    "manual_startup_observation_4s": "06_startup_and_control/startup_observation_4s",
+    "s6-03": "06_startup_and_control/preparation_S6_03",
+    "s6-04": "06_startup_and_control/startup_recovery_S6_04",
+    "s6_12": "01_T1_exit_threshold/legacy_coarse_S6_12"
+  },
+  "before": {
+    "t1": {
+      "files": 14128,
+      "logical_bytes": 7154699444
+    },
+    "t2": {
+      "files": 4219,
+      "logical_bytes": 2288712968
+    },
+    "manual_m1_a": {
+      "files": 1645,
+      "logical_bytes": 659430644
+    },
+    "manual_a_map_survey": {
+      "files": 14,
+      "logical_bytes": 38734
+    },
+    "b1": {
+      "files": 378,
+      "logical_bytes": 128294443
+    },
+    "manual_collision_viewing": {
+      "files": 76,
+      "logical_bytes": 45051147
+    },
+    "manual_scene_runs": {
+      "files": 101,
+      "logical_bytes": 38840522
+    },
+    "manual_single_run_01": {
+      "files": 12,
+      "logical_bytes": 2607167
+    },
+    "manual_single_run_02": {
+      "files": 12,
+      "logical_bytes": 2208004
+    },
+    "manual_s6_05": {
+      "files": 20,
+      "logical_bytes": 12088107
+    },
+    "manual_startup_observation": {
+      "files": 9,
+      "logical_bytes": 733688
+    },
+    "manual_startup_observation_4s": {
+      "files": 27,
+      "logical_bytes": 6053652
+    },
+    "s6-03": {
+      "files": 7,
+      "logical_bytes": 271126
+    },
+    "s6-04": {
+      "files": 9,
+      "logical_bytes": 722970
+    },
+    "s6_12": {
+      "files": 2333,
+      "logical_bytes": 1621510885
+    }
+  },
+  "raw_file_content_changed": false
+}

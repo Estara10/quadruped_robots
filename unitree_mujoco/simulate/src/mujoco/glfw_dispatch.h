@@ -37,8 +37,10 @@ struct Glfw {
   mjGLFW_DECLARE_SYMBOL(glfwGetMonitorPhysicalSize);
   mjGLFW_DECLARE_SYMBOL(glfwGetMouseButton);
   mjGLFW_DECLARE_SYMBOL(glfwGetPrimaryMonitor);
+  mjGLFW_DECLARE_SYMBOL(glfwGetProcAddress);
   mjGLFW_DECLARE_SYMBOL(glfwGetTime);
   mjGLFW_DECLARE_SYMBOL(glfwGetVideoMode);
+  mjGLFW_DECLARE_SYMBOL(glfwGetWindowAttrib);
   mjGLFW_DECLARE_SYMBOL(glfwGetWindowMonitor);
   mjGLFW_DECLARE_SYMBOL(glfwGetWindowPos);
   mjGLFW_DECLARE_SYMBOL(glfwGetWindowSize);

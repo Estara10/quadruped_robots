@@ -1,0 +1,17 @@
+{
+  "cleanup_events": [],
+  "exit_code": 0,
+  "external_safety_events": [
+    {
+      "event": "POLICY_SAFETY_VETO",
+      "message": "[ros2_control_node-3] [ERROR] [1791436341.969355077] [StateRL]: [ABS-CONTRACT] event=detected clock=steady_clock_ns detection_ns=18128323651326 last_ray_ns=18128323631102 ray_age_ns=0 ray_reason=monotonic_clock_order stage=ray frame (missing/stale/non-finite) transition_request=PASSIVE",
+      "observed_monotonic_ns": 18129054271809,
+      "source": "RlQuadrupedController/StateRL ROS log"
+    }
+  ],
+  "forced_termination": false,
+  "run_terminal_monotonic_ns": 18129054277650,
+  "run_terminal_result": "SYSTEM_SAFETY_ABORT",
+  "shutdown_complete": true,
+  "shutdown_request_source": "S1-04 bounded supervisor SIGINT with TERM/KILL fallback"
+}

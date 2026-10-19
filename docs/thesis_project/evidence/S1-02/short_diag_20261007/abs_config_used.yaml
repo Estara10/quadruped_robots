@@ -1,0 +1,123 @@
+# ABS (Agile But Safe) Policy Config for Go2
+# Matches ABS training: go2_pos_rough (61-dim observation)
+
+model_name: "policy.pt"
+framework: "isaacgym"
+policy_joint_order: "ros1_fl_fr_rl_rr"
+decimation: 4
+num_observations: 61
+observations: ["contact", "ang_vel", "gravity_vec", "commands", "timer", "dof_pos", "dof_vel", "actions", "ray2d"]
+
+# ABS 不使用 observations_history
+# observations_history: []
+
+clip_obs: 100.0
+clip_actions_lower: [-100, -100, -100,
+                     -100, -100, -100,
+                     -100, -100, -100,
+                     -100, -100, -100]
+clip_actions_upper: [100, 100, 100,
+                      100, 100, 100,
+                      100, 100, 100,
+                      100, 100, 100]
+
+# Go2 PD gains (Kp=30, Kd=0.65 — matches training)
+rl_kp: [30, 30, 30,
+        30, 30, 30,
+        30, 30, 30,
+        30, 30, 30]
+rl_kd: [0.65, 0.65, 0.65,
+        0.65, 0.65, 0.65,
+        0.65, 0.65, 0.65,
+        0.65, 0.65, 0.65]
+
+hip_scale_reduction: 1.0
+hip_scale_reduction_indices: [0, 3, 6, 9]
+num_of_dofs: 12
+action_scale: 0.25
+
+# Deployment calibration in controller order FR,FL,RR,RL.  The training code
+# randomizes an unobservable per-episode bias; nominal zero is the only
+# non-fabricated deployment value.  Do not replace with a random sample.
+dof_bias: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+# ABS observation scales (raw values, no scaling)
+lin_vel_scale: 1.0
+ang_vel_scale: 1.0
+dof_pos_scale: 1.0
+dof_vel_scale: 0.2   # ABS uses 0.2 (not 0.05 like himloco)
+
+# commands_scale derived from lin_vel_scale / ang_vel_scale (see StateRL.cpp L245)
+# ABS sends raw commands: lin_vel_x, lin_vel_y, ang_vel_yaw — all unscaled
+
+torque_limits: [33.5, 33.5, 33.5,
+                33.5, 33.5, 33.5,
+                33.5, 33.5, 33.5,
+                33.5, 33.5, 33.5]
+
+# ABS-specific parameters (not in standard config, used by StateRL.cpp when model_folder="abs")
+abs:
+  max_episode_length_s: 9.0
+  timer_mode: "paper_faithful_rolling"  # time-left/9; timer phase rolls without a physical reset
+  contact_threshold: 1.0           # force > this → contact detected
+  ray2d_count: 11                  # number of ray2d beams
+  ray2d_max_range: 6.0             # max range (log2 transformed, ~2.58)
+  ray2d_timeout_ms: 200             # no fresh stamped frame -> fail closed to PASSIVE
+  ra_model_name: "ra_value.pt"     # RA value network (TorchScript)
+  ra_threshold: -0.05              # RA > this → trigger recovery (ROS1 convention)
+
+  # Recovery twist optimization (ROS1 lines 297-302)
+  twist_lam: 10.0                  # twist_lam = 10.
+  twist_lr: 0.5                    # twist_lr = 0.5
+  twist_tau: 0.05                  # twist_tau = 0.05
+  twist_eps: 0.05                  # twist_eps = 0.05
+  twist_vx_min: -1.5               # twist_min[0] = -1.5
+  twist_vx_max: 1.5                # twist_max = -twist_min = 1.5
+  twist_vy_min: -0.3               # twist_min[1] = -0.3
+  twist_vy_max: 0.3                # twist_max[1] = 0.3
+  twist_wz_min: -3.0               # twist_min[2] = -3.0
+  twist_wz_max: 3.0                # twist_max[2] = 3.0
+  recovery_steps: 250              # for manual RL_REC mode only (FSM switch, not inline RA)
+  recovery_hold_steps: 30           # min RL steps in recovery (30*8ms=240ms ≈ ROS1 3*80ms)
+  # P1-07: RA-to-Recovery switching mode. Exactly two valid values (any other
+  # value is rejected at initialization):
+  #   stabilized_switch      (default) current deployed behavior:
+  #                          ENTER RA > -0.05 (strict), EXIT RA < -0.08 after
+  #                          recovery_hold_steps forced hold.
+  #   paper_faithful_switch  paper rule only: RA >= -0.05 -> Recovery,
+  #                          RA < -0.05 -> Agile; no hysteresis, no forced hold.
+  switching_mode: "paper_faithful_switch"
+  soft_start_steps: 250            # Kp/Kd ramp steps (~0.5s at 500Hz controller rate)
+  goal_x: 7.0                      # world-frame goal X (forward, matches paper GOAL_XYZ)
+  goal_y: 0.0                      # world-frame goal Y (left = positive)
+  resample_goal_on_arrival: false   # false: stop at first goal; true: keep sampling new goals
+
+  # Recovery-aware straight-line tracking:
+  # normal agile follows the start→goal line; recovery can deviate to avoid obstacles.
+  path_tracking_enabled: true
+  path_lateral_gain: 2.5
+  path_heading_gain: 2.5
+
+  # Evaluation telemetry logs [EVAL] lines for multi-scene simulation metrics.
+  # This does not affect policy/RA/recovery behavior.
+  eval_telemetry_enabled: true      # [EVAL] telemetry — enable for structured evaluation
+  eval_telemetry_interval_steps: 25  # 25 RL steps ~= 0.2s at 125Hz
+  symmetry_debug_enabled: false      # [SYMM] symmetry diagnostics — enable for behavior debugging
+
+  # Safety thresholds
+  body_tilt_limit_deg: 75.0         # roll/pitch > this → force PASSIVE (IMU quaternion based)
+  action_output_clip: 4.0           # clamp RL action output to ±this before position calc
+
+  # Torque monitoring (matches original ABS safe.PowerProtect(cmd, low_state, 8))
+  torque_monitor_enabled: true       # monitor PD-computed joint torque
+  torque_limit_ratio: 2.5            # multiplier over YAML torque_limits; torque > limit*ratio → PASSIVE
+
+  # Emergency stop (matches original ABS wireless remote B-button exit(0))
+  emergency_stop_enabled: true       # command=1 on /control_input or remote B → PASSIVE
+
+  # ---- Real-robot initial testing protocol ----
+  # First test — set goal to a SHORT distance (1-2m) at low speed.
+  # Use keyboard W to inch forward, keep B ready for emergency stop.
+  # Only after confirming basic control works, increase goal to 7m.
+  # goal_x: 1.5  # uncomment for first real-robot test
+  # goal_y: 0.0

@@ -1,0 +1,149 @@
+[INFO] [launch]: All log files can be found below /home/lidio/.ros/log/2026-10-08-13-49-13-551106-Estara-192014
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [rviz2-1]: process started with pid [192042]
+[INFO] [robot_state_publisher-2]: process started with pid [192044]
+[INFO] [ros2_control_node-3]: process started with pid [192046]
+[INFO] [spawner-4]: process started with pid [192048]
+[robot_state_publisher-2] [INFO] [1791438553.703037671] [robot_state_publisher]: got segment FL_calf
+[robot_state_publisher-2] [INFO] [1791438553.703199174] [robot_state_publisher]: got segment FL_foot
+[robot_state_publisher-2] [INFO] [1791438553.703208536] [robot_state_publisher]: got segment FL_hip
+[robot_state_publisher-2] [INFO] [1791438553.703214317] [robot_state_publisher]: got segment FL_thigh
+[robot_state_publisher-2] [INFO] [1791438553.703219085] [robot_state_publisher]: got segment FR_calf
+[robot_state_publisher-2] [INFO] [1791438553.703223896] [robot_state_publisher]: got segment FR_foot
+[robot_state_publisher-2] [INFO] [1791438553.703228698] [robot_state_publisher]: got segment FR_hip
+[robot_state_publisher-2] [INFO] [1791438553.703233467] [robot_state_publisher]: got segment FR_thigh
+[robot_state_publisher-2] [INFO] [1791438553.703238247] [robot_state_publisher]: got segment RL_calf
+[robot_state_publisher-2] [INFO] [1791438553.703242914] [robot_state_publisher]: got segment RL_foot
+[robot_state_publisher-2] [INFO] [1791438553.703247500] [robot_state_publisher]: got segment RL_hip
+[robot_state_publisher-2] [INFO] [1791438553.703252023] [robot_state_publisher]: got segment RL_thigh
+[robot_state_publisher-2] [INFO] [1791438553.703256764] [robot_state_publisher]: got segment RR_calf
+[robot_state_publisher-2] [INFO] [1791438553.703261257] [robot_state_publisher]: got segment RR_foot
+[robot_state_publisher-2] [INFO] [1791438553.703265782] [robot_state_publisher]: got segment RR_hip
+[robot_state_publisher-2] [INFO] [1791438553.703270293] [robot_state_publisher]: got segment RR_thigh
+[robot_state_publisher-2] [INFO] [1791438553.703274727] [robot_state_publisher]: got segment base
+[robot_state_publisher-2] [INFO] [1791438553.703279212] [robot_state_publisher]: got segment front_camera
+[robot_state_publisher-2] [INFO] [1791438553.703283716] [robot_state_publisher]: got segment imu_link
+[robot_state_publisher-2] [INFO] [1791438553.703288186] [robot_state_publisher]: got segment lidar
+[robot_state_publisher-2] [INFO] [1791438553.703292825] [robot_state_publisher]: got segment trunk
+[ros2_control_node-3] [INFO] [1791438553.706737401] [controller_manager]: Subscribing to '~/robot_description' topic for robot description file.
+[ros2_control_node-3] [INFO] [1791438553.707386309] [controller_manager]: update rate is 1000 Hz
+[ros2_control_node-3] [INFO] [1791438553.707403968] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-3] [WARN] [1791438553.707480501] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[ros2_control_node-3] [INFO] [1791438553.717965103] [controller_manager]: Received robot description file.
+[ros2_control_node-3] [INFO] [1791438553.718730572] [resource_manager]: Loading hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1791438553.724833152] [resource_manager]: Initialize hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1791438553.724890821] [unitree_hardware]:  network_interface: lo, domain: 1
+[ros2_control_node-3] 1791438553.726603 [1] ros2_contr: selected interface "lo" is not multicast-capable: disabling multicast
+[ros2_control_node-3] [INFO] [1791438553.830651737] [unitree_hardware]: [MOTOR-MAP] controller[0] FR_hip_joint -> Unitree motor[0]
+[ros2_control_node-3] [INFO] [1791438553.830681904] [unitree_hardware]: [MOTOR-MAP] controller[1] FR_thigh_joint -> Unitree motor[1]
+[ros2_control_node-3] [INFO] [1791438553.830689047] [unitree_hardware]: [MOTOR-MAP] controller[2] FR_calf_joint -> Unitree motor[2]
+[ros2_control_node-3] [INFO] [1791438553.830700349] [unitree_hardware]: [MOTOR-MAP] controller[3] FL_hip_joint -> Unitree motor[3]
+[ros2_control_node-3] [INFO] [1791438553.830705879] [unitree_hardware]: [MOTOR-MAP] controller[4] FL_thigh_joint -> Unitree motor[4]
+[ros2_control_node-3] [INFO] [1791438553.830710652] [unitree_hardware]: [MOTOR-MAP] controller[5] FL_calf_joint -> Unitree motor[5]
+[ros2_control_node-3] [INFO] [1791438553.830715103] [unitree_hardware]: [MOTOR-MAP] controller[6] RR_hip_joint -> Unitree motor[6]
+[ros2_control_node-3] [INFO] [1791438553.830719492] [unitree_hardware]: [MOTOR-MAP] controller[7] RR_thigh_joint -> Unitree motor[7]
+[ros2_control_node-3] [INFO] [1791438553.830724031] [unitree_hardware]: [MOTOR-MAP] controller[8] RR_calf_joint -> Unitree motor[8]
+[ros2_control_node-3] [INFO] [1791438553.830728484] [unitree_hardware]: [MOTOR-MAP] controller[9] RL_hip_joint -> Unitree motor[9]
+[ros2_control_node-3] [INFO] [1791438553.830733040] [unitree_hardware]: [MOTOR-MAP] controller[10] RL_thigh_joint -> Unitree motor[10]
+[ros2_control_node-3] [INFO] [1791438553.830737669] [unitree_hardware]: [MOTOR-MAP] controller[11] RL_calf_joint -> Unitree motor[11]
+[ros2_control_node-3] [INFO] [1791438553.831604652] [resource_manager]: Successful initialization of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1791438553.831834182] [resource_manager]: 'configure' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1791438553.831849327] [resource_manager]: Successful 'configure' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1791438553.831866048] [resource_manager]: 'activate' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1791438553.831869469] [resource_manager]: Successful 'activate' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1791438553.950973276] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[spawner-4] [INFO] [1791438553.963599064] [spawner_joint_state_broadcaster]: [94mLoaded [1mjoint_state_broadcaster[0m
+[ros2_control_node-3] [INFO] [1791438553.964066279] [controller_manager]: Configuring controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1791438553.964119971] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[spawner-4] [INFO] [1791438553.969150566] [spawner_joint_state_broadcaster]: [92mConfigured and activated [1mjoint_state_broadcaster[0m
+[INFO] [spawner-4]: process has finished cleanly [pid 192048]
+[INFO] [spawner-5]: process started with pid [192162]
+[rviz2-1] [INFO] [1791438554.140837168] [rviz2]: Stereo is NOT SUPPORTED
+[rviz2-1] [INFO] [1791438554.140952735] [rviz2]: OpenGl version: 4.6 (GLSL 4.6)
+[rviz2-1] [INFO] [1791438554.164099113] [rviz2]: Stereo is NOT SUPPORTED
+[spawner-5] [INFO] [1791438554.388924319] [spawner_imu_sensor_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [INFO] [1791438557.396856330] [controller_manager]: Loading controller 'imu_sensor_broadcaster'
+[spawner-5] [INFO] [1791438557.409961604] [spawner_imu_sensor_broadcaster]: [94mLoaded [1mimu_sensor_broadcaster[0m
+[ros2_control_node-3] [INFO] [1791438557.411682503] [controller_manager]: Configuring controller 'imu_sensor_broadcaster'
+[spawner-5] [INFO] [1791438557.420918003] [spawner_imu_sensor_broadcaster]: [92mConfigured and activated [1mimu_sensor_broadcaster[0m
+[INFO] [spawner-5]: process has finished cleanly [pid 192162]
+[INFO] [spawner-6]: process started with pid [192260]
+[ros2_control_node-3] [INFO] [1791438557.885567795] [controller_manager]: Loading controller 'rl_quadruped_controller'
+[ros2_control_node-3] [INFO] [1791438558.125494940] [rl_quadruped_controller]: Controller Update Rate: 200 Hz
+[ros2_control_node-3] [INFO] [1791438558.125545939] [rl_quadruped_controller]: Enable Estimator
+[ros2_control_node-3] dt: 0.005
+[spawner-6] [INFO] [1791438558.145961429] [spawner_rl_quadruped_controller]: [94mLoaded [1mrl_quadruped_controller[0m
+[ros2_control_node-3] [INFO] [1791438558.147633772] [controller_manager]: Configuring controller 'rl_quadruped_controller'
+[ros2_control_node-3] [INFO] [1791438558.152842321] [rl_quadruped_controller]: [VERIFY] joint interface order: FR_hip_joint FR_thigh_joint FR_calf_joint ... RL_calf_joint
+[ros2_control_node-3] [INFO] [1791438558.152921946] [rl_quadruped_controller]: Using robot model from go2_description
+[ros2_control_node-3] [INFO] [1791438558.155598503] [rl_quadruped_controller]: [S1-RUN-SOURCE] pid=192046 package_share=/tmp/s1_04_overlay/share/go2_description config=/tmp/s1_04_overlay/share/go2_description/config/abs/config.yaml agile_model=/tmp/s1_04_overlay/share/go2_description/config/abs/policy.pt ra_model=/tmp/s1_04_overlay/share/go2_description/config/abs/ra_value.pt candidate=paper_faithful_switch entry_threshold=-0.050000 goal=(1.000,0.000)
+[ros2_control_node-3] [INFO] [1791438558.155689029] [rl_quadruped_controller]: Model loading: policy.pt
+[ros2_control_node-3] robot_legs_.size(): 4
+[ros2_control_node-3] [INFO] [1791438558.176204291] [rl_quadruped_controller]: [VERIFY] num_observations=61, num_of_dofs=12
+[ros2_control_node-3] [INFO] [1791438558.176279258] [rl_quadruped_controller]: [VERIFY] observations order: contact ang_vel gravity_vec commands timer dof_pos dof_vel actions ray2d 
+[ros2_control_node-3] [INFO] [1791438558.176383403] [rl_quadruped_controller]: [VERIFY] rl_kp[0]=30.00, rl_kd[0]=0.65
+[ros2_control_node-3] [INFO] [1791438558.176399766] [rl_quadruped_controller]: [VERIFY] scales: action=0.25 lin_vel=1.00 ang_vel=1.00 dof_pos=1.00 dof_vel=0.20
+[ros2_control_node-3] [INFO] [1791438558.176418154] [rl_quadruped_controller]: [VERIFY] default_dof_pos: 0.0000 0.8000 -1.5000 (first 3 joints = FR hip/thigh/calf)
+[ros2_control_node-3] [INFO] [1791438558.176426734] [rl_quadruped_controller]: [VERIFY] ABS: max_ep_len=9.0s contact_thr=1.0N ray2d_count=11 ray2d_max_range=6.0m
+[ros2_control_node-3] [INFO] [1791438558.176430734] [rl_quadruped_controller]: [VERIFY] decimation=4 frequency=200Hz dt=0.0200s
+[ros2_control_node-3] [INFO] [1791438558.176434743] [rl_quadruped_controller]: [VERIFY] use_rl_thread=false policy_joint_order=ros1_fl_fr_rl_rr
+[ros2_control_node-3] [INFO] [1791438558.178588842] [rl_quadruped_controller]: [RA] Value network loaded: ra_value.pt
+[ros2_control_node-3] [INFO] [1791438558.182201337] [rl_quadruped_controller]: [REC] Recovery policy loaded: /tmp/s1_04_overlay/share/go2_description/config/rec/policy.pt
+[ros2_control_node-3] [INFO] [1791438558.182722002] [rl_quadruped_controller]: StateRLRec: Loading recovery model: policy.pt
+[ros2_control_node-3] [INFO] [1791438558.185962319] [rl_quadruped_controller]: [REC-VERIFY] num_observations=49, num_of_dofs=12
+[ros2_control_node-3] [INFO] [1791438558.186003621] [rl_quadruped_controller]: [REC-VERIFY] observations: contact ang_vel gravity_vec commands dof_pos dof_vel actions 
+[ros2_control_node-3] [INFO] [1791438558.186033058] [rl_quadruped_controller]: [REC-VERIFY] rl_kp[0]=30.00, rl_kd[0]=0.65
+[ros2_control_node-3] [INFO] [1791438558.186042098] [rl_quadruped_controller]: [REC-VERIFY] action_scale=0.25 dof_vel_scale=0.20 contact_thr=1.0N
+[spawner-6] [INFO] [1791438558.187830387] [spawner_rl_quadruped_controller]: [92mConfigured and activated [1mrl_quadruped_controller[0m
+[INFO] [spawner-6]: process has finished cleanly [pid 192260]
+[ros2_control_node-3] [INFO] [1791438566.032155306] [rl_quadruped_controller]: Switched from passive to fixed down
+[ros2_control_node-3] [INFO] [1791438568.142121875] [rl_quadruped_controller]: Switched from fixed down to fixed stand
+[ros2_control_node-3] [INFO] [1791438568.151951836] [BaseFixedStand]: [STAND-SYMM] phase=0.004 q_thigh FR=1.257 FL=1.257 RR=1.338 RL=1.338 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-2.732 FL=-2.732 RR=-2.744 RL=-2.744 diff_FLFR=0.000 diff_RLRR=0.000
+[ros2_control_node-3] [INFO] [1791438568.651888942] [BaseFixedStand]: [STAND-SYMM] phase=0.398 q_thigh FR=1.075 FL=1.075 RR=1.130 RL=1.130 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-2.368 FL=-2.368 RR=-2.394 RL=-2.394 diff_FLFR=-0.000 diff_RLRR=0.000
+[ros2_control_node-3] [INFO] [1791438569.151825834] [BaseFixedStand]: [STAND-SYMM] phase=0.684 q_thigh FR=0.939 FL=0.939 RR=0.974 RL=0.974 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.995 FL=-1.995 RR=-2.009 RL=-2.009 diff_FLFR=-0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791438569.651956180] [BaseFixedStand]: [STAND-SYMM] phase=0.849 q_thigh FR=0.862 FL=0.862 RR=0.886 RL=0.886 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.777 FL=-1.777 RR=-1.779 RL=-1.779 diff_FLFR=-0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791438570.151969252] [BaseFixedStand]: [STAND-SYMM] phase=0.932 q_thigh FR=0.824 FL=0.824 RR=0.842 RL=0.842 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.667 FL=-1.667 RR=-1.663 RL=-1.663 diff_FLFR=0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791438570.652232128] [BaseFixedStand]: [STAND-SYMM] phase=0.970 q_thigh FR=0.806 FL=0.806 RR=0.821 RL=0.821 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.616 FL=-1.616 RR=-1.608 RL=-1.608 diff_FLFR=0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791438571.152040674] [BaseFixedStand]: [STAND-SYMM] phase=0.987 q_thigh FR=0.798 FL=0.798 RR=0.812 RL=0.812 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.593 FL=-1.593 RR=-1.584 RL=-1.584 diff_FLFR=0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791438571.651775848] [BaseFixedStand]: [STAND-SYMM] phase=0.994 q_thigh FR=0.795 FL=0.795 RR=0.808 RL=0.808 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.583 FL=-1.583 RR=-1.573 RL=-1.573 diff_FLFR=0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791438572.152012079] [BaseFixedStand]: [STAND-SYMM] phase=0.997 q_thigh FR=0.793 FL=0.793 RR=0.805 RL=0.805 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.577 FL=-1.577 RR=-1.567 RL=-1.567 diff_FLFR=0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791438572.651765628] [BaseFixedStand]: [STAND-SYMM] phase=0.999 q_thigh FR=0.792 FL=0.792 RR=0.804 RL=0.804 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.574 FL=-1.574 RR=-1.564 RL=-1.564 diff_FLFR=0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791438573.152099719] [BaseFixedStand]: [STAND-SYMM] phase=1.000 q_thigh FR=0.791 FL=0.791 RR=0.804 RL=0.804 diff_FLFR=0.000 diff_RLRR=-0.000 q_calf FR=-1.572 FL=-1.572 RR=-1.562 RL=-1.562 diff_FLFR=0.000 diff_RLRR=-0.000
+[ros2_control_node-3] [INFO] [1791438573.551868698] [rl_quadruped_controller]: Switched from fixed stand to rl
+[ros2_control_node-3] [INFO] [1791438573.557045919] [StateRL]: [Ray2D] Shared memory connected: /mujoco_ray2d
+[ros2_control_node-3] [INFO] [1791438573.557107633] [StateRL]: [RtFrame] Shared memory initialized: /mujoco_rt_frame session_id=20359911390477 writer_pid=192046
+[ros2_control_node-3] [INFO] [1791438573.557440886] [StateRL]: [RL] enable_estimator_=1 rec_loaded=1 ra_loaded=1 ra_threshold=-0.0500
+[ros2_control_node-3] [INFO] [1791438573.557457201] [StateRL]: [RL] Ray2d: shm connected, policy active
+[ros2_control_node-3] [INFO] [1791438573.584566151] [StateRL]: [PATH] start=(-0.03,0.00) goal=(1.00,0.00) tracking=1 lateral_gain=2.50 heading_gain=2.50
+[ros2_control_node-3] [INFO] [1791438573.584638321] [StateRL]: [GOAL] 位置=(-0.03,0.00) 偏航=-0.00 目标=(1.00,0.00) 距离=1.03 机体系=(1.03,0.00) 航向=0.00 path_err=0.00 path_on=1
+[ros2_control_node-3] [INFO] [1791438573.628932391] [StateRL]: [RA] ra=-0.9643 ray2d=[1.13 0.95 2.05 2.58 2.58 2.58 2.14 0.77 0.87 2.58 2.58]
+[ros2_control_node-3] [INFO] [1791438573.631209135] [StateRL]: [EVAL] step=0 t=0.000 robot=(-0.034,0.000) yaw=-0.000 goal=(1.000,0.000) dist=1.034 body=(1.034,0.000) heading=0.000 arrived=0 ra=-0.96425 entry=-0.05000 recovery=0 hold=0 twist=(0.000,0.000,0.000) min_ray_log=0.772 max_ray_log=2.585 min_ray_m=1.707 lin_vel=(0.001,0.000,-0.059) ang_vel=(-0.000,0.053,-0.000) action_range=(-0.519,1.998) contact=(1,1,1,1)
+[ros2_control_node-3] [INFO] [1791438574.078713096] [StateRL]: [EVAL] step=25 t=0.500 robot=(-0.095,-0.003) yaw=0.002 goal=(1.000,0.000) dist=1.095 body=(1.095,0.010) heading=0.023 arrived=0 ra=-0.95804 entry=-0.05000 recovery=0 hold=0 twist=(0.000,0.000,0.000) min_ray_log=0.823 max_ray_log=2.585 min_ray_m=1.769 lin_vel=(-0.030,0.037,0.401) ang_vel=(-0.019,0.363,-0.043) action_range=(-1.209,2.220) contact=(1,1,1,1)
+[ros2_control_node-3] [INFO] [1791438574.578996277] [StateRL]: [EVAL] step=50 t=1.000 robot=(0.060,0.024) yaw=-0.056 goal=(1.000,0.000) dist=0.940 body=(0.940,-0.032) heading=-0.085 arrived=0 ra=-0.98709 entry=-0.05000 recovery=0 hold=0 twist=(0.000,0.000,0.000) min_ray_log=0.661 max_ray_log=2.585 min_ray_m=1.581 lin_vel=(0.693,-0.016,0.111) ang_vel=(1.749,-0.214,-0.536) action_range=(-1.687,2.147) contact=(1,1,-1,1)
+[ros2_control_node-3] [ERROR] [1791438576.356682255] [rl_quadruped_controller]: [HARD-STOP] command=1 -> forcing PASSIVE
+[ros2_control_node-3] [INFO] [1791438576.356754949] [StateRL]: [VERIFY-EXIT] RL steps executed: 139
+[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[INFO] [ros2_control_node-3]: sending signal 'SIGINT' to process[ros2_control_node-3]
+[INFO] [robot_state_publisher-2]: sending signal 'SIGINT' to process[robot_state_publisher-2]
+[INFO] [rviz2-1]: sending signal 'SIGINT' to process[rviz2-1]
+[ros2_control_node-3] [INFO] [1791438576.881512997] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1791438576.881832669] [controller_manager]: Shutdown request received....
+[ros2_control_node-3] [INFO] [1791438576.881966106] [controller_manager]: Shutting down all controllers in the controller manager.
+[ros2_control_node-3] [INFO] [1791438576.882059617] [controller_manager]: Deactivating controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1791438576.882196359] [controller_manager]: Shutting down controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1791438576.882323931] [controller_manager]: Deactivating controller 'imu_sensor_broadcaster'
+[ros2_control_node-3] [INFO] [1791438576.882406925] [controller_manager]: Shutting down controller 'imu_sensor_broadcaster'
+[robot_state_publisher-2] [INFO] [1791438576.881525615] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[rviz2-1] [INFO] [1791438576.881577621] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ros2_control_node-3] [INFO] [1791438576.882530072] [controller_manager]: Deactivating controller 'rl_quadruped_controller'
+[ros2_control_node-3] [INFO] [1791438576.882759018] [controller_manager]: Shutting down controller 'rl_quadruped_controller'
+[ros2_control_node-3] [INFO] [1791438576.882995037] [resource_manager]: 'deactivate' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1791438576.883051607] [resource_manager]: Successful 'deactivate' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1791438576.883079862] [resource_manager]: 'shutdown' hardware 'UnitreeSystem' 
+[ros2_control_node-3] [INFO] [1791438576.883117617] [resource_manager]: Successful 'shutdown' of hardware 'UnitreeSystem'
+[ros2_control_node-3] [INFO] [1791438576.883142134] [controller_manager]: Shutting down the controller manager.
+[robot_state_publisher-2] [INFO] [1791438576.891607989] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[rviz2-1] [INFO] [1791438576.893613345] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[ERROR] [ros2_control_node-3]: process has died [pid 192046, exit code -2, cmd '/opt/ros/humble/lib/controller_manager/ros2_control_node --ros-args --params-file /tmp/s1_04_overlay/share/go2_description/config/robot_control.yaml -r ~/robot_description:=/robot_description'].
+[INFO] [robot_state_publisher-2]: process has finished cleanly [pid 192044]
+[INFO] [rviz2-1]: process has finished cleanly [pid 192042]

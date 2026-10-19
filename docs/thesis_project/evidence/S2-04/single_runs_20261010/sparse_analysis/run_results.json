@@ -1,0 +1,220 @@
+[
+  {
+    "run_id": "1900daaf23ca480b8e9401e360989668",
+    "scene": "scene_ppt_sparse.xml",
+    "scene_id": "ppt_sparse",
+    "record_validity": "VALID",
+    "record_validity_reasons": [],
+    "terminal_result": "COLLISION_TERMINATION",
+    "run_terminal_result_context": "COLLISION_TERMINATION",
+    "run_terminal_result_record": "COLLISION_TERMINATION",
+    "cleanup_events": [
+      {
+        "command": 1,
+        "event": "PASSIVE_STOP_REQUESTED",
+        "monotonic_ns": 23180935461543,
+        "phase": "cleanup",
+        "publish_return_monotonic_ns": 23180935545612,
+        "publisher_invoked_monotonic_ns": 23180935365318
+      },
+      {
+        "confirmed": true,
+        "event": "STRATEGY_STOP_CONFIRMATION",
+        "evidence": {
+          "command": 1,
+          "controller_steady_monotonic_ns": 23180936151872,
+          "event": "hard_stop_transition_complete",
+          "message": "[ros2_control_node-3] [INFO] [1791615678.614535558] [rl_quadruped_controller]: [HARD-STOP-CONFIRMED] command=1 state=PASSIVE steady_ns=23180936151872 changed=1",
+          "state": "PASSIVE"
+        },
+        "monotonic_ns": 23180936151872,
+        "observation_window_monotonic_ns": [
+          23180935649985,
+          23180941475358
+        ],
+        "phase": "cleanup"
+      },
+      {
+        "event": "GLOBAL_HARD_STOP",
+        "event_monotonic_ns": null,
+        "event_time_interval_monotonic_ns": [
+          23180935461543,
+          23180936151872
+        ],
+        "event_time_source": "not embedded in source line",
+        "message": "[ros2_control_node-3] [ERROR] [1791615678.614477549] [rl_quadruped_controller]: [HARD-STOP] command=1 -> forcing PASSIVE",
+        "observer_received_monotonic_ns": 23181621230519,
+        "phase": "cleanup",
+        "source": "RlQuadrupedController/StateRL ROS log"
+      }
+    ],
+    "motion_metric_time_boundary": {
+      "start_sim_time_s": 24.239999999997444,
+      "end_sim_time_s": 26.91999999999596,
+      "start_cycle": 49,
+      "end_cycle": 183,
+      "terminal_frame_payload_complete": true
+    },
+    "session_id": 23177251954220,
+    "frame_count": 146,
+    "rl_step_gaps": 0,
+    "invalid_clock_frames": 4,
+    "clock_valid_fraction": 0.9726027397260274,
+    "first_valid_sim_time_s": 24.021999999997565,
+    "last_valid_sim_time_s": 26.91999999999596,
+    "policy_interval_ms_median": 20.000939,
+    "policy_interval_ms_p95": 27.615843599999998,
+    "policy_interval_ms_min": 4.035971999999999,
+    "policy_interval_ms_max": 40.429933,
+    "policy_frequency_hz_overall": 49.99592455634984,
+    "mode_transitions": 6,
+    "agile_to_recovery": 3,
+    "recovery_to_agile": 3,
+    "transitions_with_valid_sim_time": 6,
+    "transitions": [
+      {
+        "session_id": 23177251954220,
+        "rl_step": 161,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.4819999999962,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 23177251954220,
+        "rl_step": 163,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.52199999999618,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 23177251954220,
+        "rl_step": 165,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.561999999996157,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 23177251954220,
+        "rl_step": 176,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.779999999996036,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 23177251954220,
+        "rl_step": 178,
+        "from": 0,
+        "to": 1,
+        "sim_time_s": 26.819999999996014,
+        "period_gap_before": null
+      },
+      {
+        "session_id": 23177251954220,
+        "rl_step": 180,
+        "from": 1,
+        "to": 0,
+        "sim_time_s": 26.859999999995992,
+        "period_gap_before": null
+      }
+    ],
+    "recovery_intervals": [
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.4819999999962,
+        "end_sim_time_s": 26.52199999999618,
+        "duration_s": 0.03999999999997783,
+        "censored": false,
+        "exit_cycle": 163
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.561999999996157,
+        "end_sim_time_s": null,
+        "duration_s": null,
+        "censored": true,
+        "reason": "cycle gap, invalid clock, session change, or time regression"
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.70199999999608,
+        "end_sim_time_s": 26.779999999996036,
+        "duration_s": 0.07799999999995677,
+        "censored": false,
+        "exit_cycle": 176
+      },
+      {
+        "mode": "RECOVERY",
+        "start_sim_time_s": 26.819999999996014,
+        "end_sim_time_s": 26.859999999995992,
+        "duration_s": 0.03999999999997783,
+        "censored": false,
+        "exit_cycle": 180
+      }
+    ],
+    "recovery_sim_duration_s": 0.257999999999857,
+    "valid_motion_duration_s": 2.5179999999986045,
+    "recovery_share_valid_motion_time": 0.10246227164416204,
+    "movement_start_sim_time_s": 24.239999999997444,
+    "target_distance_start_m": 6.904728985634304,
+    "target_distance_final_m": 2.2426164469992615,
+    "path_length_m": 4.386270504959389,
+    "mean_path_speed_mps": 1.7419660464502857,
+    "short_reverse_switch_count": 5,
+    "short_reverse_window_s": 0.5,
+    "period_statistics_scope": "all captured LIVE frames including preparation and cleanup tail, if present",
+    "motion_metrics_scope": "valid continuous cycles from observed 0.10m motion-start cycle through terminal frame; cleanup tail excluded",
+    "collision_coverage": {
+      "available": true,
+      "reason": null,
+      "event_count": 1,
+      "coverage": {
+        "samples": 146,
+        "live_samples": 146,
+        "unknown_contacts": 0,
+        "physics_step_gaps": 1299,
+        "sampled_steps_contiguous": true,
+        "producer_physics_coverage_complete": true,
+        "complete_for_no_collision_claim": false,
+        "scope": "whole captured interval; motion boundary is evaluated by S1 analyzer"
+      }
+    },
+    "motion_safety": {
+      "motion_interval_sim_s_inclusive": [
+        24.239999999997444,
+        26.91999999999596
+      ],
+      "collision": true,
+      "collision_events": [
+        {
+          "end_physics_step": 13462,
+          "end_sim_time": 26.923999999995957,
+          "obstacle_geom_id": 3,
+          "obstacle_geom_name": "ppt_obstacle_03",
+          "robot_geom_id": 42,
+          "robot_geom_name": "",
+          "start_physics_step": 13459,
+          "start_sim_time": 26.91799999999596
+        }
+      ],
+      "fall": false,
+      "fall_events": [],
+      "fall_event": null,
+      "coverage_complete_for_motion_interval": true,
+      "coverage_reason": null,
+      "unclassified_contact_overlaps_motion": false,
+      "invalid_posture_overlaps_motion": false,
+      "unconfirmed_fall_candidate_overlaps_motion": false,
+      "max_observed_contacts_per_policy_snapshot": {
+        "foot_floor": 4,
+        "nonfoot_floor": 0,
+        "self": 0
+      }
+    },
+    "external_safety_events": [],
+    "command_consumption": "UNKNOWN"
+  }
+]

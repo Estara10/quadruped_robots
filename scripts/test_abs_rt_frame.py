@@ -23,6 +23,7 @@ from abs_rt_frame import (
     FRAME_MAGIC,
     FRAME_SIZE,
     FRAME_VERSION,
+    FRAME_V2_SIZE,
     JOINT_COUNT,
     POLICY_AGILE,
     POLICY_FAULTED,
@@ -32,6 +33,10 @@ from abs_rt_frame import (
     SOURCE_LEGACY_ONLY,
     SOURCE_SYNTHETIC_TEST,
     SOURCE_UNSET,
+    SWITCH_HYSTERESIS,
+    SWITCH_MINIMUM_HOLD,
+    SWITCH_COMBINED,
+    HOLD_ACTIVE,
     FrameStatus,
     HudState,
     RuntimeFrame,
@@ -51,6 +56,13 @@ def _pack_frame(
     session_id=42,
     rl_step=7,
     ray_age_ns=1_000,
+    sim_clock_sequence=4,
+    sim_clock_monotonic_ns=9_998_999_000,
+    sim_clock_segment_id=1,
+    sim_clock_age_ns=1_000,
+    risk_evaluation_ns=9_999_000_000,
+    risk_condition_entered_ns=0,
+    mode_change_ns=0,
     source=SOURCE_SYNTHETIC_TEST,  # default fixture source is synthetic, never authoritative
     controller_active=1,
     rl_entered=1,
@@ -61,7 +73,19 @@ def _pack_frame(
     ray_valid=1,
     collision_origin=COLLISION_UNAVAILABLE,
     torque_saturated_computed=0,
+    mode_before=None,
+    switching_mode=1,
+    action_source=1,
+    transition_reason=0,
+    risk_condition_met=0,
+    risk_condition_entered=2,
+    policy_mode_changed=0,
+    sim_clock_status=1,
+    sim_clock_valid=1,
     reserved_pad=0,
+    sim_time_s=1.0,
+    entry_threshold=-0.05,
+    exit_threshold=-0.08,
     ra_value=0.0,
     lin_vel=(0.0, 0.0, 0.0),
     command=(1.0, 0.0, 0.0),
@@ -72,6 +96,11 @@ def _pack_frame(
     joint_target_rad=None,
     torque_nm=None,
     torque_saturated=None,
+    hold_status=0,
+    hold_enabled=0,
+    recovery_min_hold_s=0.0,
+    hold_enter_sim_time_s=0.0,
+    hold_elapsed_sim_s=0.0,
 ):
     """Build a synthetic frame fixture (default source = SYNTHETIC_TEST)."""
     ray2d = [2.5] * RAY_COUNT if ray2d is None else list(ray2d)
@@ -80,19 +109,23 @@ def _pack_frame(
     joint_target_rad = [0.0] * JOINT_COUNT if joint_target_rad is None else list(joint_target_rad)
     torque_nm = [0.0] * JOINT_COUNT if torque_nm is None else list(torque_nm)
     torque_saturated = [0.0] * JOINT_COUNT if torque_saturated is None else list(torque_saturated)
+    mode_before = policy_state if mode_before is None else mode_before
 
     qs = [
         magic, version, sequence, monotonic_ns,
-        session_id, rl_step, ray_age_ns,
+        session_id, rl_step, ray_age_ns, sim_clock_sequence,
+        sim_clock_monotonic_ns, sim_clock_segment_id, sim_clock_age_ns,
+        risk_evaluation_ns, risk_condition_entered_ns, mode_change_ns,
     ]
     uints = [
         source, controller_active, rl_entered, rl_active, safety_faulted,
         policy_state, ray_origin, ray_valid, collision_origin,
-        torque_saturated_computed, reserved_pad,
+        torque_saturated_computed, mode_before, switching_mode, action_source,
+        transition_reason, risk_condition_met, risk_condition_entered,
+        policy_mode_changed, sim_clock_status, sim_clock_valid, reserved_pad,
     ]
-    floats = (
-        [ra_value]
-        + list(lin_vel)
+    floats = [entry_threshold, exit_threshold, ra_value] + (
+        list(lin_vel)
         + list(command)
         + list(world_pose)
         + ray2d
@@ -102,8 +135,9 @@ def _pack_frame(
         + torque_nm
         + torque_saturated
     )
-    assert len(qs) == 7 and len(uints) == 11 and len(floats) == 81
-    return _FRAME_STRUCT.pack(*(qs + uints + floats))
+    assert len(qs) == 14 and len(uints) == 20 and len(floats) == 83
+    return _FRAME_STRUCT.pack(*(qs + uints + [sim_time_s] + floats + [
+        hold_status, hold_enabled, recovery_min_hold_s, hold_enter_sim_time_s, hold_elapsed_sim_s]))
 
 
 def _authoritative_fixture(**kwargs):
@@ -116,8 +150,8 @@ def _authoritative_fixture(**kwargs):
 
 class FrameContractTests(unittest.TestCase):
     def test_frame_size_matches_c_contract(self):
-        self.assertEqual(FRAME_SIZE, 424)
-        self.assertEqual(_FRAME_STRUCT.size, 424)
+        self.assertEqual(FRAME_SIZE, 568)
+        self.assertEqual(_FRAME_STRUCT.size, 568)
 
     def test_default_fixture_is_synthetic_not_authoritative(self):
         # The default fixture source is SYNTHETIC_TEST, so an otherwise valid
@@ -135,6 +169,42 @@ class FrameContractTests(unittest.TestCase):
         self.assertEqual(frame.session_id, 42)
         self.assertEqual(frame.rl_step, 7)
         self.assertEqual(frame.source, SOURCE_AUTHORITATIVE_RUNTIME)
+
+    def test_hysteresis_group_mode_is_valid(self):
+        raw = _pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, switching_mode=SWITCH_HYSTERESIS)
+        status, frame = classify_frame(raw, _NOW_NS)
+        self.assertEqual(status, FrameStatus.LIVE)
+        self.assertEqual(frame.switching_mode, SWITCH_HYSTERESIS)
+        d_raw = _pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, version=3,
+                            switching_mode=SWITCH_COMBINED, policy_state=1, mode_before=0,
+                            action_source=2, policy_mode_changed=1, mode_change_ns=9_999_000_000,
+                            hold_status=HOLD_ACTIVE, hold_enabled=1, recovery_min_hold_s=0.30,
+                            hold_enter_sim_time_s=0.8, hold_elapsed_sim_s=0.1, sim_time_s=0.9)
+        status, frame = classify_frame(d_raw, _NOW_NS)
+        self.assertEqual(status, FrameStatus.LIVE)
+        self.assertEqual(frame.switching_mode, SWITCH_COMBINED)
+        invalid_d = _pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, version=3,
+                                switching_mode=SWITCH_COMBINED, hold_enabled=0)
+        self.assertEqual(classify_frame(invalid_d, _NOW_NS)[0], FrameStatus.INVALID)
+
+    def test_c_hold_frame_and_hud_are_versioned_and_explicit(self):
+        raw = _pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, version=3,
+                          switching_mode=SWITCH_MINIMUM_HOLD, policy_state=1, mode_before=0,
+                          action_source=2, policy_mode_changed=1, mode_change_ns=9_999_000_000,
+                          hold_status=HOLD_ACTIVE, hold_enabled=1, recovery_min_hold_s=0.30,
+                          hold_enter_sim_time_s=0.8, hold_elapsed_sim_s=0.1, sim_time_s=0.9)
+        hud = HudState()
+        self.assertEqual(hud.update(raw, _NOW_NS), FrameStatus.LIVE)
+        shown = hud.display()
+        self.assertEqual(shown["switching_mode"], SWITCH_MINIMUM_HOLD)
+        self.assertAlmostEqual(shown["hold_remaining_sim_s"], 0.2)
+        self.assertAlmostEqual(shown["hold_enter_sim_time_s"], 0.8)
+
+    def test_v2_exact_length_remains_readable_but_mismatch_is_rejected(self):
+        v2 = _pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, version=2)[:FRAME_V2_SIZE]
+        self.assertEqual(classify_frame(v2, _NOW_NS)[0], FrameStatus.LIVE)
+        self.assertEqual(classify_frame(_pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, version=2), _NOW_NS)[0],
+                         FrameStatus.INVALID)
 
     def test_missing_empty_data(self):
         self.assertEqual(classify_frame(None, _NOW_NS), (FrameStatus.MISSING, None))
@@ -205,10 +275,60 @@ class FrameContractTests(unittest.TestCase):
     def test_stale_timestamp(self):
         stale_ns = _NOW_NS - DEFAULT_STALE_TIMEOUT_NS - 1
         status, frame = classify_frame(
-            _authoritative_fixture(monotonic_ns=stale_ns), _NOW_NS
+            _authoritative_fixture(
+                monotonic_ns=stale_ns,
+                sim_clock_monotonic_ns=stale_ns - 1_000,
+                sim_clock_age_ns=1_000,
+            ), _NOW_NS
         )
         self.assertEqual(status, FrameStatus.STALE)
         self.assertIsNotNone(frame)  # stale keeps the payload for diagnosis
+
+    def test_stale_sim_clock_keeps_policy_frame_and_preserves_sample(self):
+        frame_ns = _NOW_NS - 10_000
+        status, frame = classify_frame(
+            _authoritative_fixture(
+                monotonic_ns=frame_ns,
+                sim_clock_sequence=200,
+                sim_clock_monotonic_ns=frame_ns - 200_000_000,
+                sim_clock_age_ns=200_000_000,
+                sim_clock_status=2,
+                sim_clock_valid=0,
+                sim_time_s=12.5,
+            ),
+            _NOW_NS,
+        )
+        self.assertEqual(status, FrameStatus.LIVE)
+        self.assertIsNotNone(frame)
+        self.assertEqual(frame.sim_clock_status, 2)
+        self.assertEqual(frame.sim_time_s, 12.5)
+        self.assertFalse(frame.sim_clock_valid)
+
+    def test_clock_validity_and_policy_transition_are_consistent(self):
+        valid, _ = classify_frame(
+            _authoritative_fixture(
+                sim_clock_status=2, sim_clock_valid=1,
+            ),
+            _NOW_NS,
+        )
+        self.assertEqual(valid, FrameStatus.INVALID)
+
+        transition, frame = classify_frame(
+            _authoritative_fixture(
+                policy_state=1, mode_before=0, policy_mode_changed=1,
+                risk_evaluation_ns=9_998_999_100,
+                mode_change_ns=9_998_999_200, transition_reason=1,
+                action_source=2, risk_condition_met=1,
+                risk_condition_entered=1,
+                risk_condition_entered_ns=9_998_999_100,
+            ),
+            _NOW_NS,
+        )
+        self.assertEqual(transition, FrameStatus.LIVE)
+        self.assertIsNotNone(frame)
+        self.assertEqual(frame.mode_before, 0)
+        self.assertEqual(frame.policy_state, 1)
+        self.assertEqual(frame.action_source, 2)
 
     def test_unarmed_or_backwards_clock_invalid(self):
         self.assertEqual(
@@ -305,7 +425,11 @@ class HudStateTests(unittest.TestCase):
             (_pack_frame(source=SOURCE_LEGACY_ONLY), FrameStatus.LEGACY),
             (_pack_frame(magic=0), FrameStatus.INVALID),
             (
-                _authoritative_fixture(monotonic_ns=_NOW_NS - DEFAULT_STALE_TIMEOUT_NS - 1),
+                _authoritative_fixture(
+                    monotonic_ns=_NOW_NS - DEFAULT_STALE_TIMEOUT_NS - 1,
+                    sim_clock_monotonic_ns=_NOW_NS - DEFAULT_STALE_TIMEOUT_NS - 1_001,
+                    sim_clock_age_ns=1_000,
+                ),
                 FrameStatus.STALE,
             ),
         ):

@@ -14,7 +14,9 @@
 
 #include "glfw_adapter.h"
 
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <utility>
 
 #include <GLFW/glfw3.h>
@@ -51,7 +53,9 @@ GlfwAdapter::GlfwAdapter() {
 
   // multisampling
   Glfw().glfwWindowHint(GLFW_SAMPLES, 4);
-  Glfw().glfwWindowHint(GLFW_VISIBLE, 1);
+  const char* no_window = std::getenv("ABS_MUJOCO_NO_WINDOW");
+  const bool visible = !(no_window && std::strcmp(no_window, "1") == 0);
+  Glfw().glfwWindowHint(GLFW_VISIBLE, visible ? GLFW_TRUE : GLFW_FALSE);
 
   // get video mode and save
   vidmode_ = *Glfw().glfwGetVideoMode(Glfw().glfwGetPrimaryMonitor());
@@ -63,6 +67,7 @@ GlfwAdapter::GlfwAdapter() {
   if (!window_) {
     mju_error("could not create window");
   }
+  const int actual_visible = Glfw().glfwGetWindowAttrib(window_, GLFW_VISIBLE);
 
   // save window position and size
   Glfw().glfwGetWindowPos(window_, &window_pos_.first, &window_pos_.second);
@@ -107,6 +112,12 @@ GlfwAdapter::GlfwAdapter() {
 
   // make context current
   Glfw().glfwMakeContextCurrent(window_);
+  using GlGetStringFn = const unsigned char* (*)(unsigned int);
+  const auto get_string = reinterpret_cast<GlGetStringFn>(Glfw().glfwGetProcAddress("glGetString"));
+  const auto* renderer = get_string ? get_string(0x1F01) : nullptr;  // GL_RENDERER
+  std::fprintf(stderr, "[MUJOCO-WINDOW] backend=GLFW requested=%s visible=%d renderer=%s\n",
+               visible ? "visible" : "hidden", actual_visible,
+               renderer ? reinterpret_cast<const char*>(renderer) : "UNKNOWN");
 }
 
 GlfwAdapter::~GlfwAdapter() {

@@ -8,14 +8,21 @@
 #include <common/ObservationBuffer.h>
 #include <rl_quadruped_controller/control/CtrlComponent.h>
 #include <rl_quadruped_controller/FSM/RASwitchingLogic.hpp>
+#include <rl_quadruped_controller/FSM/StartupGainTransition.hpp>
 #include <torch/script.h>
 
 #include <array>
+#include <memory>
+#include <mutex>
+#include <string>
 
 #include "controller_common/FSM/FSMState.h"
+#include <abs_stage_a_common_start_contract.h>
 
 namespace abs_ray2d_shm { struct FrameHeader; }
 namespace abs_rt_frame { struct RuntimeFrame; }
+namespace abs_rt_frame { struct HistoryBuffer; }
+namespace abs_sim_clock { struct SimClock; }
 
 struct CtrlComponent;
 
@@ -180,6 +187,8 @@ public:
 
     void exit() override;
 
+    bool normalShutdownReady() const { return normal_shutdown_ready_; }
+
     FSMStateName checkChange() override;
 
 private:
@@ -219,7 +228,7 @@ private:
 
     void runModel();
 
-    void setCommand() const;
+    void setCommand(double period_s);
 
     std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_;
     CtrlComponent& ctrl_component_;
@@ -265,18 +274,100 @@ private:
     int ray2d_stamp_shm_fd_ = -1;
     bool ray2d_valid_ = false;
     uint64_t last_ray_stamp_ns_ = 0;
+    uint64_t last_ray_validation_ns_ = 0;
     uint64_t last_ray_age_ns_ = 0;
+    uint64_t last_ray_sequence_first_ = 0;
+    uint64_t last_ray_sequence_last_ = 0;
+    uint64_t last_ray_read_duration_ns_ = 0;
+    uint64_t last_ray_attempts_ = 0;
+    uint64_t ray_retry_success_total_ = 0;
+    uint64_t ray_retry_duration_total_ns_ = 0;
+    uint64_t ray_retry_duration_max_ns_ = 0;
+    bool last_ray_header_observed_ = false;
+    bool last_ray_stamp_observed_ = false;
+    bool last_ray_snapshot_consistent_ = false;
+    bool last_ray_validation_clock_observed_ = false;
     std::string last_ray_reason_ = "not_checked";
     uint64_t ray_check_count_ = 0;
     uint64_t ray_last_check_telemetry_ns_ = 0;
     torch::Tensor last_contacts_;
     bool safety_faulted_ = false;
+    bool goal_arrived_ = false;
+    bool normal_shutdown_requested_ = false;
+    bool normal_shutdown_ready_ = false;
+    bool normal_deceleration_failed_logged_ = false;
+    uint64_t normal_shutdown_request_ns_ = 0;
+    uint64_t normal_deceleration_stable_since_ns_ = 0;
+    std::array<double, 3> normal_shutdown_initial_command_{};
+
+    // Read-only MuJoCo simulation clock. It is sampled once per policy cycle;
+    // the sample timestamp/age and local reset segment are preserved in frames.
+    int sim_clock_shm_fd_ = -1;
+    abs_sim_clock::SimClock* sim_clock_shm_ptr_ = nullptr;
+    uint64_t last_sim_clock_sequence_ = 0;
+    uint64_t last_sim_clock_monotonic_ns_ = 0;
+    double last_sim_time_s_ = 0.0;
+    uint64_t sim_clock_segment_id_ = 0;
+    bool sim_clock_mapping_replacement_pending_ = false;
+    // Policy-thread-owned: advanced on actual Agile -> Recovery decisions and
+    // copied into CommandTrace only when the corresponding command is published.
+    uint64_t recovery_episode_id_ = 0;
+
+    struct PolicyCycleTrace {
+        uint32_t mode_before = 0;
+        uint32_t switching_mode = 0;
+        uint32_t action_source = 0;
+        uint32_t transition_reason = 0;
+        uint32_t risk_condition_met = 0;
+        uint32_t risk_condition_entered = 2;
+        uint32_t policy_mode_changed = 0;
+        uint32_t sim_clock_status = 0;
+        uint32_t sim_clock_valid = 0;
+        uint32_t hold_status = 0;
+        uint32_t hold_enabled = 0;
+        double sim_time_s = 0.0;
+        uint64_t sim_clock_sequence = 0;
+        uint64_t sim_clock_monotonic_ns = 0;
+        uint64_t sim_clock_segment_id = 0;
+        uint64_t sim_clock_age_ns = 0;
+        uint64_t risk_evaluation_ns = 0;
+        uint64_t risk_condition_entered_ns = 0;
+        uint64_t mode_change_ns = 0;
+        double entry_threshold = 0.0;
+        double exit_threshold = 0.0;
+        double hold_duration_s = 0.0;
+        double hold_enter_sim_time_s = 0.0;
+        double hold_elapsed_sim_s = 0.0;
+    } cycle_trace_;
+
+    bool previous_risk_valid_ = false;
+    bool previous_risk_met_ = false;
+    uint64_t previous_risk_session_id_ = 0;
+    uint64_t previous_risk_step_ = 0;
+
+    struct CommandTrace {
+        uint64_t source_session_id = 0;
+        uint64_t source_policy_cycle_id = 0;
+        uint64_t recovery_episode_id = 0;
+        uint32_t source_mode = 0;
+        uint32_t action_source = 0;
+        uint32_t transition_reason = 0;
+    } command_trace_;
+    mutable std::mutex command_mutex_;
+    mutable uint64_t command_write_id_ = 0;
+    mutable uint64_t last_issued_recovery_episode_id_ = 0;
+    bool policy_event_trace_enabled_ = false;
 
     // Real-time observation frame shared memory (single data link to HUD/recorder).
     // Written only by StateRL; source = AUTHORITATIVE_RUNTIME.
     int rt_frame_shm_fd_ = -1;
     abs_rt_frame::RuntimeFrame* rt_frame_shm_ptr_ = nullptr;
+    int rt_history_shm_fd_ = -1;
+    abs_rt_frame::HistoryBuffer* rt_history_shm_ptr_ = nullptr;
     uint64_t rt_session_id_ = 0;
+    bool initial_policy_state_logged_ = false;
+    bool stage_a_common_start_enabled_ = false;
+    std::unique_ptr<abs_stage_a_common_start::SharedClient> stage_a_start_gate_;
 
     // ABS episode timer
     double episode_timer_ = 0.0;
@@ -295,20 +386,32 @@ private:
     double path_start_y_ = 0.0;
     bool in_recovery_ = false;
     int rec_hold_left_ = 0;
+    double recovery_enter_sim_time_s_ = 0.0;
+    uint64_t recovery_clock_segment_ = 0;
+    bool recovery_enter_time_valid_ = false;
     double cached_rec_vx_ = 0.0;
     double cached_rec_vy_ = 0.0;
     double cached_rec_wz_ = 0.0;
 
-    // Soft start: ramp Kp/Kd from 0 to target over first N steps
-    mutable int soft_start_step_ = 0;
-    int soft_start_steps_ = 250;
+    // One session-local controller-time blend from the last written FIXEDSTAND
+    // gains to the policy targets. Shared by Agile and Recovery.
+    abs_startup_gain::Transition startup_gain_transition_;
+    double startup_gain_transition_s_ = 0.30;
+    bool startup_gain_transition_initialized_ = false;
+    bool startup_gain_transition_complete_logged_ = false;
+    mutable uint64_t startup_gain_update_count_ = 0;
+    mutable std::mutex last_interface_gain_mutex_;
+    mutable abs_startup_gain::Transition::Gains last_interface_kp_written_{};
+    mutable abs_startup_gain::Transition::Gains last_interface_kd_written_{};
 
-    // Recovery hold: minimum RL steps before allowing exit (frequency-adapted)
-    int recovery_hold_steps_ = 30;
+    // Legacy step counter remains zero for A/B/C/D; C/D use MuJoCo sim-time seconds.
+    int recovery_hold_steps_ = 0;
+    double recovery_min_hold_s_ = 0.0;
+    double switching_exit_threshold_ = 0.0;
+    std::string switching_group_ = "A";
 
-    // P1-07: RA-to-Recovery switching mode. Default is stabilized_switch so
-    // existing launch/config behavior is unchanged.  An invalid configured value
-    // is rejected in loadYaml() (never silently downgraded to a default).
+    // Research-facing mode is selected by strict abs.switching parsing, not a
+    // legacy YAML key.
     abs_switching::SwitchMode switching_mode_ = abs_switching::SwitchMode::stabilized_switch;
 
     // Safety: body tilt limit and action output clip (from YAML)
@@ -325,11 +428,15 @@ private:
 
     // Explicitly opt-in simulation-only fault injection and structured command evidence.
     bool live_telemetry_enabled_ = false;
+    bool s6_startup_trace_enabled_ = false;
+    mutable uint64_t s6_last_trace_policy_cycle_ = UINT64_MAX;
+    torch::Tensor s6_previous_action_;
+    torch::Tensor s6_policy_action_raw_;
+    torch::Tensor s6_policy_action_clipped_;
     std::string test_fault_id_;
     bool test_fault_consumed_ = false;
     bool test_fault_blocked_ = false;
     mutable uint64_t telemetry_sequence_ = 0;
-    mutable double applied_gain_ratio_ = 1.0;
 
     bool useRos1PolicyOrder() const;
     torch::Tensor ctrlToPolicyDofOrder(const torch::Tensor& ctrl_order) const;
@@ -341,6 +448,7 @@ private:
     bool finiteMotorCommand() const;
     bool injectTestFault(const char* id, torch::Tensor* value = nullptr);
     void emitCommandTelemetry(const char* event, const char* reason = "") const;
+    void captureSimClock();
     void writeRtFrame(uint32_t policy_state,
                       double robot_wx, double robot_wy, double robot_yaw,
                       double body_x, double body_y, double heading_cmd,

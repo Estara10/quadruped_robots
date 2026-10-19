@@ -1,0 +1,198 @@
+{
+  "scene_id": "m2d04",
+  "filename": "m2dev04.xml",
+  "preview": "m2dev04.png",
+  "display_name": "M2-04",
+  "model_name": "m2dev04",
+  "generation_seed": 2026101604,
+  "generation_attempt": 1,
+  "generator_version": "m2-development-candidates/0.1",
+  "split": "development_candidate",
+  "density": "challenge_candidate",
+  "route_structure_label_zh": "斜箱与圆柱交替",
+  "challenge_intent": "短斜箱与圆柱轮廓交替；检查不同入射角下避障",
+  "difficulty_verified_by_policy": false,
+  "start_m": [
+    0.0,
+    0.0
+  ],
+  "goal_m": [
+    7.5,
+    0.0
+  ],
+  "field_bounds_m": {
+    "x": [
+      -0.5,
+      8.0
+    ],
+    "y": [
+      -3.0,
+      3.0
+    ]
+  },
+  "field_is_physical_wall": false,
+  "obstacle_count": 9,
+  "obstacles": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "rotated_bar",
+      "x": 1.76217,
+      "y": 0.048765,
+      "role": "primary",
+      "height_m": 0.507402,
+      "half_x": 0.280849,
+      "half_y": 0.225233,
+      "yaw_rad": 0.328885
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 3.858587,
+      "y": -0.207272,
+      "role": "primary",
+      "height_m": 0.44654,
+      "radius": 0.235008,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "rotated_bar",
+      "x": 5.791037,
+      "y": 0.199328,
+      "role": "primary",
+      "height_m": 0.521244,
+      "half_x": 0.278952,
+      "half_y": 0.198893,
+      "yaw_rad": 0.384986
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 3.111091,
+      "y": 1.407413,
+      "role": "flank",
+      "height_m": 0.567801,
+      "radius": 0.249603,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 5.776759,
+      "y": 1.359373,
+      "role": "flank",
+      "height_m": 0.417708,
+      "radius": 0.240774,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 1.321324,
+      "y": 2.390753,
+      "role": "flank",
+      "height_m": 0.474952,
+      "half_x": 0.263471,
+      "half_y": 0.185622,
+      "yaw_rad": -0.003196
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "cylinder",
+      "x": 4.441323,
+      "y": 0.978814,
+      "role": "flank",
+      "height_m": 0.470783,
+      "radius": 0.258858,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "box",
+      "x": 1.503557,
+      "y": 1.331124,
+      "role": "flank",
+      "height_m": 0.515743,
+      "half_x": 0.281392,
+      "half_y": 0.194715,
+      "yaw_rad": -0.060747
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "cylinder",
+      "x": 1.249171,
+      "y": -2.387542,
+      "role": "flank",
+      "height_m": 0.411549,
+      "radius": 0.291128,
+      "yaw_rad": 0.0
+    }
+  ],
+  "direct_line_blocking_obstacles": [
+    "ppt_obstacle_01",
+    "ppt_obstacle_02",
+    "ppt_obstacle_03"
+  ],
+  "direct_line_blocked": true,
+  "routes": [
+    {
+      "route_id": "geometry_only",
+      "reference_path_m": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          1.6,
+          -1.25
+        ],
+        [
+          4.3500000000000005,
+          -1.2
+        ],
+        [
+          6.5,
+          -0.6499999999999999
+        ],
+        [
+          7.5,
+          0.0
+        ]
+      ]
+    }
+  ],
+  "path_check": {
+    "connected": true,
+    "endpoint_tolerance_m": 1e-09,
+    "grid_resolution_m": 0.05,
+    "continuous_path_check_step_m": 0.025,
+    "go2_planar_envelope_radius_m": 0.65,
+    "engineering_clearance_margin_m": 0.1,
+    "required_obstacle_clearance_m": 0.75,
+    "minimum_geometric_obstacle_clearance_m": 0.7640282561682548,
+    "minimum_centerline_corridor_width_m": 1.5280565123365095,
+    "residual_width_after_envelope_margin_m": 0.02805651233650952,
+    "reference_path_length_m": 8.19276870462458,
+    "reference_path_point_count": 5,
+    "start_goal_straight_blocked": true,
+    "start_goal_straight_blocking_obstacles": [
+      "ppt_obstacle_01",
+      "ppt_obstacle_02",
+      "ppt_obstacle_03"
+    ],
+    "max_forward_heading_deg": 37.99873244250466
+  },
+  "density_definition": {
+    "obstacle_footprint_area_fraction": 0.03760541594366957,
+    "minimum_obstacle_spacing_m": 0.6524260189418141
+  },
+  "production_scene_binding": {
+    "filename": "m2dev04.xml",
+    "scene_id": "m2d04",
+    "obstacle_count": 9,
+    "root_sha256": "d58105cd5c7cd6ae89d27c91e20fb3d4e9f45d853b4b2ed9c0dc113176e43100",
+    "closure_sha256": "c2a9e62e2872417d8a9466d434198fcdc67991a16bdbd40a474dafb95f2194fa",
+    "model_fingerprint": "f04bbdb6d5a95ec249d265d0f48de9de91f79083eac4515ac61d1c40523265dc",
+    "runtime_mujoco_version": "3.3.3"
+  }
+}

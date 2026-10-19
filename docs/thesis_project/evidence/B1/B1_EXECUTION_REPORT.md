@@ -1,0 +1,303 @@
+# B1 执行报告：仿真实验可信度定向补强
+
+**最新状态：COMPLETE（Director 有条件通过，2026-10-15）。** 通过范围包括周期记录/去重/有界历史读取/最终排空与终止帧关联、任务指标窗口与站立/清理隔离、去重安全证据传递及碰撞/跌倒覆盖分析、C/D有限保持审计，以及dev03 D一次真实收尾验证。该运行保存任务cycle 0–565共566帧及收尾49帧，最终producer=consumer=615，整份记录`VALID`，站立观察5.022仿真秒，9个保持episode通过。对同一原始记录的独立重分析确认任务窗覆盖完整；按当前规则碰撞和跌倒为False、足端接触/撞击为0，同时保留一条关闭且未确认的姿态候选。该判断不外推至全采集或收尾阶段。历史失败、INVALID、缺帧、无效时钟、UNKNOWN、原始记录和旧指标均保留；单次结果不能证明性能或一般安全。B1独立于S系列，不表示S6完成。当前没有已授权的下一项Active Task，参数预实验未获授权。本次状态同步不运行仿真、不修改数据。
+
+## 最新补证：任务期安全窗口与收尾数据隔离（2026-10-15）
+
+- **修正：**`scripts/s1_analyze_run.py`不再将全部采集frames及terminal汇总中的最后一个物理快照交给任务期安全分析。任务和辅助运动安全分析仅传入从已验证session/cycle边界得到的策略帧；任务起点前边界与精确匹配的终止策略帧物理快照单独作为边界证据。收尾帧仍参与整份record和全采集覆盖摘要，但不会倒灌进任务窗口。安全覆盖失败原因现在指出具体缺失/错配条件；支持版本仍为v4/v5。
+- **真实数据原因：**任务策略cycle 0–565的566个附属安全快照全部LIVE；周期565对应物理snapshot为同capture v5、physics_step 8917、sim_time 17.834 s。pre-task边界为同capture LIVE、step 3193、sim_time 6.386 s。终局后的49个策略帧都附带STALE快照，重复的是最后发布的物理sample；旧调用还把terminal coverage里的收尾快照一并加入，导致fall快照身份序列被污染。策略帧时钟、物理发布连续性和快照版本本身没有此处所指的v5兼容问题。
+- **生产路径离线验证：**`test_b1_motion_safety.py`新增任务LIVE/收尾STALE隔离用例，并验证把STALE样本误传入时仍拒绝为UNKNOWN；该用例和`test_b1_frame_capture_merge.py`的20项真实FrameCapture→RunRecordRecorder→finalize→load_record→calculate联测通过。联测保留碰撞/确认跌倒正事件、缺少安全快照UNKNOWN及终点后才关闭姿态候选UNKNOWN。受影响Python文件`py_compile`通过。完整测试输出见[离线摘要](../../../../logs/04_B1_recording_validation/historical_reanalysis/dev03_D_task_safety_scope_20261015/offline_validation_summary.json)；没有C++改动、仿真或模型运行。
+- **既有D独立重分析：**只读源目录[dev03 D原始run](../../../../logs/04_B1_recording_validation/closeout_runtime_verification/dev03_D_20261015/D/rep_01/6a0e402de1754d9a828704976d8ee32f/)，派生文件写入[独立分析目录](../../../../logs/04_B1_recording_validation/historical_reanalysis/dev03_D_task_safety_scope_20261015/)。生产`calculate()`及timeline函数重跑后，整份记录仍`VALID / ARRIVED`；任务期碰撞=False、非足端碰撞=False、足端接触0、足端撞击0、按当前确认规则跌倒=False，任务物理覆盖完整，snapshot身份有效。唯一任务期姿态候选在sim 10.294–10.438 s异常，之后于任务终点前关闭且未确认；异常历史保留。全采集安全覆盖依然不可用，不能据此声称收尾或全run无碰撞/无跌倒。
+- **未改变的结果：**任务耗时11.300 s、有效时间11.300 s、路径10.070 m、18条模式边沿（A→R 9、R→A 9）、Recovery 2.790 s、D保持审计9/9通过均与原metrics相同（浮点路径值在1e-12容差内）。终止后49帧、站立观察及原始metrics保持不变。命令写出/控制器状态不等于MuJoCo命令消费；base_link观察也不证明整机足迹全程界内。
+
+## 最新补证：dev03 D 组真实收尾生命周期核验（2026-10-15）
+
+- **运行与来源：**仅启动一次，固定 `dev03.xml / m1ssd01`、D、E=-0.05、X=-0.08、H=0.30仿真秒、目标(7.5,0)m、到达半径0.5m、运动上限20仿真秒/120墙钟秒、站立观察5仿真秒/30墙钟秒。controller来源记录确认 `group=D`、`candidate=combined_switch`、滞回和保持均启用，三个模型与配置均从独立D overlay加载；场景物理authority为LIVE。完整参数计划见[批次计划](../../../../logs/04_B1_recording_validation/closeout_runtime_verification/dev03_D_20261015/batch_plan.json)，来源、周期0初态与生命周期见[run_context](../../../../logs/04_B1_recording_validation/closeout_runtime_verification/dev03_D_20261015/D/rep_01/6a0e402de1754d9a828704976d8ee32f/run_context.json)。
+- **终止帧及写盘顺序：**终局ARRIVED，距目标0.4985m。`terminal_frame_ref`为session `30612695857800`、cycle 565、source_sequence 1132、sim_time 17.826s；该同一身份的完整frame在JSONL恰有一条。任务边界cycle 0–565共566帧连续，终止时producer=consumer=566。任务边界冻结后writer保持CAPTURING；run_context确认本次MuJoCo/controller及辅助会话进程退出后才最终排空。
+- **最终排空：**最终producer=consumer=615；共615个唯一策略frame（任务窗566帧、终局后收尾49帧），另有1条meta和1条terminal。slot reuse=0、unread loss=0、内容冲突=0、closeout errors为空，terminal JSON已写且仅有一条terminal记录。分析器确认整份record为`VALID`、task window complete、final closeout drain complete；周期/时钟分别缺失0帧。观察到的2298次一致身份重复来自采样读取，不是生产槽位覆盖或丢失。
+- **指标边界：**生产分析器的RL任务边界仅cycle 0–565：11.300s、有效连续11.300s、路径10.070m、平均速度0.891m/s、策略频率50.144Hz；18条模式边沿（A→R 9、R→A 9），Recovery 2.790s，占有效任务时间24.69%；保持审计9个完整、0个不完整、0违规。cycle 566–614收尾尾段被持久化，但不进入上述任务运动统计。结果表和时间线见[分析目录](../../../../logs/04_B1_recording_validation/closeout_runtime_verification/dev03_D_20261015/D/rep_01/analysis/)；原始数据目录为[本次D运行](../../../../logs/04_B1_recording_validation/closeout_runtime_verification/dev03_D_20261015/D/rep_01/6a0e402de1754d9a828704976d8ee32f/)。
+- **站立收尾：**command 6请求收到确认；运行记录了减速、站立和`FIXEDSTAND`阶段，策略停止后物理观察完成5.022仿真秒、238个样本，随后进程退出码均为0且未强制终止。command/状态证据不等于MuJoCo已消费的独立确认。
+- **证据限制：**当时自动指标中的碰撞/跌倒安全指标为UNKNOWN；该解释已由上方独立任务窗口重分析修正，并非v5不兼容。任务窗口现在有完整同身份v5覆盖，结果按当前规则为False；一个姿态候选已关闭未确认，异常事实保留。该结果不扩展到全采集/站立收尾，也不表示安全成功。base_link覆盖仅支持其声明范围，不证明整机足迹全程未越界。新顺序由本次运行验证一次，不构成普遍保证或算法性能结论。
+- **显示预检与清理：**沙箱内X连接失败，获准的单次沙箱外检查通过；GLFW/OpenGL renderer为Intel / Mesa Intel(R) Graphics (RPL-P)，版本4.6 Compatibility Profile Mesa 23.2.1。记录见[显示预检](../../../../logs/04_B1_recording_validation/closeout_runtime_verification/dev03_D_20261015/display_glfw_preflight.json)。运行后诊断器确认MuJoCo、ROS launch、controller与本次查询/命令会话退出；独立进程检查无相关残留。未重试、未修改参数、未提交Git。
+
+## 历史补证：收尾关闭顺序离线修正与旧 dev03 D 独立重分析（2026-10-15；后续真实核验见报告顶部）
+
+### 修正内容
+
+- `scripts/s1_run_diagnostic.py`：策略终局时只冻结 `task_termination_boundary` 和任务指标边界，不再立即设置 `FrameCapture.stop` 或调用 `RunRecordRecorder.stop_sampling()`。正常站立/异常收尾期间，物理安全观察按原流程运行。
+- `finalize_run_closeout()`先按既有顺序停止并等待本次MuJoCo、controller/ROS及辅助进程；进程收尾后，`FrameCapture.finish()`在writer仍可写时排空生产历史，然后停止采样并写唯一terminal。`run_context.lifecycle.capture_close_order`记录任务边界、writer状态和生产进程退出确认。任务终止引用保持固定；收尾帧保存在同一runtime记录中，但不进入任务指标。
+- `scripts/s1_analyze_run.py`：新增通用、严格限定的“任务窗口完整但最终收尾尾段不完整”分析路径。只有整份记录唯一校验问题为最终策略历史不完整，且任务边界、终止引用、cycle 0至终止周期的逐帧身份/连续性/有效时钟、任务期未读损失、进程退出和缺失尾段计数全部通过时，才输出任务窗口派生指标。整体 `record_validity` 仍为 `INVALID`；任务边界不完整、任务期缺帧/冲突/无效时钟、其它错误或范围不明时，任务指标仍是 `UNKNOWN`。未为dev03 D加入特例放行。
+
+### 针对性离线验证
+
+真实生产 `FrameCapture → RunRecordRecorder → finalize_run_closeout → calculate` 联测位于[离线验证摘要](../../../../logs/04_B1_recording_validation/offline_closeout_lifecycle_20261015/summary.json)。覆盖终局后继续产生策略帧、生产进程退出后最终排空、任务指标排除收尾边沿/路径、仅收尾缺失时任务指标可用但整份仍INVALID、任务周期缺失时拒绝恢复、启动失败仍调用清理、碰撞终局及安全优先级、终止写入失败后仍清理、乱序/重复内容冲突/时钟回退/session变化/环历史缺口和缺失安全证据。21项离线用例全部通过；`test_s1_04_contract.py`定向检查通过，受影响Python文件`py_compile`通过。无C++改动、无仿真运行。
+
+### dev03 D 只读独立重分析
+
+源运行目录为[dev03 D 原始记录](../../../../logs/04_B1_recording_validation/cd_runtime_verification/dev03_C_D_20261015_170521/D/rep_01/e8cae530962645ca8f0d25b0359e0345/)。生产分析器的独立派生结果保存在[重分析目录](../../../../logs/04_B1_recording_validation/historical_reanalysis/dev03_D_closeout_review/)，原始JSONL、context、terminal、process facts、既有metrics和图表未覆盖。
+
+| 项目 | 生产重分析 | 解释范围 |
+|---|---:|---|
+| Supervisor终局 / 整份记录状态 | `ARRIVED` / `INVALID` | 原终局保留；唯一完整性原因仍是`policy_cycle_history_incomplete` |
+| 任务窗口 | cycle 0–694，共695帧；0缺周期、0无效策略时钟 | 终止payload身份匹配，任务窗口可分析 |
+| 收尾尾段 | 48个生产历史条目未持久化 | 发生于终止边界之后；无法补造，整份记录不能改判VALID |
+| 到达与任务指标 | 距目标0.4982m；任务耗时/有效时间13.880s；路径10.605m；平均速度0.764m/s | 任务窗口，不含站立及清理尾段；位移辅助窗口起于cycle20，不替代cycle0任务起点 |
+| 模式与保持 | 22条边沿（11次A→R、11次R→A）；Recovery 4.584s，占有效任务时间33.03%；11/11保持episode通过 | 完整任务周期与有效仿真时钟支持这些限定指标 |
+| 碰撞/接触 | 非足端碰撞False；1次RL足端接触/撞击`ppt_obstacle_02`，约0.012s | 有正足端事件，不能概括为无碰撞 |
+| 跌倒 | 按当前确认规则为False | 两个姿态候选均在任务终点前关闭且未确认；姿态异常事件仍保留，不代表无下沉或安全成功 |
+| 到达后站立 | 独立观察完成5.024仿真秒、226个物理样本 | 四足支撑、未观察到跌倒候选/确认或障碍接触；不属于任务运动指标，不证明MuJoCo已消费命令 |
+
+任务限定指标由通用生产分析器根据持久化任务边界计算，不修复或重写源run。该历史run整份记录和收尾完整性仍为INVALID；此段“新关闭顺序尚无真实运行验证”仅描述当时状态，已由本报告顶部的一次独立新D运行补证更新。历史数据未覆盖。
+
+
+## 历史补证：dev03 C/D 单次运行（2026-10-15；最新解释见上节）
+
+本轮先以现有桌面 `DISPLAY=:0`、`/run/user/1000/gdm/Xauthority` 做最小X11/GLFW预检，连接、hidden 16×16窗口及OpenGL context均通过；renderer为Intel / Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6 Compatibility Profile Mesa 23.2.1。预检记录见[display_glfw_preflight](../../../../logs/04_B1_recording_validation/cd_runtime_verification/dev03_C_D_20261015_170521/display_glfw_preflight.json)。严格按C后D各运行一次，未重试。两次均由本次独立overlay的controller消费配置；candidate/阈值、PID、writer、session、三个模型路径和场景身份见[来源配置补充](B1_SOURCE_CONFIG.md)。
+
+| 组 | 实际配置/运行 | 终局与记录 | 周期/保持/安全证据 | 收尾 |
+|---|---|---|---|---|
+| C | E=-0.05；X由E推导=-0.05；无滞回；H=0.30s；dev03/m1ssd01；目标(7.5,0)，sim/wall上限20/120s | `COLLISION_TERMINATION`，距目标1.473m；`VALID`。cycle 0–841共842帧连续，0周期缺口、0无效策略时钟帧；策略频率约50.197Hz；任务窗16.820s | 36条模式边沿且36条有效仿真时间；Recovery 7.022s，占有效任务窗41.75%；短反向27次（覆盖完整）。生产保持审计18/18完整通过、0违规。终端附带LIVE安全snapshot，gate因已发生碰撞而拒绝正常站立。任务窗内FL/RL各1次足端撞击，另有未命名geom46（body RL_calf）接触`ppt_obstacle_02`并触发终局；足端末段episode未闭合，持续时间UNKNOWN。任务窗跌倒按完整物理历史为False（两次候选均关闭且未确认）；运动前另有已确认低高度episode，sim 0.25–4.690s，已在任务起点前关闭。 | 未进入正常5s站立观察；PASSIVE转换已由controller确认，进程shutdown/closeout完成。|
+| D | E=-0.05、X=-0.08、滞回开、H=0.30s；其余同C | supervisor `ARRIVED`，距目标0.4982m；整份run `INVALID`，唯一原因 `policy_cycle_history_incomplete`。终止任务边界cycle 0–694共695帧连续、时钟有效，终止帧payload匹配；最终closeout drain producer=743、consumer=695，差48帧。 | 自动metrics因整份记录INVALID而将全组统计及安全窗置UNKNOWN。另以生产 `audit_hold_episodes()` 对有明确完整性的0–694任务边界单独审计：11/11 episode完整通过、0违规，见[task-window hold审计](../../../../logs/04_B1_recording_validation/cd_runtime_verification/dev03_C_D_20261015_170521/D_task_window_hold_audit.json)；不提升整份run有效性。终端健康gate为LIVE且eligible，但完整任务窗碰撞/跌倒否定结论仍按INVALID记录保留UNKNOWN。运动前同样有已确认低高度episode，sim 0.25–5.036s，在任务起点前关闭。 | 到达后实际完成FIXEDSTAND观察5.024仿真秒，226个物理样本；四足支撑、无候选/确认跌倒、无障碍接触，未请求PASSIVE或趴下。正常观察完成不消除策略记录尾段缺口。|
+
+共同条件为 `dev03.xml / m1ssd01`、7.5m目标、0.5m到达半径、运动20仿真秒/墙钟120秒、站立5仿真秒/墙钟30秒。每次cycle0具名q/dq与session绑定；两组初态不同，最大绝对差为q 0.00276rad、dq 0.10666rad/s，详见[初态对照](B1_INITIAL_STATE_COMPARISON.md)。两组都观察到启动时已确认的低高度episode并在运动起点前关闭；它们没有被当作任务期跌倒，也没有从历史中删除。
+
+D 的48帧差异发生在已封口的运动终局之后、完整站立观察/清理期间；因此可以保留明确的任务边界与限定保持审计，但整个runtime record及其自动metrics仍为INVALID。按本轮不重试规则停止。该结果支持新链路下C保持审计和D任务边界保持审计的有限功能证据；不组成有效的C/D结果对照，不支持性能优劣、普遍安全或成功率结论。命令6及controller的FIXEDSTAND状态/物理观察有记录，不等同于MuJoCo具体命令消费确认。
+
+原始JSONL、context、terminal和首次自动生成metrics均原样保留。运行、结果表及时间线均在[本批目录](../../../../logs/04_B1_recording_validation/cd_runtime_verification/dev03_C_D_20261015_170521/)，其中D的原始终局ARRIVED与记录INVALID并列保存。后续如要使用D任务窗功能记录，需先经Director审阅其适用范围；本轮不追加运行或修改终止/采集语义。相关进程已在每次运行后按MuJoCo先关、ROS/controller及辅助进程后关的流程核对退出。
+
+## 上一轮定向修正（C/D补证前）：去重安全证据与跌倒历史（2026-10-15）
+
+### 修正与生产组合联测
+
+- `FrameCapture.observe()`的一致重复分支现在返回该策略帧已经写入JSONL的`collision_snapshot`、状态以及capture/physics sequence/step/sim_time/monotonic身份。不重复写策略帧；策略身份/内容冲突、倒序、session混流和物理来源失效规则不变。
+- 返回关系明确为“同一持久化策略记录内附带的独立物理采样”。物理样本时间和身份单独保留，不宣称与策略决策严格同一时刻或周期。首次写入和一致去重的返回结构一致；MISSING等状态不会被转换成健康证据。
+- `motion_safety()`按LIVE快照的物理采样时序/序号合并相同`start_physics_step`事件。在同一事件end step不变时，后续有据的关闭状态可被采用；确认状态锁存，不能被之后较旧/未确认状态抹掉。分析只采用任务终点前可观察到的事件状态；终点后才关闭的候选仍在任务终点记为活动/UNKNOWN。
+- 输出新增逐事件终点状态、其来源物理快照及判定依据。完整、同capture、无溢出且姿态有效时，已关闭未确认的候选单列，并可支持“按当前确认规则未判定跌倒”；它不表示姿态始终正常、没有触地或绝对安全。缺源、错身份、活动候选、无效姿态、溢出和覆盖不足继续为UNKNOWN。
+- 正常站立gate和终局优先级继续使用实际快照状态。健康LIVE证据可通过离线gate；非足端碰撞及已确认跌倒仍分别压过ARRIVED；安全快照缺失、MISSING/STALE/INVALID或空值不能通过。
+
+生产组合联测调用真实`FrameCapture`、v4 authority decoder、`RunRecordRecorder` JSONL写盘、`task_window_history_events`、终局选择、`normal_closeout_gate`、closeout和生产分析器。受控输入只用于产生有限的物理事件/快照；没有替换被测判断。17项联测均通过，见[离线summary](../../../../logs/04_B1_recording_validation/offline_merge_validation/dedupe_safety/summary.json)，代表性原始联测记录及metrics见[dedupe安全证据目录](../../../../logs/04_B1_recording_validation/offline_merge_validation/dedupe_safety/)。覆盖一致重复不丢LIVE快照、非足端碰撞优先级、确认跌倒、同end step未确认候选关闭、启动前已关闭事件排除、终点后才关闭保持UNKNOWN、健康/不可用gate及MISSING传播。另有`test_run_record.py` 59/59、`test_s1_04_contract.py`、`test_s1_05_safety.py`、`test_b1_motion_safety.py`及受影响Python编译通过。
+
+### dev25 A 原记录独立重分析
+
+生产分析器只读输入原始run `a79d150a1e544bc98c75f4db38345b94`，派生文件独立写入[重分析目录](../../../../logs/04_B1_recording_validation/historical_reanalysis/dev25_A_safety_review/)，源JSONL、context、terminal、旧metrics和旧timeline的SHA-256核对未变化。 派生结果表见[单行对照表](../../../../logs/04_B1_recording_validation/historical_reanalysis/dev25_A_safety_review/run_results.md)，并保留metrics、summary与时间线。
+
+- **原始运行事实：**`VALID / ARRIVED`，cycle 0–441、442帧连续，运动窗sim_time 6.860–15.682 s；独立终止物理采样为LIVE，physics_step 7843、sim_time 15.686 s（比终止策略帧晚约4 ms），同capture，状态为fall_candidate=false、fall_confirmed=false、unknown_contacts=0、robot_obstacle_contacts=0。它是附于终止策略记录的独立物理采样，不是策略终止时刻的同步测量。
+- **安全事件重算：**运动窗内有1次FL与`ppt_obstacle_02`足端接触/撞击，约0.018 s；非足端碰撞终止事件为0，绝不能简写为“无碰撞”。姿态候选从sim_time 11.434至11.526 s，后续同run累计历史在任务终点前显示`closed=true, confirmed=false`，无效姿态累计未与任务窗重叠，事件历史无溢出。修复后跌倒字段为False，依据是“完整覆盖中候选已关闭且未达当前确认条件”；这不是无下沉/无异常/安全成功结论。
+- **运行时判断边界：**原FrameCapture重复分支没有把已落盘LIVE安全快照返回给监督器，故context gate实际记录`physics_status=null`及`physics snapshot is not LIVE`。这是调用结果丢失，不能据此声称发布器失效。重分析只能说明已保存的安全证据，不证明原运行时碰撞/跌倒监督决策全程正常工作。此次代码离线联测修复了数据传递，但没有运行补证。
+- **正常站立收尾：**原运行未启动5秒站立观察、改走PASSIVE；实际触发原因现在定位为gate没有收到去重帧的物理快照。当前修复的离线健康分支能够通过gate，但旧run不能改称站立成功，修复后的实际站立收尾尚待授权运行验证。命令发布/控制器状态与MuJoCo消费仍分层。
+
+**当时提出的最小运行补证建议（历史，已由本报告顶部dev03 C/D运行覆盖其站立观察部分）：**Director另行授权后，可做一次受控正常到达收尾核验，并用一次可控跌倒生命周期运行验证物理发布器候选→关闭时序；若既有publisher证据足够，可只做正常收尾。该建议当时不授权本轮或自动后续运行；本轮已完成一次D正常站立观察，但D整体记录仍因48个收尾帧未写入而INVALID，跌倒生命周期运行仍未补做。
+
+该离线修正阶段无controller/MuJoCo/C++改动、无构建需求、无场景运行；后续C/D场景运行见本报告顶部最新补证。本轮无代码修改。
+
+## 历史补证：唯一一次 dev25 A 组运行（2026-10-15；后续dev03 C/D见报告顶部）
+
+按本轮授权仅运行一次，未重试。运行身份为`a79d150a1e544bc98c75f4db38345b94`，结果目录为[`dev25 A run`](../../../../logs/04_B1_recording_validation/runs/m1dod01_A/attempt_01/A/rep_01/a79d150a1e544bc98c75f4db38345b94/)。固定条件为`dev25.xml / m1dod01`、A组、E=-0.05、有效退出阈值=-0.05、无滞回/无保持、目标(7.5, 0) m、到达半径0.5 m、20仿真秒/120墙钟秒；到达后原定站立观察上限为5仿真秒/30墙钟秒。独立overlay位于本次结果目录，controller来源检查确认使用本次安装的controller库，唯一controller/writer PID为448050，MuJoCo PID为447921；实际Agile、RA、Recovery模型均来自同一独立overlay。场景authority为LIVE，内部ID和模型指纹与`m1dod01`登记一致。实际配置和来源见[本次run_context](../../../../logs/04_B1_recording_validation/runs/m1dod01_A/attempt_01/A/rep_01/a79d150a1e544bc98c75f4db38345b94/run_context.json)及[来源配置补充表](B1_SOURCE_CONFIG.md)。
+
+运行前沙箱外最小显示预检使用当前`DISPLAY=:0`、`XAUTHORITY=/run/user/1000/gdm/Xauthority`：X连接通过，隐藏GLFW窗口创建成功；renderer为Intel / Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6 Compatibility Profile Mesa 23.2.1。仅使用临时预检程序，没有改动桌面授权、系统库或全局环境。预检摘要见[显示预检记录](../../../../logs/04_B1_recording_validation/runs/m1dod01_A/attempt_01/display_glfw_preflight.json)。
+
+### 记录与终止边界
+
+- RL前记录器已报告可读写就绪；策略周期0及首态关联从本次session开始持久化。运行JSONL共有444行：1条meta、442条策略帧和1条terminal。策略帧覆盖cycle 0–441，周期缺口0、无效策略时钟帧0；任务终止边界状态为complete，消费者未读丢失0，内容冲突0，终止周期payload标记为同一快照已持久化。
+- `terminal_frame_ref`为session `26364708805493`、cycle/rl_step 441、source_sequence 884、sim_time 15.682000 s；与JSONL中唯一对应策略帧的session、周期、sequence、monotonic时间和仿真时间逐字段相同。任务指标截止该周期；之后的terminal/收尾信息未并入运动窗口。任务窗从cycle 0、sim_time 6.860 s至终止帧，经过及有效连续仿真时间均为8.822 s；路径8.642 m、平均有效速度0.980 m/s。策略频率按周期跨度/单调时间跨度为50.25 Hz。生产分析生成了metrics、结果表和时间线，`record_validity=VALID`；证据见[metrics](../../../../logs/04_B1_recording_validation/runs/m1dod01_A/attempt_01/A/rep_01/a79d150a1e544bc98c75f4db38345b94/metrics.json)、[分析结果表](../../../../logs/04_B1_recording_validation/runs/m1dod01_A/attempt_01/A/rep_01/analysis/run_results.md)和[timeline](../../../../logs/04_B1_recording_validation/runs/m1dod01_A/attempt_01/A/rep_01/a79d150a1e544bc98c75f4db38345b94/timeline.png)。
+- supervisor终局`ARRIVED`，终点距目标0.489 m。记录到40条模式边沿（20次A→R、20次R→A），有效时间边沿40条；生产分析器在完整连续周期覆盖上识别37次0.5秒短反向切换；Recovery有效连续时间2.222 s。单次事件计数只描述本run，不用于组间比较。
+
+### 正常到达观察与清理
+
+到达后准备正常站立观察时，closeout gate记录`physics snapshot is not LIVE`，`normal_shutdown_not_attempted`有明确原因，因此本run没有完成预定5秒站立观察。监督器随后请求command 1/PASSIVE；controller日志确认进入PASSIVE，发布起始至controller确认约0.390 ms。此确认只到controller状态层，不证明MuJoCo已消费命令。清理观察窗口未观察到新的策略帧。`process_facts.json`记录进程退出码0、未强制终止、shutdown与closeout完成、无closeout错误；运行后定向进程清点没有发现本次MuJoCo、ROS/controller、RViz或采集器残留。故本次记录链和终止payload验证通过，但正常站立观察条件未满足，二者分开报告。
+
+本次不是正式实验，也不改变B1其余判断：历史8条周期/时钟缺口、两条B的INVALID原始记录、C/D保持覆盖删失、短反向统计覆盖、跌倒/碰撞否定覆盖及MuJoCo命令消费限制继续保留。（历史状态：当时B1为ACTIVE / INCOMPLETE；现已获Director有条件通过并标记COMPLETE，参数比较仍未获授权。）
+
+**历史文字边界：**下文在本次补证前写下的“本轮无场景运行”“A尚未启动”“最终合并修复还缺运行证据”及据此提出的待授权建议，均为当时真实状态；已由本节唯一补证更新。原八条主批及两次B尝试的历史表格和原始记录不变。
+
+## 阶段1：已有问题定位（开始实现前记录）
+
+本阶段定向检查了M1两条墙钟保护记录、一条碰撞终局与分析安全状态不一致记录，以及同批代表性的周期/时钟缺口。没有重算整批M1数据。
+
+### 墙钟保护
+
+两条原始记录：
+
+- [`m1dod01 rep01`](../../../../logs/03_map_validation/M1_A_library/library_v1/m1dod01/rep_01_attempt_01/A/rep_01/20994911061c499d85d78a7a18b4f42b/)
+- [`m1dld01 rep01`](../../../../logs/03_map_validation/M1_A_library/library_v1/m1dld01/rep_01_attempt_01/A/rep_01/172ab576531d4a87af3e042b72096c91/)
+
+两次的run context均记录RL任务起点为cycle 0且策略sim clock有效；首尾物理authority均为LIVE，publisher物理覆盖连续、历史无溢出。墙钟保护触发时分别约为sim_time 11.702 s（任务起点9.818 s，约推进1.884 s）和13.030 s（任务起点9.888 s，约推进3.142 s）。最终JSONL没有terminal策略帧，运动终点时刻与距离因此未定义。两条均是运行不完整，不能当成仿真时间超时或完整导航终局。
+
+**已确认：** supervisor的120 s墙钟保护在实际进入RL后生效；两次运行均到墙钟上限而非20 s仿真时间上限，最后物理snapshot仍连续发布。**有依据候选：**运行期间仿真相对墙钟推进较慢，可能与仿真实时倍率/计算负载有关。**UNKNOWN：**现存记录不能区分GUI/渲染负载、主机竞争、物理仿真速度设置或其他具体阻塞，也不能仅据“物理时钟继续发布”认定当时进程无卡顿。后续不通过单纯增大时限消除该问题；报告阶段耗时及sim/wall推进率并保留不完整状态。
+
+既有controller日志另有每周期`[S6-04-TRACE]`：两条墙钟保护run分别保存102条/约413 KB、165条/约614 KB，同批正常碰撞run保存220条/约788 KB。该观测日志确实存在，但现有样例不足以证明它导致墙钟保护；高频日志/渲染负载继续作为候选，不定根因。
+
+### 碰撞终局与分析事件不一致
+
+原始记录：[`m1dod02 rep02`](../../../../logs/03_map_validation/M1_A_library/library_v1/m1dod02/rep_02_attempt_01/A/rep_01/d541c96a822d4d489635bac07ba26b78/)。supervisor和context记录`COLLISION_TERMINATION`，终止策略帧cycle 436已完整保存；context中的碰撞事件为同一run、physics step 7590、sim_time 15.180 s，FR calf与`ppt_obstacle_03`接触。任务起点cycle 0的策略sim clock无效，分析器据此得不到任务起点仿真时刻，并将运动碰撞覆盖算为UNKNOWN，最终派生终局变成`INVALID_TERMINAL_SAFETY_CONFLICT`。
+
+**已确认：**生产物理发布器有连续覆盖，终止策略帧和碰撞历史保留完整；起点前的同run物理安全边界snapshot为LIVE、sim_time 6.406 s、physics_step 3203，且在RL请求之前。分析器将策略起点无效时间直接转成缺少运动安全起点，未利用该明确的物理边界及episode physics-step范围。**修复方向：**分析器在策略时钟无效时，仅可用同capture/session/scene、时间先于cycle 0且留有明确关联的生产物理边界来判断事件是否落在任务窗口；collision/fall否定结论及精确时长仍应保持UNKNOWN，除非对应覆盖条件齐全。不得把物理时间写回策略帧。
+
+### 周期缺口、时钟无效与安全UNKNOWN
+
+M1报告汇总333个策略周期缺口、534个无效策略时钟帧；代表原始run [`m1dbd01 rep03`](../../../../logs/03_map_validation/M1_A_library/library_v1/m1dbd01/rep_03_attempt_01/A/rep_01/2dad08e9962b4e52ae8e50b21f6860f6/)，策略帧缺少个别cycle，但同期间MuJoCo物理覆盖及事件锁存可以连续。生产runtime帧是单槽共享内存；采集器每次读到LIVE快照即把该精确快照写入JSONL，并另按step差识别未保存周期。故策略cycle跳号能证明持久记录存在缺口，但单凭跳号不能区分controller未产生、共享槽覆盖、reader未轮询到或文件写入失败。现有来源代码表明controller在每个策略决策后发布runtime snapshot，采集器读取是轮询式；实际差值成因在缺少producer累计计数时属UNKNOWN。无效sim clock是逐周期有效性标记，不可用墙钟或后续物理snapshot插值。
+
+**最小拟修复范围：**先修分析器使用生产物理边界解释安全事件窗口；增强run报告，将生产publisher连续覆盖、策略周期保存覆盖、策略时钟覆盖和终端快照完整性分开呈现；由现有runtime帧/控制器周期记录检查能否安全增加producer侧周期总数或丢失可见性字段。若新增协议或高频日志会改变控制时序/无法与旧版本兼容，则不做扩大改造，维持缺口UNKNOWN并列为选参限制。跌倒、碰撞和越界不因未观察到事件而自动记False。
+
+### 四层定位摘要
+
+| 层 | 当前直接证据 | 状态/影响 |
+|---|---|---|
+| 生产端 | MuJoCo v5物理发布器连续覆盖；controller runtime按策略决策写共享单槽帧 | 物理事件累计较可靠；策略生产总数/覆盖摘要尚无独立于reader的持久证据 |
+| 传输/读取 | runtime单槽由监督器轮询；策略cycle跳号；reader本身写入每次读到的完整LIVE帧 | reader未采到每周期不等于生产物理覆盖断裂；确切策略帧丢失位置部分可知，来源需保守分类 |
+| 持久化 | `RunRecordRecorder`逐帧写JSONL并flush；terminal单独finalize，检查同session/递增序号和终止帧关联 | 已记录帧身份可验证；M1墙钟保护无终止策略帧是监督器停止时的运行不完整，不伪造终止帧 |
+| 分析 | `motion_safety`要求有效任务起止仿真时间及覆盖边界；碰撞样例首策略时钟无效时运动起点为空 | 一条已观察碰撞被保守算成UNKNOWN并引发终局冲突；属于分析窗口边界不足，不是生产端未产出该碰撞 |
+
+## 阶段2：定向修复与离线核验
+
+已完成的最小修复：
+
+- `scripts/s1_analyze_run.py`：策略周期起点时钟无效时，可使用精确对应首个/终止策略周期的同run、同capture LIVE物理snapshot取得physics-step事件边界。该边界只用于确认窗口内已直接观察到的碰撞/跌倒；物理步覆盖或策略sim_time边界不足时，安全否定结论与经过时间仍为UNKNOWN。物理时间没有写回策略帧。
+- `scripts/run_record.py`：通过冻结M1 `name_mapping.json` 中的旧文件名白名单读取历史场景身份。scene ID、障碍数量、XML root digest和模型指纹必须与当前目录项一致，旧closure必须仍是格式正确的64位hex；每份原记录的collision snapshot继续按它自己的原meta完整binding逐项校验。新运行仍只写当前目录名和完整binding。
+- `scripts/s1_analyze_run.py`：总体策略频率按保存帧cycle ID跨度/单调时间跨度计算；周期分位数只用保存记录中相邻cycle，避免把跳过周期的长间隔当作正常周期。切换数明确表示保存帧观察到的边沿；任务窗有cycle缺口时，边沿计数完整性为partial/unknown。
+- M1 d541碰撞run经生产`calculate()`重分析，派生结果放在[`logs/b1/historical_reanalysis/m1dod02_rep02/metrics.json`](../../../../logs/04_B1_recording_validation/historical_reanalysis/m1dod02_rep02/metrics.json)及[时间线](../../../../logs/04_B1_recording_validation/historical_reanalysis/m1dod02_rep02/timeline.png)：记录源校验VALID，终局恢复为`COLLISION_TERMINATION`，碰撞=True；窗口覆盖仍不完整，跌倒仍UNKNOWN。原始JSONL/context/metrics没有改写。
+- 定向验证：[`test_b1_motion_safety.py`](../../../../scripts/test_b1_motion_safety.py)覆盖无效策略起点时正事件由同身份physics step确认、负结论保持UNKNOWN、capture错配拒绝、时钟有效时原规则保持，以及缺周期频率计算；[`test_b1_scene_alias.py`](../../../../scripts/test_b1_scene_alias.py)覆盖已知旧名兼容和身份字段不符拒绝；`test_s1_04_contract.py`相关终止帧、清理尾段、缺口和驻留用例通过。上述Python文件py_compile及定向检查通过。只有Python分析/reader代码变化，无C++/MuJoCo/controller运行时代码变化，因而无需C++构建。
+
+限制：单槽帧轮询下缺失cycle内容不能事后恢复。周期差可暴露缺失数量，却不能说明缺失周期发生了什么；模式切换数、短反向切换、驻留和响应指标依然可能不完整，按覆盖字段标记，不插值。墙钟保护继续视为运行不完整；未通过降低安全门或单纯扩大时限修饰结果。
+
+## 阶段3：本轮运行方案
+
+阶段1证据记录完成后、任何新的策略诊断启动前固定如下计划；后续不得按结果换图或参数：
+
+| 顺序 | 场景 | 组别 | 选择依据 |
+|---:|---|---|---|
+| 1–2 | scene_flat.xml（同一平地） | A、A | 检查两个平地A重复启动、完整采集和站立收尾；不期待Recovery，也不作为性能数据 |
+| 3–6 | m1ssd01 | A、B、C、D | M1开发图中已有RA模式边沿，且位于稀疏档；用于检查四组事件记录，不按到达率选取 |
+| 7–10 | m1dod01 | D、C、B、A | M1中有一条墙钟保护记录的同一地图，位于密集档；检查阶段计时与反向组序。历史保护原因保持未知，不预判本次会复现 |
+
+参数冻结：E=-0.05；B/D X=-0.08；C/D H=0.30仿真秒。开发图目标7.5 m，半径0.5 m，运动限20仿真秒/120墙钟秒，到达后站立5仿真秒/30墙钟秒；平地沿同一目标与上限。模型、四组控制链、启动增益交接和安全/终局规则沿用当前M1合同。计划次数10，每计划项最多一次；只在明确基础设施/记录故障且定向修复与离线核验通过后，允许重试同项一次，全任务最多两次额外启动。合法碰撞、跌倒、仿真超时保留，不重跑；留出集不运行。实际初态通过cycle 0和预任务边界记录，逐组比较，不宣称严格重放。策略运行前已冻结机器可读顺序与停止规则：[`b1_run_plan.json`](../../../../logs/04_B1_recording_validation/b1_run_plan.json)。桌面预检使用当前`DISPLAY=:0`与XAUTHORITY，沙箱外X连接、GLFW窗口创建通过；renderer为Intel/Mesa Intel(R) Graphics (RPL-P)，OpenGL 4.6 Compatibility。完整来源、周期覆盖和有效指标门槛以B1运行记录文件记录；正式分析前先验证这些门槛确实被runner消费。
+
+## 阶段4：本批8/10条有界诊断结果
+
+### 来源与配置
+
+逐run完整来源和实际字段见[运行来源配置表](B1_SOURCE_CONFIG.md)。八条实际运行均在独立overlay运行。每个run_context的`runtime_source_validation.status=confirmed`、`controller_library_mapping.status=confirmed`，碰撞reader scene binding为LIVE；运行时实际观察的group、E/X/H和goal与批次条件相符。A：E=-0.05、有效X=E、无滞回/保持；B：E=-0.05、X=-0.08、滞回开、无保持；C：E=-0.05、H=0.30仿真秒、无滞回；D：E=-0.05、X=-0.08、H=0.30仿真秒。控制器、模型、地图、启动增益交接、控制频率和安全规则在四组间保持一致。overlay是本次独立副本；未改源码或原安装配置。八次记录均由运行端当前controller库通过来源检查，故虽只改Python分析/reader代码，没有新增C++构建需要。
+
+### 每次结果与阶段时间
+
+- 两条平地A均`VALID / ARRIVED`，终点距目标0.465 m和0.468 m；均完成5仿真秒站立观察。
+- `m1ssd01`稀疏S型开发图：A、B、D均ARRIVED（终点距目标0.494、0.497、0.498 m）；C为`DIAGNOSTIC_SIM_TIME_LIMIT`，运动20.02仿真秒后仍距目标约3.030 m。不是墙钟保护，未补跑。
+- `m1dod01`密集错位通道开发图：D、C均ARRIVED（终点距目标0.477、0.474 m）；按停止规则，B、A未启动。
+- 八条已启动run均来源VALID、cycle0有效且精确持久化，记录器RL前就绪、准备站稳、任务前物理安全边界LIVE；均报告站立观察完成并完成清理。各run保存策略帧198至985个，整体频率估计约50.13–50.60 Hz，但每条都有2–17个周期缺口、若干时钟无效帧，频率/边沿覆盖标为partial/unknown。
+- `m1ssd01` A观察到16次Agile→Recovery及16次Recovery→Agile，B观察到23/23，C观察到22/24（46条边沿有有效仿真时间），D观察到9/9。`m1dod01`已运行D为3/3、C为4/4。边沿数基于保存记录，不因无效时间删除；周期有缺口时总边沿完整性未知。
+- B稀疏运行记录1次足端接触并达到足端撞击分类，没有非足端终止碰撞。其余具完整碰撞覆盖的运行未见任务窗碰撞。跌倒多条为UNKNOWN；base越界全程否定证据不足。
+- C/D hold审计：稀疏C 16完整/6不完整；稀疏D 4/5；密集D 2/1；密集C 3/1；各自可核验片段未发现违反规则，整体审计均不完整。末端截断和缺周期保持删失，不能说保持审计全部通过。
+- 所有短反向切换统计覆盖均为partial/unknown，不可据此作组间排序。逐项数值见[B1运行矩阵](B1_RUN_MATRIX.md)，原始链接包括终止结果、metrics、context及timeline。
+
+### 实测初态与阶段时间
+
+八条运行均保存reset probe的base pose/quaternion和qpos；reset关节速度为UNKNOWN。首个有效策略周期`rl_step=0`的companion保存12维具名关节q/dq、机身线/角速度和IMU四元数，并与第一个持久化活动runtime帧按session/cycle/monotonic身份精确匹配。共同的reset姿态不意味着真实策略起点完全相同；同图cycle0 q/dq及速度的逐次最大差异见[初态对照](B1_INITIAL_STATE_COMPARISON.md)。因此结果是有实测起点记录的重复比较，不是严格重放或完全配对。
+
+实际monotonic阶段计时见[启动计时表](B1_STARTUP_TIMING.md)。本批MuJoCo进程启动至RL请求约7.27–10.25 s。旧M1墙钟运行阶段时间边界不一致，不计算虚假节省比例。历史两条wall-cap run原因仍UNKNOWN；本批没有复现墙钟保护，但这不证明历史原因已解决。策略计时及驻留一律用有效仿真时间；wall-cap与仿真时间上限分开报告。
+
+### 指标可用性、地图与实机边界
+
+详细口径及分级见[指标可用性清单](B1_METRIC_READINESS.md)。终局/终止位置、来源、cycle0与清理可用；连续时长、路径/速度、全部切换、短反向、Recovery时间与占比仅部分可用；负碰撞/跌倒结论按物理覆盖逐run决定；base越界完整否定、缺失策略周期的事件内容和MuJoCo命令消费仍不可用。该两图提供了RA触发Recovery及C保持的机制观察，但单次组别结果不构成性能对照；密集图又缺B/A。
+
+仿真向实机迁移边界保持不变：理想MuJoCo射线不等同真实传感器；足力、部署动作接口和实机命令语义未由本任务验证；内部risk到mode纳秒延迟不代表真实避障/执行延迟；速度/动作限制和实体急停不由这批仿真证明。STOP/PASSIVE请求、controller状态确认与MuJoCo物理消费是不同层次；不据此改变实机NO-GO。
+
+### 密集图未运行的原因与停止
+
+密集图D、C完成后，启动B的两次沙箱外执行请求均被自动权限审批流程挂起并最终超时。两次都未创建`logs/b1/runs/m1dod01_B`输出目录；逐次检查没有新建仿真/ROS/controller进程。按停止规则不再申请、不在沙箱内以EPERM结果替代真实窗口运行，也不启动密集图A。两条状态记录为`BLOCKED_NOT_STARTED`，不是仿真失败或运行终局。机器可读的冻结计划与状态见[`b1_run_plan.json`](../../../../logs/04_B1_recording_validation/b1_run_plan.json)。
+
+## 阶段5：结论与主线交接
+
+| 原不确定项 | 本轮证据 | 判断 | 是否影响选参 |
+|---|---|---|---|
+| 碰撞终局被分析器遗漏 | 生产分析器现可用同身份有效physics-step边界保留直接正碰撞；历史d541重分析为COLLISION_TERMINATION | 部分解决；时间指标/负结论仍UNKNOWN | 是，需保持逐run覆盖检查 |
+| cycle缺口是否等同物理覆盖断裂 | run记录区分策略持久化缺口与物理authority覆盖 | 部分解决；缺失策略状态不可恢复 | 是，短反向/切换审计仍不完整 |
+| M1墙钟保护根因 | 两个历史run仍为不完整；新八run未触发wall cap | UNKNOWN，不能称已修复 | 是，继续分开记录，不靠扩大上限遮盖 |
+| 初态公平性 | 每次cycle0 q/dq精确持久化并可配对；存在实测组间差异 | 部分解决，未严格重放 | 是，参数比较需报告初态协变量 |
+| 地图是否能观察切换机制 | 稀疏图四组记录真实RA边沿及保持；密集只完成C/D | 部分解决；密集A/B缺证据 | 是，当前机制样本不完整 |
+| 碰撞/跌倒/越界负结论 | 若干碰撞窗完整，但跌倒与越界仍有UNKNOWN | 未解决 | 是，不能据无事件计算安全成功率 |
+| 关键指标完整性 | 自动表/时间线已生成；周期缺口、无效时钟、删失保持及短反向覆盖保留 | 部分解决 | 是，尚不适合可解释的完整参数比较 |
+| 命令生效/实机迁移 | 只验证来源和controller状态，不验证MuJoCo消费或实机 | 未解决，保持NO-GO | 正式实验/实机结论受限 |
+
+**重审前建议（仅依据原8/10条）：** 仅允许继续定向诊断，不进入开发集参数预实验。当时理由为密集图B/A未启动，另有周期缺口、C/D保持审计删失、短反向覆盖不足及跌倒/base越界UNKNOWN。下文“Director重审后的定向修正”补充了两次B尝试及当前建议，作为最新状态。
+
+### 运行清理
+
+八次仿真均由诊断器正常收尾，`shutdown_complete=true`、`closeout_complete=true`、没有closeout_errors；每次运行后独立检查均无本次MuJoCo、controller/ROS launch、RViz、采集器及辅助进程遗留。预检窗口已销毁。末两条未启动，所以没有对应的清理进程。环境已关闭。
+
+## 历史：Director重审后的定向修正（2026-10-15；其后补证见报告顶部）
+
+本节是最新状态。前文仍保留八条原始诊断完成时的记述；下面的两次B尝试属于原计划密集图B的首次运行和唯一一次获准基础设施重试，不构成新增的计划项，也不改写原八条记录。
+
+### 风险事件计数
+
+报告和运行矩阵已按枚举语义重核八条原始JSONL：只有`risk_condition_entered == 1`计为true，`0`计false，`2`单列UNKNOWN；不使用Python truthiness或非零判断。平地A两条各为0次true；稀疏C为28次true（旧表29次为错误）；其余各组结果见[风险枚举审计](B1_RISK_EDGE_AUDIT.md)和更新后的[运行矩阵](B1_RUN_MATRIX.md)。独立重算与每条原始metrics中的风险、模式转换及配对计数相符；原始JSONL、context和metrics未修改。
+
+### 策略周期发布至落盘顺序
+
+原有有界SPSC周期历史环保持独立于实时单槽快照；生产帧、session/cycle、溢出状态和终止排空都有可核对路径。第一次B记录暴露采集端顺序竞争：监督器先读到单槽cycle N，之后无界排空历史环将N之后的帧写入，再由observer写入较旧的N。observer单独增加sequence上限后，获准的B重试仍出现同类INVALID，说明主循环也有另一个无界排空点；该重试发生在主循环修正之前，不能作为最终修复的运行验证。
+
+当前修正是在主循环取得一致的实时帧后，将历史环读取限制到该帧的source sequence；observer复用同一上限，较新的环帧留到下一轮，终止收尾在当前直接帧写入后再排空剩余历史。这样维持按来源序号递增写入，不增加控制循环等待或同步大量磁盘I/O。针对真实生产helper的离线检查覆盖上限读取、较新环帧递延、乱序拒绝、溢出可见及session重置，并通过。**补证前状态：**最终主循环修正尚无有效场景运行验证；该缺口已由本报告顶部的唯一dev25 A补证更新。
+
+### 策略时钟
+
+原八条中的无效策略时钟均表现为status=STALE、age=0且sequence非零。代码核对发现controller先取得策略周期的单调时刻，再读共享仿真时钟快照；生产者在其间更新时，新的合法monotonic时间戳可能晚于旧校验时刻。现在先完成一致性快照读取，再取得一次校验单调时刻，并用同一时刻完成未来时间、年龄和有效性检查；没有放宽阈值、用墙钟替代仿真时间或把新物理时间回填旧策略帧。controller增量构建并安装成功。原八条帧仍按原状态解释，修复不追改历史。
+
+### 安全和越界覆盖
+
+跌倒审计按完整生产事件历史和运动窗口区分启动前已关闭事件、跨入任务边界的候选、运动期确认事件、无效姿态及历史溢出，不改跌倒判据。已能连续证明物理覆盖的原记录中，仍有未确认候选与运动窗口重叠，不能据此记为“未跌倒”；flat_A_02缺可用任务起点时间，仍为UNKNOWN。C/D保持审计的历史删失继续保留。
+
+新增的base-bounds authority独立于碰撞快照，运行端由MuJoCo PhysicsLoop按冻结M1矩形累计base_link的XY位置、首次/末次越界及极值，并绑定run/source、场景和模型身份；Python生产reader检查版本、长度、序列一致性、身份、新鲜度和连续物理步覆盖。实际C++发布器至Python reader的有界握手通过，测试在两次读取之间注入一个受控越界物理样本，reader能看到累计事件锁存。该受控探针验证的是传输/累计链，不是机器人自然越界运行。两次B尝试的独立物理authority在其记录为INVALID的背景下显示任务物理覆盖连续、base_link点未越出矩形；这不能升级成有效导航run，也不能证明整机/足端外形全程界内。两条历史M1墙钟保护仍无法区分GUI、主机竞争、仿真倍率或其他负载原因；本轮不扩大墙钟上限。
+
+### 剩余B/A尝试及结果
+
+场景为冻结的`dev25.xml` / `m1dod01`，group=B，E=-0.05、X=-0.08、目标7.5 m；controller、模型和运行参数由本次source记录确认。首条和唯一重试分别保存在[首次B尝试](../../../../logs/04_B1_recording_validation/runs/m1dod01_B/B/rep_01/6edf02f841a64b508c25235aad9deba2/)及[重试B](../../../../logs/04_B1_recording_validation/runs/m1dod01_B_retry_01/B/rep_01/8fa9e43785f34f41b73aa26af7b5ea34/)。两次supervisor终局均为ARRIVED，距目标约0.4922 m和0.4863 m，但runtime记录分别因`monotonic_time_not_strictly_increasing`、`rl_step_not_strictly_increasing`及`source_sequence_not_strictly_increasing`被判INVALID。其生产环本身未报告overflow；失序发生在监督器多来源合并/写盘次序。两次均有真实退出、清理完整及controller安全PASSIVE转换记录，但未完成正常5秒站立观察，因此不能表述为正常站立收尾通过，也不能纳入有效导航指标。原始JSONL、终局、日志和图像保持不变。
+
+因B首次失败后已使用唯一允许的重试，重试仍发生同类记录无效，立即停止后续计划项；密集图A未在原10项主批启动，不再重试B。A补证后续另行授权并已完成，详见本报告顶部。两次B仍INVALID且原始记录保持不变。
+
+### 本轮检查、构建与环境
+
+最终修正后重新运行的定向检查全部通过：有界周期历史C++→Python检查；base-bounds reader、实际MuJoCo PhysicsLoop发布器→Python reader握手、motion-safety、risk-enum、scene-alias检查；`test_run_record.py` 59/59；`test_s1_04_contract.py`收尾/分析路径检查；受影响Python文件`py_compile`。首次重跑S1-04合同用例时，旧合成fixture缺少新增的生产周期历史环输入，因而被生产逻辑正确判为`policy_cycle_history_incomplete`；已让fixture模拟同周期、有界且完整的历史发布，再运行通过，未降低生产校验。controller库和MuJoCo主程序之前已按需增量构建。没有运行全仓库测试。
+
+每次诊断按顺序关闭MuJoCo后关闭controller/ROS及本次采集和辅助进程，并检查真实退出事实；两次运行均`process_shutdown_complete=true`、closeout无错误。末次定向检查后没有发现本次项目进程或遗留测试共享内存。环境已关闭。
+
+### 补证前阶段结论（历史）
+
+风险计数错误已修正；时钟校验顺序已有代码修复和构建；base_link XY物理覆盖有生产端握手，但仅证明点位置的诊断范围；周期历史顺序修正通过离线测试，当时尚缺有效场景运行验证。原八条周期缺口、C/D保持删失、短反向覆盖不足、运动期跌倒候选/UNKNOWN、flat_A_02任务起点时钟缺失，以及整机足迹和MuJoCo命令消费限制仍保留。该段是dev25 A补证前的阶段判断。
+
+## 历史定向补证：合并写盘、历史复用和终止边界（2026-10-15）
+
+本节记录当时的离线补强阶段。前文有关“最终主循环修复尚未有完整组合检查”的表述是执行前历史判断；该阶段补齐了离线组合检查。修复后的场景运行证据随后由本报告顶部所列dev25 A补证取得。（历史状态：当时B1为ACTIVE / INCOMPLETE；现已标记COMPLETE。）
+
+### 生产路径修正
+
+- 单槽实时帧和策略周期历史环统一经`FrameCapture.drain_history()`受保护入口合并。正常循环不再另行预排空；观察实时帧后只读取不晚于该帧`source_sequence`的环记录。终止后的收尾用同一入口排空剩余发布帧，更新环帧不会越过较旧实时帧先落盘。
+- 相同`(session_id, source_sequence)`且原始字节相同的帧只保存一次并计为一致重复。相同身份但内容不同、session变化、source sequence回退、活动策略cycle非递增、monotonic时间回退均明确拒绝；不排序落盘结果、不删冲突帧。
+- `producer_overwritten_count`保留其原含义：累计槽位复用数。reader以`oldest=max(0, produced_count-capacity)`与消费者`cursor`判断未读损失。`cursor >= oldest`时槽位虽复用但可完整读取；`cursor < oldest`时报告损失数量及索引范围。槽位复用计数不一致、counter reset、session变化、未提交/错位slot均显式失败。closeout重读同一溢出区间不重复累计损失。
+- v2 accounting分开封存`task_termination_boundary`（cycle0到终止帧）和`final_closeout_drain`（清理期最后一次排空）。终止后的周期可留在JSONL，但不延长任务窗；分析器分别输出任务边界完整性、最终排空完整性、槽位复用与未读损失。历史记录缺少新字段时保持旧读取语义。
+
+### 实际组合链离线核验
+
+[`test_b1_frame_capture_merge.py`](../../../../scripts/test_b1_frame_capture_merge.py)调用真实`FrameCapture`、`RunRecordRecorder`、`finalize_run_closeout`、`load_record`及生产分析器。只有producer history输入和物理authority在隔离fixture中受控；写盘、身份/顺序校验、终局、收尾和分析均走生产路径。详细结果见[组合检查summary](../../../../logs/04_B1_recording_validation/offline_merge_validation/summary.json)；终止N后带清理tail的代表性实际JSONL、context、terminal和metrics保存在[`terminal_race/`](../../../../logs/04_B1_recording_validation/offline_merge_validation/terminal_race/)。
+
+| 用例 | 记录/边界 | 结果 |
+|---|---|---|
+| 终止N后已发布N+1/N+2 | cycles 0–4；N=2时task cursor=3、producer count=5；closeout后cursor=5 | N payload唯一完整；一致重复去重1次；analyzer VALID，运动终点cycle2、任务窗2次切换，清理尾段排除 |
+| 短暂未提交slot、跨多周期追赶 | 保留前缀并重读；从cycle0追到cycle4 | 短暂INCOHERENT经1次重读通过；持久INCOHERENT在有界重试后不完整；完整 catchup 的analyzer通过 |
+| 同身份冲突、monotonic回退 | 相同身份不同payload；递增sequence但不递增时间 | 写盘前拒绝，原因可查 |
+| session变化、producer计数reset | reader分别返回SESSION_CHANGED及RESET | 均拒绝，不跨session拼接 |
+| 消费者落后 / 消费者跟读超容量 | capacity=2、producer=5时未读范围`[0,3)`；另逐周期跟读2051帧，容量2048 | 前者loss=3、最终不完整且只记一次；后者slot reuse=3、unread loss=0、2051帧完整写入 |
+| terminal写入失败 | 注入终止帧写入OSError，再调用closeout与分析 | cleanup callback仍执行，错误保留，analyzer判INVALID |
+
+另用真实C++ `publishHistory()`生成环快照，并由生产`read_shm_history()`读取：超过容量时报告`[0,2)`溢出；消费者到最早可读slot后正常读取、slot reuse=2；session变化、计数reset、未提交slot及复用计数错配均按预期拒绝。见[C++→Python reader结果](../../../../logs/04_B1_recording_validation/offline_merge_validation/cpp_reader/summary.json)。本轮编译的是独立C++发布器探针；没有生产controller/MuJoCo C++功能变更，因此未重建其主程序。
+
+受影响Python文件编译检查通过；`test_run_record.py` 59/59；`test_s1_04_contract.py`及两项B1定向脚本通过。第一次独立C++探针编译因测试代码把`slots`误写为`HistoryHeader`成员而失败；按实际`HistoryBuffer`布局修正探针后重新编译及reader检查通过，未改生产数据结构。S1-04 fixture原先期望跨session帧先被写入再判INVALID，与当前先拒绝、不追加的生产语义不符；已改为检查拒绝原因、单session帧数及closeout后的INVALID。未降低生产规则，未运行全仓库测试。
+
+### 历史B记录及补证前运行建议（建议已执行）
+
+两条历史B原始JSONL经生产reader只读复核，仍为`ARRIVED / INVALID`，错误包括`source_sequence_not_strictly_increasing`、`rl_step_not_strictly_increasing`及`monotonic_time_not_strictly_increasing`。原始文件未改写；仅凭落盘记录不能还原当时生产者与消费者的完整微观先后次序。
+
+该历史离线阶段没有启动MuJoCo、controller/ROS、RViz、采集器或策略；其C++探针和Python检查已结束，测试临时文件清理，没有创建或触碰共享内存。该记录不描述后续dev25 A运行。
+
+该建议已由后续授权的唯一dev25 A补证执行；结果见报告顶部。该run验证了cycle0至终止边界及分析，正常站立观察未完成，且没有重试。
+
+该历史段结论为当时状态：离线生产组合链已核验、有效场景运行尚待补证。补证后仍**不进入参数预实验**，原因是原八条周期缺口、无效时钟、短反向覆盖不足、C/D保持删失以及跌倒/越界UNKNOWN继续影响核心指标；dev25 A仅提供一条有效记录链运行证据。（历史状态：当时B1保持ACTIVE / INCOMPLETE等待Director重审；现已获有条件通过并标记COMPLETE。）

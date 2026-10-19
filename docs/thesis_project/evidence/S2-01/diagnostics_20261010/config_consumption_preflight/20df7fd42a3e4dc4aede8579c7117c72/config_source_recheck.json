@@ -1,0 +1,34 @@
+{
+  "evidence": {
+    "agile_model": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/abs/policy.pt",
+    "candidate": "paper_faithful_switch",
+    "config": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/abs/config.yaml",
+    "controller_launch_config": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/robot_control.yaml",
+    "effective_exit_threshold": -0.05,
+    "entry_threshold": -0.05,
+    "exit_threshold": -0.05,
+    "goal_world_m": [
+      7.0,
+      0.0
+    ],
+    "goal_x": 7.0,
+    "goal_y": 0.0,
+    "group": "A",
+    "hold": "false",
+    "hysteresis": "false",
+    "launch_node": "ros2_control_node-3",
+    "package_share": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description",
+    "pid": 49900,
+    "ra_model": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/abs/ra_value.pt",
+    "recovery_model": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description/share/go2_description/config/rec/policy.pt",
+    "switch_config_event": {
+      "entry_threshold": -0.05,
+      "exit_threshold": -0.05,
+      "group": "A",
+      "hold": "false",
+      "hysteresis": "false"
+    }
+  },
+  "reason": "controller_initialization_consumed_A_config",
+  "status": "confirmed"
+}

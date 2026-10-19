@@ -17,10 +17,13 @@ from __future__ import annotations
 import unittest
 
 from abs_rt_frame import (
+    HOLD_ACTIVE,
+    SOURCE_AUTHORITATIVE_RUNTIME,
     SOURCE_LEGACY_ONLY,
     SOURCE_SYNTHETIC_TEST,
     SOURCE_UNSET,
     HudState,
+    SWITCH_COMBINED,
 )
 from abs_live_hud import _LIVE_FIELD_LABELS, render
 
@@ -67,7 +70,9 @@ class RenderNonLiveTests(unittest.TestCase):
         # A complete, finite, authoritative frame older than the freshness timeout
         # is STALE; the HUD must not show any of its values.
         stale_ns = _NOW_NS - 1_000_000_000
-        self._assert_status_only("STALE", _authoritative_fixture(monotonic_ns=stale_ns))
+        self._assert_status_only("STALE", _authoritative_fixture(
+            monotonic_ns=stale_ns, risk_evaluation_ns=stale_ns,
+            sim_clock_monotonic_ns=stale_ns - 1, sim_clock_age_ns=1))
 
     def test_default_synthetic_frame_never_shows_live_values(self):
         # The default fixture source is SYNTHETIC_TEST; even a fully well-formed
@@ -97,7 +102,9 @@ class RenderNonLiveTests(unittest.TestCase):
         self.assertIn("LIVE", render(hud, _NOW_NS))
         stale_ns = _NOW_NS - 1_000_000_000
         hud.update(
-            _authoritative_fixture(session_id=12345, rl_step=9, ra_value=0.03, monotonic_ns=stale_ns),
+            _authoritative_fixture(session_id=12345, rl_step=9, ra_value=0.03,
+                                   monotonic_ns=stale_ns, risk_evaluation_ns=stale_ns,
+                                   sim_clock_monotonic_ns=stale_ns - 1, sim_clock_age_ns=1),
             _NOW_NS,
         )
         stale_out = render(hud, _NOW_NS)
@@ -143,6 +150,20 @@ class RenderNonLiveTests(unittest.TestCase):
 
 
 class RenderLiveTests(unittest.TestCase):
+    def test_live_render_identifies_d_and_both_mechanisms(self):
+        data = _pack_frame(
+            source=SOURCE_AUTHORITATIVE_RUNTIME, version=3,
+            switching_mode=SWITCH_COMBINED, policy_state=1, mode_before=0,
+            action_source=2, policy_mode_changed=1, mode_change_ns=_NOW_NS - 100,
+            hold_status=HOLD_ACTIVE, hold_enabled=1, recovery_min_hold_s=0.30,
+            hold_enter_sim_time_s=0.2, hold_elapsed_sim_s=0.1, sim_time_s=0.3,
+            entry_threshold=-0.05, exit_threshold=-0.08,
+        )
+        out = _render(data)
+        self.assertEqual(_field(out, "switching_mode"), "D")
+        self.assertIn("E=-0.050, Xeff=-0.080", out)
+        self.assertIn("H=0.300s, remaining=0.200s", out)
+
     def test_live_render_shows_authoritative_values(self):
         # Format/branch verification only (synthetic fixture), not runtime evidence.
         out = _render(

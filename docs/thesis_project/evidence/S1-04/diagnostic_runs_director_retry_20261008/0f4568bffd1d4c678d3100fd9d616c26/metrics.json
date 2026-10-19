@@ -1,0 +1,30 @@
+{
+  "run_id": "0f4568bffd1d4c678d3100fd9d616c26",
+  "record_validity": "INVALID",
+  "record_validity_reason_count": 1,
+  "record_validity_reasons": [
+    "no_frame_lines"
+  ],
+  "terminal_result": "STARTUP_FAILURE",
+  "run_terminal_result_context": "STARTUP_FAILURE",
+  "run_terminal_result_record": "STARTUP_FAILURE",
+  "session_ids_observed": [],
+  "frame_count": 0,
+  "all_derived_metrics": "UNKNOWN: record fails continuity/schema validation; no aggregation across sessions",
+  "collision_coverage": {
+    "available": false,
+    "reason": "formal collision snapshot is missing, stale, invalid, has unknown contacts, or lacks contiguous coverage",
+    "event_count": null,
+    "coverage": {
+      "samples": 0,
+      "live_samples": 0,
+      "unknown_contacts": 0,
+      "physics_step_gaps": 0,
+      "sampled_steps_contiguous": false,
+      "complete_for_no_collision_claim": false
+    }
+  },
+  "external_safety_events": [],
+  "cleanup_events": [],
+  "command_consumption": "UNKNOWN"
+}

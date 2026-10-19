@@ -1,0 +1,105 @@
+{
+  "schema": "abs-go2-p1-10-stage-a-evidence-integrity-inventory/v1",
+  "pair_dir": "docs/evidence/P1-10/replay_pair_20260907_stage_a_current_instrumented",
+  "pair_status": "RUNTIME_EXECUTED / EXACT_REPLAY_FAIL / EVIDENCE_INCOMPLETE",
+  "inventory_method": "read-only lstat; regular-file byte count and SHA-256; no reconstruction or content synthesis",
+  "pair_manifest": {
+    "path": "docs/evidence/P1-10/replay_pair_20260907_stage_a_current_instrumented/pair_manifest.json",
+    "status": "PRESENT",
+    "bytes": 9823,
+    "sha256": "769e7f6bd148ad3111213af2261cb357a89510b511453c8f406b7f5c3a4edc8c"
+  },
+  "required_run_artifacts": [
+    "scenario_resolved_manifest.json",
+    "p1_10_context.json",
+    "preflight_evidence.json",
+    "runtime_record.jsonl",
+    "sim_clock_timing.jsonl",
+    "rt_frame_timing.jsonl",
+    "reader_stats.json",
+    "process_facts.json",
+    "orphan_inventory.json",
+    "mujoco_raw.log",
+    "ros2_launch_raw.log",
+    "orchestrator_raw.log"
+  ],
+  "runs": {
+    "run_A": {
+      "directory_status": "MISSING",
+      "artifacts": [
+        {"path": "run_A/scenario_resolved_manifest.json", "status": "MISSING"},
+        {"path": "run_A/p1_10_context.json", "status": "MISSING"},
+        {"path": "run_A/preflight_evidence.json", "status": "MISSING"},
+        {"path": "run_A/runtime_record.jsonl", "status": "MISSING"},
+        {"path": "run_A/sim_clock_timing.jsonl", "status": "MISSING"},
+        {"path": "run_A/rt_frame_timing.jsonl", "status": "MISSING"},
+        {"path": "run_A/reader_stats.json", "status": "MISSING"},
+        {"path": "run_A/process_facts.json", "status": "MISSING"},
+        {"path": "run_A/orphan_inventory.json", "status": "MISSING"},
+        {"path": "run_A/mujoco_raw.log", "status": "MISSING"},
+        {"path": "run_A/ros2_launch_raw.log", "status": "MISSING"},
+        {"path": "run_A/orchestrator_raw.log", "status": "MISSING"}
+      ]
+    },
+    "run_B": {
+      "directory_status": "MISSING",
+      "artifacts": [
+        {"path": "run_B/scenario_resolved_manifest.json", "status": "MISSING"},
+        {"path": "run_B/p1_10_context.json", "status": "MISSING"},
+        {"path": "run_B/preflight_evidence.json", "status": "MISSING"},
+        {"path": "run_B/runtime_record.jsonl", "status": "MISSING"},
+        {"path": "run_B/sim_clock_timing.jsonl", "status": "MISSING"},
+        {"path": "run_B/rt_frame_timing.jsonl", "status": "MISSING"},
+        {"path": "run_B/reader_stats.json", "status": "MISSING"},
+        {"path": "run_B/process_facts.json", "status": "MISSING"},
+        {"path": "run_B/orphan_inventory.json", "status": "MISSING"},
+        {"path": "run_B/mujoco_raw.log", "status": "MISSING"},
+        {"path": "run_B/ros2_launch_raw.log", "status": "MISSING"},
+        {"path": "run_B/orchestrator_raw.log", "status": "MISSING"}
+      ]
+    }
+  },
+  "comparison_artifacts": [
+    {"path": "canonical_identity_input.json", "status": "MISSING"},
+    {"path": "canonical_identity_output.json", "status": "MISSING"},
+    {"path": "diff_report.json", "status": "MISSING"},
+    {"path": "saved_record_comparison_report.md", "status": "MISSING"}
+  ],
+  "historical_fact_support": {
+    "pair_manifest": "PRESENT; proves frozen identity and planned run layout, not execution success",
+    "run_A_and_run_B_ever_ran": "PRESERVED_DIAGNOSIS_ONLY",
+    "individual_process_exit_success": "PRESERVED_DIAGNOSIS_ONLY",
+    "exact_comparison_FAIL": "PRESERVED_DIAGNOSIS_ONLY",
+    "comparator_output_currently_present": false,
+    "raw_runtime_record_present": false,
+    "raw_timing_present": false,
+    "raw_process_facts_present": false,
+    "raw_logs_present": false
+  },
+  "preserved_supporting_evidence": [
+    {
+      "path": "docs/evidence/P1-10/stage_a_pair_difference_diagnosis_20260907.md",
+      "status": "PRESENT",
+      "bytes": 11548,
+      "sha256": "2e502c10454956079a9a5539b2328cab3b4c98602c7c5bd0b822f60d926f0873"
+    },
+    {
+      "path": "docs/evidence/P1-10/stage_a_fresh_pair_freeze_20260907.md",
+      "status": "PRESENT",
+      "bytes": 2596,
+      "sha256": "57d956fb627238b0cfad0e963b7ebbbdb749171febd6275719718bf106a3b46a"
+    },
+    {
+      "path": "docs/evidence/P1-10/stage_a_common_start_alignment_investigation_20260907.md",
+      "status": "PRESENT",
+      "bytes": 11609,
+      "sha256": "e5998e57586a3d6a8b19039abb2e480793e62f5674c7af32acac23568ec3743a"
+    }
+  ],
+  "incident": {
+    "cause": "The pre-repair stage_a_saved_record_compare test used the real frozen pair as a fixture: setup removed run_A/run_B and comparison outputs, then attempted to rebuild them before the test assertion.",
+    "current_pair_mutation": "No reconstruction, retry, or replacement run is permitted.",
+    "fixed_test_policy": "Historical Stage-A test is non-mutating; full filesystem comparator fixtures use TemporaryDirectory and do not write the real pair.",
+    "common_start_runtime_evidence": "NOT_PRESENT; implementation remains offline-only"
+  }
+}

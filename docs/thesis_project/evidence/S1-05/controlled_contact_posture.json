@@ -1,0 +1,7 @@
+{
+  "command": "unitree_mujoco/simulate/build2/s1_05_collision_probe /home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/scene_obstacle.xml",
+  "kind": "headless controlled MuJoCo physics-source check; no policy/controller or GUI",
+  "exit_code": 0,
+  "stdout": "authoritative=1 physics_coverage=1 episodes=1 contact_steps=5 event=RR/ fall_candidate=1 fall_confirmed=1 fall_start_step=11 fall_confirmed_step=161 fall_duration_sim_s=0.300 foot_floor=0 nonfoot_floor=1",
+  "evidence_boundary": "This short check ran before the ground-classification correction discovered in the normal diagnostic. It directly exercised the producer's obstacle episode and fall-confirmation path, but does not validate the corrected producer-to-Python-reader chain. The output showed an empty obstacle name; the producer stores geom IDs, but those IDs were not printed by this probe."
+}

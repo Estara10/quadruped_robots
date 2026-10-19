@@ -1,0 +1,7 @@
+{
+  "status": "COMPLETE_ANALYSIS_REBUILT",
+  "updated_at": "2026-10-18T17:53:12+08:00",
+  "batch_root": "/home/lidio/quadruped_robots/logs/t1/m2_local_scan_216/20261018_162629_m2scan216",
+  "scene_reruns": 0,
+  "note": "Automatic analysis failed on a string numeric field and then produced an empty collision context; both were derived-analysis bugs. Raw scene records were preserved; analysis was rebuilt without rerunning scenes."
+}

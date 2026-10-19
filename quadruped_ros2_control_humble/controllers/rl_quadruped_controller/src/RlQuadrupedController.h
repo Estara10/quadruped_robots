@@ -13,6 +13,7 @@
 #include "controller_common/FSM/StateFixedDown.h"
 #include "rl_quadruped_controller/FSM/StateFixedStand.h"
 #include "controller_common//FSM/StatePassive.h"
+#include <abs_normal_shutdown_contract.h>
 
 namespace rl_quadruped_controller
 {
@@ -59,7 +60,14 @@ namespace rl_quadruped_controller
             const rclcpp_lifecycle::State& previous_state) override;
 
     private:
+        enum class NormalShutdownStage { NONE, STANDING, STANDING_HOLD, STAND_CONFIRMED, LOWERING, RELEASE_PENDING, RELEASED, FAILED, ABORTED };
+
         std::shared_ptr<FSMState> getNextState(FSMStateName stateName) const;
+        abs_normal_shutdown::Feedback sampleNormalShutdownFeedback(const std::vector<double>& target) const;
+        void updateNormalShutdown();
+        void logNormalShutdownFeedback(const char* phase,
+                                       const abs_normal_shutdown::Feedback& feedback,
+                                       uint64_t stable_since_ns) const;
 
         CtrlComponent ctrl_component_;
         CtrlInterfaces ctrl_interfaces_;
@@ -134,6 +142,12 @@ namespace rl_quadruped_controller
         int dds_timeout_counter_ = 0;
         int dds_timeout_threshold_ = 100;  // ~200ms at 500Hz
         bool dds_timeout_triggered_ = false;
+
+        // Activated only by StateRL after a healthy ARRIVED + measured
+        // deceleration confirmation. It never changes the motion policy rules.
+        NormalShutdownStage normal_shutdown_stage_ = NormalShutdownStage::NONE;
+        uint64_t normal_shutdown_stage_started_ns_ = 0;
+        uint64_t normal_shutdown_stable_since_ns_ = 0;
     };
 }
 #endif //LEGGEDGYMCONTROLLER_H

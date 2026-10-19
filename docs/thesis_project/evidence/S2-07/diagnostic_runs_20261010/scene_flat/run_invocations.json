@@ -1,0 +1,46 @@
+{
+  "shared_settings": {
+    "scene": "scene_flat.xml",
+    "goal_m": [7.0, 0.0],
+    "arrival_radius_m": 0.5,
+    "sim_limit_s": 20,
+    "wall_cap_s": 120,
+    "candidate": "paper_faithful_switch",
+    "group": "A",
+    "entry_threshold": -0.05,
+    "effective_exit_threshold": -0.05,
+    "overlay": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description",
+    "display": ":0",
+    "xauthority": "/run/user/1000/gdm/Xauthority",
+    "execution_scope": "temporary sandbox-external local display access for this authorized simulation diagnostic"
+  },
+  "attempts": [
+    {
+      "run_id": "371cde10a7e9498f99bf54686852d4c7",
+      "status": "INVALID",
+      "frames": 0,
+      "terminal": "WALL_CLOCK_GUARD_INCOMPLETE",
+      "finding": "startup command race left controller in FIXEDSTAND; supervisor summary then hit a null normal_shutdown access after artifacts were written",
+      "cleanup_confirmed": true,
+      "process_facts": "371cde10a7e9498f99bf54686852d4c7/process_facts.json"
+    },
+    {
+      "run_id": "5e1555d9223a4f7a83078d41af0fa755",
+      "status": "INVALID",
+      "frames": 0,
+      "terminal": "WALL_CLOCK_GUARD_INCOMPLETE",
+      "finding": "switch-selection log preceded actual FIXEDSTAND entry; command 3 was cleared by enter()",
+      "cleanup_confirmed": true,
+      "process_facts": "5e1555d9223a4f7a83078d41af0fa755/process_facts.json"
+    },
+    {
+      "run_id": "4e4ee785e6de4b2c9bfc6fd4f4e543cf",
+      "status": "VALID",
+      "frames": 218,
+      "terminal": "ARRIVED",
+      "finding": "confirmed deceleration and standing; controlled lowering began; physics closeout veto caused command-9 PASSIVE fallback before DOWN/RELEASED confirmation",
+      "cleanup_confirmed": true,
+      "process_facts": "4e4ee785e6de4b2c9bfc6fd4f4e543cf/process_facts.json"
+    }
+  ]
+}

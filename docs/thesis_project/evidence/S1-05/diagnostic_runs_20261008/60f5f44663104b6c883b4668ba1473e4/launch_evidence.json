@@ -1,0 +1,13 @@
+{
+  "run_id": "60f5f44663104b6c883b4668ba1473e4",
+  "command": "DISPLAY=:0 XAUTHORITY=/run/user/1000/gdm/Xauthority /home/lidio/anaconda3/bin/python3 scripts/s1_run_diagnostic.py --output-root /home/lidio/quadruped_robots/docs/thesis_project/evidence/S1-05/diagnostic_runs_20261008 --overlay /tmp/s1_04_overlay --goal-x 1.0 --sim-limit-s 6.0 --wall-cap-s 50 --display :0 --xauthority /run/user/1000/gdm/Xauthority",
+  "exit_code": 0,
+  "terminal": "STARTUP_FAILURE",
+  "reason": "collision authority did not become LIVE for this capture/model; no motion started",
+  "strategy_frames": 0,
+  "controller_started": false,
+  "mujoco_exit_code": 0,
+  "forced_termination": false,
+  "shutdown_complete": true,
+  "closeout_complete": true
+}

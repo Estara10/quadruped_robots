@@ -18,6 +18,20 @@ sys.path.insert(0, str(SCRIPTS))
 import p1_10_scenario_suite as suite  # noqa: E402
 from formal_experiment_contract import derive_seed  # noqa: E402
 
+COMMON_START_MANIFEST = REPO / "docs/evidence/P1-10/stage_a_common_start_execution_manifest_20260907.json"
+COMMON_START_IDENTITY = json.loads(COMMON_START_MANIFEST.read_text(encoding="utf-8"))["identity_input"]
+CURRENT_CONTROLLER_PLUGIN = {
+    "path": next(item["path"] for item in COMMON_START_IDENTITY["artifacts"]
+                 if item["role"] == "controller_plugin"),
+    "sha256": next(item["sha256"] for item in COMMON_START_IDENTITY["artifacts"]
+                    if item["role"] == "controller_plugin"),
+}
+
+
+def resolve_current(*args, **kwargs):
+    kwargs["controller_plugin_override"] = CURRENT_CONTROLLER_PLUGIN
+    return suite.resolve_scenario(*args, **kwargs)
+
 
 class P110ScenarioSuiteTests(unittest.TestCase):
     def test_suite_is_valid_and_contains_required_minimum(self):
@@ -30,15 +44,15 @@ class P110ScenarioSuiteTests(unittest.TestCase):
         self.assertEqual(sum(e["status"] == "UNSUPPORTED" for e in entries), 1)
 
     def test_same_scenario_seed_is_byte_stable(self):
-        first = suite.resolve_scenario("flat_goal_forward", 12345, "stabilized")
-        second = suite.resolve_scenario("flat_goal_forward", 12345, "stabilized")
+        first = resolve_current("flat_goal_forward", 12345, "stabilized")
+        second = resolve_current("flat_goal_forward", 12345, "stabilized")
         self.assertEqual(suite.canonical_json(first), suite.canonical_json(second))
         self.assertEqual(first["seeds"], second["seeds"])
         self.assertEqual(first["pairing"], second["pairing"])
 
     def test_different_root_seed_changes_derived_seed_and_pairing(self):
-        first = suite.resolve_scenario("flat_goal_forward", 1)
-        second = suite.resolve_scenario("flat_goal_forward", 2)
+        first = resolve_current("flat_goal_forward", 1)
+        second = resolve_current("flat_goal_forward", 2)
         self.assertEqual(first["seeds"]["derived_seeds"], {})
         self.assertEqual(second["seeds"]["derived_seeds"], {})
         self.assertEqual(first["seeds"]["sources"]["python_orchestrator"]["status"], "DECLARED_NOT_CONSUMED")
@@ -98,7 +112,7 @@ class P110ScenarioSuiteTests(unittest.TestCase):
         result = suite.validate_suite_manifest()
         self.assertTrue(result["valid"], result["errors"])
         with self.assertRaisesRegex(ValueError, "scenario_status_unsupported"):
-            suite.resolve_scenario("static_obstacle_authority_unavailable", 7)
+            resolve_current("static_obstacle_authority_unavailable", 7)
 
     def _args(self, **changes):
         values = dict(scenario="flat_goal_forward", root_seed=7, variant="stabilized",
@@ -108,7 +122,8 @@ class P110ScenarioSuiteTests(unittest.TestCase):
         return argparse.Namespace(**values)
 
     def test_capture_arguments_match_resolved_manifest(self):
-        resolved = suite.prepare_capture_context(self._args())
+        resolved = suite.prepare_capture_context(
+            self._args(), controller_plugin_override=CURRENT_CONTROLLER_PLUGIN)
         self.assertEqual(resolved["launch_contract"]["scene"], "scene_flat.xml")
         self.assertEqual(resolved["launch_contract"]["root_seed"], 7)
         self.assertEqual(resolved["launch_contract"]["initial_state_source"], "scene_default")
@@ -132,14 +147,15 @@ class P110ScenarioSuiteTests(unittest.TestCase):
             suite.validate_resolved_variant_context(tampered_variant)
 
     def test_actual_initial_state_and_supported_variant_binding(self):
-        resolved = suite.resolve_scenario("flat_goal_forward", 7, "stabilized")
+        resolved = resolve_current("flat_goal_forward", 7, "stabilized")
         actual = suite.extract_runtime_initial_state(suite.REPO / "unitree_mujoco/unitree_robots/go2/scene_flat.xml")
         self.assertEqual(resolved["initial_state"]["qpos"], actual["qpos"])
         self.assertEqual(resolved["initial_state"]["base_pose_world_m"], [0.0, 0.0, 0.445])
         self.assertEqual(resolved["initial_state"]["yaw_rad"], 0.0)
         self.assertEqual(resolved["variant_binding"]["status"], "SUPPORTED")
         self.assertEqual(resolved["variant_binding"]["runtime_configuration"]["switching_mode"], "stabilized_switch")
-        self.assertEqual(resolved["variant_binding"]["binding_sha256"], "2f0dfc4e8bf5237a578d99030facc38459fd5f899af49b508e48e29b7e8a4e1c")
+        self.assertEqual(resolved["variant_binding"]["binding_sha256"],
+                         COMMON_START_IDENTITY["variant_binding"]["binding_sha256"])
 
     def test_unbound_variants_fail_closed(self):
         for label in ("paper-faithful", "agile-only"):
@@ -147,7 +163,7 @@ class P110ScenarioSuiteTests(unittest.TestCase):
                 suite.resolve_scenario("flat_goal_forward", 7, label)
 
     def test_paired_variant_labels_share_scenario_seed_tuple(self):
-        stabilized = suite.resolve_scenario("flat_goal_forward", 17, "stabilized")
+        stabilized = resolve_current("flat_goal_forward", 17, "stabilized")
         unsupported_label = copy.deepcopy(stabilized)
         unsupported_label["pairing"]["variant"] = "paper-faithful"
         unsupported_label["variant_binding"] = {"label": "paper-faithful", "status": "UNSUPPORTED"}
@@ -162,7 +178,7 @@ class P110ScenarioSuiteTests(unittest.TestCase):
         self.assertIn("paired_scenario_root_seed_key_mismatch", suite.validate_paired_contexts(cross_pair))
 
     def test_resolved_manifest_write_is_deterministic(self):
-        resolved = suite.resolve_scenario("flat_goal_lateral", 99, "stabilized")
+        resolved = resolve_current("flat_goal_lateral", 99, "stabilized")
         with tempfile.TemporaryDirectory() as td:
             path = Path(td) / "resolved.json"
             suite.write_resolved_manifest(path, resolved)

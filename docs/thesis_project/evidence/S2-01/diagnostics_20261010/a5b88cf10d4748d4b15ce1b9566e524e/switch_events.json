@@ -1,0 +1,160 @@
+{
+  "run_id": "a5b88cf10d4748d4b15ce1b9566e524e",
+  "session_id": 6813863628793,
+  "policy_transition_count": 12,
+  "transitions": [
+    {
+      "policy_cycle_id": 117,
+      "rl_step": 117,
+      "sim_time_s": 25.61599999999668,
+      "ra_value": 0.12177871912717819,
+      "mode_before": "AGILE",
+      "mode_after": "RECOVERY",
+      "action_source": "RECOVERY",
+      "risk_condition_met": true,
+      "source_sequence": 236
+    },
+    {
+      "policy_cycle_id": 119,
+      "rl_step": 119,
+      "sim_time_s": 25.67399999999665,
+      "ra_value": -0.150464728474617,
+      "mode_before": "RECOVERY",
+      "mode_after": "AGILE",
+      "action_source": "AGILE",
+      "risk_condition_met": false,
+      "source_sequence": 240
+    },
+    {
+      "policy_cycle_id": 124,
+      "rl_step": 124,
+      "sim_time_s": 25.755999999996604,
+      "ra_value": 0.0835970938205719,
+      "mode_before": "AGILE",
+      "mode_after": "RECOVERY",
+      "action_source": "RECOVERY",
+      "risk_condition_met": true,
+      "source_sequence": 250
+    },
+    {
+      "policy_cycle_id": 126,
+      "rl_step": 126,
+      "sim_time_s": 25.79599999999658,
+      "ra_value": -0.06379176676273346,
+      "mode_before": "RECOVERY",
+      "mode_after": "AGILE",
+      "action_source": "AGILE",
+      "risk_condition_met": false,
+      "source_sequence": 254
+    },
+    {
+      "policy_cycle_id": 127,
+      "rl_step": 127,
+      "sim_time_s": 25.81599999999657,
+      "ra_value": 0.024612849578261375,
+      "mode_before": "AGILE",
+      "mode_after": "RECOVERY",
+      "action_source": "RECOVERY",
+      "risk_condition_met": true,
+      "source_sequence": 256
+    },
+    {
+      "policy_cycle_id": 131,
+      "rl_step": 131,
+      "sim_time_s": 25.901999999996523,
+      "ra_value": -0.1427188366651535,
+      "mode_before": "RECOVERY",
+      "mode_after": "AGILE",
+      "action_source": "AGILE",
+      "risk_condition_met": false,
+      "source_sequence": 264
+    },
+    {
+      "policy_cycle_id": 170,
+      "rl_step": 170,
+      "sim_time_s": 26.675999999996094,
+      "ra_value": 0.08426647633314133,
+      "mode_before": "AGILE",
+      "mode_after": "RECOVERY",
+      "action_source": "RECOVERY",
+      "risk_condition_met": true,
+      "source_sequence": 342
+    },
+    {
+      "policy_cycle_id": 173,
+      "rl_step": 173,
+      "sim_time_s": 26.73599999999606,
+      "ra_value": -0.05975088104605675,
+      "mode_before": "RECOVERY",
+      "mode_after": "AGILE",
+      "action_source": "AGILE",
+      "risk_condition_met": false,
+      "source_sequence": 348
+    },
+    {
+      "policy_cycle_id": 174,
+      "rl_step": 174,
+      "sim_time_s": 26.761999999996046,
+      "ra_value": 0.14448381960391998,
+      "mode_before": "AGILE",
+      "mode_after": "RECOVERY",
+      "action_source": "RECOVERY",
+      "risk_condition_met": true,
+      "source_sequence": 350
+    },
+    {
+      "policy_cycle_id": 177,
+      "rl_step": 177,
+      "sim_time_s": 26.815999999996016,
+      "ra_value": -0.5665246248245239,
+      "mode_before": "RECOVERY",
+      "mode_after": "AGILE",
+      "action_source": "AGILE",
+      "risk_condition_met": false,
+      "source_sequence": 356
+    },
+    {
+      "policy_cycle_id": 184,
+      "rl_step": 184,
+      "sim_time_s": 26.95599999999594,
+      "ra_value": -0.04424456134438515,
+      "mode_before": "AGILE",
+      "mode_after": "RECOVERY",
+      "action_source": "RECOVERY",
+      "risk_condition_met": true,
+      "source_sequence": 370
+    },
+    {
+      "policy_cycle_id": 190,
+      "rl_step": 190,
+      "sim_time_s": 27.075999999995872,
+      "ra_value": -0.29095372557640076,
+      "mode_before": "RECOVERY",
+      "mode_after": "AGILE",
+      "action_source": "AGILE",
+      "risk_condition_met": false,
+      "source_sequence": 382
+    }
+  ],
+  "sim_clock_status_counts": {
+    "1": 166,
+    "2": 5
+  },
+  "terminal_frame": {
+    "session_id": 6813863628793,
+    "policy_cycle_id": 207,
+    "rl_step": 207,
+    "source_sequence": 416,
+    "sim_time_s": 27.415999999995684,
+    "ra_value": -0.9759382605552673,
+    "mode_before": "AGILE",
+    "mode_after": "AGILE",
+    "action_source": "AGILE",
+    "has_action_raw": true,
+    "has_action_clipped": true,
+    "has_joint_target": true,
+    "has_world_pose": true,
+    "sim_clock_valid": true,
+    "sim_clock_status": 1
+  }
+}

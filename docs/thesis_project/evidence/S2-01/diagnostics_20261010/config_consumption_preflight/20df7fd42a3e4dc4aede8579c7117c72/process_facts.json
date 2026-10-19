@@ -1,0 +1,12 @@
+{
+  "cleanup_events": [],
+  "closeout_complete": true,
+  "closeout_errors": [],
+  "exit_code": 0,
+  "external_safety_events": [],
+  "forced_termination": false,
+  "run_terminal_monotonic_ns": 7908926893902,
+  "run_terminal_result": "INVALID_RUNTIME_SOURCE",
+  "shutdown_complete": true,
+  "shutdown_request_source": "S1-04 bounded supervisor SIGINT with TERM/KILL fallback"
+}

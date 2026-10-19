@@ -1,0 +1,30 @@
+{
+  "classification": "short targeted S1-03 pause check; same paper_faithful_switch candidate and obstacle scene",
+  "runtime_config": "/tmp/s1_03_overlay/share/go2_description/config/abs/config.yaml",
+  "collector_ready_before_launch": true,
+  "pause_input": {
+    "key": "Space (MuJoCo viewer documented Play/Pause key)",
+    "window": "MuJoCo : go2 test1",
+    "window_id": "0x6a00009",
+    "verified_simulator_pid": 130207,
+    "event_record": "pause_resume_events.jsonl"
+  },
+  "observation": {
+    "wait_after_key_release_s": 1.5,
+    "sim_clock_before": {"sequence": 34098, "sim_time_s": 34.095999999995705, "source_monotonic_ns": 8196591808715},
+    "sim_clock_after": {"sequence": 34098, "sim_time_s": 34.095999999995705, "source_monotonic_ns": 8196591808715},
+    "policy_frame_count_before_after": [811, 811],
+    "interpretation": "After Space, the latest physics clock snapshot's sequence, sim_time, and source monotonic timestamp did not advance, and no new policy frame appeared during the observation window. The controller policy loop also stopped producing frames. This does not test the controller's STALE classification while paused."
+  },
+  "resume": {
+    "tested": false,
+    "reason": "The single timed diagnostic reached its cleanup deadline while paused; the verified simulator window was destroyed before a resume key could be sent.",
+    "status": "UNKNOWN"
+  },
+  "safety_and_cleanup": {
+    "safety_checks_disabled": false,
+    "new_frame_safety_faults_during_pause_observation": 0,
+    "wrapper": "reported cleanup complete",
+    "simulator_controller_collector_processes_after_stop": "none found"
+  }
+}

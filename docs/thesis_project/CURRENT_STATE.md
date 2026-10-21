@@ -1,6 +1,63 @@
 # 当前状态
 
 
+## 今日停止点（2026-10-21）
+
+用户决定今天结束，正式实验明天再做，本轮只授权本地Git提交，未要求推送GitHub。
+
+- S7-01已COMPLETE（Director有条件通过）；S7-02为唯一ACTIVE / AWAITING_RUN_AUTHORIZATION。
+- 正式方法、240项矩阵、运行器和分析入口准备完成；m02 A/D开发运行及记录恢复已核对，同周期决策时钟重建已统一接入正式分析。
+- 研究设置不变：E=−0.05；B/D共同X=−0.10；C/D共同H=0.20仿真秒。D代价及命令消费UNKNOWN保留，不再自动追加补证。
+- 新增AGENTS.md毕设范围要求：最小充分验证，避免无休止哈希、探针、门禁及防御性编码。
+- **240项正式实验未启动、未获得运行授权**；矩阵authorized_to_run仍为false。明天收到用户明确继续/开跑指令后，再按冻结方法办理实际执行，不自动运行。
+- 留出图未运行策略，开发记录不混入正式样本。没有新的训练、实机或清理授权。
+
+最近开发运行报告确认本次相关进程已退出。此次Git收尾不启动仿真、ROS、模型或测试，不切分支、不合并main。
+
+
+## 最新状态（2026-10-21）：S7-01 COMPLETE，S7-02为唯一Active Task
+
+Director已对S7-01准备工作作出**有条件通过**，S7-01标记 **COMPLETE**。通过范围包括：正式方法与240项平衡矩阵；最小运行器、分析及断点恢复准备；安全任务完成分类；attempt、工程补做和三层统计规则；两次m02开发补证；同周期决策时钟重建统一接入及A/D离线核对。
+
+当前唯一Active Task为[S7-02](tasks/S7-02.md)，状态 **ACTIVE / AWAITING_RUN_AUTHORIZATION**。S7-02只负责按既有冻结矩阵完成正式独立A/B/C/D仿真及统一分析；**正式240项尚未启动、尚未获得实际运行授权**。S7整体未完成。
+
+保留项（不再自动产生补证任务）：首次周期延迟的具体原因UNKNOWN；MuJoCo命令消费UNKNOWN；原始STALE和默认口径结果；初态非严格重放及地图分布限制；D的Recovery占用和超时代价。不新增探针、哈希体系、门禁、授权机制或无关回归。
+
+正式执行入口和占位命令见[正式执行说明](designs/S7/FORMAL_RUN_GUIDE.md)；S7-01完成结论见[S7-01](tasks/S7-01.md)。本轮只做状态同步和文档准备，未启动MuJoCo/ROS/模型推理/留出图，未修改运行代码，未运行测试，未清理数据，未提交Git。240项在另行授权前保持未启动。
+
+## S7-01收尾记录（2026-10-21，已完成；历史过程）
+
+A `798d518a…` 的cycle0 `sim_clock_valid=false` 已定位：控制器在`captureSimClock()`时读到有效样本（S6-04 trace: cycle0、`sim_clock_valid=true`、`sim_time_s=7.126`），但`writeRtFrame()`在发布时按108.484ms age（>100ms）把raw frame标为`STALE`；frame仍保留sim时间/sequence/monotonic。`s1_run_diagnostic`只按frame发布态写`task_start`，把sim time置null。属于“decision-time有效、publication-time新鲜度失败、记录层丢失decision事实”；首次周期延迟的具体子原因（冷推理/调度等）未单独埋点，保持UNKNOWN。
+
+Director同意后，正式分析入口`analyze_s7_formal_240.py`与开发分析入口已通过`recompute_scene_start_summaries(..., decision_clock_override=True)`对A/B/C/D统一应用同一严格匹配规则：仅当frame publication-stale、controller trace同一session/cycle且capture时有效、sim_time与raw frame一致时，使用同一cycle0的decision-time时钟。原始STALE、无效帧数和age保留；不移动任务起点、不插值、不放宽新鲜度；不改控制、阈值、地图或模型。A/D统一结果：A `UNKNOWN→True`、task start=7.126s、elapsed=6.502s、short reverse complete、collision/fall False且覆盖完整、足端撞击1次单列；D不变。正式汇总`reconstruction_sensitivity`：重建1、安全改变1、时间改变1、unresolved 0；原始发布态A仍为UNKNOWN。
+
+定向检查10/10 PASS（含正式分析统一路径）；安全分类9真实+11构造PASS；开发补证11/11；正式运行器21/21。未启动MuJoCo/ROS/controller/模型推理，未重跑A，未清理数据，未提交Git。报告：[CYCLE0_CLOCK_REVIEW.md](evidence/S7-01/cycle0_clock_review/CYCLE0_CLOCK_REVIEW.md)。未发现影响正式主指标的未解决问题；记录层重建不需要新场景。建议S7-01完成并进入正式运行授权审阅，由Director决定关闭；**240项仍未启动、未获运行授权。**
+
+## S7-01历史记录（2026-10-21）：m02 A/D开发补证完成，非正式数据
+
+两项开发补证已按独立授权`DEV-M02-AD-20261021-01`执行，批次`dev-m02-ad-20261021`，标记`DEV_SUPPLEMENT_NOT_FORMAL`。**A** `798d518a…`：原始发布态ARRIVED/VALID/安全完成UNKNOWN，统一分析True；实际E=−0.05、无X、无保持；**D** `5859b72d…`：ARRIVED/VALID/安全完成True，实际E=−0.05、X=−0.10、H=0.20、hysteresis/hold=true。实际场景启动2次、替换0次、唯一run_id 2；A未重跑，`resume`只派发D；分析一致性PASS。两场均隐藏MuJoCo、RViz关闭、目标(7.5,0)、20仿真秒/120墙钟秒、站立观察约2仿真秒；配置消费、cycle0、终止帧、排空与清理均通过核对，所有owned进程exit 0。
+
+A在本轮开始前已存在，首次状态查询为`PAUSED/scene_creation_unknown`。根因是运行目录发现把`result/analysis/`误当第二个run目录；仅做最小发现/恢复修正并记录版本修订`DEV-M02-AD-VERSION-AMENDMENT-01`，A由原始产物恢复、未重跑；A检查点为恢复后补记。未改控制/安全阈值/模型/地图，未使用留出图，未提交Git，未启动240项。
+
+报告：[DEV_SUPPLEMENT_EXECUTION_REPORT.md](evidence/S7-01/dev_supplement/DEV_SUPPLEMENT_EXECUTION_REPORT.md)；执行摘要：[dev_supplement_execution_summary.json](evidence/S7-01/dev_supplement/dev_supplement_execution_summary.json)；分析：[dev_supplement_analysis.json](evidence/S7-01/dev_supplement/dev_supplement_analysis.json)。A原始发布态安全完成仍为UNKNOWN，统一决策时钟分析为True；两次结果不用于A/D性能比较或成功率；MuJoCo命令消费继续UNKNOWN。**240项正式实验仍未启动、未获运行授权；S7-01保持ACTIVE / PREPARATION并提交Director审阅。**
+
+## S7-01历史记录（2026-10-21）：最小运行器与离线联测完成，仍未授权240项
+
+**S7-01仍是唯一ACTIVE / PREPARATION任务。** Director已通过正式方法与240项平衡矩阵，矩阵状态已冻结为`METHOD_FROZEN_AUTHORIZED_TO_RUN_FALSE`，保留`authorized_to_run=false`；240项未启动、未获运行授权。本轮只实现最小运行/分析入口并做定向离线联测，未启动MuJoCo、ROS、controller、模型推理或留出图场景，未调参、未改地图/模型/安全规则、未训练/实机、未清理数据、未提交Git。
+
+已完成：
+
+1. **方法冻结同步**：仅更新矩阵JSON状态与`method_freeze`元数据，240条记录未重生成/重排/改字段，CSV未改。冻结计划摘要`95c7647…c1c301`；240项、30图、60区组、每组60项、四条Williams各15次、12种相邻转换各15次复核PASS。
+2. **运行器**：`scripts/run_s7_formal_240.py`与`scripts/s7_formal_runner.py`支持只读计划、无场景预检、状态查询、冻结顺序串行派发、独立overlay、原子attempt台账、安全断点恢复、磁盘/额度/并发保护。真实`run`默认拒绝，必须有独立授权记录并匹配计划摘要；本轮未生成有效授权，也没有绕过开关。
+3. **事实与台账**：场景创建只认独立启动标记，不凭目录或缺run_id推断；场景前失败、创建后无run_id、已进入RL分别落账；创建事实不明暂停；磁盘已有完整产物可恢复且不重跑；合法终局不补跑；全启动层保留原失败；替代须有原attempt、独立目录、Director授权及独立基础设施证据。
+4. **安全与统计**：直接接入生产`safety_task_completion.py`，任务与站立/清理窗口分离；`scripts/analyze_s7_formal_240.py`默认用同一冻结分析器从原始记录重算，输出计划项主结果、全部实际启动可靠性账、仅首次启动敏感性，以及四图对比/交互、地图簇bootstrap和UNKNOWN情景端点。
+5. **离线联测**：21/21 PASS，覆盖240项读取、A/B/C/D配置字段、默认/缺授权拒绝、合法终局不重跑、三类场景事实、断点恢复不重复、创建不明暂停、错误目录/run_id复用/替代绑定拒绝、同项二次替代与全批第13次替代拒绝、安全中止缺佐证不替代、三层分母、UNKNOWN/无效/未启动区分、任务/清理分离、磁盘/额度停止派发、重复汇总一致、构造比较/交互/端点、真实R1/R6读取、磁盘产物恢复，以及分析CLI两次输出逐字节一致、替代成功不抹去首次启动中止。构造三层示例明确为非正式数据。
+
+报告：[RUNNER_READINESS_REPORT.md](evidence/S7-01/runner_readiness/RUNNER_READINESS_REPORT.md)；机器结果：[check_results.json](evidence/S7-01/runner_readiness/check_results.json)。
+
+仍未验证：正式入口真实派发与controller配置消费、真实中断恢复、正式批次分析CLI端到端、真实GLFW/RViz、MuJoCo命令消费（UNKNOWN）。这些不能用离线结果替代；如需补证，建议另行授权1–3次开发图运行，不使用留出图。**240项仍未启动、未获运行授权；S7-01保持ACTIVE / PREPARATION并提交Director审阅。** 本地仍在`feat/ray-pred-source-switch`（提交`42518fa`，工作区有用户既有改动）；本轮未切分支、未合并、未提交Git。可用磁盘只读检查约60.0GiB，高于15GiB保护线；正式启动前仍需实测。本轮未启动运行环境，无本轮进程需要关闭。
+
+
 ## 今日停止点（2026-10-19）
 
 用户决定今天结束，授权提交Git并推送GitHub。T2已COMPLETE；S7-01仍为唯一ACTIVE / PREPARATION。正式方法和240项平衡矩阵已获Director方法审阅通过，但候选文件的最终冻结状态固化及运行器准备尚待完成，**240项未启动、未获运行授权**。

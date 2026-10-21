@@ -1,0 +1,194 @@
+{
+  "checks": [
+    {
+      "check": "01_dev_plan_two_items",
+      "detail": {
+        "load_errors": [],
+        "plan_sha256": "264b7f1660c094e1123d8ac8d473cc2d3db6975b83aba1a0313f3500a06aae38",
+        "validation": {
+          "counts": {
+            "groups": {
+              "A": 1,
+              "D": 1
+            },
+            "order": [
+              "DEV-M02-A",
+              "DEV-M02-D"
+            ],
+            "plan_items": 2
+          },
+          "errors": [],
+          "scope": "two development runs on m02.xml; not formal data; no holdout",
+          "status": "PASS"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "02_authorization_scope_isolation",
+      "detail": {
+        "batch_dir_created": false,
+        "dev_check": "PASS",
+        "fixture_check": "REJECTED",
+        "formal_check": "REJECTED",
+        "formal_load_errors": [],
+        "missing_exit": 2
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "03_first_run_only_a_and_checkpoint",
+      "detail": {
+        "dispatched": 1,
+        "ledger": [
+          {
+            "group": "A",
+            "plan_item_id": "DEV-M02-A",
+            "raw_terminal": "ARRIVED",
+            "record_validity": "VALID",
+            "run_id": "0ee765e4dafd4310be5ffd4950aa781d",
+            "scene_created": true
+          }
+        ],
+        "next_pending": [
+          "DEV-M02-D"
+        ],
+        "staged_reason": "staged_after_1_scene_start",
+        "state_stage": "STAGED_AFTER_SCENE_START",
+        "status": "STAGED"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "04_resume_runs_d_without_rerunning_a",
+      "detail": {
+        "A_run_id_unchanged": true,
+        "A_scene_starts": 1,
+        "D_scene_starts": 1,
+        "first_status": "STAGED",
+        "orders": [
+          "A",
+          "D"
+        ],
+        "second_dispatched": 1,
+        "second_status": "COMPLETE"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "05_legal_collision_is_result_not_retry",
+      "detail": {
+        "A_safety_task_completion": false,
+        "A_terminal": "COLLISION_TERMINATION",
+        "first_status": "STAGED",
+        "groups": [
+          "A",
+          "D"
+        ],
+        "second_status": "COMPLETE"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "06b_legal_timeout_is_result_not_retry",
+      "detail": {
+        "A_safety_task_completion": false,
+        "A_terminal": "DIAGNOSTIC_SIM_TIME_LIMIT",
+        "first_status": "STAGED",
+        "groups": [
+          "A",
+          "D"
+        ],
+        "second_status": "COMPLETE"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "06_pre_scene_failure_no_auto_retry",
+      "detail": {
+        "first_pause": "pre_scene_failure_no_auto_retry",
+        "first_status": "PAUSED",
+        "scene_created": false,
+        "second_dispatched": 0,
+        "second_status": "PAUSED"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "07_config_consumption_mismatch_pauses",
+      "detail": {
+        "consumption_status": "MISMATCH_OR_UNKNOWN",
+        "errors": [
+          "observed_group:B!=A",
+          "observed_hysteresis:True",
+          "preflight_group:B",
+          "source_binding_group:B"
+        ],
+        "pause": "runtime_config_consumption_not_confirmed",
+        "status": "PAUSED"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "08_dev_quota_and_no_fixture_bypass",
+      "detail": {
+        "fixture": {
+          "authorization_id": "DEV-M02-AD-20261021-01",
+          "data_class": "DEV_SUPPLEMENT_NOT_FORMAL",
+          "errors": [
+            "fixture_authorization_rejected"
+          ],
+          "status": "REJECTED"
+        },
+        "substitution": {
+          "authorization_id": "DEV-M02-AD-20261021-01",
+          "data_class": "DEV_SUPPLEMENT_NOT_FORMAL",
+          "errors": [
+            "authorization_substitution_quota_mismatch"
+          ],
+          "status": "REJECTED"
+        },
+        "too_many": {
+          "authorization_id": "DEV-M02-AD-20261021-01",
+          "data_class": "DEV_SUPPLEMENT_NOT_FORMAL",
+          "errors": [
+            "authorization_scene_start_quota_mismatch"
+          ],
+          "status": "REJECTED"
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "09_analysis_consistency",
+      "detail": {
+        "A_before_D": true,
+        "A_starts": 1,
+        "D_starts": 1,
+        "attempts": 2,
+        "data_class": "NON_FORMAL_DEV_SUPPLEMENT_DATA",
+        "issues": [],
+        "report_status": "PASS"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "10_status_query",
+      "detail": {
+        "actual_scene_starts": 1,
+        "next_pending": [
+          "DEV-M02-D"
+        ],
+        "runner_status": "OK",
+        "stage": "STAGED_AFTER_SCENE_START"
+      },
+      "status": "PASS"
+    }
+  ],
+  "data_class": "NON_FORMAL_DEV_SUPPLEMENT_DATA",
+  "failed": 0,
+  "passed": 11,
+  "schema": "s7-dev-supplement-readiness-check-v1",
+  "scope": "offline only; no MuJoCo, ROS, controller, model inference, or scene start",
+  "total": 11
+}

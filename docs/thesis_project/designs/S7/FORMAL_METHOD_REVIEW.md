@@ -1,6 +1,6 @@
 # S7正式A/B/C/D实验方法复核稿
 
-日期：2026-10-19更新。状态：**已按用户确认修正；240项候选矩阵已生成，等待Director审阅；未获运行授权。** 本文件服务于S7-01准备，不是正式实验执行授权。方法与矩阵的审阅摘要见[METHOD_FREEZE_REVIEW.md](METHOD_FREEZE_REVIEW.md)。
+日期：2026-10-19更新；2026-10-21同步方法冻结与运行准备。状态：**正式方法与240项平衡矩阵已由Director通过并冻结为`METHOD_FROZEN_AUTHORIZED_TO_RUN_FALSE`；`authorized_to_run=false`，未获运行授权。S7-01已COMPLETE（Director有条件通过）；正式执行由S7-02承接（ACTIVE / AWAITING_RUN_AUTHORIZATION）。** 最小运行器/分析入口已实现并完成定向离线联测；离线通过不等于运行态验证。方法与矩阵审阅摘要见[METHOD_FREEZE_REVIEW.md](METHOD_FREEZE_REVIEW.md)，运行准备见[RUNNER_READINESS_REPORT.md](../../evidence/S7-01/runner_readiness/RUNNER_READINESS_REPORT.md)。
 
 ## 1. 推荐完整设计
 
@@ -75,6 +75,26 @@ M1 `layouts.json`静态核对支持上述目标和边界。其边界没有物理
 
 现有记录能支持策略周期RA、切换后模式、所选动作/关节目标和部分控制接口写出；缺少同一命令在MuJoCo侧被消费的确认。因此推荐将RA到策略模式决定作为有限内部响应指标，将写出和消费分列，消费时延记UNKNOWN，不把它设为240项启动前的阻塞。只有Director认定端到端动作生效是论文主结论必要部分时，才另授权有限消费确认补证。实机仍NO-GO，正式仿真准备不要求先启动实机。
 
+- 当前状态：方法已冻结，`authorized_to_run=false`；240条记录未重生成/重排/改字段。最小运行器、attempt台账/恢复、安全分类接入、三层汇总和地图簇bootstrap入口已实现，21项定向离线联测通过；真实派发、controller配置消费和运行态恢复仍未验证。见[运行准备报告](../../evidence/S7-01/runner_readiness/RUNNER_READINESS_REPORT.md)。
+
+### 1.8 分析侧决策时钟重建（2026-10-21方法修订）
+
+原分析方法只使用首个活跃策略周期 frame 的发布态 `sim_clock_valid`。新方法在同时满足以下条件时，使用**同一 cycle0** 的 decision-time 时钟作为任务时间轴起点：
+
+- 首个活跃 frame 为 publication-stale（`sim_clock_status=STALE`，样本年龄超过发布新鲜度阈值）；
+- controller-authored `S6-04-TRACE` 与原始帧属于同一 run/session/cycle；
+- trace 在该周期 capture 时 `sim_clock_valid=true`，且 `sim_time_s` 与原始帧保留的样本在 1e-9 内一致；
+- 原有 session、cycle、时间顺序、身份和异常拒绝条件继续生效。
+
+匹配不成立、trace 缺失、sample 不一致、future/reset/identity 异常时保持原 `UNKNOWN`，不猜测。应用后：
+
+- 原始 frame、JSONL、context、terminal 和旧 `metrics.json` 不覆盖；原始发布态 STALE、无效帧数和 age 保留；
+- 任务起点仍是真实首个活跃策略周期，不移到后续周期；不插值、不借墙钟、不放宽控制器时钟新鲜度；
+- 同一规则对 A/B/C/D 统一生效，不按组别、终局或结果是否有利选择启用；不改控制行为、起立准入、阈值、地图、模型或 240 项顺序；
+- 正式分析同时输出 `task_start_clock`（原始/decision 两态）和 `reconstruction_sensitivity`（重建 run 数、安全分类改变数、主要时间指标改变数）。原始发布态口径可通过 `decision_clock_override=False` 复算，仅作敏感性对照。
+
+该修订只改变分析口径，不改变仿真控制或正式矩阵。
+
 ## 2. 现有入口与实际缺口（只读核对）
 
 ### 可复用
@@ -104,15 +124,15 @@ M1 `layouts.json`静态核对支持上述目标和边界。其边界没有物理
 ## 4. 正式运行前最小准备清单
 
 - [x] 用户确认越界、推断、补做/资源和命令消费四项决策；参数表与T2研究代表设置一致。
-- [x] 生成240行候选计划CSV/JSON；等待Director审阅后再标记正式冻结。
-- [ ] 只读核对所有留出图身份/goal/bounds，使用M1 1.0，不策略筛图；保留非物理边界事实。
+- [x] 生成240行计划CSV/JSON；Director通过后已标记`METHOD_FROZEN_AUTHORIZED_TO_RUN_FALSE`，记录未重生成/重排。
+- [x] 只读核对所有留出图身份/goal/bounds，使用M1 1.0，不策略筛图；保留非物理边界事实（静态预检30图通过）。
 - [x] 已统一任务安全完成、越界、UNKNOWN、合法终局、工程补做门槛和统计分母；见本节规则及[S7-01定向attempt复核](../../evidence/S7-01/attempt_accounting_check/ATTEMPT_ACCOUNTING_REVIEW.md)。
-- [ ] 将规则接入完整批次派发、断点恢复和汇总流程，并完成运行态准备核对。
-- [ ] 复用现有overlay/config/source binding/recorder/terminal/analyzer；对240项派发、unique run目录及恢复点做必要的最小准备与针对性核对。
+- [x] 离线将规则接入批次派发、断点恢复、安全分类和三层汇总；21项定向联测通过。**运行态准备核对仍未完成。**
+- [x] 离线复用overlay/config/source binding/recorder/terminal/analyzer；对240项派发、unique run目录及恢复点完成构造/离线核对。
 - [ ] 运行前实际核对代码/模型/配置/MuJoCo/M1版本，确认唯一controller/writer、记录器先就绪、cycle0和结束帧写入路径、GLFW环境；RViz关闭。
-- [ ] 确认日志/派生存储预算与15GiB保护线；建立attempt、暂停/恢复、每run清理退出记录。
+- [ ] 真实运行前确认日志/派生存储预算与15GiB保护线，并验证真实attempt、暂停/恢复、每run清理退出记录。
 - [ ] 新建正式执行任务并单独获得240项启动授权。完成S7-01方法准备本身不授权留出策略运行。
 
 ## 5. 当前阶段结论
 
-四项方法决策已接受，M1留出图目标、边界和固定分层元数据与拟运行条件一致。候选矩阵平衡检查通过；剩余最小准备是对冻结矩阵和入口做正式派发/目录/恢复流程审阅，并在独立正式执行任务中取得运行授权。静态检查只证明索引与候选配置字段一致；它不能证明controller实际消费配置，后者需运行首周期证据。S7-01仍为PREPARATION；没有启动仿真、模型推理、测试、留出策略运行或240项正式实验。
+四项方法决策已接受，方法与240项矩阵已冻结，M1留出图目标、边界和固定分层元数据与拟运行条件一致。最小批次派发、attempt台账/恢复、安全分类、三层汇总和bootstrap入口已实现并通过21项离线联测；静态预检只证明索引与配置字段一致，不能证明controller实际消费配置。真实派发、实际配置消费、真实中断恢复、正式批次分析CLI端到端、真实GLFW/RViz和MuJoCo命令消费仍未验证。S7-01已COMPLETE（Director有条件通过）；后续由S7-02承接（ACTIVE / AWAITING_RUN_AUTHORIZATION）。没有启动仿真、模型推理、测试、留出策略运行或240项正式实验。

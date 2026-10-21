@@ -1,0 +1,3400 @@
+{
+  "label": "NON_FORMAL_CONSTRUCTED_DATA",
+  "report": {
+    "comparisons": {
+      "bootstrap": {
+        "interval": "percentile 2.5%-97.5%",
+        "replicates": 50,
+        "seed": 2026102002,
+        "unit": "map clusters; one shared resampling keeps both repeats and all four groups across metrics and comparisons"
+      },
+      "groups": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "map_count": 4,
+      "metrics": {
+        "arrived": {
+          "comparison_unit": "percentage_point",
+          "comparisons": {
+            "(D-C)-(B-A)": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 50.0
+              },
+              "definition": "(D-C)-(B-A)",
+              "n_maps": 4,
+              "point": 25.0,
+              "point_proportion": 0.25,
+              "scenario_unknown_bounds": null,
+              "unit": "percentage_point"
+            },
+            "B-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 75.0
+              },
+              "candidate": "B",
+              "point": 25.0,
+              "point_proportion": 0.25,
+              "reference": "A",
+              "scenario_unknown_bounds": {
+                "best_case": 25.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 25.0,
+                "lower_proportion": 0.25,
+                "note": "higher is better: mathematical lower is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 25.0,
+                "upper_proportion": 0.25,
+                "worst_case": 25.0
+              },
+              "unit": "percentage_point"
+            },
+            "C-A": {
+              "bootstrap_95": {
+                "lower": -75.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": -25.0
+              },
+              "candidate": "C",
+              "point": -50.0,
+              "point_proportion": -0.5,
+              "reference": "A",
+              "scenario_unknown_bounds": {
+                "best_case": -50.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": -50.0,
+                "lower_proportion": -0.5,
+                "note": "higher is better: mathematical lower is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": -50.0,
+                "upper_proportion": -0.5,
+                "worst_case": -50.0
+              },
+              "unit": "percentage_point"
+            },
+            "D-B": {
+              "bootstrap_95": {
+                "lower": -75.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": -25.0,
+              "point_proportion": -0.25,
+              "reference": "B",
+              "scenario_unknown_bounds": {
+                "best_case": -25.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": -25.0,
+                "lower_proportion": -0.25,
+                "note": "higher is better: mathematical lower is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": -25.0,
+                "upper_proportion": -0.25,
+                "worst_case": -25.0
+              },
+              "unit": "percentage_point"
+            },
+            "D-C": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 100.0
+              },
+              "candidate": "D",
+              "point": 50.0,
+              "point_proportion": 0.5,
+              "reference": "C",
+              "scenario_unknown_bounds": {
+                "best_case": 50.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 50.0,
+                "lower_proportion": 0.5,
+                "note": "higher is better: mathematical lower is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 50.0,
+                "upper_proportion": 0.5,
+                "worst_case": 50.0
+              },
+              "unit": "percentage_point"
+            }
+          },
+          "direction": "higher_better",
+          "groups": {
+            "A": {
+              "map_equal_lower": 0.75,
+              "map_equal_lower_percentage_point": 75.0,
+              "map_equal_percentage_point": 75.0,
+              "map_equal_upper": 0.75,
+              "map_equal_upper_percentage_point": 75.0,
+              "map_equal_value": 0.75,
+              "n_known_false": 1,
+              "n_known_true": 3,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "B": {
+              "map_equal_lower": 1.0,
+              "map_equal_lower_percentage_point": 100.0,
+              "map_equal_percentage_point": 100.0,
+              "map_equal_upper": 1.0,
+              "map_equal_upper_percentage_point": 100.0,
+              "map_equal_value": 1.0,
+              "n_known_false": 0,
+              "n_known_true": 4,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "C": {
+              "map_equal_lower": 0.25,
+              "map_equal_lower_percentage_point": 25.0,
+              "map_equal_percentage_point": 25.0,
+              "map_equal_upper": 0.25,
+              "map_equal_upper_percentage_point": 25.0,
+              "map_equal_value": 0.25,
+              "n_known_false": 3,
+              "n_known_true": 1,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "D": {
+              "map_equal_lower": 0.75,
+              "map_equal_lower_percentage_point": 75.0,
+              "map_equal_percentage_point": 75.0,
+              "map_equal_upper": 0.75,
+              "map_equal_upper_percentage_point": 75.0,
+              "map_equal_value": 0.75,
+              "n_known_false": 1,
+              "n_known_true": 3,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            }
+          },
+          "kind": "rate",
+          "label": "ARRIVED",
+          "unit": "proportion"
+        },
+        "collision": {
+          "comparison_unit": "percentage_point",
+          "comparisons": {
+            "(D-C)-(B-A)": {
+              "bootstrap_95": {
+                "lower": -75.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "definition": "(D-C)-(B-A)",
+              "n_maps": 4,
+              "point": -25.0,
+              "point_proportion": -0.25,
+              "scenario_unknown_bounds": null,
+              "unit": "percentage_point"
+            },
+            "B-A": {
+              "bootstrap_95": {
+                "lower": -75.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "B",
+              "point": -25.0,
+              "point_proportion": -0.25,
+              "reference": "A",
+              "scenario_unknown_bounds": {
+                "best_case": -25.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": -25.0,
+                "lower_proportion": -0.25,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": -25.0,
+                "upper_proportion": -0.25,
+                "worst_case": -25.0
+              },
+              "unit": "percentage_point"
+            },
+            "C-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 75.0
+              },
+              "candidate": "C",
+              "point": 50.0,
+              "point_proportion": 0.5,
+              "reference": "A",
+              "scenario_unknown_bounds": {
+                "best_case": 50.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 50.0,
+                "lower_proportion": 0.5,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 50.0,
+                "upper_proportion": 0.5,
+                "worst_case": 50.0
+              },
+              "unit": "percentage_point"
+            },
+            "D-B": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 50.0
+              },
+              "candidate": "D",
+              "point": 25.0,
+              "point_proportion": 0.25,
+              "reference": "B",
+              "scenario_unknown_bounds": {
+                "best_case": 25.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 25.0,
+                "lower_proportion": 0.25,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 25.0,
+                "upper_proportion": 0.25,
+                "worst_case": 25.0
+              },
+              "unit": "percentage_point"
+            },
+            "D-C": {
+              "bootstrap_95": {
+                "lower": -100.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": -50.0,
+              "point_proportion": -0.5,
+              "reference": "C",
+              "scenario_unknown_bounds": {
+                "best_case": -50.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": -50.0,
+                "lower_proportion": -0.5,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": -50.0,
+                "upper_proportion": -0.5,
+                "worst_case": -50.0
+              },
+              "unit": "percentage_point"
+            }
+          },
+          "direction": "lower_better",
+          "groups": {
+            "A": {
+              "map_equal_lower": 0.25,
+              "map_equal_lower_percentage_point": 25.0,
+              "map_equal_percentage_point": 25.0,
+              "map_equal_upper": 0.25,
+              "map_equal_upper_percentage_point": 25.0,
+              "map_equal_value": 0.25,
+              "n_known_false": 3,
+              "n_known_true": 1,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "B": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "C": {
+              "map_equal_lower": 0.75,
+              "map_equal_lower_percentage_point": 75.0,
+              "map_equal_percentage_point": 75.0,
+              "map_equal_upper": 0.75,
+              "map_equal_upper_percentage_point": 75.0,
+              "map_equal_value": 0.75,
+              "n_known_false": 1,
+              "n_known_true": 3,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "D": {
+              "map_equal_lower": 0.25,
+              "map_equal_lower_percentage_point": 25.0,
+              "map_equal_percentage_point": 25.0,
+              "map_equal_upper": 0.25,
+              "map_equal_upper_percentage_point": 25.0,
+              "map_equal_value": 0.25,
+              "n_known_false": 3,
+              "n_known_true": 1,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            }
+          },
+          "kind": "rate",
+          "label": "非足端障碍碰撞",
+          "unit": "proportion"
+        },
+        "elapsed_task_duration_s": {
+          "comparison_unit": "s",
+          "comparisons": {
+            "(D-C)-(B-A)": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "definition": "(D-C)-(B-A)",
+              "n_maps": 4,
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "scenario_unknown_bounds": null,
+              "unit": "s"
+            },
+            "B-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "B",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "s"
+            },
+            "C-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "C",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "s"
+            },
+            "D-B": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "B",
+              "scenario_unknown_bounds": null,
+              "unit": "s"
+            },
+            "D-C": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "C",
+              "scenario_unknown_bounds": null,
+              "unit": "s"
+            }
+          },
+          "direction": "tradeoff",
+          "groups": {
+            "A": {
+              "map_equal_value": 8.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "B": {
+              "map_equal_value": 8.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "C": {
+              "map_equal_value": 8.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "D": {
+              "map_equal_value": 8.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            }
+          },
+          "kind": "continuous",
+          "label": "任务耗时",
+          "unit": "s"
+        },
+        "fall": {
+          "comparison_unit": "percentage_point",
+          "comparisons": {
+            "(D-C)-(B-A)": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "definition": "(D-C)-(B-A)",
+              "n_maps": 4,
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "scenario_unknown_bounds": null,
+              "unit": "percentage_point"
+            },
+            "B-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "B",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": {
+                "best_case": 0.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": 0.0
+              },
+              "unit": "percentage_point"
+            },
+            "C-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "C",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": {
+                "best_case": 0.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": 0.0
+              },
+              "unit": "percentage_point"
+            },
+            "D-B": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "B",
+              "scenario_unknown_bounds": {
+                "best_case": 0.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": 0.0
+              },
+              "unit": "percentage_point"
+            },
+            "D-C": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "C",
+              "scenario_unknown_bounds": {
+                "best_case": 0.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": 0.0
+              },
+              "unit": "percentage_point"
+            }
+          },
+          "direction": "lower_better",
+          "groups": {
+            "A": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "B": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "C": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "D": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            }
+          },
+          "kind": "rate",
+          "label": "跌倒",
+          "unit": "proportion"
+        },
+        "foot_contact_count": {
+          "comparison_unit": "count",
+          "comparisons": {
+            "(D-C)-(B-A)": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "definition": "(D-C)-(B-A)",
+              "n_maps": 4,
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "scenario_unknown_bounds": null,
+              "unit": "count"
+            },
+            "B-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "B",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "count"
+            },
+            "C-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "C",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "count"
+            },
+            "D-B": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "B",
+              "scenario_unknown_bounds": null,
+              "unit": "count"
+            },
+            "D-C": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "C",
+              "scenario_unknown_bounds": null,
+              "unit": "count"
+            }
+          },
+          "direction": "none",
+          "groups": {
+            "A": {
+              "map_equal_value": 0.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "B": {
+              "map_equal_value": 0.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "C": {
+              "map_equal_value": 0.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "D": {
+              "map_equal_value": 0.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            }
+          },
+          "kind": "continuous",
+          "label": "足端接触次数",
+          "unit": "count"
+        },
+        "foot_impact_any": {
+          "comparison_unit": "percentage_point",
+          "comparisons": {
+            "(D-C)-(B-A)": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "definition": "(D-C)-(B-A)",
+              "n_maps": 4,
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "scenario_unknown_bounds": null,
+              "unit": "percentage_point"
+            },
+            "B-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "B",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": {
+                "best_case": null,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "no single direction; report both endpoints and context",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": null
+              },
+              "unit": "percentage_point"
+            },
+            "C-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "C",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": {
+                "best_case": null,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "no single direction; report both endpoints and context",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": null
+              },
+              "unit": "percentage_point"
+            },
+            "D-B": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "B",
+              "scenario_unknown_bounds": {
+                "best_case": null,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "no single direction; report both endpoints and context",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": null
+              },
+              "unit": "percentage_point"
+            },
+            "D-C": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "C",
+              "scenario_unknown_bounds": {
+                "best_case": null,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "no single direction; report both endpoints and context",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": null
+              },
+              "unit": "percentage_point"
+            }
+          },
+          "direction": "none",
+          "groups": {
+            "A": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "B": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "C": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "D": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            }
+          },
+          "kind": "rate",
+          "label": "存在足端撞击",
+          "unit": "proportion"
+        },
+        "foot_impact_count": {
+          "comparison_unit": "count",
+          "comparisons": {
+            "(D-C)-(B-A)": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "definition": "(D-C)-(B-A)",
+              "n_maps": 4,
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "scenario_unknown_bounds": null,
+              "unit": "count"
+            },
+            "B-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "B",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "count"
+            },
+            "C-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "C",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "count"
+            },
+            "D-B": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "B",
+              "scenario_unknown_bounds": null,
+              "unit": "count"
+            },
+            "D-C": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "C",
+              "scenario_unknown_bounds": null,
+              "unit": "count"
+            }
+          },
+          "direction": "none",
+          "groups": {
+            "A": {
+              "map_equal_value": 0.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "B": {
+              "map_equal_value": 0.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "C": {
+              "map_equal_value": 0.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "D": {
+              "map_equal_value": 0.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            }
+          },
+          "kind": "continuous",
+          "label": "足端撞击次数",
+          "unit": "count"
+        },
+        "out_of_bounds": {
+          "comparison_unit": "percentage_point",
+          "comparisons": {
+            "(D-C)-(B-A)": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "definition": "(D-C)-(B-A)",
+              "n_maps": 4,
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "scenario_unknown_bounds": null,
+              "unit": "percentage_point"
+            },
+            "B-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "B",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": {
+                "best_case": 0.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": 0.0
+              },
+              "unit": "percentage_point"
+            },
+            "C-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "C",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": {
+                "best_case": 0.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": 0.0
+              },
+              "unit": "percentage_point"
+            },
+            "D-B": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "B",
+              "scenario_unknown_bounds": {
+                "best_case": 0.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": 0.0
+              },
+              "unit": "percentage_point"
+            },
+            "D-C": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "C",
+              "scenario_unknown_bounds": {
+                "best_case": 0.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": 0.0
+              },
+              "unit": "percentage_point"
+            }
+          },
+          "direction": "lower_better",
+          "groups": {
+            "A": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "B": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "C": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "D": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            }
+          },
+          "kind": "rate",
+          "label": "base_link越界",
+          "unit": "proportion"
+        },
+        "recovery_reentry_within_0_5s_count": {
+          "comparison_unit": "count_per_run",
+          "comparisons": {
+            "(D-C)-(B-A)": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "definition": "(D-C)-(B-A)",
+              "n_maps": 4,
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "scenario_unknown_bounds": null,
+              "unit": "count_per_run"
+            },
+            "B-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "B",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "count_per_run"
+            },
+            "C-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "C",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "count_per_run"
+            },
+            "D-B": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "B",
+              "scenario_unknown_bounds": null,
+              "unit": "count_per_run"
+            },
+            "D-C": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "C",
+              "scenario_unknown_bounds": null,
+              "unit": "count_per_run"
+            }
+          },
+          "direction": "tradeoff",
+          "groups": {
+            "A": {
+              "map_equal_value": 1.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "B": {
+              "map_equal_value": 1.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "C": {
+              "map_equal_value": 1.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "D": {
+              "map_equal_value": 1.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            }
+          },
+          "kind": "continuous",
+          "label": "退出后0.5s内重入次数",
+          "unit": "count_per_run"
+        },
+        "recovery_residence_median_s": {
+          "comparison_unit": "s",
+          "comparisons": {
+            "(D-C)-(B-A)": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "definition": "(D-C)-(B-A)",
+              "n_maps": 4,
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "scenario_unknown_bounds": null,
+              "unit": "s"
+            },
+            "B-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "B",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "s"
+            },
+            "C-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "C",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "s"
+            },
+            "D-B": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "B",
+              "scenario_unknown_bounds": null,
+              "unit": "s"
+            },
+            "D-C": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "C",
+              "scenario_unknown_bounds": null,
+              "unit": "s"
+            }
+          },
+          "direction": "tradeoff",
+          "groups": {
+            "A": {
+              "map_equal_value": 0.30000000000000004,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "B": {
+              "map_equal_value": 0.30000000000000004,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "C": {
+              "map_equal_value": 0.30000000000000004,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "D": {
+              "map_equal_value": 0.30000000000000004,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            }
+          },
+          "kind": "continuous",
+          "label": "Recovery单次驻留中位数",
+          "unit": "s"
+        },
+        "recovery_share": {
+          "comparison_unit": "fraction",
+          "comparisons": {
+            "(D-C)-(B-A)": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "definition": "(D-C)-(B-A)",
+              "n_maps": 4,
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "scenario_unknown_bounds": null,
+              "unit": "fraction"
+            },
+            "B-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "B",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "fraction"
+            },
+            "C-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "C",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "fraction"
+            },
+            "D-B": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "B",
+              "scenario_unknown_bounds": null,
+              "unit": "fraction"
+            },
+            "D-C": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "C",
+              "scenario_unknown_bounds": null,
+              "unit": "fraction"
+            }
+          },
+          "direction": "tradeoff",
+          "groups": {
+            "A": {
+              "map_equal_value": 0.1,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "B": {
+              "map_equal_value": 0.1,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "C": {
+              "map_equal_value": 0.1,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "D": {
+              "map_equal_value": 0.1,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            }
+          },
+          "kind": "continuous",
+          "label": "Recovery有效时间占比",
+          "unit": "fraction"
+        },
+        "safe_complete": {
+          "comparison_unit": "percentage_point",
+          "comparisons": {
+            "(D-C)-(B-A)": {
+              "bootstrap_95": {
+                "lower": -75.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 50.0
+              },
+              "definition": "(D-C)-(B-A)",
+              "n_maps": 4,
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "scenario_unknown_bounds": null,
+              "unit": "percentage_point"
+            },
+            "B-A": {
+              "bootstrap_95": {
+                "lower": 25.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 100.0
+              },
+              "candidate": "B",
+              "point": 50.0,
+              "point_proportion": 0.5,
+              "reference": "A",
+              "scenario_unknown_bounds": {
+                "best_case": 50.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 25.0,
+                "lower_proportion": 0.25,
+                "note": "higher is better: mathematical lower is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 50.0,
+                "upper_proportion": 0.5,
+                "worst_case": 25.0
+              },
+              "unit": "percentage_point"
+            },
+            "C-A": {
+              "bootstrap_95": {
+                "lower": -75.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "C",
+              "point": -25.0,
+              "point_proportion": -0.25,
+              "reference": "A",
+              "scenario_unknown_bounds": {
+                "best_case": -25.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": -50.0,
+                "lower_proportion": -0.5,
+                "note": "higher is better: mathematical lower is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": -25.0,
+                "upper_proportion": -0.25,
+                "worst_case": -50.0
+              },
+              "unit": "percentage_point"
+            },
+            "D-B": {
+              "bootstrap_95": {
+                "lower": -75.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": -25.0,
+              "point_proportion": -0.25,
+              "reference": "B",
+              "scenario_unknown_bounds": {
+                "best_case": -25.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": -25.0,
+                "lower_proportion": -0.25,
+                "note": "higher is better: mathematical lower is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": -25.0,
+                "upper_proportion": -0.25,
+                "worst_case": -25.0
+              },
+              "unit": "percentage_point"
+            },
+            "D-C": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 100.0
+              },
+              "candidate": "D",
+              "point": 50.0,
+              "point_proportion": 0.5,
+              "reference": "C",
+              "scenario_unknown_bounds": {
+                "best_case": 50.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 50.0,
+                "lower_proportion": 0.5,
+                "note": "higher is better: mathematical lower is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 50.0,
+                "upper_proportion": 0.5,
+                "worst_case": 50.0
+              },
+              "unit": "percentage_point"
+            }
+          },
+          "direction": "higher_better",
+          "groups": {
+            "A": {
+              "map_equal_lower": 0.5,
+              "map_equal_lower_percentage_point": 50.0,
+              "map_equal_percentage_point": 50.0,
+              "map_equal_upper": 0.75,
+              "map_equal_upper_percentage_point": 75.0,
+              "map_equal_value": 0.5,
+              "n_known_false": 1,
+              "n_known_true": 2,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 1
+            },
+            "B": {
+              "map_equal_lower": 1.0,
+              "map_equal_lower_percentage_point": 100.0,
+              "map_equal_percentage_point": 100.0,
+              "map_equal_upper": 1.0,
+              "map_equal_upper_percentage_point": 100.0,
+              "map_equal_value": 1.0,
+              "n_known_false": 0,
+              "n_known_true": 4,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "C": {
+              "map_equal_lower": 0.25,
+              "map_equal_lower_percentage_point": 25.0,
+              "map_equal_percentage_point": 25.0,
+              "map_equal_upper": 0.25,
+              "map_equal_upper_percentage_point": 25.0,
+              "map_equal_value": 0.25,
+              "n_known_false": 3,
+              "n_known_true": 1,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "D": {
+              "map_equal_lower": 0.75,
+              "map_equal_lower_percentage_point": 75.0,
+              "map_equal_percentage_point": 75.0,
+              "map_equal_upper": 0.75,
+              "map_equal_upper_percentage_point": 75.0,
+              "map_equal_value": 0.75,
+              "n_known_false": 1,
+              "n_known_true": 3,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            }
+          },
+          "kind": "rate",
+          "label": "已确认安全任务完成",
+          "unit": "proportion"
+        },
+        "short_reverse_per_min": {
+          "comparison_unit": "per_valid_minute",
+          "comparisons": {
+            "(D-C)-(B-A)": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "definition": "(D-C)-(B-A)",
+              "n_maps": 4,
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "scenario_unknown_bounds": null,
+              "unit": "per_valid_minute"
+            },
+            "B-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "B",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "per_valid_minute"
+            },
+            "C-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "C",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "per_valid_minute"
+            },
+            "D-B": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "B",
+              "scenario_unknown_bounds": null,
+              "unit": "per_valid_minute"
+            },
+            "D-C": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "C",
+              "scenario_unknown_bounds": null,
+              "unit": "per_valid_minute"
+            }
+          },
+          "direction": "lower_better",
+          "groups": {
+            "A": {
+              "map_equal_value": 30.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "B": {
+              "map_equal_value": 30.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "C": {
+              "map_equal_value": 30.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "D": {
+              "map_equal_value": 30.0,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            }
+          },
+          "kind": "continuous",
+          "label": "短反向切换频率",
+          "unit": "per_valid_minute"
+        },
+        "target_progress_m": {
+          "comparison_unit": "m",
+          "comparisons": {
+            "(D-C)-(B-A)": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "definition": "(D-C)-(B-A)",
+              "n_maps": 4,
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "scenario_unknown_bounds": null,
+              "unit": "m"
+            },
+            "B-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "B",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "m"
+            },
+            "C-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "C",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": null,
+              "unit": "m"
+            },
+            "D-B": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "B",
+              "scenario_unknown_bounds": null,
+              "unit": "m"
+            },
+            "D-C": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "C",
+              "scenario_unknown_bounds": null,
+              "unit": "m"
+            }
+          },
+          "direction": "higher_better",
+          "groups": {
+            "A": {
+              "map_equal_value": 7.1,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "B": {
+              "map_equal_value": 7.1,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "C": {
+              "map_equal_value": 7.1,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            },
+            "D": {
+              "map_equal_value": 7.1,
+              "n_maps_known": 4,
+              "n_maps_total": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0,
+              "n_values_known": 4
+            }
+          },
+          "kind": "continuous",
+          "label": "目标推进",
+          "unit": "m"
+        },
+        "timeout": {
+          "comparison_unit": "percentage_point",
+          "comparisons": {
+            "(D-C)-(B-A)": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "definition": "(D-C)-(B-A)",
+              "n_maps": 4,
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "scenario_unknown_bounds": null,
+              "unit": "percentage_point"
+            },
+            "B-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "B",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": {
+                "best_case": 0.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": 0.0
+              },
+              "unit": "percentage_point"
+            },
+            "C-A": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "C",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "A",
+              "scenario_unknown_bounds": {
+                "best_case": 0.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": 0.0
+              },
+              "unit": "percentage_point"
+            },
+            "D-B": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "B",
+              "scenario_unknown_bounds": {
+                "best_case": 0.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": 0.0
+              },
+              "unit": "percentage_point"
+            },
+            "D-C": {
+              "bootstrap_95": {
+                "lower": 0.0,
+                "replicates_requested": 50,
+                "replicates_used": 50,
+                "upper": 0.0
+              },
+              "candidate": "D",
+              "point": 0.0,
+              "point_proportion": 0.0,
+              "reference": "C",
+              "scenario_unknown_bounds": {
+                "best_case": 0.0,
+                "definition": "candidate_lower - reference_upper, candidate_upper - reference_lower",
+                "lower": 0.0,
+                "lower_proportion": 0.0,
+                "note": "lower is better: mathematical upper is least favorable",
+                "scope": "UNKNOWN sensitivity over the full plan denominator; NOT a confidence interval",
+                "upper": 0.0,
+                "upper_proportion": 0.0,
+                "worst_case": 0.0
+              },
+              "unit": "percentage_point"
+            }
+          },
+          "direction": "lower_better",
+          "groups": {
+            "A": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "B": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "C": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            },
+            "D": {
+              "map_equal_lower": 0.0,
+              "map_equal_lower_percentage_point": 0.0,
+              "map_equal_percentage_point": 0.0,
+              "map_equal_upper": 0.0,
+              "map_equal_upper_percentage_point": 0.0,
+              "map_equal_value": 0.0,
+              "n_known_false": 4,
+              "n_known_true": 0,
+              "n_maps": 4,
+              "n_plan_items": 4,
+              "n_unknown": 0
+            }
+          },
+          "kind": "rate",
+          "label": "仿真限时",
+          "unit": "proportion"
+        }
+      },
+      "notes": [
+        "Each map is aggregated over its two repeats before the 30 maps are equally weighted.",
+        "Rate differences and their bounds are reported in percentage points; the underlying proportions remain in each group summary. Unknown events widen the separate scenario bounds and are never filled as zero.",
+        "Scenario bounds express UNKNOWN sensitivity and are not confidence intervals.",
+        "Continuous metrics report known-map coverage; scenario bounds are not defined for them.",
+        "Completion-time subsets select on success and do not prove overall speed-up.",
+        "The legacy composite score is not used for ranking."
+      ]
+    },
+    "plan_binding": {
+      "matrix_id": null,
+      "plan_items": 16,
+      "plan_sha256": null
+    },
+    "provenance": {},
+    "schema": "s7-formal-analysis-v1",
+    "scope": "frozen formal analysis; no composite score; no confirmatory p-values",
+    "views": {
+      "all_actual_scene_starts": {
+        "class_counts": {
+          "VALID_TASK_RESULT": 16
+        },
+        "counts": {
+          "actual_scene_starts": 16,
+          "invocation_attempts": 16,
+          "plan_items": 16,
+          "replacement_scene_starts": 0,
+          "scene_creation_unknown_attempts": 0,
+          "started_motion_tasks": 16,
+          "unique_run_ids": 16
+        },
+        "invocation_class_counts": {
+          "VALID_TASK_RESULT": 16
+        },
+        "note": "all starts retained, including replaced first attempts and safety aborts",
+        "per_group_class_counts": {
+          "A": {
+            "VALID_TASK_RESULT": 4
+          },
+          "B": {
+            "VALID_TASK_RESULT": 4
+          },
+          "C": {
+            "VALID_TASK_RESULT": 4
+          },
+          "D": {
+            "VALID_TASK_RESULT": 4
+          }
+        }
+      },
+      "first_actual_scene_only_sensitivity": {
+        "denominator_plan_items": 16,
+        "note": "sensitivity only; first scene start is never replaced by a later substitute",
+        "outcome_counts": {
+          "CONFIRMED_SAFE_COMPLETE": 10,
+          "KNOWN_NOT_COMPLETE": 5,
+          "SAFETY_UNKNOWN": 1
+        },
+        "plan_item_outcomes": {
+          "CONFIRMED_SAFE_COMPLETE": 10,
+          "KNOWN_NOT_COMPLETE": 5,
+          "SAFETY_UNKNOWN": 1
+        },
+        "rows": [
+          {
+            "first_scene_attempt_id": "FIX-001-attempt-1",
+            "first_scene_navigation_result": "ARRIVED",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "ARRIVED",
+            "global_order": 1,
+            "group": "A",
+            "map": "fixture_map_01",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-001",
+            "repeat_block": 1
+          },
+          {
+            "first_scene_attempt_id": "FIX-002-attempt-1",
+            "first_scene_navigation_result": "ARRIVED",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "ARRIVED",
+            "global_order": 2,
+            "group": "B",
+            "map": "fixture_map_01",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-002",
+            "repeat_block": 1
+          },
+          {
+            "first_scene_attempt_id": "FIX-003-attempt-1",
+            "first_scene_navigation_result": "ARRIVED",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "ARRIVED",
+            "global_order": 3,
+            "group": "D",
+            "map": "fixture_map_01",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-003",
+            "repeat_block": 1
+          },
+          {
+            "first_scene_attempt_id": "FIX-004-attempt-1",
+            "first_scene_navigation_result": "ARRIVED",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "ARRIVED",
+            "global_order": 4,
+            "group": "C",
+            "map": "fixture_map_01",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-004",
+            "repeat_block": 1
+          },
+          {
+            "first_scene_attempt_id": "FIX-005-attempt-1",
+            "first_scene_navigation_result": "COLLISION_TERMINATION",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "COLLISION_TERMINATION",
+            "global_order": 5,
+            "group": "C",
+            "map": "fixture_map_02",
+            "metrics": {
+              "arrived": false,
+              "cleanup_complete": true,
+              "collision": true,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "COLLISION_TERMINATION",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": false,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "KNOWN_NOT_COMPLETE",
+            "plan_item_id": "FIX-005",
+            "repeat_block": 1
+          },
+          {
+            "first_scene_attempt_id": "FIX-006-attempt-1",
+            "first_scene_navigation_result": "ARRIVED",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "ARRIVED",
+            "global_order": 6,
+            "group": "D",
+            "map": "fixture_map_02",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-006",
+            "repeat_block": 1
+          },
+          {
+            "first_scene_attempt_id": "FIX-007-attempt-1",
+            "first_scene_navigation_result": "ARRIVED",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "ARRIVED",
+            "global_order": 7,
+            "group": "B",
+            "map": "fixture_map_02",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-007",
+            "repeat_block": 1
+          },
+          {
+            "first_scene_attempt_id": "FIX-008-attempt-1",
+            "first_scene_navigation_result": "ARRIVED",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "ARRIVED",
+            "global_order": 8,
+            "group": "A",
+            "map": "fixture_map_02",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-008",
+            "repeat_block": 1
+          },
+          {
+            "first_scene_attempt_id": "FIX-009-attempt-1",
+            "first_scene_navigation_result": "ARRIVED",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "ARRIVED",
+            "global_order": 9,
+            "group": "B",
+            "map": "fixture_map_03",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-009",
+            "repeat_block": 1
+          },
+          {
+            "first_scene_attempt_id": "FIX-010-attempt-1",
+            "first_scene_navigation_result": "COLLISION_TERMINATION",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "COLLISION_TERMINATION",
+            "global_order": 10,
+            "group": "C",
+            "map": "fixture_map_03",
+            "metrics": {
+              "arrived": false,
+              "cleanup_complete": true,
+              "collision": true,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "COLLISION_TERMINATION",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": false,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "KNOWN_NOT_COMPLETE",
+            "plan_item_id": "FIX-010",
+            "repeat_block": 1
+          },
+          {
+            "first_scene_attempt_id": "FIX-011-attempt-1",
+            "first_scene_navigation_result": "COLLISION_TERMINATION",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "COLLISION_TERMINATION",
+            "global_order": 11,
+            "group": "A",
+            "map": "fixture_map_03",
+            "metrics": {
+              "arrived": false,
+              "cleanup_complete": true,
+              "collision": true,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "COLLISION_TERMINATION",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": false,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "KNOWN_NOT_COMPLETE",
+            "plan_item_id": "FIX-011",
+            "repeat_block": 1
+          },
+          {
+            "first_scene_attempt_id": "FIX-012-attempt-1",
+            "first_scene_navigation_result": "ARRIVED",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "ARRIVED",
+            "global_order": 12,
+            "group": "D",
+            "map": "fixture_map_03",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-012",
+            "repeat_block": 1
+          },
+          {
+            "first_scene_attempt_id": "FIX-013-attempt-1",
+            "first_scene_navigation_result": "COLLISION_TERMINATION",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "COLLISION_TERMINATION",
+            "global_order": 13,
+            "group": "D",
+            "map": "fixture_map_04",
+            "metrics": {
+              "arrived": false,
+              "cleanup_complete": true,
+              "collision": true,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "COLLISION_TERMINATION",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": false,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "KNOWN_NOT_COMPLETE",
+            "plan_item_id": "FIX-013",
+            "repeat_block": 1
+          },
+          {
+            "first_scene_attempt_id": "FIX-014-attempt-1",
+            "first_scene_navigation_result": "ARRIVED",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "ARRIVED",
+            "global_order": 14,
+            "group": "A",
+            "map": "fixture_map_04",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": null,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "SAFETY_UNKNOWN",
+            "plan_item_id": "FIX-014",
+            "repeat_block": 1
+          },
+          {
+            "first_scene_attempt_id": "FIX-015-attempt-1",
+            "first_scene_navigation_result": "COLLISION_TERMINATION",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "COLLISION_TERMINATION",
+            "global_order": 15,
+            "group": "C",
+            "map": "fixture_map_04",
+            "metrics": {
+              "arrived": false,
+              "cleanup_complete": true,
+              "collision": true,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "COLLISION_TERMINATION",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": false,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "KNOWN_NOT_COMPLETE",
+            "plan_item_id": "FIX-015",
+            "repeat_block": 1
+          },
+          {
+            "first_scene_attempt_id": "FIX-016-attempt-1",
+            "first_scene_navigation_result": "ARRIVED",
+            "first_scene_record_validity": "VALID",
+            "first_scene_terminal": "ARRIVED",
+            "global_order": 16,
+            "group": "B",
+            "map": "fixture_map_04",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-016",
+            "repeat_block": 1
+          }
+        ]
+      },
+      "primary_plan_item": {
+        "outcome_counts": {
+          "CONFIRMED_SAFE_COMPLETE": 10,
+          "KNOWN_NOT_COMPLETE": 5,
+          "SAFETY_UNKNOWN": 1
+        },
+        "per_group": {
+          "A": {
+            "all_outcome_counts": {
+              "CONFIRMED_SAFE_COMPLETE": 2,
+              "KNOWN_NOT_COMPLETE": 1,
+              "SAFETY_UNKNOWN": 1
+            },
+            "confirmed_safe_complete": 2,
+            "known_not_complete": 1,
+            "not_started": 0,
+            "plan_items": 4,
+            "safe_completion_lower_over_all_plan_items": 0.5,
+            "safe_completion_upper_over_all_plan_items": 0.75,
+            "safety_unknown": 1,
+            "unresolved": 0,
+            "unresolved_engineering": 0,
+            "unresolved_scene_attempt": 0
+          },
+          "B": {
+            "all_outcome_counts": {
+              "CONFIRMED_SAFE_COMPLETE": 4
+            },
+            "confirmed_safe_complete": 4,
+            "known_not_complete": 0,
+            "not_started": 0,
+            "plan_items": 4,
+            "safe_completion_lower_over_all_plan_items": 1.0,
+            "safe_completion_upper_over_all_plan_items": 1.0,
+            "safety_unknown": 0,
+            "unresolved": 0,
+            "unresolved_engineering": 0,
+            "unresolved_scene_attempt": 0
+          },
+          "C": {
+            "all_outcome_counts": {
+              "CONFIRMED_SAFE_COMPLETE": 1,
+              "KNOWN_NOT_COMPLETE": 3
+            },
+            "confirmed_safe_complete": 1,
+            "known_not_complete": 3,
+            "not_started": 0,
+            "plan_items": 4,
+            "safe_completion_lower_over_all_plan_items": 0.25,
+            "safe_completion_upper_over_all_plan_items": 0.25,
+            "safety_unknown": 0,
+            "unresolved": 0,
+            "unresolved_engineering": 0,
+            "unresolved_scene_attempt": 0
+          },
+          "D": {
+            "all_outcome_counts": {
+              "CONFIRMED_SAFE_COMPLETE": 3,
+              "KNOWN_NOT_COMPLETE": 1
+            },
+            "confirmed_safe_complete": 3,
+            "known_not_complete": 1,
+            "not_started": 0,
+            "plan_items": 4,
+            "safe_completion_lower_over_all_plan_items": 0.75,
+            "safe_completion_upper_over_all_plan_items": 0.75,
+            "safety_unknown": 0,
+            "unresolved": 0,
+            "unresolved_engineering": 0,
+            "unresolved_scene_attempt": 0
+          }
+        },
+        "rows": [
+          {
+            "global_order": 1,
+            "group": "A",
+            "map": "fixture_map_01",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-001",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-001-attempt-1",
+            "selected_run_id": "cmp-0",
+            "selected_terminal": "ARRIVED"
+          },
+          {
+            "global_order": 2,
+            "group": "B",
+            "map": "fixture_map_01",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-002",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-002-attempt-1",
+            "selected_run_id": "cmp-1",
+            "selected_terminal": "ARRIVED"
+          },
+          {
+            "global_order": 3,
+            "group": "D",
+            "map": "fixture_map_01",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-003",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-003-attempt-1",
+            "selected_run_id": "cmp-2",
+            "selected_terminal": "ARRIVED"
+          },
+          {
+            "global_order": 4,
+            "group": "C",
+            "map": "fixture_map_01",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-004",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-004-attempt-1",
+            "selected_run_id": "cmp-3",
+            "selected_terminal": "ARRIVED"
+          },
+          {
+            "global_order": 5,
+            "group": "C",
+            "map": "fixture_map_02",
+            "metrics": {
+              "arrived": false,
+              "cleanup_complete": true,
+              "collision": true,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "COLLISION_TERMINATION",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": false,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "KNOWN_NOT_COMPLETE",
+            "plan_item_id": "FIX-005",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-005-attempt-1",
+            "selected_run_id": "cmp-4",
+            "selected_terminal": "COLLISION_TERMINATION"
+          },
+          {
+            "global_order": 6,
+            "group": "D",
+            "map": "fixture_map_02",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-006",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-006-attempt-1",
+            "selected_run_id": "cmp-5",
+            "selected_terminal": "ARRIVED"
+          },
+          {
+            "global_order": 7,
+            "group": "B",
+            "map": "fixture_map_02",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-007",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-007-attempt-1",
+            "selected_run_id": "cmp-6",
+            "selected_terminal": "ARRIVED"
+          },
+          {
+            "global_order": 8,
+            "group": "A",
+            "map": "fixture_map_02",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-008",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-008-attempt-1",
+            "selected_run_id": "cmp-7",
+            "selected_terminal": "ARRIVED"
+          },
+          {
+            "global_order": 9,
+            "group": "B",
+            "map": "fixture_map_03",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-009",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-009-attempt-1",
+            "selected_run_id": "cmp-8",
+            "selected_terminal": "ARRIVED"
+          },
+          {
+            "global_order": 10,
+            "group": "C",
+            "map": "fixture_map_03",
+            "metrics": {
+              "arrived": false,
+              "cleanup_complete": true,
+              "collision": true,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "COLLISION_TERMINATION",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": false,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "KNOWN_NOT_COMPLETE",
+            "plan_item_id": "FIX-010",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-010-attempt-1",
+            "selected_run_id": "cmp-9",
+            "selected_terminal": "COLLISION_TERMINATION"
+          },
+          {
+            "global_order": 11,
+            "group": "A",
+            "map": "fixture_map_03",
+            "metrics": {
+              "arrived": false,
+              "cleanup_complete": true,
+              "collision": true,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "COLLISION_TERMINATION",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": false,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "KNOWN_NOT_COMPLETE",
+            "plan_item_id": "FIX-011",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-011-attempt-1",
+            "selected_run_id": "cmp-10",
+            "selected_terminal": "COLLISION_TERMINATION"
+          },
+          {
+            "global_order": 12,
+            "group": "D",
+            "map": "fixture_map_03",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-012",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-012-attempt-1",
+            "selected_run_id": "cmp-11",
+            "selected_terminal": "ARRIVED"
+          },
+          {
+            "global_order": 13,
+            "group": "D",
+            "map": "fixture_map_04",
+            "metrics": {
+              "arrived": false,
+              "cleanup_complete": true,
+              "collision": true,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "COLLISION_TERMINATION",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": false,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "KNOWN_NOT_COMPLETE",
+            "plan_item_id": "FIX-013",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-013-attempt-1",
+            "selected_run_id": "cmp-12",
+            "selected_terminal": "COLLISION_TERMINATION"
+          },
+          {
+            "global_order": 14,
+            "group": "A",
+            "map": "fixture_map_04",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": null,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "SAFETY_UNKNOWN",
+            "plan_item_id": "FIX-014",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-014-attempt-1",
+            "selected_run_id": "cmp-13",
+            "selected_terminal": "ARRIVED"
+          },
+          {
+            "global_order": 15,
+            "group": "C",
+            "map": "fixture_map_04",
+            "metrics": {
+              "arrived": false,
+              "cleanup_complete": true,
+              "collision": true,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "COLLISION_TERMINATION",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": false,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "KNOWN_NOT_COMPLETE",
+            "plan_item_id": "FIX-015",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-015-attempt-1",
+            "selected_run_id": "cmp-14",
+            "selected_terminal": "COLLISION_TERMINATION"
+          },
+          {
+            "global_order": 16,
+            "group": "B",
+            "map": "fixture_map_04",
+            "metrics": {
+              "arrived": true,
+              "cleanup_complete": true,
+              "collision": false,
+              "elapsed_task_duration_s": 8.0,
+              "fall": false,
+              "foot_contact_count": 0.0,
+              "foot_impact_any": false,
+              "foot_impact_count": 0.0,
+              "navigation_terminal_result": "ARRIVED",
+              "out_of_bounds": false,
+              "record_validity": "VALID",
+              "recovery_censored_interval_count": 0,
+              "recovery_completed_interval_count": 2,
+              "recovery_reentry_within_0_5s_count": 1,
+              "recovery_residence_median_s": 0.30000000000000004,
+              "recovery_share": 0.1,
+              "safe_complete": true,
+              "short_reverse_per_min": 30.0,
+              "standing_observation_complete": true,
+              "target_progress_m": 7.1,
+              "timeout": false
+            },
+            "outcome": "CONFIRMED_SAFE_COMPLETE",
+            "plan_item_id": "FIX-016",
+            "plan_status": "SELECTED_RESULT",
+            "repeat_block": 1,
+            "selected_attempt_id": "FIX-016-attempt-1",
+            "selected_run_id": "cmp-15",
+            "selected_terminal": "ARRIVED"
+          }
+        ],
+        "selection_rule": "one pre-specified result per plan item, independent of group/outcome"
+      }
+    }
+  },
+  "warning": "Constructed 4-map x 4-group fixture. This is not an experimental result and must never be merged with logs/08 formal data."
+}

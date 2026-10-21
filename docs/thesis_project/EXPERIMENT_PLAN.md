@@ -1,10 +1,10 @@
 # 实验计划
 
-## 当前阶段：S7-01正式方法准备（2026-10-19）
+## 当前阶段：S7-02等待正式运行授权（2026-10-21）
 
 T1退出阈值选参完成；T2经Director有条件通过并标记COMPLETE，接受机制研究代表设置：E=−0.05、B/D共同X=−0.10、C/D共同H=0.20仿真秒。D的4/12仿真时限、Recovery占用代价及m06/d07推进退化继续保留；不改部署默认参数，自动保持时间搜索结束。
 
-当前唯一Active Task为S7-01 / PREPARATION。用户已确认正式方法的越界、统计、资源/补做和命令消费边界；修正后的240项候选矩阵已离线核对，等待Director审阅。正式方案仍为**DRAFT**，矩阵不是运行授权：M1冻结holdout01–30×2重复区组×4组=240项，尚未启动或授权留出策略运行。见[正式方法复核稿](designs/S7/FORMAL_METHOD_REVIEW.md)、[候选冻结审阅](designs/S7/METHOD_FREEZE_REVIEW.md)、[CSV矩阵](designs/S7/formal_matrix_240.csv)及[JSON矩阵](designs/S7/formal_matrix_240.json)。以下通用实验原则继续适用。
+S7-01已由Director有条件通过并标记**COMPLETE**；当前唯一Active Task为[S7-02](tasks/S7-02.md)，状态**ACTIVE / AWAITING_RUN_AUTHORIZATION**。正式方法与240项平衡矩阵保持冻结（`METHOD_FROZEN_AUTHORIZED_TO_RUN_FALSE`，`authorized_to_run=false`）；M1 holdout01–30×2重复区组×4组=240项，未启动、未获运行授权。正式执行入口、三层汇总、决策时钟重建和停止/恢复规则见[正式执行说明](designs/S7/FORMAL_RUN_GUIDE.md)、[运行准备报告](evidence/S7-01/runner_readiness/RUNNER_READINESS_REPORT.md)及[正式方法复核稿](designs/S7/FORMAL_METHOD_REVIEW.md)。以下通用实验原则继续适用。
 
 
 ## 1. 实验目标

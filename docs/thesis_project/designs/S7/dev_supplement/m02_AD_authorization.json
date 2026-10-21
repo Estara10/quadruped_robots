@@ -1,0 +1,26 @@
+{
+  "authorization_basis": "S7-01 dev supplement request 2026-10-21: exactly two development runs on m02.xml, A then D; no formal data and no holdout map.",
+  "authorization_id": "DEV-M02-AD-20261021-01",
+  "authorized_by": "User",
+  "authorized_to_run": true,
+  "batch_budget_gib": 1.0,
+  "batch_id": "dev-m02-ad-20261021",
+  "failure_injection": false,
+  "formal_240_authorization": false,
+  "holdout_prohibited": true,
+  "intentional_motion_interruption": false,
+  "max_scene_starts": 2,
+  "max_substitutions": 0,
+  "min_free_gib": 15.0,
+  "no_automatic_retry": true,
+  "not_formal_data": true,
+  "one_off_batch": true,
+  "plan_id": "S7-DEV-SUPPLEMENT-M02-A-D-v1",
+  "plan_sha256": "264b7f1660c094e1123d8ac8d473cc2d3db6975b83aba1a0313f3500a06aae38",
+  "review": {
+    "date": "2026-10-21",
+    "reference": "Conversation request 2026-10-21"
+  },
+  "schema": "s7-dev-supplement-run-authorization-v1",
+  "scope": "DEV_SUPPLEMENT"
+}

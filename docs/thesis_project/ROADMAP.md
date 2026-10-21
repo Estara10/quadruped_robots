@@ -80,6 +80,8 @@
 
 目标：获得毕业论文核心对照数据。
 
+当前进度（2026-10-21）：S7-01已COMPLETE（Director有条件通过）；方法与240项矩阵冻结（`authorized_to_run=false`）；最小运行器、attempt台账/恢复、安全分类、三层汇总和决策时钟重建已准备并验证。唯一Active Task为S7-02（ACTIVE / AWAITING_RUN_AUTHORIZATION）；正式240项未启动、未获运行授权。
+
 最小验收：
 
 - 四组在相同实验条件下完成足够数量的配对 run；

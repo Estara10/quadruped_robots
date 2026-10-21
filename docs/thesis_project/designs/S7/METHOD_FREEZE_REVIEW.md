@@ -1,6 +1,6 @@
 # S7正式方法与240项候选矩阵审阅
 
-日期：2026-10-19。状态：**提交Director最终审阅；候选矩阵未获正式运行冻结或启动授权。** S7-01保持ACTIVE / PREPARATION。
+日期：2026-10-19；2026-10-21更新方法冻结状态。状态：**Director已通过正式方法与平衡矩阵；矩阵状态为`METHOD_FROZEN_AUTHORIZED_TO_RUN_FALSE`，`authorized_to_run=false`。S7-01已COMPLETE（Director有条件通过）；S7-02为唯一Active Task（ACTIVE / AWAITING_RUN_AUTHORIZATION）；240项未启动、未获运行授权。** 最小运行器与分析入口已完成定向离线联测，报告见[RUNNER_READINESS_REPORT.md](../../evidence/S7-01/runner_readiness/RUNNER_READINESS_REPORT.md)。
 
 ## 已写入并确认的方法决策
 
@@ -22,19 +22,29 @@ B/D共用X，C/D共用H。这些是机制研究代表设置，不是全局或部
 3. 资源和工程替代上限：基础240次场景启动；最多12次有证据支持的工程替代启动；同一计划项最多替代一次，总场景启动上限252；批次预算6GiB，可用空间保护线15GiB。该预算/额度不是本轮运行许可。
 4. MuJoCo命令消费不作为核心响应指标，继续UNKNOWN；内部模式决策、控制接口写出和物理消费分别报告，不用函数纳秒耗时称作端到端避障响应。
 
+## 方法冻结与运行准备（2026-10-21）
+
+方法与矩阵已从候选状态更新为**方法已冻结**，但运行授权保持为否：
+
+- JSON状态`METHOD_FROZEN_AUTHORIZED_TO_RUN_FALSE`；`authorized_to_run=false`；240条记录未重生成、未重排、未改字段，CSV未修改；`matrix_id`保留原名以便追溯。
+- 冻结计划摘要`95c764729a7466455924518ae2b498e060f35a20d946e065af9f226f25c1c301`；240项、30图、60区组、每组60项、四条Williams各15次、12种相邻转换各15次复核通过。
+- 新增最小运行器`scripts/run_s7_formal_240.py`/`scripts/s7_formal_runner.py`与分析入口`scripts/analyze_s7_formal_240.py`/`scripts/s7_formal_analysis.py`。真实`run`默认拒绝，必须有独立授权记录匹配计划摘要；无绕过开关；本轮未生成有效授权。
+- 21项定向离线联测全部通过，覆盖授权拒绝、overlay字段、场景事实、断点恢复、替代额度、三层分母、比较/交互/情景端点、磁盘保护和真实记录读取。离线通过不等于运行态恢复、controller配置消费或真实批次已验证。
+- 未启动MuJoCo、ROS、controller、模型推理或留出图场景；未清理数据、未提交Git。剩余真实运行补证建议见报告第7节（1–3次开发图，不使用留出图）。
+
 ## 工程补做与统计分母定向复核（2026-10-19）
 
 选定的T2历史attempt核对见[S7-01补做与分母复核](../../evidence/S7-01/attempt_accounting_check/ATTEMPT_ACCOUNTING_REVIEW.md)。T2-180第34项原安全veto及其历史唯一替代都保留；读取侧16次未获得稳定快照有直接日志证据，但veto边界没有独立发布端佐证，按当前正式方法不能仅凭该日志自动批准替代。历史批次原先接受替代的报告不改写，且不据此重算历史排名。T2-48两次场景创建前失败单列，后续A只实际运行一次；T2功能试跑A是读回修正、未重跑。
 
 本次新增纯台账审计/选择函数及21项构造检查，证明所覆盖规则在离线输入上的分类与额度关系；不证明完整批次运行器已接入、恢复状态正确或240项已可运行。正式分析需同时呈现：每计划项一个主结果；全部实际场景启动可靠性账；仅首次实际场景启动敏感性。未进RL不产生导航结果；记录无效不能抹去独立确认的安全失败；各指标按各自可判事实建UNKNOWN分母。S7-01仍为ACTIVE / PREPARATION，240项未启动、未获授权。
 
-## 候选冻结矩阵
+## 冻结矩阵
 
 - 数据来源：M1 `m1-mapset/1.0` 的30张`holdout01.xml`–`holdout30.xml`；静态核对来自`library_v1/scene_index.csv`和`layouts.json`。30图均为起点`(0,0)`、目标`(7.5,0)`、20仿真秒/120墙钟秒、边界`x=[-0.5,8.0]`、`y=[-3,3]`；场地边界不是实体墙。
 - 设计：30图×2个独立重复区组×A/B/C/D=240项，每组60项。重复表示各自执行reset/起立/任务的区组，不是相同初态重放。
 - Williams顺序：W0 `A-B-D-C`；W1 `B-C-A-D`；W2 `C-D-B-A`；W3 `D-A-C-B`。
 - 调度种子：`2026102001`。生成规则：先打乱30张图；地图序号j对应`W[j mod 4]`与`W[(j+2) mod 4]`，由同一随机发生器决定两序列分别进入重复1/2；最后打乱60个完整区组，区组内次序不变。种子只控制矩阵调度，不控制MuJoCo物理、策略随机源或初态。
-- 机器可读文件：[候选CSV](formal_matrix_240.csv)、[候选JSON](formal_matrix_240.json)；生成器：[generate_formal_matrix.py](generate_formal_matrix.py)。矩阵状态为`CANDIDATE_FROZEN_PENDING_DIRECTOR_REVIEW`，JSON明确`authorized_to_run=false`。
+- 机器可读文件：[CSV](formal_matrix_240.csv)、[JSON](formal_matrix_240.json)；生成器：[generate_formal_matrix.py](generate_formal_matrix.py)。矩阵状态为`METHOD_FROZEN_AUTHORIZED_TO_RUN_FALSE`，JSON明确`authorized_to_run=false`；冻结不构成运行授权。
 
 ### 矩阵离线核对结果
 
@@ -64,16 +74,16 @@ B/D共用X，C/D共用H。这些是机制研究代表设置，不是全局或部
 
 主报告为固定时限内已确认安全任务完成、0.5仿真秒短反向切换频率。另完整报告各终局、安全未定/工程无效、Recovery驻留和重入、足端事件、base_link越界与覆盖、到达/路径/推进、时钟周期完整性、站立收尾。ARRIVED不自动等于安全成功；到达时间子集不证明总体加速；正常站立、controller停止确认和MuJoCo消费证据分开。
 
-## 最小运行准备方案（未实施运行）
+## 最小运行准备（2026-10-21已实现，仅离线验证）
 
-现有`manual_ab_compare.py`可按单场景、组别、重复和配置调用`s1_run_diagnostic.py`；当前没有本矩阵专用的批次派发/attempt恢复入口。本轮仅静态核对及生成候选计划，未实现批次运行器。正式执行任务获授权前的最小准备建议：
+薄批次运行器读取CSV/JSON并按`global_order`派发到现有`s1_run_diagnostic.py`：保存计划项、attempt、run_id、目录和替代关系；断点恢复只续未完成项且不改冻结顺序。每批准备A/B/C/D独立实体overlay；每项唯一attempt目录并与run_id绑定。场景创建只认独立启动标记，创建事实不明暂停。台账原子写入，已有效终局不重跑，替代受原attempt/独立目录/授权/证据和额度约束。每次启动前检查15GiB/6GiB保护线，每12次启动或完整区组写检查点，收尾未确认暂停。分析与三层汇总入口默认用`s1_analyze_run.calculate()`从原始记录重算。
 
-1. 让薄批次编排器读取本CSV/JSON，按`global_order`派发到现有单run入口；保存计划项、attempt、run_id、目录和替代关系，断点恢复仅续未完成项，不改已冻结顺序。
-2. 为每项生成独立实体overlay/输出目录；静态检查组参数字段，运行首项前以实际controller日志/首帧确认配置消费。静态解析或shell路径检查不等同实际消费。
-3. 启动前复用现有唯一controller/writer来源核对和record-ready流程；确认cycle0初态、任务起终点、终止帧、连续物理安全覆盖、base_link边界累计、分析与收尾排空的既有路径可记录。
-4. 批次清单携带六类安全/记录状态；运行前核对版本与磁盘预算。每次运行后清理MuJoCo、controller/ROS和本次辅助进程并确认退出；每12次或完整地图区组核查额度、空间、数据和来源。
-5. 复用现有分析入口生成每run结果、地图等权表、四个主对比/交互、UNKNOWN情景端点及bootstrap区间。批次编排、调度恢复及完整统计应在后续准备任务中完成针对性验证；不在本轮扩成通用平台。
+21项定向离线联测通过，报告见[RUNNER_READINESS_REPORT.md](../../evidence/S7-01/runner_readiness/RUNNER_READINESS_REPORT.md)。**仍未验证**：正式入口真实派发、controller实际配置消费、真实中断恢复、真实GLFW/RViz、正式批次分析CLI端到端、MuJoCo命令消费（UNKNOWN）。这些不能由静态解析或离线检查代替。
+
+## 2026-10-21 方法修订：分析侧决策时钟重建
+
+Director已同意采用分析侧决策时钟重建。原方法只使用首个活跃策略周期 frame 的发布态 `sim_clock_valid`；新方法在 frame 为 publication-stale、但 controller `S6-04-TRACE` 证明同一 run/session/cycle 在 capture 时有效且样本一致时，使用同一 cycle0 的 decision-time 时钟作为任务时间轴起点。原始发布态 STALE、无效帧数和 age 保留；不移动任务起点、不插值、不借墙钟、不放宽新鲜度/身份要求；A/B/C/D 统一使用，不按组别或结果选择。正式分析输出 `task_start_clock` 与 `reconstruction_sensitivity`，原始发布态口径可复算作敏感性对照。该修订不改变控制行为、矩阵或 240 项顺序。
 
 ## 未授权和停止边界
 
-矩阵当前只是候选冻结件，须Director最终审阅后才能在后续正式执行任务中进一步冻结并申请运行。**本轮未启动任何仿真、ROS、模型推理、测试或留出图策略；240项均未运行、未获运行授权。** T2仍COMPLETE；S7-01仍ACTIVE / PREPARATION；不进入下一任务。
+矩阵已是方法冻结件，但`authorized_to_run=false`；只有在独立正式执行任务中获得明确运行授权后才能启动。**本轮未启动任何仿真、ROS、模型推理、测试或留出图策略；240项均未运行、未获运行授权。** T2仍COMPLETE；S7-01已COMPLETE；后续由S7-02承接，240项仍未授权。

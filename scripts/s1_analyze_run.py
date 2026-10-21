@@ -11,7 +11,100 @@ from typing import Any
 
 from run_record import load_record, summarize_record
 from abs_collision import CollisionStatus
+from abs_rt_frame import SIM_CLOCK_FRESH, SIM_CLOCK_STALE
 from safety_task_completion import assess_task_identity, classify_safety_task_completion
+
+S6_TRACE_MARKER = "[S6-04-TRACE] "
+SIM_CLOCK_PUBLICATION_FRESHNESS_NS = 100_000_000
+
+
+def resolve_decision_start_clock(context: dict[str, Any], context_path: Path,
+                                 frames: list[dict[str, Any]]) -> dict[str, Any]:
+    """Recover the controller-authored decision-time clock for the first RL cycle.
+
+    The frame is fail-closed at publication: writeRtFrame rechecks the sample age
+    and may mark it stale after a long first inference. The controller's S6-04
+    trace records the same cycle's capture-time validity. This helper uses that
+    trace only when the publication-stale frame still carries the same sample.
+    It never changes raw frames and never accepts a future/identity failure.
+    """
+    lifecycle = context.get("lifecycle", {})
+    start = lifecycle.get("task_start") or lifecycle.get("policy_active_start") or {}
+    if not isinstance(start, dict) or not isinstance(start.get("rl_step"), int):
+        return {"status": "MISSING_TASK_START"}
+    frame = next((p for p in frames
+                  if p.get("session_id") == start.get("session_id")
+                  and p.get("rl_step") == start.get("rl_step")), None)
+    frame_facts = {
+        "session_id": start.get("session_id"), "rl_step": start.get("rl_step"),
+        "frame_sim_clock_valid": (frame or {}).get("sim_clock_valid"),
+        "frame_sim_clock_status": (frame or {}).get("sim_clock_status"),
+        "frame_sim_clock_age_ns": (frame or {}).get("sim_clock_age_ns"),
+        "frame_sim_time_s": (frame or {}).get("sim_time_s"),
+        "frame_monotonic_ns": (frame or {}).get("monotonic_ns"),
+    }
+    if start.get("sim_clock_valid") is True and _finite_number(start.get("sim_time_s")):
+        return {"status": "FRAME_VALID", "sim_time_s": float(start["sim_time_s"]),
+                "source": "lifecycle.task_start", **frame_facts}
+    if frame is None:
+        return {"status": "FIRST_ACTIVE_FRAME_MISSING", **frame_facts}
+    if frame.get("sim_clock_valid") is True and _finite_number(frame.get("sim_time_s")):
+        return {"status": "FRAME_VALID", "sim_time_s": float(frame["sim_time_s"]),
+                "source": "first_active_frame", **frame_facts}
+    if frame.get("sim_clock_status") != SIM_CLOCK_STALE:
+        return {"status": "FRAME_NOT_PUBLICATION_STALE", **frame_facts}
+    age_ns = frame.get("sim_clock_age_ns")
+    if not isinstance(age_ns, int) or age_ns < SIM_CLOCK_PUBLICATION_FRESHNESS_NS:
+        return {"status": "FRAME_STALE_WITHOUT_PUBLICATION_AGE", **frame_facts}
+    frame_sim_time = frame.get("sim_time_s")
+    if not _finite_number(frame_sim_time):
+        return {"status": "FRAME_SIM_TIME_MISSING", **frame_facts}
+    log_path = context_path.parent / "ros_launch.log"
+    if not log_path.is_file():
+        return {"status": "CONTROLLER_TRACE_LOG_MISSING", **frame_facts}
+    rows: list[dict[str, Any]] = []
+    try:
+        for line in log_path.read_text(encoding="utf-8", errors="replace").splitlines():
+            marker = line.find(S6_TRACE_MARKER)
+            if marker < 0:
+                continue
+            try:
+                payload = json.loads(line[marker + len(S6_TRACE_MARKER):])
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(payload, dict) or payload.get("schema") != "s6-04-controller-startup-v1":
+                continue
+            if payload.get("session_id") != start.get("session_id") or \
+                    payload.get("policy_cycle") != start.get("rl_step"):
+                continue
+            rows.append(payload)
+    except OSError as error:
+        return {"status": "CONTROLLER_TRACE_READ_FAILED", "error": str(error), **frame_facts}
+    if not rows:
+        return {"status": "CONTROLLER_TRACE_CYCLE_MISSING", **frame_facts}
+    rows.sort(key=lambda row: row.get("controller_update_steady_ns") or 0)
+    first = rows[0]
+    if first.get("sim_clock_valid") is not True or not _finite_number(first.get("sim_time_s")):
+        return {"status": "DECISION_CLOCK_INVALID_AT_CAPTURE",
+                "controller_update_steady_ns": first.get("controller_update_steady_ns"),
+                **frame_facts}
+    trace_sim_time = float(first["sim_time_s"])
+    if abs(trace_sim_time - float(frame_sim_time)) > 1e-9:
+        return {"status": "DECISION_SAMPLE_MISMATCH",
+                "trace_sim_time_s": trace_sim_time, **frame_facts}
+    return {
+        "status": "VALID_AT_DECISION",
+        "sim_time_s": trace_sim_time,
+        "source": "controller S6-04 trace at the first active policy cycle",
+        "controller_update_steady_ns": first.get("controller_update_steady_ns"),
+        "controller_update_gain_step": first.get("controller_update_gain_step"),
+        "scope": "decision-time clock validity; the raw frame remains publication-stale",
+        **frame_facts,
+    }
+
+
+def _finite_number(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(float(value))
 
 
 def quantile(values: list[float], q: float) -> float | None:
@@ -24,11 +117,13 @@ def quantile(values: list[float], q: float) -> float | None:
 
 
 def _with_safety_task_completion(summary: dict[str, Any], context: dict[str, Any],
-                                 terminal: dict[str, Any] | None) -> dict[str, Any]:
+                                 terminal: dict[str, Any] | None,
+                                 start_clock_override: dict[str, Any] | None = None) -> dict[str, Any]:
     identity = assess_task_identity(summary, context, terminal)
     summary["task_source_identity"] = identity
     summary["safety_task_completion"] = classify_safety_task_completion(
-        summary, context, terminal, identity)
+        summary, context, terminal, identity,
+        start_clock_override=start_clock_override or summary.get("task_start_clock"))
     summary["safety_task_completion_status"] = summary["safety_task_completion"]["status"]
     return summary
 
@@ -854,7 +949,8 @@ def _closeout_only_task_window(data: Any, context: dict, base: dict,
     }
 
 
-def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0.5) -> dict[str, Any]:
+def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0.5,
+              decision_clock_override: bool = False) -> dict[str, Any]:
     data = load_record(str(record_path))
     base = summarize_record(str(record_path))
     context = json.loads(context_path.read_text(encoding="utf-8"))
@@ -875,6 +971,23 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
     frames = [line["payload"] for line in data.frames if line.get("status") == "LIVE" and isinstance(line.get("payload"), dict)]
     frames.sort(key=lambda p: (p["session_id"], p["rl_step"]))
     persisted_live_frame_count = len(frames)
+    decision_start_clock = resolve_decision_start_clock(context, context_path, frames)
+    raw_invalid_clock_frames = sum(
+        1 for frame in frames
+        if frame.get("sim_clock_valid") is not True or
+        not isinstance(frame.get("sim_time_s"), (int, float)))
+    timing_clock_override_applied = (decision_clock_override and
+                                     decision_start_clock.get("status") == "VALID_AT_DECISION")
+    if timing_clock_override_applied:
+        timing_frames = [dict(frame) for frame in frames]
+        for frame in timing_frames:
+            if frame.get("session_id") == decision_start_clock.get("session_id") and \
+                    frame.get("rl_step") == decision_start_clock.get("rl_step"):
+                frame["sim_time_s"] = decision_start_clock["sim_time_s"]
+                frame["sim_clock_valid"] = True
+                frame["sim_clock_status"] = SIM_CLOCK_FRESH
+                frame["_timing_clock_override"] = "decision_trace"
+        frames = timing_frames
     if closeout_errors:
         return _with_safety_task_completion({
             "run_id": context.get("run_id"), "record_validity": "INVALID",
@@ -1172,7 +1285,13 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
             risk_response_unavailable += 1
     risk_response_ns = [item["response_ns"] for item in risk_to_recovery]
     task_start_event = lifecycle.get("task_start") or lifecycle.get("policy_active_start") or {}
-    task_start_time = task_start_event.get("sim_time_s") if task_start_event.get("sim_clock_valid") else None
+    raw_task_start_time = (task_start_event.get("sim_time_s")
+                           if task_start_event.get("sim_clock_valid") else None)
+    task_start_time = raw_task_start_time
+    task_start_clock_used_for_safety = False
+    if task_start_time is None and timing_clock_override_applied:
+        task_start_time = decision_start_clock.get("sim_time_s")
+        task_start_clock_used_for_safety = True
     pre_task_boundary = context.get("initial_state", {}).get("pre_task_safety_boundary", {})
     task_boundary_snapshot = pre_task_boundary.get("snapshot") if pre_task_boundary.get("status") == "LIVE" else None
     task_start_frame = next((p for p in frames
@@ -1373,6 +1492,16 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
         },
         "session_id": context.get("session_id"), "frame_count": len(frames),
         "rl_step_gaps": gaps, "invalid_clock_frames": invalid_clock_frames,
+        "invalid_clock_frames_scope": "timing frames after an optional decision-clock override",
+        "raw_invalid_clock_frames": raw_invalid_clock_frames,
+        "timing_clock_override_requested": decision_clock_override,
+            "timing_clock_override_applied": timing_clock_override_applied,
+        "task_start_clock": {
+            **decision_start_clock,
+            "used_for_safety_start": task_start_clock_used_for_safety,
+            "timing_clock_override_requested": decision_clock_override,
+            "timing_clock_override_applied": timing_clock_override_applied,
+        },
         "clock_valid_fraction": ((len(frames) - invalid_clock_frames) / len(frames)) if frames else None,
         "first_valid_sim_time_s": min(valid_times) if valid_times else None,
         "last_valid_sim_time_s": max(valid_times) if valid_times else None,
@@ -1419,6 +1548,9 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
         "task_valid_time_coverage_fraction": task_elapsed_coverage_fraction,
         "recovery_share_valid_motion_time": task_recovery_duration / policy_active_valid_duration if policy_active_valid_duration else None,
         "task_start_sim_time_s": task_start_time,
+        "raw_task_start_sim_time_s": raw_task_start_time,
+        "task_start_frame_sim_clock_valid": task_start_event.get("sim_clock_valid"),
+        "task_start_clock_used_for_safety": task_start_clock_used_for_safety,
         "legacy_displacement_start_sim_time_s": movement_start,
         "target_distance_start_m": task_goal_distance_start, "target_distance_final_m": task_goal_distance_final,
         "declared_boundary_observation": boundary_observation,
@@ -1491,7 +1623,9 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
                                     policy_cycle_frames, identity_boundaries)
     summary["task_source_identity"] = identity
     summary["safety_task_completion"] = classify_safety_task_completion(
-        summary, context, data.terminal, identity)
+        summary, context, data.terminal, identity,
+        start_clock_override=(decision_start_clock
+                                  if timing_clock_override_applied else None))
     summary["safety_task_completion_status"] = summary["safety_task_completion"]["status"]
     return summary
 
@@ -1605,6 +1739,8 @@ def main() -> int:
     parser.add_argument("--runs-root", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--reverse-window-s", type=float, default=0.5)
+    parser.add_argument("--decision-clock-override", action="store_true",
+                        help="targeted review: use a matching controller S6-04 decision-time clock for a publication-stale cycle0")
     parser.add_argument("--task-label", default="S1-04",
                         help="label used in each timeline title (default: S1-04)")
     args = parser.parse_args()
@@ -1614,7 +1750,8 @@ def main() -> int:
         record = run_dir / "runtime_record.jsonl"
         context = run_dir / "run_context.json"
         if record.exists() and context.exists():
-            summary = calculate(record, context, args.reverse_window_s)
+            summary = calculate(record, context, args.reverse_window_s,
+                                decision_clock_override=args.decision_clock_override)
             run_context = json.loads(context.read_text(encoding="utf-8"))
             settings = run_context.get("settings", {})
             summary["scene"] = settings.get("scene_filename") or Path(settings.get("scene", "")).name or "UNKNOWN"

@@ -2,10 +2,15 @@
 
 ## 日常工作入口
 
-- [当前任务S7-01](tasks/S7-01.md)：正式A/B/C/D实验方法审阅与准备；ACTIVE / PREPARATION，不含运行授权。
+- [当前任务S7-02](tasks/S7-02.md)：正式A/B/C/D仿真执行；ACTIVE / AWAITING_RUN_AUTHORIZATION，240项未授权、未启动。
+- [已完成任务S7-01](tasks/S7-01.md)：方法冻结、最小运行器、开发补证与决策时钟重建准备；COMPLETE（Director有条件通过）。
 - [T2最终状态与研究代表参数](tasks/T2.md)、[参数记录](designs/T2/HOLD_TIME_SELECTION.md)：T2 COMPLETE（Director有条件通过）。
-- [正式方法复核稿](designs/S7/FORMAL_METHOD_REVIEW.md)、[方法冻结审阅摘要](designs/S7/METHOD_FREEZE_REVIEW.md)及[240项方法草案](designs/S7/FORMAL_EXPERIMENT_PLAN_DRAFT.md)：候选方法和矩阵待Director审阅；仍未获运行授权。
-- [240项候选矩阵CSV](designs/S7/formal_matrix_240.csv)、[JSON](designs/S7/formal_matrix_240.json)及[生成脚本](designs/S7/generate_formal_matrix.py)：调度种子2026102001，仅控制计划顺序，不控制物理初态。
+- [正式方法复核稿](designs/S7/FORMAL_METHOD_REVIEW.md)、[方法冻结审阅摘要](designs/S7/METHOD_FREEZE_REVIEW.md)及[240项正式方案](designs/S7/FORMAL_EXPERIMENT_PLAN_DRAFT.md)：方法与矩阵已冻结，240项仍未获运行授权。
+- [正式执行说明](designs/S7/FORMAL_RUN_GUIDE.md)：计划查看、环境核对、待授权启动、状态/恢复、分析、输出目录和停止原因。
+- [运行准备报告](evidence/S7-01/runner_readiness/RUNNER_READINESS_REPORT.md)：最小运行器、断点恢复、三层汇总入口及21项定向离线联测；明确未做运行态验证。
+- [A run cycle0时钟复核](evidence/S7-01/cycle0_clock_review/CYCLE0_CLOCK_REVIEW.md)：decision-time有效、publication-time stale；重建已统一接入正式分析，原始STALE保留；A/D核对完成；S7-01已COMPLETE，S7-02待运行授权。
+- [m02 A/D开发补证执行报告](evidence/S7-01/dev_supplement/DEV_SUPPLEMENT_EXECUTION_REPORT.md)：A 原始发布态 `ARRIVED/VALID/UNKNOWN`、统一分析 `True`；D `ARRIVED/VALID/True`；2次启动、0替换；非正式数据，不影响240项授权。
+- [240项冻结矩阵CSV](designs/S7/formal_matrix_240.csv)、[JSON](designs/S7/formal_matrix_240.json)及[生成脚本](designs/S7/generate_formal_matrix.py)：调度种子2026102001，仅控制计划顺序，不控制物理初态。
 - [已完成216项扫描提示词](T1_M2_LOCAL_SCAN_216_EXECUTOR_PROMPT.md)，不构成再次运行授权。
 - [已完成18图试跑提示词](T1_M2_18_MAP_SMOKE_PROMPT.md)与对应报告保留作本轮前置证据。
 - [当前状态](CURRENT_STATE.md)：当前进度、限制和授权。

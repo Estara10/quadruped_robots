@@ -37,6 +37,102 @@
   "layouts": "docs/thesis_project/designs/M1/library_v1/layouts.json",
   "map_version": "m1-mapset/1.0",
   "matrix_id": "S7-formal-240-candidate-v1",
+  "method_freeze": {
+    "authorized_to_run": false,
+    "basis": "Director approved the formal method and balanced 240-item matrix; matrix status moved from candidate to method-frozen.",
+    "bootstrap": {
+      "cluster": "map",
+      "confirmatory_p_values": false,
+      "interval": "percentile 95%",
+      "replicates": 10000,
+      "seed": 2026102002
+    },
+    "design": {
+      "groups": 4,
+      "items_per_group": 60,
+      "maps": 30,
+      "plan_items": 240,
+      "repeat_blocks": 2
+    },
+    "evidence_rules": {
+      "replacement_requires_independent_infrastructure_corroboration": true,
+      "safety_abort_log_alone_does_not_authorize_replacement": true,
+      "same_frozen_analyzer_recomputes_derived_results": true,
+      "unknown_not_filled_as_false_or_zero": true
+    },
+    "frozen_date": "2026-10-21",
+    "groups": {
+      "A": {
+        "E": -0.05,
+        "H_s": null,
+        "X": null
+      },
+      "B": {
+        "E": -0.05,
+        "H_s": null,
+        "X": -0.1
+      },
+      "C": {
+        "E": -0.05,
+        "H_s": 0.2,
+        "X": null
+      },
+      "D": {
+        "E": -0.05,
+        "H_s": 0.2,
+        "X": -0.1
+      }
+    },
+    "matrix_identity_note": "The reviewed matrix_id is retained unchanged for traceability; records were not regenerated or reordered.",
+    "resource_rules": {
+      "base_scene_starts": 240,
+      "batch_budget_gib": 6.0,
+      "max_substitutions": 12,
+      "max_total_scene_starts": 252,
+      "min_free_gib": 15.0
+    },
+    "run_conditions": {
+      "arrival_radius_m": 0.5,
+      "goal_m": [
+        7.5,
+        0.0
+      ],
+      "mujoco_window": "hidden",
+      "routine_screenshots_or_video": false,
+      "rviz_enabled": false,
+      "sim_limit_s": 20.0,
+      "standing_observation_sim_s": 2.0,
+      "standing_wall_cap_s": 30.0,
+      "wall_cap_s": 120.0
+    },
+    "schedule_seed": 2026102001,
+    "williams_sequences": {
+      "W0": [
+        "A",
+        "B",
+        "D",
+        "C"
+      ],
+      "W1": [
+        "B",
+        "C",
+        "A",
+        "D"
+      ],
+      "W2": [
+        "C",
+        "D",
+        "B",
+        "A"
+      ],
+      "W3": [
+        "D",
+        "A",
+        "C",
+        "B"
+      ]
+    }
+  },
   "records": [
     {
       "E": -0.05,
@@ -7484,7 +7580,7 @@
   "schedule_seed": 2026102001,
   "seed_scope": "schedule ordering only; does not seed MuJoCo physics, policy randomness, or reset/initial state",
   "sequence_assignment": "shuffle 30 map rows; for shuffled index j use W[j mod 4] and W[(j+2) mod 4], seeded fair bit assigns these to repeats 1/2; shuffle 60 complete blocks; preserve each block's group order",
-  "status": "CANDIDATE_FROZEN_PENDING_DIRECTOR_REVIEW",
+  "status": "METHOD_FROZEN_AUTHORIZED_TO_RUN_FALSE",
   "williams_sequences": {
     "W0": [
       "A",

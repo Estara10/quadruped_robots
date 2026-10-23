@@ -1,7 +1,6 @@
 # S7-02 正式执行说明
 
-状态：**S7-02 ACTIVE / AWAITING_RUN_AUTHORIZATION。240 项尚未获运行授权。**  
-本说明只记录现有真实 CLI 的用法；不生成授权、不启动场景。所有 shell 命令以 `rtk` 开头。
+状态：S7-02 正式批次 `s7-abcd240-20261023` 已完成240个计划项并分析，等待Director审阅。以下 CLI 说明保留作复现/恢复参考，不代表该批次仍待授权。所有 shell 命令以 `rtk` 开头。
 
 ## 0. 固定输入
 
@@ -11,7 +10,7 @@
 - 运行入口：`scripts/run_s7_formal_240.py`
 - 分析入口：`scripts/analyze_s7_formal_240.py`
 
-`<batch-id>` 由正式执行任务在获得授权时确定；`<director-authorization.json>` 是待提供的独立运行授权占位。**当前仓库中不存在有效的 240 项运行授权。**
+本次正式批次为 `s7-abcd240-20261023`，其用户授权记录保存在该批次目录。未来批次仍须按各自授权要求绑定计划、批次和资源额度；本参考文档本身不构成新授权。
 
 ## 1. 计划查看（只读）
 
@@ -59,7 +58,7 @@ rtk proxy /usr/bin/python3 scripts/run_s7_formal_240.py preflight \
 
 ## 3. 正式启动（待授权，占位）
 
-**在获得 Director 的独立授权文件前不要执行。** 真实入口没有绕过授权的开关；缺少或不匹配授权会返回 `REFUSED`。
+**上述批次已运行完成，不要再次对其派发。** 若今后明确批准一个新批次，须按其授权记录使用真实入口；缺少或不匹配授权会返回 `REFUSED`。
 
 ```sh
 rtk proxy /usr/bin/python3 -u scripts/run_s7_formal_240.py run \
@@ -154,4 +153,4 @@ logs/08_formal_experiment/S7_ABCD_240/<batch-id>/
 
 每次 run 由单 run 诊断器清理其拥有的 MuJoCo/ROS/controller/查询会话；runner 在收尾未确认或发现残留时暂停。批次结束或暂停后，用第 2 节的进程检查核对本次进程；不能仅凭窗口关闭或已发送中断声称清理完成。只处理本项目本次批次相关进程，不影响无关会话。
 
-**当前仍未授权 240 项；本说明不构成运行授权。**
+**本说明是操作参考，不新增运行授权。当前批次结果见 [S7-02 结果索引](../../evidence/S7-02/RESULT_INDEX.md)。**

@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """S7 formal 240-item entry point: read-only plan, preflight, status, guarded run.
 
-The ``run`` command refuses unless a separate, explicit batch authorization
-record matches the frozen plan digest.  There is no switch that bypasses that
-check, and this repository currently contains no valid run authorization.
+The ``run`` command requires an explicit batch authorization record matching
+the selected plan.  There is no switch that bypasses this check.
 """
 from __future__ import annotations
 
@@ -58,7 +57,8 @@ def command_preflight(args) -> int:
     report = runner.preflight(
         records, meta, require_full=True,
         batch_root=Path(args.batch_root) if args.batch_root else None,
-        free_gib=args.free_gib, prepare=args.prepare_overlays)
+        free_gib=args.free_gib, prepare=args.prepare_overlays,
+        binding=runner.matrix_binding(records, meta, args.matrix_csv, args.matrix_json))
     if errors:
         report["errors"] = sorted(set(report.get("errors", []) + errors))
         report["status"] = "REJECTED"
@@ -122,6 +122,12 @@ def command_run(args) -> int:
         authorization_path=authorization_path,
         executor=runner.dispatch_production, analyze_run=runner.analyze_production,
         allow_fixture=False, resume=args.resume, require_full_plan=True,
+        data_class=("M3_CHALLENGE_240" if meta.get("matrix_id") == runner.M3_MATRIX_ID
+                    else "FORMAL_240"),
+        classification=("S7 M3 v1.4 challenge A/B/C/D 240-item comparison; "
+                        "historically selected challenge maps, not independent holdout"
+                        if meta.get("matrix_id") == runner.M3_MATRIX_ID
+                        else runner.FORMAL_CLASSIFICATION),
         display=args.display, xauthority=args.xauthority)
     if args.output:
         runner.write_json_atomic(Path(args.output), result)

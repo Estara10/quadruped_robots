@@ -136,6 +136,12 @@ def main() -> int:
     report = analysis.build_report(
         plan=records, audit=audit, summary_by_attempt=summaries,
         provenance=provenance, replicates=args.replicates, seed=args.seed)
+    if meta.get("matrix_id") == runner.M3_MATRIX_ID:
+        report["dataset"] = {
+            "name": "M3", "map_version": meta.get("map_version"),
+            "independent_holdout": False,
+            "description": "Historically selected challenge maps; analyze separately from M1.",
+        }
     report["reconstruction_sensitivity"] = sensitivity
     output_dir.mkdir(parents=True, exist_ok=True)
     runner.write_json_atomic(output_dir / "formal_summary.json", report)
@@ -207,7 +213,9 @@ def main() -> int:
                ["category", "count"])
 
     lines = [
-        "# S7 formal 240-item analysis",
+        ("# S7 M3 challenge 240-item analysis"
+         if meta.get("matrix_id") == runner.M3_MATRIX_ID
+         else "# S7 formal 240-item analysis"),
         "",
         f"- plan items: {len(records)}",
         f"- analysis mode: {provenance.get('analysis_mode')}",

@@ -55,6 +55,7 @@ MAX_PRE_SCENE_INVOCATIONS = 3
 FORMAL_CLASSIFICATION = "S7 formal A/B/C/D frozen 240-item batch; authorized formal run"
 
 MATRIX_ID = "S7-formal-240-candidate-v1"
+M3_MATRIX_ID = "S7-M3-challenge-240-v1.4"
 FROZEN_STATUS = "METHOD_FROZEN_AUTHORIZED_TO_RUN_FALSE"
 AUTHORIZATION_SCHEMA = "s7-formal-run-authorization-v1"
 MANIFEST_SCHEMA = "s7-formal-batch-manifest-v1"
@@ -238,9 +239,12 @@ def load_frozen_plan(csv_path: Path = MATRIX_CSV,
     json_sorted = sorted(json_records, key=lambda item: int(item["global_order"]))
     if csv_sorted != json_sorted:
         errors.append("csv_json_record_mismatch")
+    is_m3 = meta.get("matrix_id") == M3_MATRIX_ID
     expected_meta = {
-        "matrix_id": MATRIX_ID, "schedule_seed": 2026102001,
-        "bootstrap_seed": 2026102002, "map_version": "m1-mapset/1.0",
+        "matrix_id": M3_MATRIX_ID if is_m3 else MATRIX_ID,
+        "schedule_seed": 2026102001,
+        "bootstrap_seed": 2026102002,
+        "map_version": "s7-challenge-test/1.4" if is_m3 else "m1-mapset/1.0",
     }
     for key, expected in expected_meta.items():
         if meta.get(key) != expected:
@@ -259,6 +263,14 @@ def load_frozen_plan(csv_path: Path = MATRIX_CSV,
         errors.append("matrix_field_wall_flag_mismatch")
     if meta.get("authorized_to_run") is not False:
         errors.append("matrix_must_keep_authorized_to_run_false")
+    if is_m3:
+        for row in csv_sorted:
+            name = str(row["filename"]).removesuffix(".xml")
+            if (name not in {f"challenge{i:02d}" for i in range(1, 31)}
+                    or row["display_name"] != name
+                    or row["scene_id"] != "s7ch" + name.removeprefix("challenge")
+                    or row["split"] != "challenge_test"):
+                errors.append(f"m3_scene_binding_mismatch:{row['plan_item_id']}")
     return csv_sorted, meta, errors
 
 
@@ -784,6 +796,8 @@ def preflight(records: list[dict[str, Any]], meta: dict[str, Any], *,
                                      if item["filename"] == filename)
             if spec.scene_id != expected_scene_id:
                 errors.append(f"scene_id_mismatch:{filename}:{spec.scene_id}:{expected_scene_id}")
+            if version != meta.get("map_version"):
+                errors.append(f"scene_map_version_mismatch:{filename}:{version}:{meta.get('map_version')}")
             scene_checks[filename] = {
                 "status": "STATICALLY_BOUND", "scene_id": spec.scene_id,
                 "map_library_version": version,

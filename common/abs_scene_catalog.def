@@ -298,3 +298,93 @@ ABS_SCENE("d08.xml", "m2v2_d08", 7, kNamedPptObstacles,
 ABS_SCENE("d09.xml", "m2v2_d09", 10, kNamedPptObstacles,
           "aade897eb10fd45b7690264b294c1500e849f22cafcf2cd0acae7adf888b4153", "4fa7a8dda932048bfc77f9685241ebc42d77cefa52170d9911cbcf6dcae58a89",
           "5267f51f31109b660798201e899c21c3f56ec007202c4ff7ab8ce13aa53a107c")
+ABS_SCENE("challenge01.xml", "s7ch01", 9, kNamedPptObstacles,
+          "41c4c5fa9c9e0120225da856e984fc702d7ddccc6c6c0df337a63d89bcc19288", "ce194c847dde55722fb31eec8ab5b31182f5eeeed3887234f20b23885b353bde",
+          "dc27a70cc1135a062e906a17c29e95a1d79a3ad8793c9626b2659c2a3c1b4445")
+ABS_SCENE("challenge02.xml", "s7ch02", 4, kNamedPptObstacles,
+          "d6ca70293334f79a12935cd6f10b522e1cbdeccecc214a8e3496ecb850df6f76", "9ebdd7ba59d692d79f733dadcdcd83cbe33e5c480a38f8eac725db55d7c71ce3",
+          "05c05b85e363e800f1a9f03b10f9a806d886b1eb1cf3109e2fee50cec01414c9")
+ABS_SCENE("challenge03.xml", "s7ch03", 9, kNamedPptObstacles,
+          "6c6c275e268435febceff878ebb4c1661d9e3168848bd51ad120f5383d22d557", "7af8a520ed628e2c3ee9d3b65842347750c75b1c2db71c4288f8b2835fb68300",
+          "04bd1bb43a4cea8f8464b5241cc0a0c2acbba3036448a25c7e7536bbeaa00005")
+ABS_SCENE("challenge04.xml", "s7ch04", 11, kNamedPptObstacles,
+          "ac519e3e78515a3d652abf8d0c6b8f750ec2e04c83f48b9192ed6ef44ebf46fc", "f88a0e699b2a1f2a5ae6cefca3213ef3d399cd07b3dea0a8bace782242df27b4",
+          "ba0466730e0ff0c66f4e1cd352c91233dd828681c52c38a7db4c3e3da1e71ebf")
+ABS_SCENE("challenge05.xml", "s7ch05", 6, kNamedPptObstacles,
+          "aacfe986e899bf416309021d7e1f923472e66015a909e05ac1a8fb0f489c48bc", "714d4fd13a78db846b6ff533b133a45740174be8ab2ffcb123d8c75274acace7",
+          "d4fe824f3440ae4a511f9014a80f6001d376523571d55501313223601e0d6d93")
+ABS_SCENE("challenge06.xml", "s7ch06", 9, kNamedPptObstacles,
+          "1915ea8efb8b52b81f7db274b91b056c96c206985fc59ac6be7a09ee50ee504c", "2a7011ad45f31e35e7d26493bd3255fd6af9bb3ef31ba5a1dee36017db0b739d",
+          "780850f7ac84217225e4a53c87009dcf5ecdf9705eced9ed304533e3e2899532")
+ABS_SCENE("challenge07.xml", "s7ch07", 6, kNamedPptObstacles,
+          "0c4f0b52a634f808d17e66cd303d1cca59b8a69a8605e83ef36529b221dc8c59", "407551a0637f3d42597c9a6503e06c633ad31b4ab906b1bda396a313a9e4c793",
+          "56f5859c4c57189e81c2f14d8d31c6e0ea01e526f21d286bf208ed95862b3826")
+ABS_SCENE("challenge08.xml", "s7ch08", 9, kNamedPptObstacles,
+          "4a6c7e40fd6a987ce87be856040b01034ded936059db9854d72959a6cec37d07", "65d603519d6f46b931581875dbe26274bb31b5ba210c07026e59bb8a12f65460",
+          "73108cecf91c32fc375db2b9790482c20d9e94fc2cf1706229fe35b9b8f61e8a")
+ABS_SCENE("challenge09.xml", "s7ch09", 11, kNamedPptObstacles,
+          "98806f799fdf932ba721544c66610434f4c929723dee4490b96a70cd254eee9a", "72ffe81cad3b55009667b36bf8cf460997a4884befbf4d8947af974c2ff6e8dc",
+          "70ffa69e054ed2ee0b26c5c61b2da6d1a9b2207240b74c01cb4977c6034ef2e4")
+ABS_SCENE("challenge10.xml", "s7ch10", 6, kNamedPptObstacles,
+          "46e96e24cfd3278dd0b2ad285edee57963b81a8b71465a6afd4bce967eb87b8c", "c6904b8553e97284578463f054dbe3d1db7fc2548c8a363041e2fd9c3d89dadf",
+          "834e737829c87bf375ccab6caeb9cc6917ae3d10c8c006ae32772a2085fb2837")
+ABS_SCENE("challenge11.xml", "s7ch11", 10, kNamedPptObstacles,
+          "7fef29b80ddf007202110d3963115d967236b2fb6732095b0181a5006c68c749", "0c9fbb7cfd1f8984f9382f1bcecdc3b2101bbee2e14aff222a50d370a7620cc1",
+          "83d3f65ab27e7e84bdc8d02e3a41be5f4619d080e96d2997adac5cba295d407b")
+ABS_SCENE("challenge12.xml", "s7ch12", 10, kNamedPptObstacles,
+          "0d49c28041fb8960b5698e1b446e9d901d27ba936bc4eceb0ab0725a18125a0c", "ca6d67971601e448e3165f4355f2405e1c054510959584a2580f65923969e642",
+          "e5b7299ec4718d6bdd42731f88f1b67ca2fb5f768c64e5ee1e318e76271a7da4")
+ABS_SCENE("challenge13.xml", "s7ch13", 10, kNamedPptObstacles,
+          "f24bedae220c38143497029431a55196469d89404fa1f4cb0c5d8840859e5a58", "c596a295ec82df0d54426f3ede9d4ddd86b6ee5877ff210b8b844a8b3ab9d901",
+          "f00de4759cc11f4c0962168e14059a361b82f3e42edcb380a276df28013ae3a2")
+ABS_SCENE("challenge14.xml", "s7ch14", 7, kNamedPptObstacles,
+          "32db045baf63d85da0147a0a5e7130e9548118f61c14044b5160ffa688386d1e", "309da1796f7d41e1606a50e5aed4c5a13fb4d7a4df5ed732ff7f768b5cba5814",
+          "465ae37c199f24a9a92cbc6f01041deb6d9d63bb70204c9fdb32bec1a99840f9")
+ABS_SCENE("challenge15.xml", "s7ch15", 10, kNamedPptObstacles,
+          "f167986a33a240e395c18230695eb38e7acdbc319c1cfd5e3e0949ddaa2f4e54", "942ebd4fa67fb0e2e8ba31c67c88b39ac546ca0c1c570b0877628a36b7fef355",
+          "f12f05d393fc7f7db8b6a1326530f4def37d024715896a5c725365e18339a0c3")
+ABS_SCENE("challenge16.xml", "s7ch16", 6, kNamedPptObstacles,
+          "e50044afceca577ccb98c6a2a45c6b16a1389215444d9283bce9fd9999070553", "7fead2f5e639dc8b55758a9b9ab2d383afbe1b85163e11b9cf157bcae67f2bb3",
+          "8a680cce0cdf02816de3f98b18cf0b8401de70184c61ea438eefd8484fbf4d58")
+ABS_SCENE("challenge17.xml", "s7ch17", 9, kNamedPptObstacles,
+          "eb5e06a6c80be337c15a88b096b1a55c9e88560dbb4f71f8a231e8a777928c76", "8bb5354a6b3f85f420f7b011dcd743aa8ce79bbf2a9204253c4d8afd827ff3eb",
+          "9da0bddbfb29a8ca425678d7ff8eca34616570c77d2ff3c0cd5b1016a42c575d")
+ABS_SCENE("challenge18.xml", "s7ch18", 10, kNamedPptObstacles,
+          "44179c90efec77b4855518dccdae8be9ab9ca008098c7c48b8a0ac82b0d4843c", "b73601c517ca763b93da492756dc1219e681187fa5833b09d3ba16156d28287f",
+          "722928051e4a5643a2295395c12d6668ec24e2091a7e7cf1f172785b7d38c20f")
+ABS_SCENE("challenge19.xml", "s7ch19", 4, kNamedPptObstacles,
+          "feeafb6fa8cca342eb3ea048a7e7a30c34327edea871fa15b2724366679f7231", "822979cb01d84daf01b9ee97526a68e038832d3036da31ee7e1364e257295a7c",
+          "45b77604336ec4f508fe74df9f247da4efacc8347b71797cf806b70b71941fff")
+ABS_SCENE("challenge20.xml", "s7ch20", 4, kNamedPptObstacles,
+          "3750d38812ec1c5a3beb884bf22d3cb1f0b23cc97dce7680ef72719de97d8d8e", "36ca2881e093b72ae2a74e775a5e9773997dd25414b7e17f4c8837573fc261f2",
+          "6714c872dc43e520c8f05b5cd4bf4ddec07927c2db43041c9f2565d67ad15606")
+ABS_SCENE("challenge21.xml", "s7ch21", 4, kNamedPptObstacles,
+          "1f875b9343f249eb89cf9d545031f8afd5fcff146bd05c841ec6c327a7190ee8", "39029083fdb348b76fd2cb156a735fc9c3596fbe0e5753428c19cffafa9137d6",
+          "e4fe6b7496fac1cc22d6752834e7f6de35dcb70880bb1ad8c33ba4434deb98e4")
+ABS_SCENE("challenge22.xml", "s7ch22", 7, kNamedPptObstacles,
+          "c407a67c614a400d7583210522fc61607aef015030dcbf95746377126fc9fcb5", "97eb20c12e8fe393ad1dd7d4aa8f441dc1dbf2563ae12a878f0b94028602935b",
+          "96d0767ebd50d9a604acaf2e7e2fb0618ca9d156604ed8a1db08200de0f024f2")
+ABS_SCENE("challenge23.xml", "s7ch23", 4, kNamedPptObstacles,
+          "830030880bf4a2e7f1dcc50f82f294de531e0355fc4be5fec26b2a1332cb4fe6", "dbbf2afc8a39548601075f0fb151ce0c83a8c0582967d309f6123a9484586cad",
+          "2d0f42c26227847959b525436e736309ed40a26df08847987a0e28f556a22d1d")
+ABS_SCENE("challenge24.xml", "s7ch24", 7, kNamedPptObstacles,
+          "079ffe28b0bd534c18be7da19ee18b9c275596993fcd226a56fd06ee199f7ef7", "df9b0a3fae5454a8a8706046914597a869aa81b021386760048268eb52865be4",
+          "6bb57f295bccee65b0f184579955b59b02cd759fc75b02234004b93c2a11974b")
+ABS_SCENE("challenge25.xml", "s7ch25", 7, kNamedPptObstacles,
+          "261e6590deacb2eeaf0a7551dcd25a646af0aa1ed2ef0b59854fa9a9337de783", "7ec265dbbc27c0c789247399e00a4766c165dc92037fb5ee36642a8f6afce2be",
+          "a6b6150fdd6da82201a53e7598ea7fbc6992cbdeab76deeb17b7d2f50602e78f")
+ABS_SCENE("challenge26.xml", "s7ch26", 8, kNamedPptObstacles,
+          "cf7a2e2bcd7855166b19d24fa6757d8d573e37228fa4286f1187f122eb7c7f8b", "5268c81198689f9e50031e464405eeb8ebf77e75cd966477ceb453ec51c6c2e5",
+          "860b684b89b6ce1f408f1e766f324bb8927fb5a50bc423472997638164d7cdaa")
+ABS_SCENE("challenge27.xml", "s7ch27", 7, kNamedPptObstacles,
+          "d32d552f1698da714384de9457a8133551ce938c5bba91214efc1ade3edc44c7", "3eb0bb89d531ed0756dea6d3d2c4f5e3a9e86de074560da9434f1678bef19abb",
+          "00b2f9bbb31865fba360e301982fcf98c596b5fac8c49aac833687583cb561ac")
+ABS_SCENE("challenge28.xml", "s7ch28", 4, kNamedPptObstacles,
+          "a1fdf13d81c22629ef6c668ecb114b865cd5eaf8c6ddf1f7545f6f4cbdd378a9", "155dab2c77d50bbcf041a83706bd3ac373b37600139cd5c95010f61fde740e52",
+          "21c89c6d5b36a7f117ac0013c47d581829627671fac4bd56c831079d7e45e0a2")
+ABS_SCENE("challenge29.xml", "s7ch29", 10, kNamedPptObstacles,
+          "d94ef005f790f647b587ec63812ed5dbe78b6abe281afb211fa7cda23e1f7f1e", "3716d9138070a703951a697e9b18991222ac6a66683892ae1f7c7bdc2d89c68c",
+          "d7e29691a71376705b6dcc2083d0945add32d737e8f2f00e0a7708db190f3bc6")
+ABS_SCENE("challenge30.xml", "s7ch30", 7, kNamedPptObstacles,
+          "18af9e8b2f6bd4b4415477c829506036f5bcabaa399481588119bfc0586cbdc3", "46ca482441538424ae5e2d11ed7931917cc2bc116e53e0de618b7f4ad72372a0",
+          "7ee7be7295c2a388fc17f445ba63ce3a99ebaf5e26bf43f18f137c5fd9c81dda")

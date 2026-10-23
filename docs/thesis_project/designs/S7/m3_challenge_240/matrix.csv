@@ -1,0 +1,241 @@
+plan_item_id,global_order,block_order,display_name,filename,scene_id,map_version,split,density,route_structure,repeat_block,williams_sequence_id,within_block_position,group,E,X,H_s,start_x_m,start_y_m,goal_x_m,goal_y_m,arrival_radius_m,sim_limit_s,wall_cap_s,standing_observation_sim_s,standing_wall_cap_s,mujoco_window,rviz_enabled,schedule_seed
+M3-001,1,1,challenge08,challenge08.xml,s7ch08,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,2,W1,1,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-002,2,1,challenge08,challenge08.xml,s7ch08,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,2,W1,2,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-003,3,1,challenge08,challenge08.xml,s7ch08,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,2,W1,3,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-004,4,1,challenge08,challenge08.xml,s7ch08,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,2,W1,4,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-005,5,2,challenge23,challenge23.xml,s7ch23,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,1,W2,1,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-006,6,2,challenge23,challenge23.xml,s7ch23,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,1,W2,2,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-007,7,2,challenge23,challenge23.xml,s7ch23,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,1,W2,3,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-008,8,2,challenge23,challenge23.xml,s7ch23,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,1,W2,4,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-009,9,3,challenge20,challenge20.xml,s7ch20,s7-challenge-test/1.4,challenge_test,sparse,缓和S型连续绕行,1,W0,1,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-010,10,3,challenge20,challenge20.xml,s7ch20,s7-challenge-test/1.4,challenge_test,sparse,缓和S型连续绕行,1,W0,2,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-011,11,3,challenge20,challenge20.xml,s7ch20,s7-challenge-test/1.4,challenge_test,sparse,缓和S型连续绕行,1,W0,3,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-012,12,3,challenge20,challenge20.xml,s7ch20,s7-challenge-test/1.4,challenge_test,sparse,缓和S型连续绕行,1,W0,4,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-013,13,4,challenge01,challenge01.xml,s7ch01,s7-challenge-test/1.4,challenge_test,challenge,斜箱与圆柱交替,1,W3,1,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-014,14,4,challenge01,challenge01.xml,s7ch01,s7-challenge-test/1.4,challenge_test,challenge,斜箱与圆柱交替,1,W3,2,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-015,15,4,challenge01,challenge01.xml,s7ch01,s7-challenge-test/1.4,challenge_test,challenge,斜箱与圆柱交替,1,W3,3,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-016,16,4,challenge01,challenge01.xml,s7ch01,s7-challenge-test/1.4,challenge_test,challenge,斜箱与圆柱交替,1,W3,4,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-017,17,5,challenge09,challenge09.xml,s7ch09,s7-challenge-test/1.4,challenge_test,challenge,错位短障碍通道,2,W1,1,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-018,18,5,challenge09,challenge09.xml,s7ch09,s7-challenge-test/1.4,challenge_test,challenge,错位短障碍通道,2,W1,2,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-019,19,5,challenge09,challenge09.xml,s7ch09,s7-challenge-test/1.4,challenge_test,challenge,错位短障碍通道,2,W1,3,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-020,20,5,challenge09,challenge09.xml,s7ch09,s7-challenge-test/1.4,challenge_test,challenge,错位短障碍通道,2,W1,4,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-021,21,6,challenge08,challenge08.xml,s7ch08,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,1,W3,1,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-022,22,6,challenge08,challenge08.xml,s7ch08,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,1,W3,2,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-023,23,6,challenge08,challenge08.xml,s7ch08,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,1,W3,3,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-024,24,6,challenge08,challenge08.xml,s7ch08,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,1,W3,4,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-025,25,7,challenge19,challenge19.xml,s7ch19,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W3,1,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-026,26,7,challenge19,challenge19.xml,s7ch19,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W3,2,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-027,27,7,challenge19,challenge19.xml,s7ch19,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W3,3,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-028,28,7,challenge19,challenge19.xml,s7ch19,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W3,4,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-029,29,8,challenge11,challenge11.xml,s7ch11,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,1,W2,1,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-030,30,8,challenge11,challenge11.xml,s7ch11,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,1,W2,2,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-031,31,8,challenge11,challenge11.xml,s7ch11,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,1,W2,3,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-032,32,8,challenge11,challenge11.xml,s7ch11,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,1,W2,4,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-033,33,9,challenge22,challenge22.xml,s7ch22,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,1,W1,1,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-034,34,9,challenge22,challenge22.xml,s7ch22,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,1,W1,2,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-035,35,9,challenge22,challenge22.xml,s7ch22,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,1,W1,3,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-036,36,9,challenge22,challenge22.xml,s7ch22,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,1,W1,4,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-037,37,10,challenge05,challenge05.xml,s7ch05,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W0,1,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-038,38,10,challenge05,challenge05.xml,s7ch05,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W0,2,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-039,39,10,challenge05,challenge05.xml,s7ch05,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W0,3,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-040,40,10,challenge05,challenge05.xml,s7ch05,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W0,4,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-041,41,11,challenge16,challenge16.xml,s7ch16,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,2,W1,1,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-042,42,11,challenge16,challenge16.xml,s7ch16,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,2,W1,2,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-043,43,11,challenge16,challenge16.xml,s7ch16,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,2,W1,3,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-044,44,11,challenge16,challenge16.xml,s7ch16,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,2,W1,4,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-045,45,12,challenge18,challenge18.xml,s7ch18,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,1,W3,1,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-046,46,12,challenge18,challenge18.xml,s7ch18,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,1,W3,2,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-047,47,12,challenge18,challenge18.xml,s7ch18,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,1,W3,3,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-048,48,12,challenge18,challenge18.xml,s7ch18,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,1,W3,4,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-049,49,13,challenge17,challenge17.xml,s7ch17,s7-challenge-test/1.4,challenge_test,challenge,左右错列混合障碍,2,W2,1,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-050,50,13,challenge17,challenge17.xml,s7ch17,s7-challenge-test/1.4,challenge_test,challenge,左右错列混合障碍,2,W2,2,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-051,51,13,challenge17,challenge17.xml,s7ch17,s7-challenge-test/1.4,challenge_test,challenge,左右错列混合障碍,2,W2,3,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-052,52,13,challenge17,challenge17.xml,s7ch17,s7-challenge-test/1.4,challenge_test,challenge,左右错列混合障碍,2,W2,4,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-053,53,14,challenge04,challenge04.xml,s7ch04,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 左侧绕障 + 中段圆柱,1,W0,1,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-054,54,14,challenge04,challenge04.xml,s7ch04,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 左侧绕障 + 中段圆柱,1,W0,2,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-055,55,14,challenge04,challenge04.xml,s7ch04,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 左侧绕障 + 中段圆柱,1,W0,3,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-056,56,14,challenge04,challenge04.xml,s7ch04,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 左侧绕障 + 中段圆柱,1,W0,4,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-057,57,15,challenge29,challenge29.xml,s7ch29,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W2,1,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-058,58,15,challenge29,challenge29.xml,s7ch29,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W2,2,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-059,59,15,challenge29,challenge29.xml,s7ch29,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W2,3,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-060,60,15,challenge29,challenge29.xml,s7ch29,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W2,4,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-061,61,16,challenge02,challenge02.xml,s7ch02,s7-challenge-test/1.4,challenge_test,sparse,前向宽开口 + 后段局部绕障,1,W1,1,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-062,62,16,challenge02,challenge02.xml,s7ch02,s7-challenge-test/1.4,challenge_test,sparse,前向宽开口 + 后段局部绕障,1,W1,2,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-063,63,16,challenge02,challenge02.xml,s7ch02,s7-challenge-test/1.4,challenge_test,sparse,前向宽开口 + 后段局部绕障,1,W1,3,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-064,64,16,challenge02,challenge02.xml,s7ch02,s7-challenge-test/1.4,challenge_test,sparse,前向宽开口 + 后段局部绕障,1,W1,4,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-065,65,17,challenge15,challenge15.xml,s7ch15,s7-challenge-test/1.4,challenge_test,challenge,后段连续障碍,2,W3,1,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-066,66,17,challenge15,challenge15.xml,s7ch15,s7-challenge-test/1.4,challenge_test,challenge,后段连续障碍,2,W3,2,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-067,67,17,challenge15,challenge15.xml,s7ch15,s7-challenge-test/1.4,challenge_test,challenge,后段连续障碍,2,W3,3,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-068,68,17,challenge15,challenge15.xml,s7ch15,s7-challenge-test/1.4,challenge_test,challenge,后段连续障碍,2,W3,4,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-069,69,18,challenge29,challenge29.xml,s7ch29,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W0,1,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-070,70,18,challenge29,challenge29.xml,s7ch29,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W0,2,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-071,71,18,challenge29,challenge29.xml,s7ch29,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W0,3,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-072,72,18,challenge29,challenge29.xml,s7ch29,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W0,4,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-073,73,19,challenge07,challenge07.xml,s7ch07,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,2,W0,1,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-074,74,19,challenge07,challenge07.xml,s7ch07,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,2,W0,2,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-075,75,19,challenge07,challenge07.xml,s7ch07,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,2,W0,3,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-076,76,19,challenge07,challenge07.xml,s7ch07,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,2,W0,4,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-077,77,20,challenge14,challenge14.xml,s7ch14,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,2,W0,1,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-078,78,20,challenge14,challenge14.xml,s7ch14,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,2,W0,2,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-079,79,20,challenge14,challenge14.xml,s7ch14,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,2,W0,3,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-080,80,20,challenge14,challenge14.xml,s7ch14,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,2,W0,4,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-081,81,21,challenge25,challenge25.xml,s7ch25,s7-challenge-test/1.4,challenge_test,challenge,短障碍单侧绕行,2,W0,1,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-082,82,21,challenge25,challenge25.xml,s7ch25,s7-challenge-test/1.4,challenge_test,challenge,短障碍单侧绕行,2,W0,2,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-083,83,21,challenge25,challenge25.xml,s7ch25,s7-challenge-test/1.4,challenge_test,challenge,短障碍单侧绕行,2,W0,3,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-084,84,21,challenge25,challenge25.xml,s7ch25,s7-challenge-test/1.4,challenge_test,challenge,短障碍单侧绕行,2,W0,4,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-085,85,22,challenge13,challenge13.xml,s7ch13,s7-challenge-test/1.4,challenge_test,challenge,两段偏置开口,1,W3,1,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-086,86,22,challenge13,challenge13.xml,s7ch13,s7-challenge-test/1.4,challenge_test,challenge,两段偏置开口,1,W3,2,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-087,87,22,challenge13,challenge13.xml,s7ch13,s7-challenge-test/1.4,challenge_test,challenge,两段偏置开口,1,W3,3,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-088,88,22,challenge13,challenge13.xml,s7ch13,s7-challenge-test/1.4,challenge_test,challenge,两段偏置开口,1,W3,4,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-089,89,23,challenge06,challenge06.xml,s7ch06,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 后段局部绕障,1,W1,1,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-090,90,23,challenge06,challenge06.xml,s7ch06,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 后段局部绕障,1,W1,2,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-091,91,23,challenge06,challenge06.xml,s7ch06,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 后段局部绕障,1,W1,3,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-092,92,23,challenge06,challenge06.xml,s7ch06,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 后段局部绕障,1,W1,4,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-093,93,24,challenge03,challenge03.xml,s7ch03,s7-challenge-test/1.4,challenge_test,challenge,混合错位局部绕行,1,W2,1,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-094,94,24,challenge03,challenge03.xml,s7ch03,s7-challenge-test/1.4,challenge_test,challenge,混合错位局部绕行,1,W2,2,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-095,95,24,challenge03,challenge03.xml,s7ch03,s7-challenge-test/1.4,challenge_test,challenge,混合错位局部绕行,1,W2,3,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-096,96,24,challenge03,challenge03.xml,s7ch03,s7-challenge-test/1.4,challenge_test,challenge,混合错位局部绕行,1,W2,4,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-097,97,25,challenge01,challenge01.xml,s7ch01,s7-challenge-test/1.4,challenge_test,challenge,斜箱与圆柱交替,2,W1,1,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-098,98,25,challenge01,challenge01.xml,s7ch01,s7-challenge-test/1.4,challenge_test,challenge,斜箱与圆柱交替,2,W1,2,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-099,99,25,challenge01,challenge01.xml,s7ch01,s7-challenge-test/1.4,challenge_test,challenge,斜箱与圆柱交替,2,W1,3,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-100,100,25,challenge01,challenge01.xml,s7ch01,s7-challenge-test/1.4,challenge_test,challenge,斜箱与圆柱交替,2,W1,4,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-101,101,26,challenge26,challenge26.xml,s7ch26,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,1,W1,1,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-102,102,26,challenge26,challenge26.xml,s7ch26,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,1,W1,2,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-103,103,26,challenge26,challenge26.xml,s7ch26,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,1,W1,3,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-104,104,26,challenge26,challenge26.xml,s7ch26,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,1,W1,4,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-105,105,27,challenge21,challenge21.xml,s7ch21,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W2,1,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-106,106,27,challenge21,challenge21.xml,s7ch21,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W2,2,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-107,107,27,challenge21,challenge21.xml,s7ch21,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W2,3,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-108,108,27,challenge21,challenge21.xml,s7ch21,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,1,W2,4,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-109,109,28,challenge23,challenge23.xml,s7ch23,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,2,W0,1,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-110,110,28,challenge23,challenge23.xml,s7ch23,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,2,W0,2,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-111,111,28,challenge23,challenge23.xml,s7ch23,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,2,W0,3,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-112,112,28,challenge23,challenge23.xml,s7ch23,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,2,W0,4,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-113,113,29,challenge30,challenge30.xml,s7ch30,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,2,W3,1,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-114,114,29,challenge30,challenge30.xml,s7ch30,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,2,W3,2,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-115,115,29,challenge30,challenge30.xml,s7ch30,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,2,W3,3,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-116,116,29,challenge30,challenge30.xml,s7ch30,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,2,W3,4,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-117,117,30,challenge16,challenge16.xml,s7ch16,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,1,W3,1,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-118,118,30,challenge16,challenge16.xml,s7ch16,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,1,W3,2,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-119,119,30,challenge16,challenge16.xml,s7ch16,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,1,W3,3,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-120,120,30,challenge16,challenge16.xml,s7ch16,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,1,W3,4,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-121,121,31,challenge21,challenge21.xml,s7ch21,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W0,1,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-122,122,31,challenge21,challenge21.xml,s7ch21,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W0,2,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-123,123,31,challenge21,challenge21.xml,s7ch21,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W0,3,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-124,124,31,challenge21,challenge21.xml,s7ch21,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W0,4,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-125,125,32,challenge26,challenge26.xml,s7ch26,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,2,W3,1,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-126,126,32,challenge26,challenge26.xml,s7ch26,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,2,W3,2,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-127,127,32,challenge26,challenge26.xml,s7ch26,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,2,W3,3,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-128,128,32,challenge26,challenge26.xml,s7ch26,s7-challenge-test/1.4,challenge_test,dense,错位短障碍通道,2,W3,4,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-129,129,33,challenge30,challenge30.xml,s7ch30,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,1,W1,1,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-130,130,33,challenge30,challenge30.xml,s7ch30,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,1,W1,2,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-131,131,33,challenge30,challenge30.xml,s7ch30,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,1,W1,3,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-132,132,33,challenge30,challenge30.xml,s7ch30,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,1,W1,4,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-133,133,34,challenge09,challenge09.xml,s7ch09,s7-challenge-test/1.4,challenge_test,challenge,错位短障碍通道,1,W3,1,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-134,134,34,challenge09,challenge09.xml,s7ch09,s7-challenge-test/1.4,challenge_test,challenge,错位短障碍通道,1,W3,2,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-135,135,34,challenge09,challenge09.xml,s7ch09,s7-challenge-test/1.4,challenge_test,challenge,错位短障碍通道,1,W3,3,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-136,136,34,challenge09,challenge09.xml,s7ch09,s7-challenge-test/1.4,challenge_test,challenge,错位短障碍通道,1,W3,4,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-137,137,35,challenge07,challenge07.xml,s7ch07,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,1,W2,1,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-138,138,35,challenge07,challenge07.xml,s7ch07,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,1,W2,2,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-139,139,35,challenge07,challenge07.xml,s7ch07,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,1,W2,3,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-140,140,35,challenge07,challenge07.xml,s7ch07,s7-challenge-test/1.4,challenge_test,challenge,短障碍局部绕行,1,W2,4,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-141,141,36,challenge02,challenge02.xml,s7ch02,s7-challenge-test/1.4,challenge_test,sparse,前向宽开口 + 后段局部绕障,2,W3,1,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-142,142,36,challenge02,challenge02.xml,s7ch02,s7-challenge-test/1.4,challenge_test,sparse,前向宽开口 + 后段局部绕障,2,W3,2,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-143,143,36,challenge02,challenge02.xml,s7ch02,s7-challenge-test/1.4,challenge_test,sparse,前向宽开口 + 后段局部绕障,2,W3,3,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-144,144,36,challenge02,challenge02.xml,s7ch02,s7-challenge-test/1.4,challenge_test,sparse,前向宽开口 + 后段局部绕障,2,W3,4,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-145,145,37,challenge13,challenge13.xml,s7ch13,s7-challenge-test/1.4,challenge_test,challenge,两段偏置开口,2,W1,1,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-146,146,37,challenge13,challenge13.xml,s7ch13,s7-challenge-test/1.4,challenge_test,challenge,两段偏置开口,2,W1,2,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-147,147,37,challenge13,challenge13.xml,s7ch13,s7-challenge-test/1.4,challenge_test,challenge,两段偏置开口,2,W1,3,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-148,148,37,challenge13,challenge13.xml,s7ch13,s7-challenge-test/1.4,challenge_test,challenge,两段偏置开口,2,W1,4,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-149,149,38,challenge28,challenge28.xml,s7ch28,s7-challenge-test/1.4,challenge_test,sparse,短障碍局部绕行,2,W1,1,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-150,150,38,challenge28,challenge28.xml,s7ch28,s7-challenge-test/1.4,challenge_test,sparse,短障碍局部绕行,2,W1,2,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-151,151,38,challenge28,challenge28.xml,s7ch28,s7-challenge-test/1.4,challenge_test,sparse,短障碍局部绕行,2,W1,3,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-152,152,38,challenge28,challenge28.xml,s7ch28,s7-challenge-test/1.4,challenge_test,sparse,短障碍局部绕行,2,W1,4,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-153,153,39,challenge22,challenge22.xml,s7ch22,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,2,W3,1,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-154,154,39,challenge22,challenge22.xml,s7ch22,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,2,W3,2,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-155,155,39,challenge22,challenge22.xml,s7ch22,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,2,W3,3,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-156,156,39,challenge22,challenge22.xml,s7ch22,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,2,W3,4,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-157,157,40,challenge14,challenge14.xml,s7ch14,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,1,W2,1,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-158,158,40,challenge14,challenge14.xml,s7ch14,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,1,W2,2,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-159,159,40,challenge14,challenge14.xml,s7ch14,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,1,W2,3,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-160,160,40,challenge14,challenge14.xml,s7ch14,s7-challenge-test/1.4,challenge_test,medium,缓和S型连续绕行,1,W2,4,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-161,161,41,challenge27,challenge27.xml,s7ch27,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,1,W0,1,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-162,162,41,challenge27,challenge27.xml,s7ch27,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,1,W0,2,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-163,163,41,challenge27,challenge27.xml,s7ch27,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,1,W0,3,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-164,164,41,challenge27,challenge27.xml,s7ch27,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,1,W0,4,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-165,165,42,challenge18,challenge18.xml,s7ch18,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,2,W1,1,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-166,166,42,challenge18,challenge18.xml,s7ch18,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,2,W1,2,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-167,167,42,challenge18,challenge18.xml,s7ch18,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,2,W1,3,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-168,168,42,challenge18,challenge18.xml,s7ch18,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,2,W1,4,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-169,169,43,challenge12,challenge12.xml,s7ch12,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,1,W0,1,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-170,170,43,challenge12,challenge12.xml,s7ch12,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,1,W0,2,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-171,171,43,challenge12,challenge12.xml,s7ch12,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,1,W0,3,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-172,172,43,challenge12,challenge12.xml,s7ch12,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,1,W0,4,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-173,173,44,challenge03,challenge03.xml,s7ch03,s7-challenge-test/1.4,challenge_test,challenge,混合错位局部绕行,2,W0,1,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-174,174,44,challenge03,challenge03.xml,s7ch03,s7-challenge-test/1.4,challenge_test,challenge,混合错位局部绕行,2,W0,2,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-175,175,44,challenge03,challenge03.xml,s7ch03,s7-challenge-test/1.4,challenge_test,challenge,混合错位局部绕行,2,W0,3,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-176,176,44,challenge03,challenge03.xml,s7ch03,s7-challenge-test/1.4,challenge_test,challenge,混合错位局部绕行,2,W0,4,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-177,177,45,challenge17,challenge17.xml,s7ch17,s7-challenge-test/1.4,challenge_test,challenge,左右错列混合障碍,1,W0,1,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-178,178,45,challenge17,challenge17.xml,s7ch17,s7-challenge-test/1.4,challenge_test,challenge,左右错列混合障碍,1,W0,2,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-179,179,45,challenge17,challenge17.xml,s7ch17,s7-challenge-test/1.4,challenge_test,challenge,左右错列混合障碍,1,W0,3,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-180,180,45,challenge17,challenge17.xml,s7ch17,s7-challenge-test/1.4,challenge_test,challenge,左右错列混合障碍,1,W0,4,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-181,181,46,challenge24,challenge24.xml,s7ch24,s7-challenge-test/1.4,challenge_test,medium,短障碍局部绕行,1,W1,1,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-182,182,46,challenge24,challenge24.xml,s7ch24,s7-challenge-test/1.4,challenge_test,medium,短障碍局部绕行,1,W1,2,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-183,183,46,challenge24,challenge24.xml,s7ch24,s7-challenge-test/1.4,challenge_test,medium,短障碍局部绕行,1,W1,3,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-184,184,46,challenge24,challenge24.xml,s7ch24,s7-challenge-test/1.4,challenge_test,medium,短障碍局部绕行,1,W1,4,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-185,185,47,challenge20,challenge20.xml,s7ch20,s7-challenge-test/1.4,challenge_test,sparse,缓和S型连续绕行,2,W2,1,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-186,186,47,challenge20,challenge20.xml,s7ch20,s7-challenge-test/1.4,challenge_test,sparse,缓和S型连续绕行,2,W2,2,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-187,187,47,challenge20,challenge20.xml,s7ch20,s7-challenge-test/1.4,challenge_test,sparse,缓和S型连续绕行,2,W2,3,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-188,188,47,challenge20,challenge20.xml,s7ch20,s7-challenge-test/1.4,challenge_test,sparse,缓和S型连续绕行,2,W2,4,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-189,189,48,challenge19,challenge19.xml,s7ch19,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W1,1,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-190,190,48,challenge19,challenge19.xml,s7ch19,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W1,2,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-191,191,48,challenge19,challenge19.xml,s7ch19,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W1,3,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-192,192,48,challenge19,challenge19.xml,s7ch19,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W1,4,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-193,193,49,challenge12,challenge12.xml,s7ch12,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,2,W2,1,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-194,194,49,challenge12,challenge12.xml,s7ch12,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,2,W2,2,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-195,195,49,challenge12,challenge12.xml,s7ch12,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,2,W2,3,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-196,196,49,challenge12,challenge12.xml,s7ch12,s7-challenge-test/1.4,challenge_test,dense,短障碍局部绕行,2,W2,4,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-197,197,50,challenge15,challenge15.xml,s7ch15,s7-challenge-test/1.4,challenge_test,challenge,后段连续障碍,1,W1,1,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-198,198,50,challenge15,challenge15.xml,s7ch15,s7-challenge-test/1.4,challenge_test,challenge,后段连续障碍,1,W1,2,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-199,199,50,challenge15,challenge15.xml,s7ch15,s7-challenge-test/1.4,challenge_test,challenge,后段连续障碍,1,W1,3,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-200,200,50,challenge15,challenge15.xml,s7ch15,s7-challenge-test/1.4,challenge_test,challenge,后段连续障碍,1,W1,4,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-201,201,51,challenge06,challenge06.xml,s7ch06,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 后段局部绕障,2,W3,1,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-202,202,51,challenge06,challenge06.xml,s7ch06,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 后段局部绕障,2,W3,2,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-203,203,51,challenge06,challenge06.xml,s7ch06,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 后段局部绕障,2,W3,3,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-204,204,51,challenge06,challenge06.xml,s7ch06,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 后段局部绕障,2,W3,4,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-205,205,52,challenge10,challenge10.xml,s7ch10,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,1,W0,1,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-206,206,52,challenge10,challenge10.xml,s7ch10,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,1,W0,2,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-207,207,52,challenge10,challenge10.xml,s7ch10,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,1,W0,3,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-208,208,52,challenge10,challenge10.xml,s7ch10,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,1,W0,4,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-209,209,53,challenge05,challenge05.xml,s7ch05,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W2,1,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-210,210,53,challenge05,challenge05.xml,s7ch05,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W2,2,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-211,211,53,challenge05,challenge05.xml,s7ch05,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W2,3,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-212,212,53,challenge05,challenge05.xml,s7ch05,s7-challenge-test/1.4,challenge_test,challenge,缓和S型连续绕行,2,W2,4,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-213,213,54,challenge11,challenge11.xml,s7ch11,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,2,W0,1,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-214,214,54,challenge11,challenge11.xml,s7ch11,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,2,W0,2,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-215,215,54,challenge11,challenge11.xml,s7ch11,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,2,W0,3,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-216,216,54,challenge11,challenge11.xml,s7ch11,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,2,W0,4,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-217,217,55,challenge24,challenge24.xml,s7ch24,s7-challenge-test/1.4,challenge_test,medium,短障碍局部绕行,2,W3,1,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-218,218,55,challenge24,challenge24.xml,s7ch24,s7-challenge-test/1.4,challenge_test,medium,短障碍局部绕行,2,W3,2,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-219,219,55,challenge24,challenge24.xml,s7ch24,s7-challenge-test/1.4,challenge_test,medium,短障碍局部绕行,2,W3,3,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-220,220,55,challenge24,challenge24.xml,s7ch24,s7-challenge-test/1.4,challenge_test,medium,短障碍局部绕行,2,W3,4,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-221,221,56,challenge04,challenge04.xml,s7ch04,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 左侧绕障 + 中段圆柱,2,W2,1,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-222,222,56,challenge04,challenge04.xml,s7ch04,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 左侧绕障 + 中段圆柱,2,W2,2,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-223,223,56,challenge04,challenge04.xml,s7ch04,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 左侧绕障 + 中段圆柱,2,W2,3,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-224,224,56,challenge04,challenge04.xml,s7ch04,s7-challenge-test/1.4,challenge_test,dense,前向宽开口 + 左侧绕障 + 中段圆柱,2,W2,4,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-225,225,57,challenge25,challenge25.xml,s7ch25,s7-challenge-test/1.4,challenge_test,challenge,短障碍单侧绕行,1,W2,1,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-226,226,57,challenge25,challenge25.xml,s7ch25,s7-challenge-test/1.4,challenge_test,challenge,短障碍单侧绕行,1,W2,2,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-227,227,57,challenge25,challenge25.xml,s7ch25,s7-challenge-test/1.4,challenge_test,challenge,短障碍单侧绕行,1,W2,3,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-228,228,57,challenge25,challenge25.xml,s7ch25,s7-challenge-test/1.4,challenge_test,challenge,短障碍单侧绕行,1,W2,4,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-229,229,58,challenge10,challenge10.xml,s7ch10,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,2,W2,1,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-230,230,58,challenge10,challenge10.xml,s7ch10,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,2,W2,2,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-231,231,58,challenge10,challenge10.xml,s7ch10,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,2,W2,3,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-232,232,58,challenge10,challenge10.xml,s7ch10,s7-challenge-test/1.4,challenge_test,medium,错位短障碍通道,2,W2,4,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-233,233,59,challenge27,challenge27.xml,s7ch27,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,2,W2,1,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-234,234,59,challenge27,challenge27.xml,s7ch27,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,2,W2,2,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-235,235,59,challenge27,challenge27.xml,s7ch27,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,2,W2,3,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-236,236,59,challenge27,challenge27.xml,s7ch27,s7-challenge-test/1.4,challenge_test,challenge,前向错列短障碍,2,W2,4,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-237,237,60,challenge28,challenge28.xml,s7ch28,s7-challenge-test/1.4,challenge_test,sparse,短障碍局部绕行,1,W3,1,D,-0.05,-0.1,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-238,238,60,challenge28,challenge28.xml,s7ch28,s7-challenge-test/1.4,challenge_test,sparse,短障碍局部绕行,1,W3,2,A,-0.05,,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-239,239,60,challenge28,challenge28.xml,s7ch28,s7-challenge-test/1.4,challenge_test,sparse,短障碍局部绕行,1,W3,3,C,-0.05,,0.2,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001
+M3-240,240,60,challenge28,challenge28.xml,s7ch28,s7-challenge-test/1.4,challenge_test,sparse,短障碍局部绕行,1,W3,4,B,-0.05,-0.1,,0.0,0.0,7.5,0.0,0.5,20.0,120.0,2.0,30.0,hidden,False,2026102001

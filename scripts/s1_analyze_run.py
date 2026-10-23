@@ -269,6 +269,56 @@ def audit_hold_episodes(motion_frames: list[dict]) -> dict[str, Any]:
             "scope": "motion window decision cycles only; no interpolation; terminal truncation is censored"}
 
 
+def terminal_safety_end_time(context: dict, terminal_payload: dict | None,
+                             policy_end_s: float | None) -> tuple[float | None, dict]:
+    """Bind a fall stop to the physical sample used by the supervisor.
+
+    Policy time describes the last decision, while its attached physics sample
+    is independently timed. A confirmed fall in that very sample can end the
+    task between decisions. This does not admit later standing/cleanup samples
+    and does not change policy elapsed time or switching metrics.
+    """
+    evidence = {"policy_terminal_sim_time_s": policy_end_s,
+                "safety_terminal_sim_time_s": policy_end_s,
+                "source": "terminal_policy_clock", "applied": False}
+    if (context.get("result_contract", {}).get("classification") != "FALL_TERMINATION"
+            or not isinstance(terminal_payload, dict)
+            or not isinstance(policy_end_s, (int, float))):
+        return policy_end_s, evidence
+    snapshot = terminal_payload.get("collision_snapshot")
+    if (not isinstance(snapshot, dict) or snapshot.get("status") != "LIVE"
+            or snapshot.get("capture_id") != context.get("capture_id")):
+        return policy_end_s, evidence
+    sample_time, sample_step = snapshot.get("sim_time"), snapshot.get("physics_step")
+    if (not isinstance(sample_time, (int, float)) or not math.isfinite(sample_time)
+            or sample_time <= policy_end_s or not isinstance(sample_step, int)):
+        return policy_end_s, evidence
+    # The terminal sample must precede the recorded stop request when present.
+    stop_ns = context.get("lifecycle", {}).get("post_terminal_strategy_stop", {}).get("publish_start_monotonic_ns")
+    if (isinstance(stop_ns, int) and
+            (not isinstance(snapshot.get("monotonic_ns"), int)
+             or snapshot["monotonic_ns"] > stop_ns)):
+        return policy_end_s, evidence
+    fields = ("start_physics_step", "confirmed_physics_step", "confirmed_sim_time")
+    observed = context.get("lifecycle", {}).get("fall_observed", [])
+    for event in snapshot.get("fall_history", []):
+        if not isinstance(event, dict) or event.get("confirmed") is not True:
+            continue
+        step, time_s = event.get("confirmed_physics_step"), event.get("confirmed_sim_time")
+        if (not isinstance(step, int) or step <= 0 or step > sample_step
+                or not isinstance(time_s, (int, float)) or not math.isfinite(time_s)
+                or not policy_end_s < time_s <= sample_time):
+            continue
+        if any(isinstance(item, dict) and item.get("confirmed") is True and
+               all(item.get(key) == event.get(key) for key in fields) for item in observed):
+            evidence.update(safety_terminal_sim_time_s=sample_time,
+                            source="terminal_policy_record_physics_sample_used_for_fall_stop",
+                            applied=True, physics_step=sample_step,
+                            confirmed_physics_step=step, confirmed_sim_time_s=time_s)
+            return sample_time, evidence
+    return policy_end_s, evidence
+
+
 def motion_safety(frames: list[dict], start_s: float | None,
                   end_s: float | None,
                   terminal_snapshot: dict | None = None,
@@ -1312,15 +1362,16 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
     terminal_policy_physics_snapshot = (
         terminal_policy_payload.get("collision_snapshot")
         if isinstance(terminal_policy_payload, dict) else None)
-    # Safety evidence for motion is bounded by persisted policy-cycle identity,
-    # just like the task metrics. `frames` also contains post-terminal standing
-    # and cleanup records; their attached physical snapshots may be STALE and
-    # must not contaminate a completed task interval. Keep the full-capture
-    # coverage separately in `capture_collision_coverage` below.
+    safety_end_s, safety_terminal_boundary = terminal_safety_end_time(
+        context, terminal_policy_payload, movement_end)
+    # Only the persisted task cycles and their attached physical samples are
+    # admitted. For a physical fall stop, safety ends at its detection sample;
+    # policy metrics still end at the last policy clock. Later standing and
+    # cleanup records remain excluded. Keep full-capture coverage separately.
     safety_boundary_snapshots = ([task_boundary_snapshot]
                                  if isinstance(task_boundary_snapshot, dict) else [])
     safety = motion_safety(
-        policy_cycle_frames, movement_start, movement_end,
+        policy_cycle_frames, movement_start, safety_end_s,
         terminal_policy_physics_snapshot, safety_boundary_snapshots,
         start_boundary_snapshot=task_start_physics_snapshot,
         end_boundary_snapshot=terminal_policy_physics_snapshot)
@@ -1336,7 +1387,7 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
         (terminal_bounds.get("sim_time") if isinstance(terminal_bounds, dict) and
          terminal_bounds.get("status") == "LIVE" else None))
     task_safety = motion_safety(
-        policy_cycle_frames, task_start_time, movement_end,
+        policy_cycle_frames, task_start_time, safety_end_s,
         terminal_policy_physics_snapshot, safety_boundary_snapshots,
         start_boundary_snapshot=task_start_physics_snapshot,
         end_boundary_snapshot=(terminal_policy_physics_snapshot
@@ -1579,13 +1630,14 @@ def calculate(record_path: Path, context_path: Path, reverse_window_s: float = 0
         "legacy_displacement_window_scope": "historical auxiliary window: first observed >=0.10m displacement through terminal frame; preserved separately and not used as the primary task boundary",
         "capture_collision_coverage": base.get("collision"),
         "collision_coverage": {
-            "scope": "primary task interval from first active policy cycle through terminal inclusive",
+            "scope": "task records through terminal inclusive; physical fall-stop sample bounded separately in safety_terminal_boundary",
             "result": task_safety["collision"],
             "complete_for_motion_interval": task_safety["coverage_complete_for_motion_interval"],
             "reason": task_safety["coverage_reason"],
             "evidence": task_safety["coverage_evidence"],
         },
         "capture_fall_events": (data.terminal or {}).get("fall_events"),
+        "safety_terminal_boundary": safety_terminal_boundary,
         "motion_fall_result": task_safety["fall"],
         "motion_safety": task_safety,
         "task_window_safety": task_safety,

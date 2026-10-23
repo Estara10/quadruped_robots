@@ -2296,10 +2296,17 @@ def resolve_map_manifest(scene_spec, goal_x: float, goal_y: float,
         code = "M2_SELECTED_SCENE_SETTINGS_REJECTED"
         layout_path = ROOT / "docs/thesis_project/designs/M2/selected_v2/layouts.json"
         library_version = M2_SELECTED_MAPSET_VERSION
+    elif scene_spec.scene_id.startswith("s7ch"):
+        code = "S7_CHALLENGE_SCENE_SETTINGS_REJECTED"
+        layout_path = ROOT / "docs/thesis_project/designs/M3/layouts.json"
+        library_version = "s7-challenge-test/1.4"
     else:
         return None, None
     try:
         library = json.loads(layout_path.read_text(encoding="utf-8"))
+        if code == "S7_CHALLENGE_SCENE_SETTINGS_REJECTED":
+            if library.get("mapset_version") != library_version:
+                raise ValueError("Challenge mapset version differs from the selected revision")
         if code == "M2_SELECTED_SCENE_SETTINGS_REJECTED":
             if library.get("mapset_version") != library_version:
                 raise ValueError("M2 selected mapset version is not the approved revision")
@@ -2308,6 +2315,11 @@ def resolve_map_manifest(scene_spec, goal_x: float, goal_y: float,
         if len(matches) != 1 or matches[0].get("filename") != scene_spec.filename:
             raise ValueError(f"{library_version} scene identity is missing or ambiguous")
         record = matches[0]
+        if code == "S7_CHALLENGE_SCENE_SETTINGS_REJECTED":
+            binding = record.get("production_scene_binding") or {}
+            for name in ("root_sha256", "closure_sha256", "model_fingerprint"):
+                if binding.get(name) != getattr(scene_spec, name):
+                    raise ValueError(f"Challenge {name} differs from the production catalog")
         if code == "M2_SELECTED_SCENE_SETTINGS_REJECTED":
             binding = record.get("production_scene_binding") or {}
             if (binding.get("scene_id") != scene_spec.scene_id or

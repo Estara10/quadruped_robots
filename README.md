@@ -19,9 +19,12 @@ Reference code: https://github.com/LeCAR-Lab/ABS
 - 当前状态与 Active Task：[`docs/thesis_project/CURRENT_STATE.md`](docs/thesis_project/CURRENT_STATE.md)
 - 新路线：[`docs/thesis_project/ROADMAP.md`](docs/thesis_project/ROADMAP.md)
 - 实验设计：[`docs/thesis_project/EXPERIMENT_PLAN.md`](docs/thesis_project/EXPERIMENT_PLAN.md)
-- 最近完成任务：[`docs/thesis_project/tasks/T1.md`](docs/thesis_project/tasks/T1.md)
+- 当前任务：[`R1：切换约束作用与代价研究`](docs/thesis_project/tasks/R1.md)
+- 独立项目：[`R1项目首页`](docs/thesis_project/designs/R1/README.md)及[研究计划](docs/thesis_project/designs/R1/PLAN.md)
 
-**T1退出阈值开发选参已完成（Director有条件通过），代表退出阈值为−0.10；当前唯一Active Task为[T2最小保持时间规划](docs/thesis_project/tasks/T2.md)，尚未授权场景运行。** 当前进度与后续范围以CURRENT_STATE为准。正式实验、模型重训和实机RL不得由旧提示词自动授权；实机状态为 **NO-GO**。
+**T1/T2选参已完成；原M1和M3各完成240项四组比较。当前唯一Active Task为[R1](docs/thesis_project/tasks/R1.md)，状态ACTIVE / PLANNING；S7-02保留为历史实验任务。** B/D使用X=−0.10，C/D使用H=0.20仿真秒。下一步先规划用现有数据查看碰撞和超时，尚未执行新分析或实验；实机保持 **NO-GO**。
+
+接受频繁、反向切换是现有策略的正常现象。研究重点是双阈值和最小保持在这种情况下对碰撞、到达、超时、推进和耗时的作用；切换更少不单独代表方法更好。当前结果与限制见[项目现状](docs/thesis_project/PROJECT_STATUS_AND_EXPERIMENT_DECISIONS_20261023.md)。
 
 已结束任务、旧提示词、旧P1治理和日报已归入[Markdown历史资料](archive/markdown/20261018/README.md)，只供历史参考；当前文档入口见[项目文档导航](docs/thesis_project/README.md)。
 
@@ -35,7 +38,7 @@ Reference code: https://github.com/LeCAR-Lab/ABS
 | `unitree_mujoco/` | MuJoCo 仿真器与 Go2 场景 |
 | `ABS/` | ABS 论文原始训练/部署参考 |
 | `scripts/` | 启动、评估、数据采集脚本 |
-| `仿真部署手册.md` | MuJoCo + ROS2 仿真说明 |
+| `scripts/launch_abs_obstacle.sh` | MuJoCo + ROS2 仿真启动脚本 |
 | `quadruped_ros2_control_humble/controllers/rl_quadruped_controller/doc/real_go2_deployment.md` | Go2 真机部署说明 |
 | `scene.txt` | 场景列表和推荐测试顺序 |
 | `command.txt` / `命令.txt` | 常用命令速查 |

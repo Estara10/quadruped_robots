@@ -1,5 +1,7 @@
 # 正式A/B/C/D仿真实验方案
 
+> 当前说明（2026-10-23）：本文件保留正式运行前的方法、审阅或准备记录，正文中待授权/未运行/待补证是历史状态。原M1及M3现已各完成240项；结果见[原M1报告](../../evidence/S7-02/S7-02_EXECUTION_REPORT_20261023.md)和[M3报告](../../evidence/S7-02/M3_ABCD_240_FINAL_REPORT_20261023.md)。当前只规划[碰撞与超时分析](../R1/PLAN.md)，不自动重做准备或重跑实验。
+
 更新：2026-10-21。状态：**方法已冻结（`METHOD_FROZEN_AUTHORIZED_TO_RUN_FALSE`），`authorized_to_run=false`；最小运行器与三层汇总入口已实现并通过定向离线联测，240项仍未获运行授权。** S7-01已COMPLETE；S7-02为ACTIVE / AWAITING_RUN_AUTHORIZATION。完整方法见[正式方法复核稿](FORMAL_METHOD_REVIEW.md)，方法冻结审阅见[METHOD_FREEZE_REVIEW.md](METHOD_FREEZE_REVIEW.md)，运行准备见[RUNNER_READINESS_REPORT.md](../../evidence/S7-01/runner_readiness/RUNNER_READINESS_REPORT.md)；本草案不是运行授权。
 
 ## 1. 决策顺序

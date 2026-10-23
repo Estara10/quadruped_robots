@@ -1,5 +1,7 @@
 # S7正式A/B/C/D实验方法复核稿
 
+> 当前说明（2026-10-23）：本文件保留正式运行前的方法、审阅或准备记录，正文中待授权/未运行/待补证是历史状态。原M1及M3现已各完成240项；结果见[原M1报告](../../evidence/S7-02/S7-02_EXECUTION_REPORT_20261023.md)和[M3报告](../../evidence/S7-02/M3_ABCD_240_FINAL_REPORT_20261023.md)。当前只规划[碰撞与超时分析](../R1/PLAN.md)，不自动重做准备或重跑实验。
+
 日期：2026-10-19更新；2026-10-21同步方法冻结与运行准备。状态：**正式方法与240项平衡矩阵已由Director通过并冻结为`METHOD_FROZEN_AUTHORIZED_TO_RUN_FALSE`；`authorized_to_run=false`，未获运行授权。S7-01已COMPLETE（Director有条件通过）；正式执行由S7-02承接（ACTIVE / AWAITING_RUN_AUTHORIZATION）。** 最小运行器/分析入口已实现并完成定向离线联测；离线通过不等于运行态验证。方法与矩阵审阅摘要见[METHOD_FREEZE_REVIEW.md](METHOD_FREEZE_REVIEW.md)，运行准备见[RUNNER_READINESS_REPORT.md](../../evidence/S7-01/runner_readiness/RUNNER_READINESS_REPORT.md)。
 
 ## 1. 推荐完整设计

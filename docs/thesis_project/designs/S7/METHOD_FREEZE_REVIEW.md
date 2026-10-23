@@ -1,5 +1,7 @@
 # S7正式方法与240项候选矩阵审阅
 
+> 当前说明（2026-10-23）：本文件保留正式运行前的方法、审阅或准备记录，正文中待授权/未运行/待补证是历史状态。原M1及M3现已各完成240项；结果见[原M1报告](../../evidence/S7-02/S7-02_EXECUTION_REPORT_20261023.md)和[M3报告](../../evidence/S7-02/M3_ABCD_240_FINAL_REPORT_20261023.md)。当前只规划[碰撞与超时分析](../R1/PLAN.md)，不自动重做准备或重跑实验。
+
 日期：2026-10-19；2026-10-21更新方法冻结状态。状态：**Director已通过正式方法与平衡矩阵；矩阵状态为`METHOD_FROZEN_AUTHORIZED_TO_RUN_FALSE`，`authorized_to_run=false`。S7-01已COMPLETE（Director有条件通过）；S7-02为唯一Active Task（ACTIVE / AWAITING_RUN_AUTHORIZATION）；240项未启动、未获运行授权。** 最小运行器与分析入口已完成定向离线联测，报告见[RUNNER_READINESS_REPORT.md](../../evidence/S7-01/runner_readiness/RUNNER_READINESS_REPORT.md)。
 
 ## 已写入并确认的方法决策

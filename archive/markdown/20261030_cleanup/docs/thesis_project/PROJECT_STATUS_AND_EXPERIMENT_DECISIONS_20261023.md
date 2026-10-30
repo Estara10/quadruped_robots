@@ -1,6 +1,6 @@
 # 项目现状与后续实验思考
 
-更新：2026-10-23。本文件按用户最新研究共识整理。新研究已独立为R1，R1是唯一ACTIVE / PLANNING；S7-02保留为历史实验任务。下一步分析和新实验尚未执行。
+**历史阶段说明：2026-10-23。** 下文记录当时的结果与计划，不作为当前状态。此后R1已开展已有数据分析和90项开发确认；最新进展、任务与待审阅方案见[CURRENT_STATE](../../../../../docs/thesis_project/CURRENT_STATE.md)和[R1计划](../../../../../docs/thesis_project/designs/R1/PLAN.md)。
 
 ## 现在研究什么
 
@@ -55,7 +55,7 @@ M3的碰撞终止分别为12、14、9、14次，仿真超时为3、2、10、6次
 2. 有依据后只改最相关的一项。保持过长就先看0.10与0.20秒；进入太晚才研究E；退出受限才研究X。先用少量开发图，不展开大网格。
 3. 若发现值得验证的实际改善，再在没参与调整的新图上比较。结果不明确或没有改善，也照实报告，不删失败图、不反复选参。
 
-具体输入、步骤、数量建议和完成标准见[R1项目](designs/R1/README.md)和[R1研究计划](designs/R1/PLAN.md)。这些工作尚未执行。
+具体输入、步骤、数量建议和完成标准见[R1项目](../../../../../docs/thesis_project/designs/R1/README.md)和[R1研究计划](../../../../../docs/thesis_project/designs/R1/PLAN.md)。这些工作尚未执行。
 
 ## 尚未完成的事情
 
@@ -65,10 +65,10 @@ M3的碰撞终止分别为12、14、9、14次，仿真超时为3、2、10、6次
 
 ## 资料入口和保留要求
 
-- [当前状态](CURRENT_STATE.md)、[当前任务R1](tasks/R1.md)、[历史S7-02](tasks/S7-02.md)、[文档导航](README.md)
-- [原M1报告](evidence/S7-02/S7-02_EXECUTION_REPORT_20261023.md)、[原M1数据限制](evidence/S7-02/DATA_RETENTION_20261023.md)
-- [M3最终报告](evidence/S7-02/M3_ABCD_240_FINAL_REPORT_20261023.md)、[比较图](evidence/S7-02/M3_ABCD_COMPARISON.png)
-- [X选择记录](designs/T1/EXIT_THRESHOLD_SELECTION.md)、[H选择记录](designs/T2/HOLD_TIME_SELECTION.md)
-- [整理前长版](../../archive/markdown/20261023_research_replan/docs/thesis_project/PROJECT_STATUS_AND_EXPERIMENT_DECISIONS_20261023.md)：保留当时表述，研究方向以本文件和AGENTS.md为准。
+- [当前状态](../../../../../docs/thesis_project/CURRENT_STATE.md)、[当前任务R1](../../../../../docs/thesis_project/tasks/R1.md)、[历史S7-02](../../../../../docs/thesis_project/tasks/S7-02.md)、[文档导航](../../../../../docs/thesis_project/README.md)
+- [原M1报告](../../../../../docs/thesis_project/evidence/S7-02/S7-02_EXECUTION_REPORT_20261023.md)、[原M1数据限制](../../../../../docs/thesis_project/evidence/S7-02/DATA_RETENTION_20261023.md)
+- [M3最终报告](../../../../../docs/thesis_project/evidence/S7-02/M3_ABCD_240_FINAL_REPORT_20261023.md)、[比较图](../../../../../docs/thesis_project/evidence/S7-02/M3_ABCD_COMPARISON.png)
+- [X选择记录](../../../../../docs/thesis_project/designs/T1/EXIT_THRESHOLD_SELECTION.md)、[H选择记录](../../../../../docs/thesis_project/designs/T2/HOLD_TIME_SELECTION.md)
+- [整理前长版](../../../20261023_research_replan/docs/thesis_project/PROJECT_STATUS_AND_EXPERIMENT_DECISIONS_20261023.md)：保留当时表述，研究方向以本文件和AGENTS.md为准。
 
 正式原始数据保留至论文与答辩主要复核结束，优先压缩备份。GitHub不会自动备份被忽略的logs。本轮只整理文档，未执行分析、仿真、参数修改、数据删除或Git提交。

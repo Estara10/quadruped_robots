@@ -22,9 +22,9 @@ Reference code: https://github.com/LeCAR-Lab/ABS
 - 当前任务：[`R1：切换约束作用与代价研究`](docs/thesis_project/tasks/R1.md)
 - 独立项目：[`R1项目首页`](docs/thesis_project/designs/R1/README.md)及[研究计划](docs/thesis_project/designs/R1/PLAN.md)
 
-**T1/T2选参已完成；原M1和M3各完成240项四组比较。当前唯一Active Task为[R1](docs/thesis_project/tasks/R1.md)，状态ACTIVE / PLANNING；S7-02保留为历史实验任务。** B/D使用X=−0.10，C/D使用H=0.20仿真秒。下一步先规划用现有数据查看碰撞和超时，尚未执行新分析或实验；实机保持 **NO-GO**。
+**当前唯一Active Task为[R1](docs/thesis_project/tasks/R1.md)，状态ACTIVE / 场景分层研究规划（2026-10-30）。** T1/T2开发选参及原M1、M3各240项比较已完成。R1已完成三图90项确认和五图120项阈值位置比较，尚未证明跨地图稳定收益。下一步按连续障碍间距和有限空间通道宽度设计场景，分阶段筛选参数及验证适用条件。本机用于小规模开发，后续批量验证优先使用实验室服务器；新批次尚未启动，实机保持 **NO-GO**。
 
-接受频繁、反向切换是现有策略的正常现象。研究重点是双阈值和最小保持在这种情况下对碰撞、到达、超时、推进和耗时的作用；切换更少不单独代表方法更好。当前结果与限制见[项目现状](docs/thesis_project/PROJECT_STATUS_AND_EXPERIMENT_DECISIONS_20261023.md)。
+接受频繁、反向切换是现有策略的正常现象。研究重点是双阈值和最小保持在这种情况下对碰撞、到达、超时、推进和耗时的作用；切换更少不单独代表方法更好。最新结果见[120项报告](docs/thesis_project/evidence/R1/M2_threshold_position_120/分析报告.md)及[当前状态](docs/thesis_project/CURRENT_STATE.md)。原A/B/C/D仍使用E=−0.05、B/D的X=−0.10、C/D的H=0.20仿真秒；新候选独立命名。
 
 已结束任务、旧提示词、旧P1治理和日报已归入[Markdown历史资料](archive/markdown/20261018/README.md)，只供历史参考；当前文档入口见[项目文档导航](docs/thesis_project/README.md)。
 

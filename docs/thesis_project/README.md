@@ -1,41 +1,45 @@
 # 项目文档导航
 
-更新：2026-10-23。
+更新：2026-10-30。当前唯一Active Task为R1，90项确认和120项阈值位置比较已完成，当前进入场景分层研究规划；新批次尚未启动。
 
-## 现在先看什么
+## 当前先读
 
-- [当前状态](CURRENT_STATE.md)：原M1与M3各完成240项，旧批次结果保留，R1为当前唯一ACTIVE项目。
-- [R1项目](designs/R1/README.md)及[研究计划](designs/R1/PLAN.md)：先看为什么碰撞和超时，再决定改哪个参数；尚未执行。
-- [项目现状说明](PROJECT_STATUS_AND_EXPERIMENT_DECISIONS_20261023.md)：已完成、未完成、结果与限制。
-- [当前任务R1](tasks/R1.md)、[历史任务S7-02](tasks/S7-02.md)。
+- [当前状态](CURRENT_STATE.md)：最新结果、限制和待决策事项。
+- [R1任务](tasks/R1.md)：已完成阶段、当前范围及完成条件。
+- [R1项目](designs/R1/README.md)、[研究计划](designs/R1/PLAN.md)：已有产物、ABS阈值依据和下一步候选方案。
+- [90项开发确认报告](evidence/R1/M2_ABC_repeat_90/分析报告.md)：d01/d03/m01的A/B/C各10次，安全完成分别A 25/30、B 23/30、C 25/30。
 
-当前共识：频繁、反向切换是正常运行现象。我们研究双阈值和最小保持在这种情况下对任务表现的作用，不以切换更少判断方法更好，不要求先证明切换有害。
+频繁切换是正常现象。比较切换约束对安全完成、到达、碰撞、超时、推进和耗时的作用，不以切换更少判断方法更好。
 
-## 研究目标与主要结果
+- [120项阈值位置比较报告](evidence/R1/M2_threshold_position_120/分析报告.md)：四设置总体到达20/30、20/30、17/30、22/30，未发现跨地图一致收益。
+
+## 目标、方法与记录
 
 - [项目目标](OVERVIEW.md)、[路线图](ROADMAP.md)、[实验计划](EXPERIMENT_PLAN.md)、[切换规则](SWITCH_CONTRACT.md)
-- [原M1报告](evidence/S7-02/S7-02_EXECUTION_REPORT_20261023.md)、[M1索引](evidence/S7-02/RESULT_INDEX.md)、[原始记录清理限制](evidence/S7-02/DATA_RETENTION_20261023.md)
-- [M3最终报告](evidence/S7-02/M3_ABCD_240_FINAL_REPORT_20261023.md)、[M3索引](evidence/S7-02/M3_ABCD_240_RESULT_INDEX.md)、[四组比较图](evidence/S7-02/M3_ABCD_COMPARISON.png)
+- [日志导航](../../logs/README.md)：开发、正式批次及R1记录的实际位置。
+- 周报与总体工作材料位于本地`weekly_reports/`，不提交Git或GitHub；按文件标注的截止日期阅读。
 
-## 地图和代表参数
+## 历史实验结果
+
+- [原M1报告](evidence/S7-02/S7-02_EXECUTION_REPORT_20261023.md)、[结果索引](evidence/S7-02/RESULT_INDEX.md)、[原始记录清理限制](evidence/S7-02/DATA_RETENTION_20261023.md)
+- [M3最终报告](evidence/S7-02/M3_ABCD_240_FINAL_REPORT_20261023.md)、[结果索引](evidence/S7-02/M3_ABCD_240_RESULT_INDEX.md)、[比较图](evidence/S7-02/M3_ABCD_COMPARISON.png)
+- [T1任务](tasks/T1.md)、[X选择记录](designs/T1/EXIT_THRESHOLD_SELECTION.md)
+- [T2任务](tasks/T2.md)、[H选择记录](designs/T2/HOLD_TIME_SELECTION.md)
+- [S7-01准备任务](tasks/S7-01.md)、[历史S7-02](tasks/S7-02.md)
+
+原研究代表参数为E=−0.05、B/D的X=−0.10、C/D的H=0.20仿真秒。新候选不覆盖这些历史设置。
+
+## 地图
 
 - [M1冻结地图](designs/M1/library_v1/README.md)：30张开发图、30张原留出图。
-- [M2当前18张开发图](designs/M2/selected_v2/README.md)。
-- [M3当前30张挑战图](designs/M3/README.md)：历史筛选集合，不是新的独立留出集。
-- [T1已完成任务](tasks/T1.md)、[退出阈值选择](designs/T1/EXIT_THRESHOLD_SELECTION.md)：B/D使用X=−0.10。
-- [T2已完成任务](tasks/T2.md)、[保持时间选择](designs/T2/HOLD_TIME_SELECTION.md)：C/D使用H=0.20仿真秒。
-- [S7-01准备任务](tasks/S7-01.md)：已完成，不再是Active Task。
+- [M2的18张开发图](designs/M2/selected_v2/README.md)：R1-4使用其中d01、d03、m01。
+- [M3 v1.4的30张挑战图](designs/M3/README.md)：历史筛选集合，部分地图与M1同源，不是新独立留出集。
 
-## 已完成批次的操作参考
+## 历史文件与复现入口
 
-- [原M1执行说明](designs/S7/FORMAL_RUN_GUIDE.md)
-- [M3执行说明](designs/S7/m3_challenge_240/RUN_GUIDE.md)
+- [2026-10-23阶段说明](../../archive/markdown/20261030_cleanup/docs/thesis_project/PROJECT_STATUS_AND_EXPERIMENT_DECISIONS_20261023.md)：仅反映当日阶段。
+- [原M1执行说明](designs/S7/FORMAL_RUN_GUIDE.md)、[M3执行说明](designs/S7/m3_challenge_240/RUN_GUIDE.md)：已完成批次的复现参考，不是再次派发指令。
+- [2026-10-30整理归档](../../archive/markdown/20261030_cleanup/README.md)：三份旧文档的新位置与四份跳转页删除清单。
+- [2026-10-23文档归档](../../archive/markdown/20261023_research_replan/README.md)、[2026-10-18历史归档](../../archive/markdown/20261018/README.md)
 
-批次已完成，旧命令只作复现参考，不要再次派发。新实验需按下一阶段研究安排确定。
-
-## 历史资料
-
-- [2026-10-23文档整理归档](../../archive/markdown/20261023_research_replan/README.md)：旧提示词、旧咨询材料、长篇状态及整理前任务快照。
-- [2026-10-18历史归档](../../archive/markdown/20261018/README.md)：早期任务、旧P1治理及历史提示词。
-
-实验报告、选参依据和原始数据保留。旧路径的小型入口用于兼容已有链接与脚本元数据，不代表当前任务或运行授权。
+旧提示词和旧路径的小型入口保留以兼容已有引用。代码、模型、地图和原始记录不因本轮文档整理而搬动或删除。

@@ -1,5 +1,7 @@
 # 当前冻结地图：dev01–30 / holdout01–30
 
+> 当前说明（2026-10-23）：原留出30图已完成正式240项比较，结果见[报告](../../../evidence/S7-02/S7-02_EXECUTION_REPORT_20261023.md)。其后部分来源被选入M3挑战集，二者不作为独立新环境合并。地图冻结不变，原留出结果不用于再次选参。
+
 几何版本：`m1-mapset/1.0`；名称修订：`dev-holdout/1.0`（2026-10-15）。
 
 - 仿真XML：`unitree_mujoco/unitree_robots/go2/dev01.xml` 至 `dev30.xml`，以及`holdout01.xml`至`holdout30.xml`。

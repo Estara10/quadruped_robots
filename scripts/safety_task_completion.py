@@ -219,7 +219,8 @@ def assess_task_identity(summary: dict[str, Any], context: dict[str, Any],
 
 def classify_safety_task_completion(summary: dict[str, Any], context: dict[str, Any],
                                     terminal: dict[str, Any] | None,
-                                    identity: dict[str, Any] | None = None) -> dict[str, Any]:
+                                    identity: dict[str, Any] | None = None,
+                                    start_clock_override: dict[str, Any] | None = None) -> dict[str, Any]:
     """Return separate terminal, validity, safety, composite, and closeout facts."""
     terminal = terminal or {}
     lifecycle = context.get("lifecycle", {})
@@ -235,6 +236,18 @@ def classify_safety_task_completion(summary: dict[str, Any], context: dict[str, 
     start_event = lifecycle.get("task_start") or lifecycle.get("policy_active_start")
     arrival = lifecycle.get("arrival_observed")
     settings = context.get("settings", {})
+    decision_clock = start_clock_override or {}
+    raw_task_start_time = (start_event.get("sim_time_s")
+                           if isinstance(start_event, dict) else None)
+    if isinstance(start_event, dict) and start_event.get("sim_clock_valid") is False:
+        raw_task_start_time = None
+    task_start_time = raw_task_start_time
+    decision_clock_used = False
+    if task_start_time is None and decision_clock.get("status") == "VALID_AT_DECISION":
+        candidate = decision_clock.get("sim_time_s")
+        if isinstance(candidate, (int, float)) and not isinstance(candidate, bool) and math.isfinite(float(candidate)):
+            task_start_time = float(candidate)
+            decision_clock_used = True
 
     raw_terminal_conflict = (raw_context != "UNKNOWN" and raw_record != "UNKNOWN" and
                              raw_context != raw_record)
@@ -304,7 +317,6 @@ def classify_safety_task_completion(summary: dict[str, Any], context: dict[str, 
             arrival_distance = arrival.get("distance_m") if isinstance(arrival, dict) else None
             arrival_limit = arrival.get("threshold_m") if isinstance(arrival, dict) else settings.get("arrival_threshold_m")
             arrival_time = arrival.get("sim_time_s") if isinstance(arrival, dict) else None
-            task_start_time = start_event.get("sim_time_s") if isinstance(start_event, dict) else None
             arrival_session = arrival.get("session_id") if isinstance(arrival, dict) else None
             arrival_cycle = arrival.get("rl_step") if isinstance(arrival, dict) else None
             terminal_ref = lifecycle.get("terminal_frame_ref")
@@ -386,6 +398,17 @@ def classify_safety_task_completion(summary: dict[str, Any], context: dict[str, 
                         "end_cycle": task_boundary.get("end_cycle"),
                         "cycle_identity_complete": task_boundary.get("cycle_identity_complete"),
                         "terminal_frame_payload_complete": task_boundary.get("terminal_frame_payload_complete")},
+        "task_start_clock": {
+            "frame_sim_clock_valid": (start_event.get("sim_clock_valid")
+                                      if isinstance(start_event, dict) else None),
+            "frame_sim_time_s": (start_event.get("sim_time_s")
+                                 if isinstance(start_event, dict) else None),
+            "raw_task_start_time_s": raw_task_start_time,
+            "decision_clock": decision_clock,
+            "used_for_safety_start": decision_clock_used,
+            "timing_source": ("decision_trace" if decision_clock_used else
+                              "frame" if raw_task_start_time is not None else "UNKNOWN"),
+        },
         "task_source_identity": identity,
         "task_safety_dimensions": dimensions,
         "standing_and_cleanup": closeout,

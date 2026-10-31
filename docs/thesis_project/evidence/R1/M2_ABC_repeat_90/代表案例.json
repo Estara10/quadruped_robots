@@ -1,0 +1,29 @@
+[
+  {
+    "plan_item_id": "069_r8_m2v2_d01_A",
+    "map": "d01.xml",
+    "group": "A",
+    "run_id": "61441bcb482b46c4a7be605c70afb5fa",
+    "terminal_result": "COLLISION_TERMINATION",
+    "task_duration_s": 13.400000000000531,
+    "distance_final_m": 3.3379059645396305
+  },
+  {
+    "plan_item_id": "006_r1_m2v2_m01_B",
+    "map": "m01.xml",
+    "group": "B",
+    "run_id": "3d4110100fb748acb410c690ccddd414",
+    "terminal_result": "DIAGNOSTIC_SIM_TIME_LIMIT",
+    "task_duration_s": 20.01999999999689,
+    "distance_final_m": 3.7978269480074878
+  },
+  {
+    "plan_item_id": "009_r1_m2v2_d03_A",
+    "map": "d03.xml",
+    "group": "A",
+    "run_id": "b0ac0761e8434ff09d05ebea8493518b",
+    "terminal_result": "DIAGNOSTIC_SIM_TIME_LIMIT",
+    "task_duration_s": 20.021999999996883,
+    "distance_final_m": 2.483511186235669
+  }
+]

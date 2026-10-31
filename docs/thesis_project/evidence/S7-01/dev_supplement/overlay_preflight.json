@@ -1,0 +1,121 @@
+{
+  "data_class": "DEV_SUPPLEMENT_NOT_FORMAL",
+  "disk": {
+    "batch_budget_gib": 6.0,
+    "free_gib": 59.96,
+    "min_free_gib": 15.0,
+    "status": "PASS"
+  },
+  "errors": [],
+  "matrix": {
+    "authorized_to_run": false,
+    "data_class": "DEV_SUPPLEMENT_NOT_FORMAL",
+    "holdout_prohibited": true,
+    "matrix_id": "S7-DEV-SUPPLEMENT-M02-A-D-v1",
+    "matrix_status": "DEV_SUPPLEMENT_PLAN_FROZEN_NOT_FORMAL",
+    "not_formal_data": true,
+    "plan_file_sha256": "d8629d7132129cedf9f5c4e327103e9575aa8c693bd4a1e857f46078e68c0342",
+    "plan_items": 2,
+    "plan_sha256": "264b7f1660c094e1123d8ac8d473cc2d3db6975b83aba1a0313f3500a06aae38"
+  },
+  "not_formal_data": true,
+  "overlay_check": {
+    "groups": {
+      "A": {
+        "cli_compatibility_only": {
+          "exit_threshold": -0.1,
+          "hold_s": 0.3
+        },
+        "config_path": "logs/07_formal_preparation/dev_supplement_m02_AD/readiness_check/overlay_preflight/overlays/A/share/go2_description/config/abs/config.yaml",
+        "group_fields": {
+          "E": -0.05,
+          "H_configured_sim_s": null,
+          "X_configured": null
+        },
+        "independent_regular_files": [
+          "share/go2_description/config/abs/config.yaml",
+          "share/go2_description/config/abs/policy.pt",
+          "share/go2_description/config/abs/ra_value.pt",
+          "share/go2_description/config/rec/policy.pt"
+        ],
+        "reused": false,
+        "scope": "static detached-file and YAML field check; NOT proof of controller consumption",
+        "sha256": {
+          "share/go2_description/config/abs/config.yaml": "e9be5e9fcda660cc61e5633f50d571d780ac522e7414c63984a64543bece5c1c",
+          "share/go2_description/config/abs/policy.pt": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf",
+          "share/go2_description/config/abs/ra_value.pt": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7",
+          "share/go2_description/config/rec/policy.pt": "e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171"
+        },
+        "status": "DETACHED_CONFIG_VALIDATED"
+      },
+      "D": {
+        "cli_compatibility_only": {
+          "exit_threshold": null,
+          "hold_s": null
+        },
+        "config_path": "logs/07_formal_preparation/dev_supplement_m02_AD/readiness_check/overlay_preflight/overlays/D/share/go2_description/config/abs/config.yaml",
+        "group_fields": {
+          "E": -0.05,
+          "H_configured_sim_s": 0.2,
+          "X_configured": -0.1
+        },
+        "independent_regular_files": [
+          "share/go2_description/config/abs/config.yaml",
+          "share/go2_description/config/abs/policy.pt",
+          "share/go2_description/config/abs/ra_value.pt",
+          "share/go2_description/config/rec/policy.pt"
+        ],
+        "reused": false,
+        "scope": "static detached-file and YAML field check; NOT proof of controller consumption",
+        "sha256": {
+          "share/go2_description/config/abs/config.yaml": "e3e4abd08ce0736e55657f5be926c492d27ddb24c0945b84e9b577b1a86c2ac8",
+          "share/go2_description/config/abs/policy.pt": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf",
+          "share/go2_description/config/abs/ra_value.pt": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7",
+          "share/go2_description/config/rec/policy.pt": "e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171"
+        },
+        "status": "DETACHED_CONFIG_VALIDATED"
+      }
+    },
+    "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description"
+  },
+  "plan_validation": {
+    "counts": {
+      "groups": {
+        "A": 1,
+        "D": 1
+      },
+      "order": [
+        "DEV-M02-A",
+        "DEV-M02-D"
+      ],
+      "plan_items": 2
+    },
+    "errors": [],
+    "scope": "two development runs on m02.xml; not formal data; no holdout",
+    "status": "PASS"
+  },
+  "run_authorized": false,
+  "scene_static_checks": {
+    "m02.xml": {
+      "field_bounds_m": {
+        "x": [
+          -0.5,
+          8.0
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "goal_m": [
+        7.5,
+        0.0
+      ],
+      "map_library_version": "m2-selected-development/2.1",
+      "scene_id": "m2v2_m02",
+      "status": "STATICALLY_BOUND"
+    }
+  },
+  "scope": "no scene, ROS, model inference, or controller process is started; static checks do NOT prove runtime config consumption",
+  "status": "PASS"
+}

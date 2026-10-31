@@ -1,3 +1,5 @@
+> 历史归档：2026-10-23文档整理前的内容。原位置：`docs/thesis_project/PROJECT_STATUS_EXTERNAL_REVIEW_20261019.md`。仅修正归档后的相对链接；旧计划和状态不代表当前指令。
+
 # 四足机器人风险驱动安全策略切换：项目进度与外部审阅说明
 
 > 更新日期：2026-10-19。用途：可将本文全文交给外部导师或其他审阅者。
@@ -244,22 +246,22 @@ H=0.10有一次确认跌倒；H=0.30一条任务的跌倒状态为UNKNOWN；H=0.
 
 ## 十一、证据入口（仓库相对链接，外部可先阅读本文）
 
-- [项目目标](OVERVIEW.md)、[路线图](ROADMAP.md)、[实验计划](EXPERIMENT_PLAN.md)
-- [当前状态](CURRENT_STATE.md)、[T2任务](tasks/T2.md)
-- [退出阈值选择记录](designs/T1/EXIT_THRESHOLD_SELECTION.md)
-- [T1最终216项报告](evidence/T1/m2_local_scan_216/T1_M2_LOCAL_SCAN_216_EXECUTION_REPORT.md)
-- [T2的180项报告](evidence/T2/hold_scan_180/T2_HOLD_SCAN_180_EXECUTION_REPORT.md)
-- [UNKNOWN情景修正](evidence/T2/hold_scan_180/unknown_sensitivity_review_20261019/README.md)
-- [48项组合报告](evidence/T2/combined_check_48/T2_COMBINED_CHECK_48_EXECUTION_REPORT.md)
-- [48项逐组数据](evidence/T2/combined_check_48/analysis/group_summary.csv)
-- [当前M2地图来源与说明](designs/M2/selected_v2/README.md)
-- [M1地图说明](designs/M1/library_v1/README.md)
+- [项目目标](../../../../../docs/thesis_project/OVERVIEW.md)、[路线图](../../../../../docs/thesis_project/ROADMAP.md)、[实验计划](../../../../../docs/thesis_project/EXPERIMENT_PLAN.md)
+- [当前状态](CURRENT_STATE.md)、[T2任务](../../../../../docs/thesis_project/tasks/T2.md)
+- [退出阈值选择记录](../../../../../docs/thesis_project/designs/T1/EXIT_THRESHOLD_SELECTION.md)
+- [T1最终216项报告](../../../../../docs/thesis_project/evidence/T1/m2_local_scan_216/T1_M2_LOCAL_SCAN_216_EXECUTION_REPORT.md)
+- [T2的180项报告](../../../../../docs/thesis_project/evidence/T2/hold_scan_180/T2_HOLD_SCAN_180_EXECUTION_REPORT.md)
+- [UNKNOWN情景修正](../../../../../docs/thesis_project/evidence/T2/hold_scan_180/unknown_sensitivity_review_20261019/README.md)
+- [48项组合报告](../../../../../docs/thesis_project/evidence/T2/combined_check_48/T2_COMBINED_CHECK_48_EXECUTION_REPORT.md)
+- [48项逐组数据](../../../../../docs/thesis_project/evidence/T2/combined_check_48/analysis/group_summary.csv)
+- [当前M2地图来源与说明](../../../../../docs/thesis_project/designs/M2/selected_v2/README.md)
+- [M1地图说明](../../../../../docs/thesis_project/designs/M1/library_v1/README.md)
 
 ### 数据保留说明
 
 两档36图批次已按用户授权删除逐次原始记录，仅保留历史报告、图表和压缩结果表，无法完整逐帧重分析；对应144项仍可作为历史工作量，不能描述为原始数据完整留存。
 
-其余主要T1/T2非手动批次原始运行记录保留。旧手动观看记录及临时overlay已清理，overlay配置和模型身份资料另存；不能把已清理的路径仍描述成可直接运行的完整环境。日志实体目录已按用途整理，旧路径通过兼容链接保留，详见[日志导航](../../logs/README.md)。
+其余主要T1/T2非手动批次原始运行记录保留。旧手动观看记录及临时overlay已清理，overlay配置和模型身份资料另存；不能把已清理的路径仍描述成可直接运行的完整环境。日志实体目录已按用途整理，旧路径通过兼容链接保留，详见[日志导航](../../../../../logs/README.md)。
 
 ### 如何使用本文
 

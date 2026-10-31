@@ -93,3 +93,6 @@ artifacts/local/
 /skill/
 *.tmp
 *.temp
+
+# Weekly reports and personal working summaries (local only)
+/docs/thesis_project/weekly_reports/

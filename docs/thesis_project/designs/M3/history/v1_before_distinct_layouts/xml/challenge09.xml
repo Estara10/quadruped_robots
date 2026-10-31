@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="go2 challenge09">
+  <include file="go2.xml" />
+  <statistic center="3.75 0 0.1" extent="8.5" />
+  <visual><headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0" />
+    <rgba haze="0.15 0.25 0.35 1" /><global azimuth="135" elevation="-40" /></visual>
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072" />
+    <texture type="2d" name="s6_08_groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" markrgb="0.8 0.8 0.8" width="300" height="300" />
+    <material name="s6_08_groundplane" texture="s6_08_groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2" />
+  </asset>
+  <worldbody><light pos="1 0 7" dir="0 0 -1" directional="true" />
+    <geom name="floor" type="plane" pos="3.75 0 0" size="4 3.5 0.05" material="s6_08_groundplane" />
+    <geom name="ppt_obstacle_01" type="box" pos="1.8256680000000001 -0.57790200000000003 0.162103" euler="0 0 0.081572000000000006" size="0.31621899999999997 0.15413499999999999 0.162103" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_02" type="cylinder" pos="3.819623 0.126695 0.262521" size="0.23275399999999999 0.262521" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_03" type="box" pos="5.9939049999999998 -0.29209400000000002 0.24989500000000001" euler="0 0 0.47694500000000001" size="0.25010900000000003 0.24524399999999999 0.24989500000000001" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_04" type="box" pos="5.5568049999999998 -1.7034100000000001 0.188143" euler="0 0 -0.166827" size="0.26493699999999998 0.17908299999999999 0.188143" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_05" type="cylinder" pos="6.795471 2.1556280000000001 0.16746900000000001" size="0.22534100000000001 0.16746900000000001" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_06" type="cylinder" pos="3.3657699999999999 2.2566929999999998 0.17042099999999999" size="0.22011 0.17042099999999999" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_07" type="box" pos="2.27956 -1.9698910000000001 0.23132949999999999" euler="0 0 -0.51804399999999995" size="0.39662500000000001 0.15978800000000001 0.23132949999999999" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_08" type="cylinder" pos="4.7467779999999999 2.6699000000000002 0.27663300000000002" size="0.23160800000000001 0.27663300000000002" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_09" type="cylinder" pos="0.85780000000000001 2.5742720000000001 0.16505649999999999" size="0.236843 0.16505649999999999" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_10" type="box" pos="3.9435199999999999 -2.6011679999999999 0.16117500000000001" euler="0 0 0.061994" size="0.30428100000000002 0.33455400000000002 0.16117500000000001" rgba="0.26 0.28 0.31 1" />
+    <geom name="ppt_obstacle_11" type="cylinder" pos="0.99151500000000004 -1.7660290000000001 0.22258" size="0.23052700000000001 0.22258" rgba="0.26 0.28 0.31 1" />
+  </worldbody>
+</mujoco>

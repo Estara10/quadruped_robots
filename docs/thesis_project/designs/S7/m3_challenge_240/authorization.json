@@ -1,0 +1,22 @@
+{
+  "schema": "s7-formal-run-authorization-v1",
+  "authorized_to_run": true,
+  "fixture_only": false,
+  "authorization_id": "M3-ABCD240-20261023-01",
+  "batch_id": "m3-abcd240-20261023",
+  "matrix_id": "S7-M3-challenge-240-v1.4",
+  "plan_sha256": "49557a9d8c56ecaea220a380b951dbfc4aecf91452d1b32de68659ac678996d1",
+  "base_scene_starts": 240,
+  "max_substitutions": 12,
+  "max_total_scene_starts": 252,
+  "batch_budget_gib": 6.0,
+  "min_free_gib": 15.0,
+  "director_review": {
+    "date": "2026-10-23",
+    "reference": "Current conversation: user accepted current M3 layouts, accepted 240-item challenge comparison, and requested runnable command."
+  },
+  "authorization_basis": "User explicit acceptance and request for run instructions in this conversation. Prepare only now; simulation starts when the user runs the command.",
+  "replacements": [],
+  "data_class": "M3_CHALLENGE_240",
+  "raw_data_retention": "Keep original frames, ROS logs, context, terminal, metrics and attempts through thesis analysis/defense; compress before considering deletion."
+}

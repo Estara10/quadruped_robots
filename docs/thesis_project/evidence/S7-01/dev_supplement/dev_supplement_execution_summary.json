@@ -1,0 +1,378 @@
+{
+  "analysis_consistency": {
+    "A_before_D": true,
+    "A_scene_starts": 1,
+    "D_scene_starts": 1,
+    "analyzer": {
+      "accounting_sha256": "bdd796f0a3e4ea56d9daa5e22301432dd83644b85de852eaa0ae77f917b9a33a",
+      "safety_layer_sha256": "80a320581f86a0836cc2e0370693020a43533eb37e84d707a13cadb344f84eb6",
+      "script": "scripts/s1_analyze_run.py",
+      "sha256": "2beb56255d5c6f1d19acd11ac10c045324d92ddac44b8aa6bc11d3284df5b103"
+    },
+    "decision_clock_reconstruction": {
+      "enabled": true,
+      "raw_frame_status_preserved": true,
+      "raw_records_written": false,
+      "rule": "first active cycle publication-stale frame + matching controller S6-04 decision trace with the same run/session/cycle and clock sample",
+      "scope": "formal analysis uses the same-cycle decision-time clock for timing and safety start; no control behavior or raw record is changed"
+    },
+    "issues": [],
+    "primary_outcome_counts": {
+      "CONFIRMED_SAFE_COMPLETE": 2
+    },
+    "raw_default_outcome_counts": {
+      "CONFIRMED_SAFE_COMPLETE": 1,
+      "SAFETY_UNKNOWN": 1
+    },
+    "status": "PASS"
+  },
+  "authorization_id": "DEV-M02-AD-20261021-01",
+  "batch_created_utc": "2026-10-21T12:02:27+00:00",
+  "batch_id": "dev-m02-ad-20261021",
+  "batch_state": {
+    "actual_scene_starts": 2,
+    "next_pending": [],
+    "pause_reason": null,
+    "plan_item_outcomes": {
+      "CONFIRMED_SAFE_COMPLETE": 1,
+      "SAFETY_UNKNOWN": 1
+    },
+    "recovery_notes": [
+      "A was already complete on disk when this execution started. The original invocation ended PAUSED as scene_creation_unknown because the analysis/ output directory was counted as a second run directory. A was reconciled from raw artifacts; it was not rerun. This checkpoint was reconstructed during recovery, not written at the A boundary."
+    ],
+    "replacement_scene_starts": 0,
+    "stage": "COMPLETE",
+    "status": "COMPLETE"
+  },
+  "checkpoints": [
+    {
+      "A_forced_termination": false,
+      "A_process_exit_code": 0,
+      "A_record_validity": "VALID",
+      "A_run_directory": "/home/lidio/quadruped_robots/logs/07_formal_preparation/dev_supplement_m02_AD/dev-m02-ad-20261021/runs/DEV-M02-A/attempt_01/result/798d518a8fb84d419cb00987ed6a8538",
+      "A_run_id": "798d518a8fb84d419cb00987ed6a8538",
+      "A_shutdown_complete": true,
+      "A_terminal": "ARRIVED",
+      "D_run_id": "5859b72dc8994e8a9e9d6ad0e0cd8e2d",
+      "D_started_after_A": true,
+      "D_terminal": "ARRIVED",
+      "actual_scene_starts": 2,
+      "data_class": "DEV_SUPPLEMENT_NOT_FORMAL",
+      "note": "A was already complete on disk when this execution started. The original invocation ended PAUSED as scene_creation_unknown because the analysis/ output directory was counted as a second run directory. A was reconciled from raw artifacts; it was not rerun. This checkpoint was reconstructed during recovery, not written at the A boundary.",
+      "reason": "retrospective_A_complete_before_D",
+      "replacement_scene_starts": 0,
+      "retrospective": true,
+      "utc": "2026-10-21T12:08:52+00:00"
+    }
+  ],
+  "counts": {
+    "actual_scene_starts": 2,
+    "invocation_attempts": 2,
+    "plan_items": 2,
+    "replacement_scene_starts": 0,
+    "scene_creation_unknown_attempts": 0,
+    "started_motion_tasks": 2,
+    "unique_run_ids": 2
+  },
+  "data_class": "DEV_SUPPLEMENT_NOT_FORMAL",
+  "generated_utc": "2026-10-21T12:09:36+00:00",
+  "holdout_used": false,
+  "not_formal_data": true,
+  "note_decision_clock": "Formal/dev analysis uses the unified decision-clock reconstruction; raw publication-stale frame and raw safety status remain preserved.",
+  "plan_id": "S7-DEV-SUPPLEMENT-M02-A-D-v1",
+  "plan_sha256": "264b7f1660c094e1123d8ac8d473cc2d3db6975b83aba1a0313f3500a06aae38",
+  "reconstruction_sensitivity": {
+    "reconstruction_runs": 1,
+    "runs": [
+      {
+        "attempt_id": "dev-m02-ad-20261021:DEV-M02-A:inv01",
+        "default": {
+          "elapsed_task_duration_s": null,
+          "fall": "UNKNOWN",
+          "nonfoot_collision": "UNKNOWN",
+          "safety_task_completion": "UNKNOWN",
+          "short_reverse_switch_coverage": "partial_or_unknown",
+          "task_start_sim_time_s": null
+        },
+        "frame_sim_clock_age_ns": 108484356,
+        "frame_sim_clock_status": 2,
+        "frame_sim_clock_valid": false,
+        "group": "A",
+        "map": "m02",
+        "plan_item_id": "DEV-M02-A",
+        "raw_invalid_clock_frames": 1,
+        "reconstruction_applied": true,
+        "run_id": "798d518a8fb84d419cb00987ed6a8538",
+        "safety_changed": true,
+        "status": "COMPARED",
+        "timing_changed": true,
+        "timing_invalid_clock_frames": 0,
+        "trace_cycle": 0,
+        "trace_sim_time_s": 7.126,
+        "unified": {
+          "elapsed_task_duration_s": 6.50200000000122,
+          "fall": false,
+          "foot_impact_count": 1,
+          "nonfoot_collision": false,
+          "safety_task_completion": true,
+          "short_reverse_switch_coverage": "complete",
+          "task_start_sim_time_s": 7.126
+        }
+      }
+    ],
+    "safety_changed_runs": 1,
+    "timing_changed_runs": 1,
+    "unresolved_runs": 0
+  },
+  "results": [
+    {
+      "arrival": {
+        "distance_m": 0.4971064192837388,
+        "rl_step": 325,
+        "session_id": 3882150905299,
+        "sim_time_s": 13.62800000000122,
+        "threshold_m": 0.5
+      },
+      "entered_rl": true,
+      "group": "A",
+      "mujoco_window_first_line": "[MUJOCO-WINDOW] backend=GLFW requested=hidden visible=0 renderer=Mesa Intel(R) Graphics (RPL-P)",
+      "observed": {
+        "entry_threshold": -0.05000000074505806,
+        "exit_threshold": -0.05000000074505806,
+        "group": "A",
+        "hold": false,
+        "hysteresis": false,
+        "recovery_min_hold_s": 0.0,
+        "session_id": 3882150905299,
+        "switching_mode": 1
+      },
+      "plan_item_id": "DEV-M02-A",
+      "process": {
+        "closeout_complete": true,
+        "exit_code": 0,
+        "final_drain_complete": true,
+        "forced_termination": false,
+        "shutdown_complete": true
+      },
+      "raw_safety_task_completion": "UNKNOWN",
+      "reconstruction_applied": true,
+      "record_validity": "VALID",
+      "requested": {
+        "E": -0.05,
+        "H": 0.0,
+        "X": -0.05,
+        "goal_world_m": [
+          7.5,
+          0.0
+        ],
+        "hold": "false",
+        "hysteresis": "false",
+        "scene": "m02.xml",
+        "scene_id": "m2v2_m02",
+        "sim_limit_s": 20.0,
+        "standing_observation_sim_s": 2.0
+      },
+      "run_directory": "/home/lidio/quadruped_robots/logs/07_formal_preparation/dev_supplement_m02_AD/dev-m02-ad-20261021/runs/DEV-M02-A/attempt_01/result/798d518a8fb84d419cb00987ed6a8538",
+      "run_id": "798d518a8fb84d419cb00987ed6a8538",
+      "runtime_config_consumption_status": "CONFIRMED",
+      "runtime_config_errors": [],
+      "rviz_requested": "disabled",
+      "safety_dimensions": {
+        "base_link_out_of_bounds": {
+          "scope": "base_link XY point at every continuously published PhysicsLoop step; not robot-footprint containment",
+          "status": "BASE_LINK_IN_BOUNDS_PHYSICS_STEPS_OBSERVED",
+          "value": false
+        },
+        "fall": {
+          "basis": "fall_history_source_incomplete_or_identity_conflict",
+          "coverage_complete": false,
+          "timing_conflicts": [],
+          "value": "UNKNOWN"
+        },
+        "foot_events": {
+          "contact_count": "UNKNOWN",
+          "contact_events": [],
+          "impact_count": "UNKNOWN",
+          "impact_events": [],
+          "impact_unknown_overlaps_motion": false
+        },
+        "nonfoot_obstacle_collision": {
+          "coverage_complete": false,
+          "reason": "task_window_frames_or_time_bounds_missing",
+          "value": "UNKNOWN"
+        },
+        "system_safety_abort": {
+          "external_event_evaluation": [],
+          "value": false
+        }
+      },
+      "safety_reasons": [
+        "arrival_or_task_start_sim_time_missing",
+        "nonfoot_collision_absence_not_supported_by_complete_task_window_coverage",
+        "fall_absence_not_supported_by_complete_task_window_history"
+      ],
+      "safety_task_completion": "UNKNOWN",
+      "scene_created": true,
+      "session_id": 3882150905299,
+      "source_validation": "confirmed",
+      "standing": {
+        "complete": true,
+        "observed_elapsed_sim_s": 2.007999999998887,
+        "sample_count": 104
+      },
+      "task_window": {
+        "cycle_identity_complete": true,
+        "definition": "first persisted frame with rl_entered=1 and rl_active=1 through terminal frame, inclusive",
+        "elapsed_sim_s": null,
+        "end_cycle": 325,
+        "frequency_of_policy_activity_cycles_excluded_before_displacement_start": 38,
+        "mean_valid_continuous_speed_mps": 1.1832109079768136,
+        "mode_transition_count_all_cycles": 42,
+        "mode_transitions_with_valid_sim_time": 42,
+        "recovery_share_of_valid_continuous_time": 0.154978083907314,
+        "recovery_valid_continuous_sim_s": 0.9900000000002,
+        "start_cycle": 0,
+        "task_window_mode_edges_all_cycles": 42,
+        "terminal_frame_payload_complete": true,
+        "valid_continuous_path_length_m": 7.55835128015801,
+        "valid_continuous_sim_s": 6.388000000001796,
+        "valid_time_coverage_fraction_of_elapsed": null
+      },
+      "terminal": "ARRIVED",
+      "unified_safety_task_completion": true
+    },
+    {
+      "arrival": {
+        "distance_m": 0.4744972691874564,
+        "rl_step": 330,
+        "session_id": 4207308084309,
+        "sim_time_s": 13.352000000001128,
+        "threshold_m": 0.5
+      },
+      "entered_rl": true,
+      "group": "D",
+      "mujoco_window_first_line": "[MUJOCO-WINDOW] backend=GLFW requested=hidden visible=0 renderer=Mesa Intel(R) Graphics (RPL-P)",
+      "observed": {
+        "entry_threshold": -0.05000000074505806,
+        "exit_threshold": -0.10000000149011612,
+        "group": "D",
+        "hold": true,
+        "hysteresis": true,
+        "recovery_min_hold_s": 0.2,
+        "session_id": 4207308084309,
+        "switching_mode": 4
+      },
+      "plan_item_id": "DEV-M02-D",
+      "process": {
+        "closeout_complete": true,
+        "exit_code": 0,
+        "final_drain_complete": true,
+        "forced_termination": false,
+        "shutdown_complete": true
+      },
+      "raw_safety_task_completion": true,
+      "reconstruction_applied": false,
+      "record_validity": "VALID",
+      "requested": {
+        "E": -0.05,
+        "H": 0.2,
+        "X": -0.1,
+        "goal_world_m": [
+          7.5,
+          0.0
+        ],
+        "hold": "true",
+        "hysteresis": "true",
+        "scene": "m02.xml",
+        "scene_id": "m2v2_m02",
+        "sim_limit_s": 20.0,
+        "standing_observation_sim_s": 2.0
+      },
+      "run_directory": "/home/lidio/quadruped_robots/logs/07_formal_preparation/dev_supplement_m02_AD/dev-m02-ad-20261021/runs/DEV-M02-D/attempt_01/result/5859b72dc8994e8a9e9d6ad0e0cd8e2d",
+      "run_id": "5859b72dc8994e8a9e9d6ad0e0cd8e2d",
+      "runtime_config_consumption_status": "CONFIRMED",
+      "runtime_config_errors": [],
+      "rviz_requested": "disabled",
+      "safety_dimensions": {
+        "base_link_out_of_bounds": {
+          "scope": "base_link XY point at every continuously published PhysicsLoop step; not robot-footprint containment",
+          "status": "BASE_LINK_IN_BOUNDS_PHYSICS_STEPS_OBSERVED",
+          "value": false
+        },
+        "fall": {
+          "basis": "closed_unconfirmed_posture_candidates; no candidate met confirmation rule",
+          "coverage_complete": true,
+          "timing_conflicts": [],
+          "value": false
+        },
+        "foot_events": {
+          "contact_count": 0,
+          "contact_events": [],
+          "impact_count": 0,
+          "impact_events": [],
+          "impact_unknown_overlaps_motion": false
+        },
+        "nonfoot_obstacle_collision": {
+          "coverage_complete": true,
+          "reason": null,
+          "value": false
+        },
+        "system_safety_abort": {
+          "external_event_evaluation": [],
+          "value": false
+        }
+      },
+      "safety_reasons": [
+        "ARRIVED_within_deadline_and_all_required_task_safety_dimensions_clear"
+      ],
+      "safety_task_completion": true,
+      "scene_created": true,
+      "session_id": 4207308084309,
+      "source_validation": "confirmed",
+      "standing": {
+        "complete": true,
+        "observed_elapsed_sim_s": 2.029999999998875,
+        "sample_count": 97
+      },
+      "task_window": {
+        "cycle_identity_complete": true,
+        "definition": "first persisted frame with rl_entered=1 and rl_active=1 through terminal frame, inclusive",
+        "elapsed_sim_s": 6.60000000000165,
+        "end_cycle": 330,
+        "frequency_of_policy_activity_cycles_excluded_before_displacement_start": 23,
+        "mean_valid_continuous_speed_mps": 1.1750956366517853,
+        "mode_transition_count_all_cycles": 10,
+        "mode_transitions_with_valid_sim_time": 10,
+        "recovery_share_of_valid_continuous_time": 0.15454545454545085,
+        "recovery_valid_continuous_sim_s": 1.0200000000002305,
+        "start_cycle": 0,
+        "task_window_mode_edges_all_cycles": 10,
+        "terminal_frame_payload_complete": true,
+        "valid_continuous_path_length_m": 7.7556312019037215,
+        "valid_continuous_sim_s": 6.60000000000165,
+        "valid_time_coverage_fraction_of_elapsed": 1.0
+      },
+      "terminal": "ARRIVED",
+      "unified_safety_task_completion": true
+    }
+  ],
+  "schema": "s7-dev-supplement-execution-summary-v1",
+  "version_amendment": {
+    "after_scripts_sha256": {
+      "s7_formal_runner.py": "626e99f08ce64d3139ecf5cf8195a36a2a7053fba68fd60a26d1a06f72fd7f0b"
+    },
+    "amendment_id": "DEV-M02-AD-VERSION-AMENDMENT-01",
+    "authorized_by": "User request for this dev supplement execution, 2026-10-21",
+    "before_scripts_sha256": {
+      "s7_formal_runner.py": "3502ed701ac8de86939b6d4076225b76a65bc259cb08d4d8664dd8337e9c23a8"
+    },
+    "changed_files": [
+      "s7_formal_runner.py"
+    ],
+    "created_utc": "2026-10-21T12:07:47+00:00",
+    "data_effect": "No raw run record changed; no scene rerun; existing A attempt preserved.",
+    "not_formal_data": true,
+    "reason": "Minimal inspection fix: exclude the analysis/ output directory from run-directory discovery and populate run_context settings/configuration evidence during disk reconciliation.",
+    "scope": "DEV_SUPPLEMENT_NOT_FORMAL"
+  }
+}

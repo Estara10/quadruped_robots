@@ -1,5 +1,7 @@
 # 正式实验前的信心边界与最小补强建议
 
+> 当前说明（2026-10-23）：本文件保留正式运行前的方法、审阅或准备记录，正文中待授权/未运行/待补证是历史状态。原M1及M3现已各完成240项；结果见[原M1报告](../../evidence/S7-02/S7-02_EXECUTION_REPORT_20261023.md)和[M3报告](../../evidence/S7-02/M3_ABCD_240_FINAL_REPORT_20261023.md)。当前只规划[碰撞与超时分析](../R1/PLAN.md)，不自动重做准备或重跑实验。
+
 日期：2026-10-19。状态：历史建议稿，仅规划，不授权运行。优先级1安全完成分类及优先级2工程替代/中止分母，已由S7-01后续定向离线补强分别核对；当前结论见[安全完成分类复核](../../evidence/S7-01/safety_completion_check/SAFETY_COMPLETION_REVIEW.md)和[attempt/分母复核](../../evidence/S7-01/attempt_accounting_check/ATTEMPT_ACCOUNTING_REVIEW.md)。
 
 ## 1. 核心判断

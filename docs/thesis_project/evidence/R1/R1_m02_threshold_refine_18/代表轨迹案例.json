@@ -1,0 +1,20 @@
+[
+  {
+    "plan_item_id": "001_r1_r1v2_m02_space_wide_B_E02_X05",
+    "map": "r1_m02_space_wide_v2.xml",
+    "setting_id": "B_E02_X05",
+    "run_id": "22fcafc2fb0c43ce8f7f550666eb3662",
+    "terminal_result": "COLLISION_TERMINATION",
+    "task_duration_s": 4.800000000000748,
+    "distance_final_m": 1.8385425518552956
+  },
+  {
+    "plan_item_id": "010_r2_r1v2_m02_space_wide_B_E05_X08",
+    "map": "r1_m02_space_wide_v2.xml",
+    "setting_id": "B_E05_X08",
+    "run_id": "5886277b1f83442c93ed756f629157de",
+    "terminal_result": "ARRIVED",
+    "task_duration_s": 6.6400000000013835,
+    "distance_final_m": 0.06438094798946299
+  }
+]

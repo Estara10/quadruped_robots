@@ -1,0 +1,631 @@
+{
+  "A_before_D": true,
+  "A_scene_starts": 1,
+  "D_scene_starts": 1,
+  "attempt_consistency": [
+    {
+      "cleanup_confirmed": true,
+      "config_consumption_ok": true,
+      "entered_rl": true,
+      "entered_rl_ok": true,
+      "group": "A",
+      "metrics": {
+        "arrived": true,
+        "cleanup_complete": true,
+        "collision": false,
+        "elapsed_task_duration_s": 6.50200000000122,
+        "fall": false,
+        "foot_contact_count": 1.0,
+        "foot_impact_any": true,
+        "foot_impact_count": 1.0,
+        "navigation_terminal_result": "ARRIVED",
+        "out_of_bounds": false,
+        "record_validity": "VALID",
+        "recovery_censored_interval_count": 0,
+        "recovery_completed_interval_count": 21,
+        "recovery_reentry_within_0_5s_count": 19,
+        "recovery_residence_median_s": 0.02000000000000668,
+        "recovery_share": 0.15226084281759678,
+        "safe_complete": true,
+        "short_reverse_per_min": 369.11719470925095,
+        "standing_observation_complete": true,
+        "target_progress_m": 7.041687524554586,
+        "timeout": false
+      },
+      "plan_item_id": "DEV-M02-A",
+      "raw_safety_task_completion": "UNKNOWN",
+      "raw_terminal": "ARRIVED",
+      "reconstruction_applied": true,
+      "record_validity": "VALID",
+      "record_validity_ok": true,
+      "run_directory": "/home/lidio/quadruped_robots/logs/07_formal_preparation/dev_supplement_m02_AD/dev-m02-ad-20261021/runs/DEV-M02-A/attempt_01/result/798d518a8fb84d419cb00987ed6a8538",
+      "run_id": "798d518a8fb84d419cb00987ed6a8538",
+      "runtime_config_consumption_status": "CONFIRMED",
+      "runtime_config_errors": [],
+      "safety_task_completion": true,
+      "scene_created": true,
+      "scene_run_binding_ok": true,
+      "terminal_present": true,
+      "terminal_sources_consistent": true,
+      "unified_safety_task_completion": true
+    },
+    {
+      "cleanup_confirmed": true,
+      "config_consumption_ok": true,
+      "entered_rl": true,
+      "entered_rl_ok": true,
+      "group": "D",
+      "metrics": {
+        "arrived": true,
+        "cleanup_complete": true,
+        "collision": false,
+        "elapsed_task_duration_s": 6.60000000000165,
+        "fall": false,
+        "foot_contact_count": 0.0,
+        "foot_impact_any": false,
+        "foot_impact_count": 0.0,
+        "navigation_terminal_result": "ARRIVED",
+        "out_of_bounds": false,
+        "record_validity": "VALID",
+        "recovery_censored_interval_count": 0,
+        "recovery_completed_interval_count": 5,
+        "recovery_reentry_within_0_5s_count": 2,
+        "recovery_residence_median_s": 0.2000000000000668,
+        "recovery_share": 0.15454545454545085,
+        "safe_complete": true,
+        "short_reverse_per_min": 63.63636363634773,
+        "standing_observation_complete": true,
+        "target_progress_m": 7.064321239211721,
+        "timeout": false
+      },
+      "plan_item_id": "DEV-M02-D",
+      "raw_safety_task_completion": true,
+      "raw_terminal": "ARRIVED",
+      "reconstruction_applied": false,
+      "record_validity": "VALID",
+      "record_validity_ok": true,
+      "run_directory": "/home/lidio/quadruped_robots/logs/07_formal_preparation/dev_supplement_m02_AD/dev-m02-ad-20261021/runs/DEV-M02-D/attempt_01/result/5859b72dc8994e8a9e9d6ad0e0cd8e2d",
+      "run_id": "5859b72dc8994e8a9e9d6ad0e0cd8e2d",
+      "runtime_config_consumption_status": "CONFIRMED",
+      "runtime_config_errors": [],
+      "safety_task_completion": true,
+      "scene_created": true,
+      "scene_run_binding_ok": true,
+      "terminal_present": true,
+      "terminal_sources_consistent": true,
+      "unified_safety_task_completion": true
+    }
+  ],
+  "audit_counts": {
+    "actual_scene_starts": 2,
+    "invocation_attempts": 2,
+    "plan_items": 2,
+    "replacement_scene_starts": 0,
+    "scene_creation_unknown_attempts": 0,
+    "started_motion_tasks": 2,
+    "unique_run_ids": 2
+  },
+  "audit_errors": [],
+  "audit_status": "PASS",
+  "batch_root": "logs/07_formal_preparation/dev_supplement_m02_AD/dev-m02-ad-20261021",
+  "consistency_issues": [],
+  "consistency_status": "PASS",
+  "data_class": "NON_FORMAL_DEV_SUPPLEMENT_DATA",
+  "holdout_used": false,
+  "manifest": {
+    "authorization": {
+      "authorization_basis": "S7-01 dev supplement request 2026-10-21: exactly two development runs on m02.xml, A then D; no formal data and no holdout map.",
+      "authorization_id": "DEV-M02-AD-20261021-01",
+      "director_review": null,
+      "fixture_only": false,
+      "sha256": "3fad02d617d3ae977ed0cacf81e9ae1b3872ea2fc916f12f88b4359f3682c7ac"
+    },
+    "batch_id": "dev-m02-ad-20261021",
+    "classification": "S7 dev supplement m02 A/D; NOT formal data; two-run preparation",
+    "cli_compatibility_only": {
+      "exit_threshold": -0.1,
+      "hold_s": 0.3,
+      "scope": "shared CLI validation only; A/C do not write X and A/B do not write H"
+    },
+    "created_utc": "2026-10-21T12:02:27+00:00",
+    "data_class": "DEV_SUPPLEMENT_NOT_FORMAL",
+    "group_overlays": {
+      "groups": {
+        "A": {
+          "cli_compatibility_only": {
+            "exit_threshold": -0.1,
+            "hold_s": 0.3
+          },
+          "config_path": "/home/lidio/quadruped_robots/logs/07_formal_preparation/dev_supplement_m02_AD/dev-m02-ad-20261021/overlays/A/share/go2_description/config/abs/config.yaml",
+          "group_fields": {
+            "E": -0.05,
+            "H_configured_sim_s": null,
+            "X_configured": null
+          },
+          "independent_regular_files": [
+            "share/go2_description/config/abs/config.yaml",
+            "share/go2_description/config/abs/policy.pt",
+            "share/go2_description/config/abs/ra_value.pt",
+            "share/go2_description/config/rec/policy.pt"
+          ],
+          "reused": false,
+          "scope": "static detached-file and YAML field check; NOT proof of controller consumption",
+          "sha256": {
+            "share/go2_description/config/abs/config.yaml": "e9be5e9fcda660cc61e5633f50d571d780ac522e7414c63984a64543bece5c1c",
+            "share/go2_description/config/abs/policy.pt": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf",
+            "share/go2_description/config/abs/ra_value.pt": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7",
+            "share/go2_description/config/rec/policy.pt": "e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171"
+          },
+          "status": "DETACHED_CONFIG_VALIDATED"
+        },
+        "D": {
+          "cli_compatibility_only": {
+            "exit_threshold": null,
+            "hold_s": null
+          },
+          "config_path": "/home/lidio/quadruped_robots/logs/07_formal_preparation/dev_supplement_m02_AD/dev-m02-ad-20261021/overlays/D/share/go2_description/config/abs/config.yaml",
+          "group_fields": {
+            "E": -0.05,
+            "H_configured_sim_s": 0.2,
+            "X_configured": -0.1
+          },
+          "independent_regular_files": [
+            "share/go2_description/config/abs/config.yaml",
+            "share/go2_description/config/abs/policy.pt",
+            "share/go2_description/config/abs/ra_value.pt",
+            "share/go2_description/config/rec/policy.pt"
+          ],
+          "reused": false,
+          "scope": "static detached-file and YAML field check; NOT proof of controller consumption",
+          "sha256": {
+            "share/go2_description/config/abs/config.yaml": "e3e4abd08ce0736e55657f5be926c492d27ddb24c0945b84e9b577b1a86c2ac8",
+            "share/go2_description/config/abs/policy.pt": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf",
+            "share/go2_description/config/abs/ra_value.pt": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7",
+            "share/go2_description/config/rec/policy.pt": "e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171"
+          },
+          "status": "DETACHED_CONFIG_VALIDATED"
+        }
+      },
+      "source": "/home/lidio/quadruped_robots/quadruped_ros2_control_humble/install/go2_description"
+    },
+    "groups": {
+      "A": {
+        "E": -0.05,
+        "H": null,
+        "X": null
+      },
+      "B": {
+        "E": -0.05,
+        "H": null,
+        "X": -0.1
+      },
+      "C": {
+        "E": -0.05,
+        "H": 0.2,
+        "X": null
+      },
+      "D": {
+        "E": -0.05,
+        "H": 0.2,
+        "X": -0.1
+      }
+    },
+    "limits": {
+      "base_scene_starts": 2,
+      "batch_budget_gib": 1.0,
+      "max_substitutions": 0,
+      "max_total_scene_starts": 2,
+      "min_free_gib": 15.0
+    },
+    "matrix": {
+      "authorized_to_run": false,
+      "data_class": "DEV_SUPPLEMENT_NOT_FORMAL",
+      "holdout_prohibited": true,
+      "matrix_id": "S7-DEV-SUPPLEMENT-M02-A-D-v1",
+      "matrix_status": "DEV_SUPPLEMENT_PLAN_FROZEN_NOT_FORMAL",
+      "not_formal_data": true,
+      "plan_file_sha256": "d8629d7132129cedf9f5c4e327103e9575aa8c693bd4a1e857f46078e68c0342",
+      "plan_items": 2,
+      "plan_sha256": "264b7f1660c094e1123d8ac8d473cc2d3db6975b83aba1a0313f3500a06aae38"
+    },
+    "schema": "s7-formal-batch-manifest-v1",
+    "scope": "thin batch orchestration around existing production single-run diagnostic",
+    "version_amendment": {
+      "after_scripts_sha256": {
+        "s7_formal_runner.py": "626e99f08ce64d3139ecf5cf8195a36a2a7053fba68fd60a26d1a06f72fd7f0b"
+      },
+      "amendment_id": "DEV-M02-AD-VERSION-AMENDMENT-01",
+      "authorized_by": "User request for this dev supplement execution, 2026-10-21",
+      "before_scripts_sha256": {
+        "s7_formal_runner.py": "3502ed701ac8de86939b6d4076225b76a65bc259cb08d4d8664dd8337e9c23a8"
+      },
+      "changed_files": [
+        "s7_formal_runner.py"
+      ],
+      "created_utc": "2026-10-21T12:07:47+00:00",
+      "data_effect": "No raw run record changed; no scene rerun; existing A attempt preserved.",
+      "not_formal_data": true,
+      "reason": "Minimal inspection fix: exclude the analysis/ output directory from run-directory discovery and populate run_context settings/configuration evidence during disk reconciliation.",
+      "scope": "DEV_SUPPLEMENT_NOT_FORMAL"
+    },
+    "version_record": {
+      "captured_utc": "2026-10-21T12:07:47+00:00",
+      "git_branch": "feat/ray-pred-source-switch",
+      "git_commit": "42518fa17d7626a80e143af225bbadf3607448a1",
+      "git_dirty": true,
+      "git_status_sha256": "6d2986ae19010376df636eaf7e1de3815ff3abdc6b8931834fa2b8cab82ed2b5",
+      "models_sha256": {
+        "policy.pt": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf",
+        "ra_value.pt": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7",
+        "rec_policy.pt": "e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171"
+      },
+      "python": "3.10.12",
+      "scripts_sha256": {
+        "analyze_s7_formal_240.py": "e28ac0bb5a8f3e78866728fe249344adb54eb2a79ae50f0592ce09a5cb095782",
+        "formal_attempt_accounting.py": "bdd796f0a3e4ea56d9daa5e22301432dd83644b85de852eaa0ae77f917b9a33a",
+        "manual_ab_compare.py": "2a8acd5ae25ba3f8e5df7ec002919cff92b6bd2878114953e2c90b0ea681ebf0",
+        "run_s7_formal_240.py": "10d92546f11d39ef53c5645bafde4e6add216bd91c013ac9ed5f3e21d4567315",
+        "s1_analyze_run.py": "96a575bac06723cf81b4acc29c23785102c78367930c02c9994797fec32bbca6",
+        "s1_run_diagnostic.py": "f811d2cf6170ebe2a21861b2eeee5721fd7deab584d934447f622adc61f8f4c0",
+        "s7_formal_analysis.py": "b9be8feacaca48ae6117e381d519af229189f5cd8ed05b4c7461834d9138ad45",
+        "s7_formal_runner.py": "626e99f08ce64d3139ecf5cf8195a36a2a7053fba68fd60a26d1a06f72fd7f0b",
+        "safety_task_completion.py": "ae2c5275008484d7919932754914c498dd4e5248dab3bd3373261aad8ba8db51"
+      },
+      "source_config_sha256": "b93ef4fe87c8e1c1699f0e81577e1edf5f7db0e5bf543d75f3595607a4492932"
+    },
+    "version_record_before_amendment": {
+      "captured_utc": "2026-10-21T12:02:27+00:00",
+      "git_branch": "feat/ray-pred-source-switch",
+      "git_commit": "42518fa17d7626a80e143af225bbadf3607448a1",
+      "git_dirty": true,
+      "git_status_sha256": "6d2986ae19010376df636eaf7e1de3815ff3abdc6b8931834fa2b8cab82ed2b5",
+      "models_sha256": {
+        "policy.pt": "5a87d692c3a04d1e286913fc392b1ad410bbaf115565b58db69e655c21e0b7cf",
+        "ra_value.pt": "05c40ff787b4143b15b20234005320d4477fb920ea63f50762828a908d1a90b7",
+        "rec_policy.pt": "e3047a21c4391b29112028f0abd1a7ed04b72e52e923e4e388035e20b53b0171"
+      },
+      "python": "3.10.12",
+      "scripts_sha256": {
+        "analyze_s7_formal_240.py": "e28ac0bb5a8f3e78866728fe249344adb54eb2a79ae50f0592ce09a5cb095782",
+        "formal_attempt_accounting.py": "bdd796f0a3e4ea56d9daa5e22301432dd83644b85de852eaa0ae77f917b9a33a",
+        "manual_ab_compare.py": "2a8acd5ae25ba3f8e5df7ec002919cff92b6bd2878114953e2c90b0ea681ebf0",
+        "run_s7_formal_240.py": "10d92546f11d39ef53c5645bafde4e6add216bd91c013ac9ed5f3e21d4567315",
+        "s1_analyze_run.py": "96a575bac06723cf81b4acc29c23785102c78367930c02c9994797fec32bbca6",
+        "s1_run_diagnostic.py": "f811d2cf6170ebe2a21861b2eeee5721fd7deab584d934447f622adc61f8f4c0",
+        "s7_formal_analysis.py": "b9be8feacaca48ae6117e381d519af229189f5cd8ed05b4c7461834d9138ad45",
+        "s7_formal_runner.py": "3502ed701ac8de86939b6d4076225b76a65bc259cb08d4d8664dd8337e9c23a8",
+        "safety_task_completion.py": "ae2c5275008484d7919932754914c498dd4e5248dab3bd3373261aad8ba8db51"
+      },
+      "source_config_sha256": "b93ef4fe87c8e1c1699f0e81577e1edf5f7db0e5bf543d75f3595607a4492932"
+    }
+  },
+  "not_formal_data": true,
+  "plan_id": "S7-DEV-SUPPLEMENT-M02-A-D-v1",
+  "plan_sha256": "264b7f1660c094e1123d8ac8d473cc2d3db6975b83aba1a0313f3500a06aae38",
+  "provenance": {
+    "analyzer": {
+      "accounting_sha256": "bdd796f0a3e4ea56d9daa5e22301432dd83644b85de852eaa0ae77f917b9a33a",
+      "safety_layer_sha256": "80a320581f86a0836cc2e0370693020a43533eb37e84d707a13cadb344f84eb6",
+      "script": "scripts/s1_analyze_run.py",
+      "sha256": "2beb56255d5c6f1d19acd11ac10c045324d92ddac44b8aa6bc11d3284df5b103"
+    },
+    "analyzer_versions_observed": [
+      "2beb56255d5c6f1d19acd11ac10c045324d92ddac44b8aa6bc11d3284df5b103"
+    ],
+    "decision_clock_reconstruction": {
+      "enabled": true,
+      "raw_frame_status_preserved": true,
+      "raw_records_written": false,
+      "rule": "first active cycle publication-stale frame + matching controller S6-04 decision trace with the same run/session/cycle and clock sample",
+      "scope": "formal analysis uses the same-cycle decision-time clock for timing and safety start; no control behavior or raw record is changed"
+    },
+    "records": [
+      {
+        "analyzer_sha256": "2beb56255d5c6f1d19acd11ac10c045324d92ddac44b8aa6bc11d3284df5b103",
+        "attempt_id": "dev-m02-ad-20261021:DEV-M02-A:inv01",
+        "derived_path": "/home/lidio/quadruped_robots/logs/07_formal_preparation/dev_supplement_m02_AD/dev-m02-ad-20261021/analysis/derived_scene_starts/DEV-M02-A_dev-m02-ad-20261021:DEV-M02-A:inv01.json",
+        "derived_sha256": "4541cf14fdc20ef2a2b13b5fabc1cd3bd7b1866ee8d32944472c48e840ffd445",
+        "first_actual_scene_start": true,
+        "original_metrics_sha256": "e8f9dac813a3d36f524a971b23f36f7cb299897262e79d85e9289e3bac8dc20f",
+        "plan_item_id": "DEV-M02-A",
+        "run_directory": "/home/lidio/quadruped_robots/logs/07_formal_preparation/dev_supplement_m02_AD/dev-m02-ad-20261021/runs/DEV-M02-A/attempt_01/result/798d518a8fb84d419cb00987ed6a8538",
+        "selected_for_plan_item": true,
+        "status": "RECOMPUTED"
+      },
+      {
+        "analyzer_sha256": "2beb56255d5c6f1d19acd11ac10c045324d92ddac44b8aa6bc11d3284df5b103",
+        "attempt_id": "dev-m02-ad-20261021:DEV-M02-D:inv01",
+        "derived_path": "/home/lidio/quadruped_robots/logs/07_formal_preparation/dev_supplement_m02_AD/dev-m02-ad-20261021/analysis/derived_scene_starts/DEV-M02-D_dev-m02-ad-20261021:DEV-M02-D:inv01.json",
+        "derived_sha256": "36255547d03cf055cc1b6aecbf876c27a0283ff954c371b1d8aaab72a64d3edc",
+        "first_actual_scene_start": true,
+        "original_metrics_sha256": "68836f43f9b5536b13488342208600835d1e90f57e6f1a050ec85864769555ca",
+        "plan_item_id": "DEV-M02-D",
+        "run_directory": "/home/lidio/quadruped_robots/logs/07_formal_preparation/dev_supplement_m02_AD/dev-m02-ad-20261021/runs/DEV-M02-D/attempt_01/result/5859b72dc8994e8a9e9d6ad0e0cd8e2d",
+        "selected_for_plan_item": true,
+        "status": "RECOMPUTED"
+      }
+    ],
+    "scope": "all actual scene starts recomputed from raw records; original metrics untouched"
+  },
+  "reconstruction_sensitivity": {
+    "enabled": true,
+    "reconstruction_runs": 1,
+    "rule": "same-cycle decision clock only; raw publication-stale frame preserved",
+    "runs": [
+      {
+        "attempt_id": "dev-m02-ad-20261021:DEV-M02-A:inv01",
+        "default": {
+          "elapsed_task_duration_s": null,
+          "fall": "UNKNOWN",
+          "nonfoot_collision": "UNKNOWN",
+          "safety_task_completion": "UNKNOWN",
+          "short_reverse_switch_coverage": "partial_or_unknown",
+          "task_start_sim_time_s": null
+        },
+        "frame_sim_clock_age_ns": 108484356,
+        "frame_sim_clock_status": 2,
+        "frame_sim_clock_valid": false,
+        "group": "A",
+        "map": "m02",
+        "plan_item_id": "DEV-M02-A",
+        "raw_invalid_clock_frames": 1,
+        "reconstruction_applied": true,
+        "run_id": "798d518a8fb84d419cb00987ed6a8538",
+        "safety_changed": true,
+        "status": "COMPARED",
+        "timing_changed": true,
+        "timing_invalid_clock_frames": 0,
+        "trace_cycle": 0,
+        "trace_sim_time_s": 7.126,
+        "unified": {
+          "elapsed_task_duration_s": 6.50200000000122,
+          "fall": false,
+          "foot_impact_count": 1,
+          "nonfoot_collision": false,
+          "safety_task_completion": true,
+          "short_reverse_switch_coverage": "complete",
+          "task_start_sim_time_s": 7.126
+        }
+      }
+    ],
+    "safety_changed_runs": 1,
+    "scope": "sensitivity of the formal analysis to the decision-clock reconstruction; not a separate result pipeline",
+    "timing_changed_runs": 1,
+    "unresolved_runs": 0
+  },
+  "schema": "s7-dev-supplement-analysis-v1",
+  "scope": "two development runs on m02.xml; A then D; no holdout; no formal comparison, success-rate, or inference claim",
+  "views": {
+    "all_actual_scene_starts": {
+      "class_counts": {
+        "VALID_TASK_RESULT": 2
+      },
+      "counts": {
+        "actual_scene_starts": 2,
+        "invocation_attempts": 2,
+        "plan_items": 2,
+        "replacement_scene_starts": 0,
+        "scene_creation_unknown_attempts": 0,
+        "started_motion_tasks": 2,
+        "unique_run_ids": 2
+      },
+      "invocation_class_counts": {
+        "VALID_TASK_RESULT": 2
+      },
+      "note": "all starts retained, including replaced first attempts and safety aborts",
+      "per_group_class_counts": {
+        "A": {
+          "VALID_TASK_RESULT": 1
+        },
+        "D": {
+          "VALID_TASK_RESULT": 1
+        }
+      }
+    },
+    "first_actual_scene_only_sensitivity": {
+      "denominator_plan_items": 2,
+      "note": "sensitivity only; first scene start is never replaced by a later substitute",
+      "outcome_counts": {
+        "CONFIRMED_SAFE_COMPLETE": 2
+      },
+      "plan_item_outcomes": {
+        "CONFIRMED_SAFE_COMPLETE": 1,
+        "SAFETY_UNKNOWN": 1
+      },
+      "rows": [
+        {
+          "first_scene_attempt_id": "dev-m02-ad-20261021:DEV-M02-A:inv01",
+          "first_scene_navigation_result": "ARRIVED",
+          "first_scene_record_validity": "VALID",
+          "first_scene_terminal": "ARRIVED",
+          "global_order": 1,
+          "group": "A",
+          "map": "m02",
+          "metrics": {
+            "arrived": true,
+            "cleanup_complete": true,
+            "collision": false,
+            "elapsed_task_duration_s": 6.50200000000122,
+            "fall": false,
+            "foot_contact_count": 1.0,
+            "foot_impact_any": true,
+            "foot_impact_count": 1.0,
+            "navigation_terminal_result": "ARRIVED",
+            "out_of_bounds": false,
+            "record_validity": "VALID",
+            "recovery_censored_interval_count": 0,
+            "recovery_completed_interval_count": 21,
+            "recovery_reentry_within_0_5s_count": 19,
+            "recovery_residence_median_s": 0.02000000000000668,
+            "recovery_share": 0.15226084281759678,
+            "safe_complete": true,
+            "short_reverse_per_min": 369.11719470925095,
+            "standing_observation_complete": true,
+            "target_progress_m": 7.041687524554586,
+            "timeout": false
+          },
+          "outcome": "CONFIRMED_SAFE_COMPLETE",
+          "plan_item_id": "DEV-M02-A",
+          "raw_first_scene_safety_task_completion": "UNKNOWN",
+          "repeat_block": 1,
+          "unified_first_scene_safety_task_completion": true
+        },
+        {
+          "first_scene_attempt_id": "dev-m02-ad-20261021:DEV-M02-D:inv01",
+          "first_scene_navigation_result": "ARRIVED",
+          "first_scene_record_validity": "VALID",
+          "first_scene_terminal": "ARRIVED",
+          "global_order": 2,
+          "group": "D",
+          "map": "m02",
+          "metrics": {
+            "arrived": true,
+            "cleanup_complete": true,
+            "collision": false,
+            "elapsed_task_duration_s": 6.60000000000165,
+            "fall": false,
+            "foot_contact_count": 0.0,
+            "foot_impact_any": false,
+            "foot_impact_count": 0.0,
+            "navigation_terminal_result": "ARRIVED",
+            "out_of_bounds": false,
+            "record_validity": "VALID",
+            "recovery_censored_interval_count": 0,
+            "recovery_completed_interval_count": 5,
+            "recovery_reentry_within_0_5s_count": 2,
+            "recovery_residence_median_s": 0.2000000000000668,
+            "recovery_share": 0.15454545454545085,
+            "safe_complete": true,
+            "short_reverse_per_min": 63.63636363634773,
+            "standing_observation_complete": true,
+            "target_progress_m": 7.064321239211721,
+            "timeout": false
+          },
+          "outcome": "CONFIRMED_SAFE_COMPLETE",
+          "plan_item_id": "DEV-M02-D",
+          "raw_first_scene_safety_task_completion": true,
+          "repeat_block": 1,
+          "unified_first_scene_safety_task_completion": true
+        }
+      ]
+    },
+    "primary_plan_item": {
+      "outcome_counts": {
+        "CONFIRMED_SAFE_COMPLETE": 2
+      },
+      "per_group": {
+        "A": {
+          "all_outcome_counts": {
+            "CONFIRMED_SAFE_COMPLETE": 1
+          },
+          "confirmed_safe_complete": 1,
+          "known_not_complete": 0,
+          "not_started": 0,
+          "plan_items": 1,
+          "safe_completion_lower_over_all_plan_items": 1.0,
+          "safe_completion_upper_over_all_plan_items": 1.0,
+          "safety_unknown": 0,
+          "unresolved": 0,
+          "unresolved_engineering": 0,
+          "unresolved_scene_attempt": 0
+        },
+        "D": {
+          "all_outcome_counts": {
+            "CONFIRMED_SAFE_COMPLETE": 1
+          },
+          "confirmed_safe_complete": 1,
+          "known_not_complete": 0,
+          "not_started": 0,
+          "plan_items": 1,
+          "safe_completion_lower_over_all_plan_items": 1.0,
+          "safe_completion_upper_over_all_plan_items": 1.0,
+          "safety_unknown": 0,
+          "unresolved": 0,
+          "unresolved_engineering": 0,
+          "unresolved_scene_attempt": 0
+        }
+      },
+      "raw_default_outcome_counts": {
+        "CONFIRMED_SAFE_COMPLETE": 1,
+        "SAFETY_UNKNOWN": 1
+      },
+      "rows": [
+        {
+          "global_order": 1,
+          "group": "A",
+          "map": "m02",
+          "metrics": {
+            "arrived": true,
+            "cleanup_complete": true,
+            "collision": false,
+            "elapsed_task_duration_s": 6.50200000000122,
+            "fall": false,
+            "foot_contact_count": 1.0,
+            "foot_impact_any": true,
+            "foot_impact_count": 1.0,
+            "navigation_terminal_result": "ARRIVED",
+            "out_of_bounds": false,
+            "record_validity": "VALID",
+            "recovery_censored_interval_count": 0,
+            "recovery_completed_interval_count": 21,
+            "recovery_reentry_within_0_5s_count": 19,
+            "recovery_residence_median_s": 0.02000000000000668,
+            "recovery_share": 0.15226084281759678,
+            "safe_complete": true,
+            "short_reverse_per_min": 369.11719470925095,
+            "standing_observation_complete": true,
+            "target_progress_m": 7.041687524554586,
+            "timeout": false
+          },
+          "outcome": "CONFIRMED_SAFE_COMPLETE",
+          "plan_item_id": "DEV-M02-A",
+          "plan_status": "SELECTED_RESULT",
+          "raw_selected_safety_task_completion": "UNKNOWN",
+          "repeat_block": 1,
+          "selected_attempt_id": "dev-m02-ad-20261021:DEV-M02-A:inv01",
+          "selected_run_id": "798d518a8fb84d419cb00987ed6a8538",
+          "selected_terminal": "ARRIVED",
+          "unified_safety_task_completion": true
+        },
+        {
+          "global_order": 2,
+          "group": "D",
+          "map": "m02",
+          "metrics": {
+            "arrived": true,
+            "cleanup_complete": true,
+            "collision": false,
+            "elapsed_task_duration_s": 6.60000000000165,
+            "fall": false,
+            "foot_contact_count": 0.0,
+            "foot_impact_any": false,
+            "foot_impact_count": 0.0,
+            "navigation_terminal_result": "ARRIVED",
+            "out_of_bounds": false,
+            "record_validity": "VALID",
+            "recovery_censored_interval_count": 0,
+            "recovery_completed_interval_count": 5,
+            "recovery_reentry_within_0_5s_count": 2,
+            "recovery_residence_median_s": 0.2000000000000668,
+            "recovery_share": 0.15454545454545085,
+            "safe_complete": true,
+            "short_reverse_per_min": 63.63636363634773,
+            "standing_observation_complete": true,
+            "target_progress_m": 7.064321239211721,
+            "timeout": false
+          },
+          "outcome": "CONFIRMED_SAFE_COMPLETE",
+          "plan_item_id": "DEV-M02-D",
+          "plan_status": "SELECTED_RESULT",
+          "raw_selected_safety_task_completion": true,
+          "repeat_block": 1,
+          "selected_attempt_id": "dev-m02-ad-20261021:DEV-M02-D:inv01",
+          "selected_run_id": "5859b72dc8994e8a9e9d6ad0e0cd8e2d",
+          "selected_terminal": "ARRIVED",
+          "unified_safety_task_completion": true
+        }
+      ],
+      "selection_rule": "one pre-specified result per plan item, independent of group/outcome"
+    }
+  }
+}

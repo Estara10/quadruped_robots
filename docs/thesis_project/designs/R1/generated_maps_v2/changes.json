@@ -1,0 +1,189 @@
+{
+  "version": "r1-layout-proposals/2",
+  "status": "PREVIEW_REVIEW_NOT_RUN_NOT_REGISTERED",
+  "scenes": [
+    {
+      "filename": "r1_d09_gap_wide_v2.xml",
+      "source_v1": "r1_d09_gap_wide.xml",
+      "template": "d09_gap",
+      "tier": "wide",
+      "edits": [
+        {
+          "obstacle": "ppt_obstacle_02",
+          "old_position": [
+            5.424589,
+            0.043324,
+            0.187331
+          ],
+          "new_position": [
+            5.424589,
+            0.65,
+            0.187331
+          ]
+        }
+      ],
+      "static_model_load": "PASS",
+      "policy_run": "NOT_RUN",
+      "runtime_registered": false
+    },
+    {
+      "filename": "r1_d09_gap_middle_v2.xml",
+      "source_v1": "r1_d09_gap_middle.xml",
+      "template": "d09_gap",
+      "tier": "middle",
+      "edits": [
+        {
+          "obstacle": "ppt_obstacle_02",
+          "old_position": [
+            4.652519,
+            0.043324,
+            0.187331
+          ],
+          "new_position": [
+            4.652519,
+            0.65,
+            0.187331
+          ]
+        }
+      ],
+      "static_model_load": "PASS",
+      "policy_run": "NOT_RUN",
+      "runtime_registered": false
+    },
+    {
+      "filename": "r1_d09_gap_narrow_v2.xml",
+      "source_v1": "r1_d09_gap_narrow.xml",
+      "template": "d09_gap",
+      "tier": "narrow",
+      "edits": [
+        {
+          "obstacle": "ppt_obstacle_02",
+          "old_position": [
+            3.852519,
+            0.043324,
+            0.187331
+          ],
+          "new_position": [
+            3.852519,
+            0.65,
+            0.187331
+          ]
+        }
+      ],
+      "static_model_load": "PASS",
+      "policy_run": "NOT_RUN",
+      "runtime_registered": false
+    },
+    {
+      "filename": "r1_m02_space_wide_v2.xml",
+      "source_v1": "r1_m02_space_wide.xml",
+      "template": "m02_space",
+      "tier": "wide",
+      "edits": [
+        {
+          "obstacle": "ppt_obstacle_03",
+          "old_position": [
+            5.630977,
+            -0.091551,
+            0.250978
+          ],
+          "new_position": [
+            5.630977,
+            0.6000000000000001,
+            0.250978
+          ]
+        },
+        {
+          "obstacle": "ppt_obstacle_07",
+          "old_position": [
+            5.307735,
+            -2.603717,
+            0.247769
+          ],
+          "new_position": [
+            5.307735,
+            -1.912166,
+            0.247769
+          ]
+        }
+      ],
+      "static_model_load": "PASS",
+      "policy_run": "NOT_RUN",
+      "runtime_registered": false
+    },
+    {
+      "filename": "r1_m02_space_middle_v2.xml",
+      "source_v1": "r1_m02_space_middle.xml",
+      "template": "m02_space",
+      "tier": "middle",
+      "edits": [
+        {
+          "obstacle": "ppt_obstacle_03",
+          "old_position": [
+            5.630977,
+            -0.091551,
+            0.250978
+          ],
+          "new_position": [
+            5.630977,
+            0.6000000000000001,
+            0.250978
+          ]
+        },
+        {
+          "obstacle": "ppt_obstacle_07",
+          "old_position": [
+            5.307735,
+            -2.403717,
+            0.247769
+          ],
+          "new_position": [
+            5.307735,
+            -1.7121659999999999,
+            0.247769
+          ]
+        }
+      ],
+      "static_model_load": "PASS",
+      "policy_run": "NOT_RUN",
+      "runtime_registered": false
+    },
+    {
+      "filename": "r1_m02_space_narrow_v2.xml",
+      "source_v1": "r1_m02_space_narrow.xml",
+      "template": "m02_space",
+      "tier": "narrow",
+      "edits": [
+        {
+          "obstacle": "ppt_obstacle_03",
+          "old_position": [
+            5.630977,
+            -0.091551,
+            0.250978
+          ],
+          "new_position": [
+            5.630977,
+            0.6000000000000001,
+            0.250978
+          ]
+        },
+        {
+          "obstacle": "ppt_obstacle_07",
+          "old_position": [
+            5.307735,
+            -2.203717,
+            0.247769
+          ],
+          "new_position": [
+            5.307735,
+            -1.5121660000000001,
+            0.247769
+          ]
+        }
+      ],
+      "static_model_load": "PASS",
+      "policy_run": "NOT_RUN",
+      "runtime_registered": false
+    }
+  ]
+}

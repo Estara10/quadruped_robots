@@ -1,0 +1,356 @@
+{
+  "schema": "s7-cycle0-clock-review-v1",
+  "scope": "offline read-only; no scene, ROS, model inference, or raw-record write",
+  "A": {
+    "run_id": "798d518a8fb84d419cb00987ed6a8538",
+    "decision_start_clock": {
+      "status": "VALID_AT_DECISION",
+      "sim_time_s": 7.126,
+      "source": "controller S6-04 trace at the first active policy cycle",
+      "controller_update_steady_ns": 3882277656062,
+      "controller_update_gain_step": 3,
+      "scope": "decision-time clock validity; the raw frame remains publication-stale",
+      "session_id": 3882150905299,
+      "rl_step": 0,
+      "frame_sim_clock_valid": false,
+      "frame_sim_clock_status": 2,
+      "frame_sim_clock_age_ns": 108484356,
+      "frame_sim_time_s": 7.125999999999437,
+      "frame_monotonic_ns": 3882277330347
+    },
+    "default_analysis": {
+      "safety_task_completion": "UNKNOWN",
+      "task_start_sim_time_s": null,
+      "elapsed_task_duration_s": null,
+      "raw_invalid_clock_frames": 1,
+      "short_reverse_switch_coverage": "partial_or_unknown",
+      "reasons": [
+        "arrival_or_task_start_sim_time_missing",
+        "nonfoot_collision_absence_not_supported_by_complete_task_window_coverage",
+        "fall_absence_not_supported_by_complete_task_window_history"
+      ]
+    },
+    "override_analysis": {
+      "safety_task_completion": true,
+      "task_start_sim_time_s": 7.126,
+      "elapsed_task_duration_s": 6.50200000000122,
+      "raw_invalid_clock_frames": 1,
+      "timing_invalid_clock_frames": 0,
+      "short_reverse_switch_coverage": "complete",
+      "dimensions": {
+        "nonfoot_obstacle_collision": false,
+        "fall": false,
+        "system_safety_abort": false,
+        "base_link_out_of_bounds": false
+      },
+      "foot_events": {
+        "contact_count": 1,
+        "impact_count": 1,
+        "contact_events": [
+          {
+            "closed": true,
+            "end_physics_step": 5358,
+            "end_sim_time": 10.716000000000248,
+            "foot_geom_id": 29,
+            "foot_geom_name": "FL",
+            "force_known": true,
+            "obstacle_geom_id": 1,
+            "obstacle_geom_name": "ppt_obstacle_01",
+            "start_physics_step": 5352,
+            "start_sim_time": 10.704000000000244,
+            "trigger_abs_fz": 5.315969168988699,
+            "trigger_fxy": 155.45593057449705,
+            "trigger_threshold": 20.6319383379774
+          }
+        ],
+        "impact_events": [
+          {
+            "closed": true,
+            "end_physics_step": 5358,
+            "end_sim_time": 10.716000000000248,
+            "foot_geom_id": 29,
+            "foot_geom_name": "FL",
+            "force_known": true,
+            "obstacle_geom_id": 1,
+            "obstacle_geom_name": "ppt_obstacle_01",
+            "start_physics_step": 5352,
+            "start_sim_time": 10.704000000000244,
+            "trigger_abs_fz": 5.315969168988699,
+            "trigger_fxy": 155.45593057449705,
+            "trigger_threshold": 20.6319383379774
+          }
+        ],
+        "impact_unknown_overlaps_motion": false
+      },
+      "reasons": [
+        "ARRIVED_within_deadline_and_all_required_task_safety_dimensions_clear"
+      ]
+    }
+  },
+  "timeline": {
+    "A": {
+      "run_id": "798d518a8fb84d419cb00987ed6a8538",
+      "group": "A",
+      "mujoco_process_started_monotonic_ns": 3874243913490,
+      "mujoco_authority_live_monotonic_ns": 3875080031379,
+      "standing_admission_monotonic_ns": 3882077171461,
+      "rl_entry_request_monotonic_ns": 3882142943182,
+      "controller_state_rl_entry": 3882277330347,
+      "first_active_frame": {
+        "session_id": 3882150905299,
+        "rl_step": 0,
+        "sim_time_s": 7.125999999999437,
+        "sim_clock_valid": false,
+        "sim_clock_status": 2,
+        "sim_clock_age_ns": 108484356,
+        "sim_clock_monotonic_ns": 3882168845991,
+        "monotonic_ns": 3882277330347,
+        "source_sequence": 2
+      },
+      "task_start": {
+        "boundary": "first active policy decision frame; task metrics and safety window begin here",
+        "monotonic_ns": 3882277330347,
+        "rl_step": 0,
+        "session_id": 3882150905299,
+        "sim_clock_valid": false,
+        "sim_time_s": null,
+        "source_sequence": 2
+      },
+      "terminal": "ARRIVED",
+      "process_exit_code": 0,
+      "shutdown_complete": true,
+      "safety_task_completion": "UNKNOWN"
+    },
+    "D": {
+      "run_id": "5859b72dc8994e8a9e9d6ad0e0cd8e2d",
+      "group": "D",
+      "mujoco_process_started_monotonic_ns": 4199804265922,
+      "mujoco_authority_live_monotonic_ns": 4200602596720,
+      "standing_admission_monotonic_ns": 4207245394855,
+      "rl_entry_request_monotonic_ns": 4207299178956,
+      "controller_state_rl_entry": 4207380940846,
+      "first_active_frame": {
+        "session_id": 4207308084309,
+        "rl_step": 0,
+        "sim_time_s": 6.751999999999478,
+        "sim_clock_valid": true,
+        "sim_clock_status": 1,
+        "sim_clock_age_ns": 53801025,
+        "sim_clock_monotonic_ns": 4207327139821,
+        "monotonic_ns": 4207380940846,
+        "source_sequence": 2
+      },
+      "task_start": {
+        "boundary": "first active policy decision frame; task metrics and safety window begin here",
+        "monotonic_ns": 4207380940846,
+        "rl_step": 0,
+        "session_id": 4207308084309,
+        "sim_clock_valid": true,
+        "sim_time_s": 6.751999999999478,
+        "source_sequence": 2
+      },
+      "terminal": "ARRIVED",
+      "process_exit_code": 0,
+      "shutdown_complete": true,
+      "safety_task_completion": true
+    }
+  },
+  "checks": [
+    {
+      "check": "01_A_decision_valid_publication_stale",
+      "status": "PASS",
+      "detail": {
+        "decision": {
+          "status": "VALID_AT_DECISION",
+          "sim_time_s": 7.126,
+          "source": "controller S6-04 trace at the first active policy cycle",
+          "controller_update_steady_ns": 3882277656062,
+          "controller_update_gain_step": 3,
+          "scope": "decision-time clock validity; the raw frame remains publication-stale",
+          "session_id": 3882150905299,
+          "rl_step": 0,
+          "frame_sim_clock_valid": false,
+          "frame_sim_clock_status": 2,
+          "frame_sim_clock_age_ns": 108484356,
+          "frame_sim_time_s": 7.125999999999437,
+          "frame_monotonic_ns": 3882277330347
+        },
+        "first_frame": {
+          "sim_time_s": 7.125999999999437,
+          "sim_clock_valid": false,
+          "sim_clock_status": 2,
+          "sim_clock_age_ns": 108484356,
+          "sim_clock_monotonic_ns": 3882168845991,
+          "monotonic_ns": 3882277330347,
+          "source_sequence": 2
+        }
+      }
+    },
+    {
+      "check": "02_A_default_unchanged",
+      "status": "PASS",
+      "detail": {
+        "safe": "UNKNOWN",
+        "task_start": null,
+        "elapsed": null,
+        "raw_invalid": 1,
+        "timing_invalid": 1,
+        "short_reverse": "partial_or_unknown"
+      }
+    },
+    {
+      "check": "03_A_override_restores_timing_but_not_raw",
+      "status": "PASS",
+      "detail": {
+        "safe": true,
+        "task_start": 7.126,
+        "elapsed": 6.50200000000122,
+        "raw_invalid": 1,
+        "timing_invalid": 0,
+        "short_reverse": "complete",
+        "start_cycle": 0,
+        "foot_impact_count": 1,
+        "raw_hashes_unchanged": true
+      }
+    },
+    {
+      "check": "04_A_raw_files_unchanged",
+      "status": "PASS",
+      "detail": {
+        "before": {
+          "runtime_record.jsonl": "f66da5ea7ac67062842d902a2aee78f39fba4a915bf75b0f57357c80a38e0279",
+          "run_context.json": "192b14b71982411407351b1fe81bce24c7c2a821177dc86c10f51213e1bfc081",
+          "terminal.json": "717c60ffd79fa05a87708baeee01e4189b7fad71c50139ee546a17560ed191cc",
+          "metrics.json": "e8f9dac813a3d36f524a971b23f36f7cb299897262e79d85e9289e3bac8dc20f"
+        },
+        "after": {
+          "runtime_record.jsonl": "f66da5ea7ac67062842d902a2aee78f39fba4a915bf75b0f57357c80a38e0279",
+          "run_context.json": "192b14b71982411407351b1fe81bce24c7c2a821177dc86c10f51213e1bfc081",
+          "terminal.json": "717c60ffd79fa05a87708baeee01e4189b7fad71c50139ee546a17560ed191cc",
+          "metrics.json": "e8f9dac813a3d36f524a971b23f36f7cb299897262e79d85e9289e3bac8dc20f"
+        }
+      }
+    },
+    {
+      "check": "05_A_trace_and_sample_identity",
+      "status": "PASS",
+      "detail": {
+        "status": "VALID_AT_DECISION",
+        "sim_time_s": 7.126,
+        "source": "controller S6-04 trace at the first active policy cycle",
+        "controller_update_steady_ns": 3882277656062,
+        "controller_update_gain_step": 3,
+        "scope": "decision-time clock validity; the raw frame remains publication-stale",
+        "session_id": 3882150905299,
+        "rl_step": 0,
+        "frame_sim_clock_valid": false,
+        "frame_sim_clock_status": 2,
+        "frame_sim_clock_age_ns": 108484356,
+        "frame_sim_time_s": 7.125999999999437,
+        "frame_monotonic_ns": 3882277330347
+      }
+    },
+    {
+      "check": "06_D_valid_frame_no_override",
+      "status": "PASS",
+      "detail": {
+        "task_start_clock": {
+          "status": "FRAME_VALID",
+          "sim_time_s": 6.751999999999478,
+          "source": "lifecycle.task_start",
+          "session_id": 4207308084309,
+          "rl_step": 0,
+          "frame_sim_clock_valid": true,
+          "frame_sim_clock_status": 1,
+          "frame_sim_clock_age_ns": 53801025,
+          "frame_sim_time_s": 6.751999999999478,
+          "frame_monotonic_ns": 4207380940846,
+          "used_for_safety_start": false,
+          "timing_clock_override_requested": false,
+          "timing_clock_override_applied": false
+        },
+        "default_safe": true,
+        "override_safe": true,
+        "default_elapsed": 6.60000000000165,
+        "override_elapsed": 6.60000000000165
+      }
+    },
+    {
+      "check": "07_constructed_rejections",
+      "status": "PASS",
+      "detail": {
+        "valid": "VALID_AT_DECISION",
+        "no_trace": "CONTROLLER_TRACE_LOG_MISSING",
+        "empty_trace": "CONTROLLER_TRACE_CYCLE_MISSING",
+        "wrong_session": "CONTROLLER_TRACE_CYCLE_MISSING",
+        "wrong_cycle": "CONTROLLER_TRACE_CYCLE_MISSING",
+        "sample_mismatch": "DECISION_SAMPLE_MISMATCH",
+        "invalid_at_capture": "DECISION_CLOCK_INVALID_AT_CAPTURE",
+        "reset_frame": "FRAME_NOT_PUBLICATION_STALE",
+        "no_age": "FRAME_STALE_WITHOUT_PUBLICATION_AGE",
+        "no_sim_time": "FRAME_SIM_TIME_MISSING",
+        "frame_valid": "FRAME_VALID",
+        "missing_start": "MISSING_TASK_START"
+      }
+    },
+    {
+      "check": "08_ABCD_shared_decision_path",
+      "status": "PASS",
+      "detail": {
+        "A": "VALID_AT_DECISION",
+        "B": "VALID_AT_DECISION",
+        "C": "VALID_AT_DECISION",
+        "D": "VALID_AT_DECISION"
+      }
+    },
+    {
+      "check": "09_decision_clock_does_not_clear_unknown_or_fall",
+      "status": "PASS",
+      "detail": {
+        "unknown_fall": {
+          "status": "UNKNOWN",
+          "reasons": [
+            "one_or_more_required_task_safety_dimensions_unknown",
+            "nonfoot_collision_absence_not_supported_by_complete_task_window_coverage",
+            "fall_absence_not_supported_by_complete_task_window_history"
+          ]
+        },
+        "confirmed_fall": {
+          "status": false,
+          "reasons": [
+            "confirmed_task_window_safety_veto",
+            "ARRIVED_conflicts_with_confirmed_safety_veto"
+          ]
+        }
+      }
+    },
+    {
+      "check": "10_formal_analysis_uses_unified_reconstruction",
+      "status": "PASS",
+      "detail": {
+        "provenance": {
+          "enabled": true,
+          "rule": "first active cycle publication-stale frame + matching controller S6-04 decision trace with the same run/session/cycle and clock sample",
+          "raw_frame_status_preserved": true,
+          "raw_records_written": false,
+          "scope": "formal analysis uses the same-cycle decision-time clock for timing and safety start; no control behavior or raw record is changed"
+        },
+        "outcomes": {
+          "DEV-M02-A": "CONFIRMED_SAFE_COMPLETE",
+          "DEV-M02-D": "CONFIRMED_SAFE_COMPLETE"
+        },
+        "sensitivity": {
+          "reconstruction_runs": 1,
+          "safety_changed_runs": 1,
+          "timing_changed_runs": 1,
+          "unresolved_runs": 0
+        }
+      }
+    }
+  ],
+  "passed": 10,
+  "failed": 0,
+  "total": 10,
+  "production_default_unchanged": true,
+  "raw_records_written": false
+}

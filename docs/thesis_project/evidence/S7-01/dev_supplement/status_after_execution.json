@@ -1,0 +1,78 @@
+{
+  "attempts": [
+    {
+      "attempt_id": "dev-m02-ad-20261021:DEV-M02-A:inv01",
+      "entered_rl": true,
+      "group": "A",
+      "invocation_number": 1,
+      "is_replacement": false,
+      "plan_item_id": "DEV-M02-A",
+      "raw_terminal": "ARRIVED",
+      "record_validity": "VALID",
+      "replaces_attempt_id": null,
+      "run_id": "798d518a8fb84d419cb00987ed6a8538",
+      "runner_status": "RECONCILED_SCENE_STARTED",
+      "safety_task_completion": "UNKNOWN",
+      "scene_created": true
+    },
+    {
+      "attempt_id": "dev-m02-ad-20261021:DEV-M02-D:inv01",
+      "entered_rl": true,
+      "group": "D",
+      "invocation_number": 1,
+      "is_replacement": false,
+      "plan_item_id": "DEV-M02-D",
+      "raw_terminal": "ARRIVED",
+      "record_validity": "VALID",
+      "replaces_attempt_id": null,
+      "run_id": "5859b72dc8994e8a9e9d6ad0e0cd8e2d",
+      "runner_status": "SCENE_STARTED",
+      "safety_task_completion": true,
+      "scene_created": true
+    }
+  ],
+  "audit": {
+    "all_actual_scene_start_class_counts": {
+      "VALID_TASK_RESULT": 2
+    },
+    "counts": {
+      "actual_scene_starts": 2,
+      "invocation_attempts": 2,
+      "plan_items": 2,
+      "replacement_scene_starts": 0,
+      "scene_creation_unknown_attempts": 0,
+      "started_motion_tasks": 2,
+      "unique_run_ids": 2
+    },
+    "errors": [],
+    "plan_item_outcomes": {
+      "CONFIRMED_SAFE_COMPLETE": 1,
+      "SAFETY_UNKNOWN": 1
+    },
+    "status": "PASS"
+  },
+  "batch_root": "/home/lidio/quadruped_robots/logs/07_formal_preparation/dev_supplement_m02_AD/dev-m02-ad-20261021",
+  "batch_state": {
+    "actual_scene_starts": 2,
+    "audit_status": "PASS",
+    "dispatched_this_entry": 1,
+    "ledger_errors": [],
+    "next_pending": [],
+    "pause_reason": null,
+    "plan_item_outcomes": {
+      "CONFIRMED_SAFE_COMPLETE": 1,
+      "SAFETY_UNKNOWN": 1
+    },
+    "recovery_notes": [
+      "A was already complete on disk when this execution started. The original invocation ended PAUSED as scene_creation_unknown because the analysis/ output directory was counted as a second run directory. A was reconciled from raw artifacts; it was not rerun. This checkpoint was reconstructed during recovery, not written at the A boundary."
+    ],
+    "replacement_scene_starts": 0,
+    "retrospective_A_checkpoint": true,
+    "schema": "s7-formal-batch-state-v1",
+    "stage": "COMPLETE",
+    "staged_reason": null,
+    "status": "COMPLETE",
+    "updated_utc": "2026-10-21T12:08:16+00:00"
+  },
+  "status": "OK"
+}

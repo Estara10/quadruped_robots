@@ -1,0 +1,80 @@
+[
+  {
+    "scene": "r1_d09_gap_wide",
+    "run_id": "3ce56110a18c4c6982a0abe84ad61fa9",
+    "terminal": "ARRIVED",
+    "validity": "VALID",
+    "distance_m": 0.49656489113901436,
+    "standing": "COMPLETE",
+    "cleanup": true,
+    "observation": "01附近最近采样(x=1.732,y=0.708)；02附近最近采样(x=5.432,y=-0.570)",
+    "raw_directory": "logs/09_R1_switch_constraints/r1_layout_watch_20261031/r1_d09_gap_wide_fixed2/A/rep_01/3ce56110a18c4c6982a0abe84ad61fa9",
+    "collision": "UNKNOWN",
+    "fall": "UNKNOWN"
+  },
+  {
+    "scene": "r1_d09_gap_middle",
+    "run_id": "e4493888f42e47f6b35ae0c6b779298b",
+    "terminal": "ARRIVED",
+    "validity": "VALID",
+    "distance_m": 0.4985076385201776,
+    "standing": "COMPLETE",
+    "cleanup": true,
+    "observation": "01附近最近采样(x=1.710,y=0.685)；02附近最近采样(x=4.656,y=0.597)",
+    "raw_directory": "logs/09_R1_switch_constraints/r1_layout_watch_20261031/r1_d09_gap_middle_fixed2/A/rep_01/e4493888f42e47f6b35ae0c6b779298b",
+    "collision": "False",
+    "fall": "False"
+  },
+  {
+    "scene": "r1_d09_gap_narrow",
+    "run_id": "89b16b89230c493093a392245b5f2360",
+    "terminal": "ARRIVED",
+    "validity": "VALID",
+    "distance_m": 0.4829399796211325,
+    "standing": "COMPLETE",
+    "cleanup": true,
+    "observation": "01附近最近采样(x=1.710,y=0.693)；02附近最近采样(x=3.869,y=0.639)",
+    "raw_directory": "logs/09_R1_switch_constraints/r1_layout_watch_20261031/r1_d09_gap_narrow_fixed/A/rep_01/89b16b89230c493093a392245b5f2360",
+    "collision": "False",
+    "fall": "False"
+  },
+  {
+    "scene": "r1_m02_space_wide",
+    "run_id": "8dba589260214774ac1fd055c9c1e2ea",
+    "terminal": "ARRIVED",
+    "validity": "VALID",
+    "distance_m": 0.4917925915608236,
+    "standing": "COMPLETE",
+    "cleanup": true,
+    "observation": "x≈5.5m最近采样(x=5.498,y=0.581)；采样中心位于03上侧，未从该截面间隙通过",
+    "raw_directory": "logs/09_R1_switch_constraints/r1_layout_watch_20261031/r1_m02_space_wide_fixed/A/rep_01/8dba589260214774ac1fd055c9c1e2ea",
+    "collision": "False",
+    "fall": "False"
+  },
+  {
+    "scene": "r1_m02_space_middle",
+    "run_id": "629c7221c4644ad28867f6e0ff9c5784",
+    "terminal": "ARRIVED",
+    "validity": "VALID",
+    "distance_m": 0.4880975831279496,
+    "standing": "COMPLETE",
+    "cleanup": true,
+    "observation": "x≈5.5m最近采样(x=5.513,y=0.603)；采样中心位于03上侧，未从该截面间隙通过",
+    "raw_directory": "logs/09_R1_switch_constraints/r1_layout_watch_20261031/r1_m02_space_middle_fixed/A/rep_01/629c7221c4644ad28867f6e0ff9c5784",
+    "collision": "False",
+    "fall": "False"
+  },
+  {
+    "scene": "r1_m02_space_narrow",
+    "run_id": "84cf07dd1b3b4a089043d98186276031",
+    "terminal": "ARRIVED",
+    "validity": "VALID",
+    "distance_m": 0.48949083798062465,
+    "standing": "COMPLETE",
+    "cleanup": true,
+    "observation": "x≈5.5m最近采样(x=5.501,y=0.602)；采样中心位于03上侧，未从该截面间隙通过",
+    "raw_directory": "logs/09_R1_switch_constraints/r1_layout_watch_20261031/r1_m02_space_narrow_fixed/A/rep_01/84cf07dd1b3b4a089043d98186276031",
+    "collision": "False",
+    "fall": "False"
+  }
+]

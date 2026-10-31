@@ -1,0 +1,194 @@
+{
+  "mapset_version": "r1-scene-gradients/1.0",
+  "purpose": "R1 one-run layout viewing; not a parameter comparison",
+  "sim_limit_s": 20.0,
+  "wall_cap_s": 120.0,
+  "scenes": [
+    {
+      "filename": "r1_d09_gap_middle.xml",
+      "scene_id": "r1_d09_gap_middle",
+      "obstacle_count": 10,
+      "goal_m": [
+        7.5,
+        0.0
+      ],
+      "field_bounds_m": {
+        "x": [
+          -0.5,
+          8.0
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "split": "development_layout_viewing",
+      "layout_revision": "R1-d09-m02-gradients-20261031",
+      "source_template": "d09",
+      "difficulty_label": "middle",
+      "production_scene_binding": {
+        "filename": "r1_d09_gap_middle.xml",
+        "scene_id": "r1_d09_gap_middle",
+        "obstacle_count": 10,
+        "root_sha256": "742758b56f45f9fecf7568c31636c4f27f6c90e0eb21bb1e5d46365b51049961",
+        "closure_sha256": "ba9f89577599424145a362c5736f2786fcb98715c731879f9e40a9298eabfe58",
+        "model_fingerprint": "1477b38f87eb6e8e582959a8ed168a804d1d206195a7b02674512898ea414b7c"
+      }
+    },
+    {
+      "filename": "r1_d09_gap_narrow.xml",
+      "scene_id": "r1_d09_gap_narrow",
+      "obstacle_count": 10,
+      "goal_m": [
+        7.5,
+        0.0
+      ],
+      "field_bounds_m": {
+        "x": [
+          -0.5,
+          8.0
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "split": "development_layout_viewing",
+      "layout_revision": "R1-d09-m02-gradients-20261031",
+      "source_template": "d09",
+      "difficulty_label": "narrow",
+      "production_scene_binding": {
+        "filename": "r1_d09_gap_narrow.xml",
+        "scene_id": "r1_d09_gap_narrow",
+        "obstacle_count": 10,
+        "root_sha256": "320fe5d6b800057b2b60175ebf615ce68af8930897ef63c96a95927ba3920e19",
+        "closure_sha256": "1b585a60e33b4a5fe544095647ce4d46df9b7d129029a31f728ae150d630422b",
+        "model_fingerprint": "6573bb77c7b9643c9f148065a15817ec1533d261827a2213c649ed533ef249ee"
+      }
+    },
+    {
+      "filename": "r1_d09_gap_wide.xml",
+      "scene_id": "r1_d09_gap_wide",
+      "obstacle_count": 10,
+      "goal_m": [
+        7.5,
+        0.0
+      ],
+      "field_bounds_m": {
+        "x": [
+          -0.5,
+          8.0
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "split": "development_layout_viewing",
+      "layout_revision": "R1-d09-m02-gradients-20261031",
+      "source_template": "d09",
+      "difficulty_label": "wide",
+      "production_scene_binding": {
+        "filename": "r1_d09_gap_wide.xml",
+        "scene_id": "r1_d09_gap_wide",
+        "obstacle_count": 10,
+        "root_sha256": "33ce6133dfc140fcb8423589d3bbbb44481ff07bdb7c1f5a0852c58a60043b0a",
+        "closure_sha256": "308e8ebcaa0cd20bfed72edef9b4b045b26e816e9b4f11de7e226f10da3515df",
+        "model_fingerprint": "5267f51f31109b660798201e899c21c3f56ec007202c4ff7ab8ce13aa53a107c"
+      }
+    },
+    {
+      "filename": "r1_m02_space_middle.xml",
+      "scene_id": "r1_m02_space_middle",
+      "obstacle_count": 9,
+      "goal_m": [
+        7.5,
+        0.0
+      ],
+      "field_bounds_m": {
+        "x": [
+          -0.5,
+          8.0
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "split": "development_layout_viewing",
+      "layout_revision": "R1-d09-m02-gradients-20261031",
+      "source_template": "m02",
+      "difficulty_label": "middle",
+      "production_scene_binding": {
+        "filename": "r1_m02_space_middle.xml",
+        "scene_id": "r1_m02_space_middle",
+        "obstacle_count": 9,
+        "root_sha256": "e5910dbc91288c9b5f2abff0aa12cdad1be1be4f07febe62099025d1f0d126bb",
+        "closure_sha256": "b0a500e0e27878760a8d4b760090b8a7874751c8d39eaa7769bbfdc2fc9840eb",
+        "model_fingerprint": "71b447498d92463730ae6e87a0848f08c882a6d065c67c2036d5410ea4eedccf"
+      }
+    },
+    {
+      "filename": "r1_m02_space_narrow.xml",
+      "scene_id": "r1_m02_space_narrow",
+      "obstacle_count": 9,
+      "goal_m": [
+        7.5,
+        0.0
+      ],
+      "field_bounds_m": {
+        "x": [
+          -0.5,
+          8.0
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "split": "development_layout_viewing",
+      "layout_revision": "R1-d09-m02-gradients-20261031",
+      "source_template": "m02",
+      "difficulty_label": "narrow",
+      "production_scene_binding": {
+        "filename": "r1_m02_space_narrow.xml",
+        "scene_id": "r1_m02_space_narrow",
+        "obstacle_count": 9,
+        "root_sha256": "4a3e61d2708f9551b06c6eb6509093d6925943a5e289f02d923b2742143fbd69",
+        "closure_sha256": "2d30848f055ee63521c13eb7f60507c5a8abbcbf87a6f57e9e09673339400552",
+        "model_fingerprint": "5b2db16dedb84b0f8d10192402bcad7dba83816cbef6239bd87d4d417a373118"
+      }
+    },
+    {
+      "filename": "r1_m02_space_wide.xml",
+      "scene_id": "r1_m02_space_wide",
+      "obstacle_count": 9,
+      "goal_m": [
+        7.5,
+        0.0
+      ],
+      "field_bounds_m": {
+        "x": [
+          -0.5,
+          8.0
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "split": "development_layout_viewing",
+      "layout_revision": "R1-d09-m02-gradients-20261031",
+      "source_template": "m02",
+      "difficulty_label": "wide",
+      "production_scene_binding": {
+        "filename": "r1_m02_space_wide.xml",
+        "scene_id": "r1_m02_space_wide",
+        "obstacle_count": 9,
+        "root_sha256": "1cdeb00fca13650136bad93c8632188f0dd15365456b98dcc7ce5b85b75b1b99",
+        "closure_sha256": "c1edbef0fd2a4ef6169d2f12672cdeddde5ab00fb9da027aeca136253d9f9a1f",
+        "model_fingerprint": "06f3f15ccf78b6e239c08b23448cc1221a0b11254e0b31ee92ba150345f8ab32"
+      }
+    }
+  ]
+}

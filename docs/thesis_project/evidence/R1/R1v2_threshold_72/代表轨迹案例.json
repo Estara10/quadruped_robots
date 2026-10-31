@@ -1,0 +1,38 @@
+[
+  {
+    "plan_item_id": "003_r1_r1v2_d09_gap_narrow_B_E06_X09",
+    "map": "r1_d09_gap_narrow_v2.xml",
+    "setting_id": "B_E06_X09",
+    "run_id": "6d73fc85083d49cb9afbcb803651944f",
+    "terminal_result": "COLLISION_TERMINATION",
+    "task_duration_s": 3.2200000000001605,
+    "distance_final_m": 3.7018578496400623
+  },
+  {
+    "plan_item_id": "001_r1_r1v2_d09_gap_middle_B_E03_X06",
+    "map": "r1_d09_gap_middle_v2.xml",
+    "setting_id": "B_E03_X06",
+    "run_id": "0fb7354dc6af4fa68c0298c3af9c80f9",
+    "terminal_result": "ARRIVED",
+    "task_duration_s": 4.480000000000515,
+    "distance_final_m": 0.07763229637026027
+  },
+  {
+    "plan_item_id": "002_r1_r1v2_m02_space_wide_A_REF",
+    "map": "r1_m02_space_wide_v2.xml",
+    "setting_id": "A_REF",
+    "run_id": "399544852cf846f7a84cfb3af38e345c",
+    "terminal_result": "COLLISION_TERMINATION",
+    "task_duration_s": 5.938000000001207,
+    "distance_final_m": 2.011720108464955
+  },
+  {
+    "plan_item_id": "011_r1_r1v2_m02_space_narrow_B_E04_X07",
+    "map": "r1_m02_space_narrow_v2.xml",
+    "setting_id": "B_E04_X07",
+    "run_id": "04d90b11277b4bb5bbfe4d8ba1f1c78e",
+    "terminal_result": "ARRIVED",
+    "task_duration_s": 6.40000000000136,
+    "distance_final_m": 0.04741024026553307
+  }
+]

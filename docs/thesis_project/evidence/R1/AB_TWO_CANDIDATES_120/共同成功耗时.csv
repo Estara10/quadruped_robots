@@ -1,0 +1,9 @@
+﻿map,B_setting,same_map_round_both_arrived_n,median_B_minus_A_arrival_time_s,note
+r1_m02_space_wide_v2,B_W03_E04_X07,0,,same map and randomized round only; physical starting state not paired
+r1_m02_space_wide_v2,B_W05_E05_X10,0,,same map and randomized round only; physical starting state not paired
+r1_m02_space_middle_v2,B_W03_E04_X07,0,,same map and randomized round only; physical starting state not paired
+r1_m02_space_middle_v2,B_W05_E05_X10,0,,same map and randomized round only; physical starting state not paired
+r1_m02_space_narrow_v2,B_W03_E04_X07,1,-1.0980000000002201,same map and randomized round only; physical starting state not paired
+r1_m02_space_narrow_v2,B_W05_E05_X10,1,0.21599999999990516,same map and randomized round only; physical starting state not paired
+r1_d09_gap_narrow_v2,B_W03_E04_X07,4,-0.3500000000000987,same map and randomized round only; physical starting state not paired
+r1_d09_gap_narrow_v2,B_W05_E05_X10,5,-0.9800000000003468,same map and randomized round only; physical starting state not paired

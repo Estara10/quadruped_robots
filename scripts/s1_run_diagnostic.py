@@ -51,6 +51,8 @@ S6_FALL_TILT = 2
 VETO_RE = re.compile(r"\[ABS-CONTRACT\].*PASSIVE")
 SOURCE_EVIDENCE_WAIT_S = 3.0
 M2_SELECTED_MAPSET_VERSION = "m2-selected-development/2.1"
+R1_MAPSET_VERSION = "r1-scene-gradients/1.0"
+R1_V2_MAPSET_VERSION = "r1-layout-proposals/2"
 
 
 class ConfigOnlyComplete(Exception):
@@ -2296,6 +2298,14 @@ def resolve_map_manifest(scene_spec, goal_x: float, goal_y: float,
         code = "M2_SELECTED_SCENE_SETTINGS_REJECTED"
         layout_path = ROOT / "docs/thesis_project/designs/M2/selected_v2/layouts.json"
         library_version = M2_SELECTED_MAPSET_VERSION
+    elif scene_spec.scene_id.startswith("r1v2_"):
+        code = "R1_V2_SCENE_SETTINGS_REJECTED"
+        layout_path = ROOT / "docs/thesis_project/designs/R1/generated_maps_v2/layouts.json"
+        library_version = R1_V2_MAPSET_VERSION
+    elif scene_spec.scene_id.startswith("r1_"):
+        code = "R1_SCENE_SETTINGS_REJECTED"
+        layout_path = ROOT / "docs/thesis_project/designs/R1/generated_maps/layouts.json"
+        library_version = R1_MAPSET_VERSION
     elif scene_spec.scene_id.startswith("s7ch"):
         code = "S7_CHALLENGE_SCENE_SETTINGS_REJECTED"
         layout_path = ROOT / "docs/thesis_project/designs/M3/layouts.json"
@@ -2310,6 +2320,8 @@ def resolve_map_manifest(scene_spec, goal_x: float, goal_y: float,
         if code == "M2_SELECTED_SCENE_SETTINGS_REJECTED":
             if library.get("mapset_version") != library_version:
                 raise ValueError("M2 selected mapset version is not the approved revision")
+        if code in ("R1_SCENE_SETTINGS_REJECTED", "R1_V2_SCENE_SETTINGS_REJECTED") and library.get("mapset_version") != library_version:
+            raise ValueError("R1 mapset version differs from the generated scene set")
         matches = [item for item in library.get("scenes", [])
                    if item.get("scene_id") == scene_spec.scene_id]
         if len(matches) != 1 or matches[0].get("filename") != scene_spec.filename:
@@ -2335,6 +2347,18 @@ def resolve_map_manifest(scene_spec, goal_x: float, goal_y: float,
             bounds = record.get("field_bounds_m") or {}
             if list(bounds.get("x", [])) != [-0.5, 8.0] or list(bounds.get("y", [])) != [-3.0, 3.0]:
                 raise ValueError("M2 selected field bounds differ from the approved arena")
+        if code in ("R1_SCENE_SETTINGS_REJECTED", "R1_V2_SCENE_SETTINGS_REJECTED"):
+            binding = record.get("production_scene_binding") or {}
+            if (binding.get("scene_id") != scene_spec.scene_id or
+                    binding.get("filename") != scene_spec.filename or
+                    int(binding.get("obstacle_count", -1)) != scene_spec.obstacle_count):
+                raise ValueError("R1 binding differs from the production scene")
+            for name in ("root_sha256", "closure_sha256", "model_fingerprint"):
+                if binding.get(name) != getattr(scene_spec, name):
+                    raise ValueError(f"R1 {name} differs from production catalog")
+            bounds = record.get("field_bounds_m") or {}
+            if list(bounds.get("x", [])) != [-0.5, 8.0] or list(bounds.get("y", [])) != [-3.0, 3.0]:
+                raise ValueError("R1 field bounds differ from the designed arena")
         if (not math.isclose(goal_x, float(record["goal_m"][0]), abs_tol=1e-9) or
                 not math.isclose(goal_y, float(record["goal_m"][1]), abs_tol=1e-9) or
                 not math.isclose(sim_limit_s, 20.0, abs_tol=1e-9) or
@@ -2475,8 +2499,8 @@ def run(args: argparse.Namespace) -> int:
                      "xauthority": env.get("XAUTHORITY"), "overlay": str(overlay),
                      "rendering": {"backend": "GLFW", "requested_mode": "hidden" if args.no_window else "visible",
                                    "window_visibility_variable": "ABS_MUJOCO_NO_WINDOW",
-                                   "rviz_requested": "disabled" if args.no_window else "enabled",
-                                   "rviz_launch_argument": "start_rviz:=false" if args.no_window else "start_rviz:=true",
+                                   "rviz_requested": "disabled" if (args.no_window or args.no_rviz) else "enabled",
+                                   "rviz_launch_argument": "start_rviz:=false" if (args.no_window or args.no_rviz) else "start_rviz:=true",
                                    "framebuffer_capture_enabled": not args.disable_framebuffer_capture,
                                    "actual_window_and_renderer_evidence": "MUJOCO-WINDOW line in mujoco.log"},
                      "fall_rule": {"base_body": "base_link", "height_threshold_m": 0.22,
@@ -2687,7 +2711,7 @@ def run(args: argparse.Namespace) -> int:
         lifecycle_events.append({"phase": "startup_preparation", "event": "collision_source_live_confirmed",
                                  "monotonic_ns": context["lifecycle"]["mujoco_authority_live_monotonic_ns"]})
         ros_start_requested_ns = now_ns()
-        rviz_setting = " start_rviz:=false" if args.no_window else " start_rviz:=true"
+        rviz_setting = " start_rviz:=false" if (args.no_window or args.no_rviz) else " start_rviz:=true"
         launch_shell = (f"source /opt/ros/humble/setup.bash && source {ROS_WS}/install/setup.bash && "
                         f"export AMENT_PREFIX_PATH={shlex.quote(env['S1_04_OVERLAY'])}:$AMENT_PREFIX_PATH && "
                         "ros2 launch rl_quadruped_controller mujoco.launch.py simulation_test:=false" + rviz_setting)
@@ -4222,6 +4246,7 @@ def main() -> int:
                         help="record actual S6-05 startup gain-interface writes; observational only")
     parser.add_argument("--disable-framebuffer-capture", action="store_true",
                         help="disable optional live/standing PPM writes without changing rendering or control")
+    parser.add_argument("--no-rviz", action="store_true", help="关闭RViz，保留MuJoCo窗口设置")
     parser.add_argument("--no-window", action="store_true",
                         help="hide the production GLFW window; DISPLAY and OpenGL are still required")
     parser.add_argument("--display", default=":0")

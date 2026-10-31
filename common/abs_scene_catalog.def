@@ -388,3 +388,39 @@ ABS_SCENE("challenge29.xml", "s7ch29", 10, kNamedPptObstacles,
 ABS_SCENE("challenge30.xml", "s7ch30", 7, kNamedPptObstacles,
           "18af9e8b2f6bd4b4415477c829506036f5bcabaa399481588119bfc0586cbdc3", "46ca482441538424ae5e2d11ed7931917cc2bc116e53e0de618b7f4ad72372a0",
           "7ee7be7295c2a388fc17f445ba63ce3a99ebaf5e26bf43f18f137c5fd9c81dda")
+ABS_SCENE("r1_d09_gap_middle.xml", "r1_d09_gap_middle", 10, kNamedPptObstacles,
+          "742758b56f45f9fecf7568c31636c4f27f6c90e0eb21bb1e5d46365b51049961", "ba9f89577599424145a362c5736f2786fcb98715c731879f9e40a9298eabfe58",
+          "1477b38f87eb6e8e582959a8ed168a804d1d206195a7b02674512898ea414b7c")
+ABS_SCENE("r1_d09_gap_narrow.xml", "r1_d09_gap_narrow", 10, kNamedPptObstacles,
+          "320fe5d6b800057b2b60175ebf615ce68af8930897ef63c96a95927ba3920e19", "1b585a60e33b4a5fe544095647ce4d46df9b7d129029a31f728ae150d630422b",
+          "6573bb77c7b9643c9f148065a15817ec1533d261827a2213c649ed533ef249ee")
+ABS_SCENE("r1_d09_gap_wide.xml", "r1_d09_gap_wide", 10, kNamedPptObstacles,
+          "33ce6133dfc140fcb8423589d3bbbb44481ff07bdb7c1f5a0852c58a60043b0a", "308e8ebcaa0cd20bfed72edef9b4b045b26e816e9b4f11de7e226f10da3515df",
+          "5267f51f31109b660798201e899c21c3f56ec007202c4ff7ab8ce13aa53a107c")
+ABS_SCENE("r1_m02_space_middle.xml", "r1_m02_space_middle", 9, kNamedPptObstacles,
+          "e5910dbc91288c9b5f2abff0aa12cdad1be1be4f07febe62099025d1f0d126bb", "b0a500e0e27878760a8d4b760090b8a7874751c8d39eaa7769bbfdc2fc9840eb",
+          "71b447498d92463730ae6e87a0848f08c882a6d065c67c2036d5410ea4eedccf")
+ABS_SCENE("r1_m02_space_narrow.xml", "r1_m02_space_narrow", 9, kNamedPptObstacles,
+          "4a3e61d2708f9551b06c6eb6509093d6925943a5e289f02d923b2742143fbd69", "2d30848f055ee63521c13eb7f60507c5a8abbcbf87a6f57e9e09673339400552",
+          "5b2db16dedb84b0f8d10192402bcad7dba83816cbef6239bd87d4d417a373118")
+ABS_SCENE("r1_m02_space_wide.xml", "r1_m02_space_wide", 9, kNamedPptObstacles,
+          "1cdeb00fca13650136bad93c8632188f0dd15365456b98dcc7ce5b85b75b1b99", "c1edbef0fd2a4ef6169d2f12672cdeddde5ab00fb9da027aeca136253d9f9a1f",
+          "06f3f15ccf78b6e239c08b23448cc1221a0b11254e0b31ee92ba150345f8ab32")
+ABS_SCENE("r1_d09_gap_wide_v2.xml", "r1v2_d09_gap_wide", 10, kNamedPptObstacles,
+          "1aaa8d119c224a158ff3fda265ad61a9586e3fbee3364d21d4289a3613576a09", "c654e47de25bae8543126742f06a333c5aa8f21f5e8b74cbd5c315a9cf814ebc",
+          "da9abc92b23ec9690fd1c92f10200da6075942e12b55b1f09a85c0b333aa8a1c")
+ABS_SCENE("r1_d09_gap_middle_v2.xml", "r1v2_d09_gap_middle", 10, kNamedPptObstacles,
+          "637cb600c1fa4f63f84c735df12e95b1385cc6cd3dda7d78ac4796ad6810b755", "5da94b6525f4507cfde77e499f320121a7db4f9d8c39ff614678d2671f3e077a",
+          "d425c8613861b5d2aafb14cba1f3a9a9d4443a6fd58c27f2a7733501362de156")
+ABS_SCENE("r1_d09_gap_narrow_v2.xml", "r1v2_d09_gap_narrow", 10, kNamedPptObstacles,
+          "62cac30f330830771495d82e492423586202b53816c01195806bcdebf82a155b", "5dd8dcc40e45c7699e5fe2c2eebf82b4f2cf772f99d43e93561c99b5d44a102b",
+          "e2f13d5cd18e158f80b24d44b9d1e190a8825462d184e6f9fd1974974133a0af")
+ABS_SCENE("r1_m02_space_wide_v2.xml", "r1v2_m02_space_wide", 9, kNamedPptObstacles,
+          "a37509060953fee022bcd5c7e062aa0f937058167e5710687ea4b2f42342f80d", "783a82cdb4669098f3f0abda1df7f5f124ab4e68bccb6f4863d60c7ca6c5e747",
+          "8aa100d47a627edbf1238e0c046b4740aa3d7332b22ee04044afd705d55023fe")
+ABS_SCENE("r1_m02_space_middle_v2.xml", "r1v2_m02_space_middle", 9, kNamedPptObstacles,
+          "ce0c0d23dc897b7f07b753c312007c06dd16be7056e5ace3d55258f81e4431df", "b58510bcd5b158703d33350325cf8edfa724d4a0ec33969bd95dc59804d5b284",
+          "7eececa88d4897a4f9de24068bcf9895c3075ded14e48ff6b1d78509c29f03af")
+ABS_SCENE("r1_m02_space_narrow_v2.xml", "r1v2_m02_space_narrow", 9, kNamedPptObstacles,
+          "cbbd999c7675b0180cc3f5b76888cf23f184bbc8bfd2ea11a212eb49f4c01b5e", "9762b569962b13620d9f68af7b555d2710c0e35430802427614aa660bb6909c3",
+          "e0c20f0592720355669984a9cc613bc91ecc7d166facb5d58d3e76412bfb4e8c")

@@ -320,6 +320,7 @@ def main():
                         help="reuse a previously detached overlay whose config and model files are revalidated before each run")
     parser.add_argument("--disable-framebuffer-capture", action="store_true",
                         help="suppress optional live/standing PPM writes for storage-bounded batches")
+    parser.add_argument("--no-rviz", action="store_true", help="关闭RViz，保留MuJoCo窗口设置")
     parser.add_argument("--no-window", action="store_true",
                         help="hide the production GLFW window; still uses its normal DISPLAY/OpenGL context")
     parser.add_argument("--display", default=os.environ.get("DISPLAY", ":0"))
@@ -436,6 +437,8 @@ def main():
                            "--output-root", str(run_out), "--display", args.display,
                            "--xauthority", args.xauthority,
                            "--classification", args.classification]
+                if args.no_rviz:
+                    command.append("--no-rviz")
                 if args.no_window:
                     command.append("--no-window")
                 if args.disable_framebuffer_capture:

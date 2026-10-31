@@ -1,0 +1,82 @@
+[
+  {
+    "plan_item_id": "090_r8_r1v2_m02_space_wide_A_REF",
+    "map": "r1_m02_space_wide_v2.xml",
+    "setting_id": "A_REF",
+    "run_id": "28079482965641ed8de070db6d911fcf",
+    "terminal_result": "ARRIVED",
+    "task_duration_unified_s": 6.560000000001334,
+    "distance_final_m": 0.49175494248030943,
+    "collision_obstacles": ""
+  },
+  {
+    "plan_item_id": "056_r5_r1v2_m02_space_wide_A_REF",
+    "map": "r1_m02_space_wide_v2.xml",
+    "setting_id": "A_REF",
+    "run_id": "3b44ebef7f944b75abf247a8335d7987",
+    "terminal_result": "COLLISION_TERMINATION",
+    "task_duration_unified_s": 5.420000000000926,
+    "distance_final_m": 1.9143735882220203,
+    "collision_obstacles": "ppt_obstacle_03"
+  },
+  {
+    "plan_item_id": "026_r3_r1v2_m02_space_middle_B_W05_E05_X10",
+    "map": "r1_m02_space_middle_v2.xml",
+    "setting_id": "B_W05_E05_X10",
+    "run_id": "000e3ab9656f4419a64bc5639157d70b",
+    "terminal_result": "ARRIVED",
+    "task_duration_unified_s": 6.62000000000132,
+    "distance_final_m": 0.4778508349147881,
+    "collision_obstacles": ""
+  },
+  {
+    "plan_item_id": "072_r6_r1v2_m02_space_middle_B_W03_E04_X07",
+    "map": "r1_m02_space_middle_v2.xml",
+    "setting_id": "B_W03_E04_X07",
+    "run_id": "b546957704494d2db0f75539cdb4d4a9",
+    "terminal_result": "COLLISION_TERMINATION",
+    "task_duration_unified_s": 6.8800000000014325,
+    "distance_final_m": 2.2156625592942594,
+    "collision_obstacles": "ppt_obstacle_03"
+  },
+  {
+    "plan_item_id": "055_r5_r1v2_m02_space_narrow_B_W05_E05_X10",
+    "map": "r1_m02_space_narrow_v2.xml",
+    "setting_id": "B_W05_E05_X10",
+    "run_id": "2b44b763e3974d5da953d05a56d7aa26",
+    "terminal_result": "ARRIVED",
+    "task_duration_unified_s": 6.6980000000013815,
+    "distance_final_m": 0.4757166067890562,
+    "collision_obstacles": ""
+  },
+  {
+    "plan_item_id": "071_r6_r1v2_m02_space_narrow_B_W05_E05_X10",
+    "map": "r1_m02_space_narrow_v2.xml",
+    "setting_id": "B_W05_E05_X10",
+    "run_id": "0d3807a04b04489998ad280ba723a7c7",
+    "terminal_result": "COLLISION_TERMINATION",
+    "task_duration_unified_s": 5.980000000001127,
+    "distance_final_m": 2.392087179332641,
+    "collision_obstacles": "ppt_obstacle_03"
+  },
+  {
+    "plan_item_id": "049_r5_r1v2_d09_gap_narrow_B_W05_E05_X10",
+    "map": "r1_d09_gap_narrow_v2.xml",
+    "setting_id": "B_W05_E05_X10",
+    "run_id": "719889268254435682edae45665116a3",
+    "terminal_result": "ARRIVED",
+    "task_duration_unified_s": 5.240000000000846,
+    "distance_final_m": 0.4663023919721976,
+    "collision_obstacles": ""
+  },
+  {
+    "plan_item_id": "085_r8_r1v2_d09_gap_narrow_B_W03_E04_X07",
+    "map": "r1_d09_gap_narrow_v2.xml",
+    "setting_id": "B_W03_E04_X07",
+    "run_id": "d6420ee4d83349cca34987fa8db26dcb",
+    "terminal_result": "COLLISION_TERMINATION",
+    "task_duration_unified_s": 3.3400000000002255,
+    "distance_final_m": 3.6194812845707793,
+    "collision_obstacles": "ppt_obstacle_02"
+  }
+]

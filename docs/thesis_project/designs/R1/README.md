@@ -1,6 +1,6 @@
 # R1：切换约束作用与代价研究
 
-更新：2026-10-31。状态：**ACTIVE / R1-11四图A与两档B的120项已完成，等待审阅**。这是独立于S7的后续项目；R1-5至R1-11已完成，结果保持分批记录。
+更新：2026-11-01。状态：**ACTIVE / 三图A/C保持确认120项完成，等待审阅**。这是独立于S7的后续项目；R1-5至R1-11、旧280项及新120项结果分批保留。
 
 ## 研究目标
 
@@ -23,6 +23,8 @@
 | R1-9 | m02 v2三图、五种宽度0.05双阈值、各5次，共75项，完成待审阅 | [75项报告与图表](../../evidence/R1/R1_m02_width05_75/分析报告.md)、[运行清单](../../../../logs/09_R1_switch_constraints/r1_m02_width05_75/20261031_r1_m02_width05_75/run_plan.json) |
 | R1-10 | m02 v2三档×3个B候选、各10次，共90项，完成待审阅 | [90项报告](../../evidence/R1/M02_CONFIRM_90/分析报告.md)、[运行清单](../../../../logs/09_R1_switch_constraints/r1_m02_confirm_90/20261031_r1_m02_confirm_90/run_plan.json) |
 | R1-11 | m02 v2宽/中/窄及d09 v2窄档×A与两档B、各10次，共120项，完成待审阅 | [120项报告、汇总及轨迹](../../evidence/R1/AB_TWO_CANDIDATES_120/分析报告.md)、[批次清单](../../../../logs/09_R1_switch_constraints/ab_two_candidates_120/20261031_ab_two_candidates_120/run_plan.json) |
+| A/C HOLD 280（上一批） | 五张困难图×A及六档C，每格8项；280项计划与280次启动均有记录，含1项保留的系统安全中止 | [结果报告及表图](../../evidence/R1/AC_HOLD_280/RESULTS_SUMMARY.md)、[35格表](../../evidence/R1/AC_HOLD_280/map_setting_35.csv)、[批次清单](../../../../logs/09_R1_switch_constraints/ac_hold_280/20261101_r1_ac_hold_280/run_plan.json) |
+| A/C HOLD确认120 | challenge15、challenge27、m02中档×A及C三档H，每格10项；120/120记录有效、无工程补做，等待审阅 | [结果报告、逐次表及新旧对照](../../evidence/R1/AC_HOLD_CONFIRM_120/20261101_r1_ac_hold_confirm_120/RESULTS_SUMMARY.md)、[12格表](../../evidence/R1/AC_HOLD_CONFIRM_120/20261101_r1_ac_hold_confirm_120/map_setting_12.csv)、[批次清单](../../../../logs/09_R1_switch_constraints/ac_hold_confirm_120/20261101_r1_ac_hold_confirm_120/run_plan.json) |
 
 R1-9完成75项：到达17、碰撞57、仿真限时1，碰撞均指向障碍03。宽/中/窄到达为7/25、4/25、6/25；E01/X06为5/15、E05/X10为4/15，其余2–3/15。中心轨迹多进入03—07近似截面，但不能确认整机净空。三档暂留，E01与E05仅作后续审阅候选；跨批次宽度对照不能作因果解释。R1-4原有结果保持不变。
 
@@ -40,7 +42,12 @@ R1-8完成54项：到达6、碰撞48，全部碰撞记录指向障碍03；宽/�
 
 R1-10完成三候选×m02 v2宽/中/窄×10次，共90/90记录VALID；实际启动90次、补做0次，到达17、碰撞72、仿真限时1。三个候选到达为5/30、4/30、8/30；E05/X10与R1-9聚合比例相同，是弱线索重复，不足以称为改进。72次碰撞均接触障碍03，中心经过03—07近似截面不能证明整机净空。停止在当前三图扩展E/X网格，暂不自动运行H或新图批次；R1保持ACTIVE、等待审阅。详见[90项报告](../../evidence/R1/M02_CONFIRM_90/分析报告.md)、[9格汇总](../../evidence/R1/M02_CONFIRM_90/地图设置汇总.csv)、[每轮趋势](../../evidence/R1/M02_CONFIRM_90/每轮到达变化.png)、[轨迹](../../evidence/R1/M02_CONFIRM_90/代表轨迹与障碍.png)及[原始批次清单](../../../../logs/09_R1_switch_constraints/r1_m02_confirm_90/20261031_r1_m02_confirm_90/run_plan.json)。
 
-R1-11完成A_REF和两档B在m02宽/中/窄及d09窄档上的120项同期比较，120/120记录VALID、补做0次；到达36、碰撞83、仿真限时1。m02各设置30次到达为5/30、4/30、7/30；d09各10次为6/10、6/10、8/10。B_W05−A到达率差分别+6.7和+20个百分点，但95%区间分别−13.8至+26.6及−18.7至+52.1，未验证普遍改善。m02碰撞主要指向障碍03，d09主要指向障碍02。两类地图分层报告，不把四张开发图解释成一般成功率；所有运行已清理。详见[120项报告与轨迹图](../../evidence/R1/AB_TWO_CANDIDATES_120/分析报告.md)及[批次清单](../../../../logs/09_R1_switch_constraints/ab_two_candidates_120/20261031_ab_two_candidates_120/run_plan.json)。R1保持ACTIVE、等待审阅，不自动启动H或新布局验证。
+R1-11完成A_REF和两档B在m02宽/中/窄及d09窄档上的120项同期比较，120/120记录VALID、补做0次；到达36、碰撞83、仿真限时1。m02各设置30次到达为5/30、4/30、7/30；d09各10次为6/10、6/10、8/10。B_W05−A到达率差分别+6.7和+20个百分点，但95%区间分别−13.8至+26.6及−18.7至+52.1，未验证普遍改善。m02碰撞主要指向障碍03，d09主要指向障碍02。两类地图分层报告，不把四张开发图解释成一般成功率；所有运行已清理。详见[120项报告与轨迹图](../../evidence/R1/AB_TWO_CANDIDATES_120/分析报告.md)及[批次清单](../../../../logs/09_R1_switch_constraints/ab_two_candidates_120/20261031_ab_two_candidates_120/run_plan.json)。R1-11完成后等待结果审阅，不自动启动H或新布局验证；当前状态见本页下方A/C保持批次记录。
+
+上一批（280项）：2026-11-01启动A参考下C保持时间比较，五张困难图×A H=0与C六档H，每格8次，共280项。第29项challenge08/C_H0.04触发控制器POLICY_SAFETY_VETO：策略周期37的ray帧序列在复制期间由11944变为11946，读取耗时1.17 ms，超过现有250 μs预算；有界重读机制已存在，但该次读取未能在预算内获得一致快照。控制器依既有安全规则请求PASSIVE。未发现读取实现错误，不改代码、不放宽安全检查。经本次明确授权，从第30项完成剩余251次；现有280项计划全部有对应运行记录，终局为到达96、碰撞145、仿真限时37、跌倒1、安全中止1，安全完成TRUE/FALSE/UNKNOWN为96/184/0。第29项仍作为`STOPPED_FAILURE / SYSTEM_SAFETY_ABORT`单列，分母保留，不重跑或替代。完整报告见[结果报告](../../evidence/R1/AC_HOLD_280/RESULTS_SUMMARY.md)、[逐次结果](../../evidence/R1/AC_HOLD_280/per_run_results.csv)、[35格设置表](../../evidence/R1/AC_HOLD_280/map_setting_35.csv)、[图表目录](../../evidence/R1/AC_HOLD_280/charts/)及[批次记录](../../../../logs/09_R1_switch_constraints/ac_hold_280/20261101_r1_ac_hold_280/run_plan.json)。每项shutdown/closeout均确认；运行器、仿真、ROS/controller、RViz及辅助进程均无残留。R1保持ACTIVE，停止等待审阅，不自动启动D或其他批次。
+
+当前批次（三图确认120项）：challenge15、challenge27、r1_m02_space_middle_v2各比较A H=0和C H=0.02/0.10/0.12，每格10次。120项记录有效、实际启动120次，终局到达32、碰撞58、仿真限时29、墙钟保护1，安全中止0；安全完成TRUE/FALSE/UNKNOWN为32/87/1。总体率差的区间仍包含0，逐图只在challenge15看到方向重复，H=0.10/0.12仍不能选定。H=0.02保持审计识别出440/1528个episode在H到期前RA已低于E且随后退出；实际驻留中位数0.040秒。challenge08此前长保持退化继续保留为限制。详见[120项结果与新旧对照](../../evidence/R1/AC_HOLD_CONFIRM_120/20261101_r1_ac_hold_confirm_120/RESULTS_SUMMARY.md)。本批清理后约1.6GiB；四份配置快照保留，临时overlay清理，每项进程均退出。R1保持ACTIVE、等待审阅，不自动追加H、D或新地图批次。
+
 
 - [原始90项批次与冻结清单](../../../../logs/09_R1_switch_constraints/m2_ABC_repeat_90/20261030_r1_m2_abc90/)
 - [全项目状态](../../CURRENT_STATE.md)、[实验记录导航](../../../../logs/README.md)

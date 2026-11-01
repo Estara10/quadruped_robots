@@ -1,0 +1,5 @@
+level,reference,note,arrival_rate_difference,arrival_rate_difference_ci95_low,arrival_rate_difference_ci95_high,map_equal_mean_difference,selected_map_bootstrap_ci95_low,selected_map_bootstrap_ci95_high,A_arrived,A_valid,C_arrived,C_valid
+A,True,A reference of this batch,,,,,,,,,,
+C_H0.02,,,0.1333333333333333,-0.08991027585246752,0.34071553418716805,0.13333333333333333,0.0,0.2,6,30,10,30
+C_H0.10,,,0.06666666666666665,-0.14671971244730486,0.2731411755658335,0.06666666666666667,0.0,0.2,6,30,8,30
+C_H0.12,,,0.06666666666666665,-0.14671971244730486,0.2731411755658335,0.06666666666666667,0.0,0.2,6,30,8,30

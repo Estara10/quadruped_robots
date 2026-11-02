@@ -27,6 +27,8 @@ set(SIM_DEPENDENCIES
     rt
     mujoco::mujoco
     glfw
+    EGL
+    GL
     yaml-cpp
     unitree_sdk2
     boost_program_options

@@ -47,6 +47,7 @@ def launch_setup(context, *args, **kwargs):
             # Override for real robot: domain 0, user-specified network
             'network_interface': network_interface,
             'domain': 0,
+            'rl_quadruped_controller.runtime_mode': 'hardware',
         }],
         remappings=[
             ("~/robot_description", "/robot_description"),

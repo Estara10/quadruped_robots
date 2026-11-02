@@ -26,6 +26,7 @@ import manual_t2_hold_function_check as t2  # noqa: E402
 
 PARENT = ROOT / "logs/09_R1_switch_constraints/ac_hold_confirm_120"
 REPORT_PARENT = ROOT / "docs/thesis_project/evidence/R1/AC_HOLD_CONFIRM_120"
+ANALYZER_SCRIPT = ROOT / "scripts/analyze_r1_ac_hold_confirm_120.py"
 SOURCE = ROOT / "quadruped_ros2_control_humble/install/go2_description"
 PLAN_FILE = "run_plan.json"
 LEVELS = (("A", None), ("C", 0.02), ("C", 0.10), ("C", 0.12))
@@ -480,7 +481,7 @@ def _run_locked(root: Path, args: argparse.Namespace) -> int:
             try:
                 report_root = REPORT_PARENT / root.name
                 report_root.mkdir(parents=True, exist_ok=True)
-                result = subprocess.run([args.plot_python, str(ROOT / "scripts/analyze_r1_ac_hold_confirm_120.py"),
+                result = subprocess.run([args.plot_python, str(ANALYZER_SCRIPT),
                                          "--plan", str(plan_path), "--output-dir", str(report_root)],
                                         cwd=ROOT, capture_output=True, text=True, timeout=1800)
                 (root / "analysis_stdout.log").write_text(result.stdout + result.stderr, encoding="utf-8")
@@ -503,7 +504,7 @@ def _run_locked(root: Path, args: argparse.Namespace) -> int:
     try:
         report_root = REPORT_PARENT / root.name
         report_root.mkdir(parents=True, exist_ok=True)
-        result = subprocess.run([args.plot_python, str(ROOT / "scripts/analyze_r1_ac_hold_confirm_120.py"),
+        result = subprocess.run([args.plot_python, str(ANALYZER_SCRIPT),
                                  "--plan", str(plan_path), "--output-dir", str(report_root)],
                                 cwd=ROOT, capture_output=True, text=True, timeout=1800)
         (root / "analysis_stdout.log").write_text(result.stdout + result.stderr, encoding="utf-8")

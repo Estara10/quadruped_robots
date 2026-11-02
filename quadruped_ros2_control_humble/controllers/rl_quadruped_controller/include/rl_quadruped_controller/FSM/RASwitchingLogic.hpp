@@ -109,7 +109,7 @@ struct SwitchState
 {
     bool in_recovery = false;  // inline RA-based Recovery is active
     int hold_left = 0;         // forced-hold counter (stabilized mode only)
-    double recovery_enter_sim_time_s = 0.0;
+    double recovery_enter_time_s = 0.0;
     uint64_t recovery_clock_segment = 0;
     bool recovery_enter_time_valid = false;
 };
@@ -145,9 +145,9 @@ inline SwitchDecision stepSwitching(SwitchMode mode,
                                     double entry_thr,
                                     double exit_thr,
                                     int hold_steps,
-                                    double sim_time_s = 0.0,
-                                    bool sim_clock_valid = false,
-                                    uint64_t sim_clock_segment = 0,
+                                    double decision_time_s = 0.0,
+                                    bool clock_valid = false,
+                                    uint64_t clock_segment = 0,
                                     double recovery_min_hold_s = 0.0)
 {
     SwitchDecision d;
@@ -223,11 +223,11 @@ inline SwitchDecision stepSwitching(SwitchMode mode,
         {
             if (!cur.in_recovery)
             {
-                if (ra_value >= entry_thr && sim_clock_valid && std::isfinite(sim_time_s))
+                if (ra_value >= entry_thr && clock_valid && std::isfinite(decision_time_s))
                 {
                     d.state.in_recovery = true;
-                    d.state.recovery_enter_sim_time_s = sim_time_s;
-                    d.state.recovery_clock_segment = sim_clock_segment;
+                    d.state.recovery_enter_time_s = decision_time_s;
+                    d.state.recovery_clock_segment = clock_segment;
                     d.state.recovery_enter_time_valid = true;
                     d.enter_edge = true;
                     d.hold_status = kHoldActive;
@@ -239,17 +239,17 @@ inline SwitchDecision stepSwitching(SwitchMode mode,
             }
             else
             {
-                const bool time_ok = sim_clock_valid && std::isfinite(sim_time_s) &&
+                const bool time_ok = clock_valid && std::isfinite(decision_time_s) &&
                     cur.recovery_enter_time_valid &&
-                    sim_clock_segment == cur.recovery_clock_segment &&
-                    sim_time_s >= cur.recovery_enter_sim_time_s;
+                    clock_segment == cur.recovery_clock_segment &&
+                    decision_time_s >= cur.recovery_enter_time_s;
                 if (!time_ok)
                 {
                     d.hold_status = kHoldClockInvalid;
                 }
                 else
                 {
-                    d.hold_elapsed_s = sim_time_s - cur.recovery_enter_sim_time_s;
+                    d.hold_elapsed_s = decision_time_s - cur.recovery_enter_time_s;
                     d.hold_status = d.hold_elapsed_s >= recovery_min_hold_s ? kHoldExpired : kHoldActive;
                     const double exit_threshold = mode == SwitchMode::combined_switch ? exit_thr : entry_thr;
                     if (d.hold_status == kHoldExpired && ra_value < exit_threshold)

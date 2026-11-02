@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 from typing import Any
 
 
@@ -56,7 +57,22 @@ def verify_source_binding(
     if not controller_cmdline:
         return _pending("controller_launch_command_missing")
     launched_configs = re.findall(r"--params-file\s+(\S+)", controller_cmdline)
-    if launched_configs != [expected["launch_config"]]:
+    generated_launch_params = []
+    if len(launched_configs) > 1:
+        generated_launch_params = launched_configs[1:]
+        if (launched_configs[0] != expected["launch_config"] or len(generated_launch_params) != 1 or
+                not re.fullmatch(r"/tmp/launch_params_[A-Za-z0-9_-]+", generated_launch_params[0])):
+            return _conflict("controller_launch_config_mismatch", observed=controller_cmdline,
+                             expected=[expected["launch_config"], "one ROS-generated runtime_mode params file"])
+        try:
+            generated_text = Path(generated_launch_params[0]).read_text(encoding="utf-8")
+        except OSError as exc:
+            return _pending("generated_launch_params_unreadable", path=generated_launch_params[0], error=str(exc))
+        generated_fields = [line.strip() for line in generated_text.splitlines() if line.strip()]
+        if generated_fields != ["/**:", "ros__parameters:", "rl_quadruped_controller.runtime_mode: mujoco"]:
+            return _conflict("generated_launch_params_unexpected", path=generated_launch_params[0],
+                             content=generated_fields)
+    elif launched_configs != [expected["launch_config"]]:
         return _conflict("controller_launch_config_mismatch", observed=controller_cmdline,
                          expected=[expected["launch_config"]])
 
@@ -238,6 +254,7 @@ def verify_source_binding(
         "recovery_min_hold_s": source["hold_s"],
         "goal_world_m": [source["goal_x"], source["goal_y"]],
         "controller_launch_config": expected["launch_config"],
+        "generated_launch_params": generated_launch_params,
         "runtime_path_goal_world_m": path_goal,
         "switch_config_event": switch_observed,
     }}
@@ -255,7 +272,22 @@ def verify_config_consumption(
     if not controller_cmdline:
         return _pending("controller_launch_command_missing")
     launched_configs = re.findall(r"--params-file\s+(\S+)", controller_cmdline)
-    if launched_configs != [expected["launch_config"]]:
+    generated_launch_params = []
+    if len(launched_configs) > 1:
+        generated_launch_params = launched_configs[1:]
+        if (launched_configs[0] != expected["launch_config"] or len(generated_launch_params) != 1 or
+                not re.fullmatch(r"/tmp/launch_params_[A-Za-z0-9_-]+", generated_launch_params[0])):
+            return _conflict("controller_launch_config_mismatch", observed=controller_cmdline,
+                             expected=[expected["launch_config"], "one ROS-generated runtime_mode params file"])
+        try:
+            generated_text = Path(generated_launch_params[0]).read_text(encoding="utf-8")
+        except OSError as exc:
+            return _pending("generated_launch_params_unreadable", path=generated_launch_params[0], error=str(exc))
+        generated_fields = [line.strip() for line in generated_text.splitlines() if line.strip()]
+        if generated_fields != ["/**:", "ros__parameters:", "rl_quadruped_controller.runtime_mode: mujoco"]:
+            return _conflict("generated_launch_params_unexpected", path=generated_launch_params[0],
+                             content=generated_fields)
+    elif launched_configs != [expected["launch_config"]]:
         return _conflict("controller_launch_config_mismatch", observed=controller_cmdline,
                          expected=[expected["launch_config"]])
 
@@ -331,4 +363,5 @@ def verify_config_consumption(
         "goal_world_m": [source["goal_x"], source["goal_y"]],
         "switch_config_event": switch, "launch_node": source_node,
         "recovery_model": recovery_path, "controller_launch_config": expected["launch_config"],
+        "generated_launch_params": generated_launch_params,
     }}

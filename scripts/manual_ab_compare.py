@@ -341,6 +341,13 @@ def main():
                         help="B/D 共用退出阈值 X；仅 B/D overlay 写入")
     parser.add_argument("--hold-s", type=float, default=0.30,
                         help="C/D 共用最小保持 H，单位仿真秒；仅 C/D overlay 写入")
+    parser.add_argument("--ray-source", choices=("geometric", "prediction"), default="geometric",
+                        help="single active ray source for each run")
+    parser.add_argument("--ray-model", default=str(PROJECT / "archive/ray_pred_finetune/mujoco_finetune_soft_safety_20260611/ray_pred_mujoco_finetuned_best.pt"))
+    parser.add_argument("--ray-python", default="/home/lidio/anaconda3/envs/abs/bin/python")
+    parser.add_argument("--ray-device", choices=("cpu", "cuda"), default="cpu",
+                        help="explicit predictor device; no fallback when CUDA is selected")
+    parser.add_argument("--render-backend", choices=("glfw", "egl"), default="glfw")
     args = parser.parse_args()
     if (not math.isfinite(args.standing_observation_sim_s) or
             not 0.0 <= args.standing_observation_sim_s <= 30.0):
@@ -369,7 +376,7 @@ def main():
                   "recovery_min_hold_H_CD_sim_s": args.hold_s}
     plan = {"classification": args.classification,
             "scene": args.scene, "goal_world_m": [args.goal_x, args.goal_y], "arrival_radius_m": 0.5,
-            "rendering": {"backend": "GLFW", "requested_mode": "hidden" if args.no_window else "visible",
+            "rendering": {"backend": args.render_backend.upper(), "requested_mode": "hidden" if (args.no_window or args.render_backend == "egl") else "visible",
                           "framebuffer_capture_enabled": not args.disable_framebuffer_capture},
             "sim_limit_s": args.sim_limit_s, "wall_cap_s": args.wall_cap_s,
             "standing_observation_sim_s": args.standing_observation_sim_s, "standing_wall_cap_s": 30.0,
@@ -437,6 +444,11 @@ def main():
                            "--output-root", str(run_out), "--display", args.display,
                            "--xauthority", args.xauthority,
                            "--classification", args.classification]
+                command.extend(["--ray-source", args.ray_source,
+                                "--ray-model", args.ray_model,
+                                "--ray-python", args.ray_python,
+                                "--ray-device", args.ray_device,
+                                "--render-backend", args.render_backend])
                 if args.no_rviz:
                     command.append("--no-rviz")
                 if args.no_window:

@@ -1,0 +1,95 @@
+{
+  "status": "SUPERSEDED_UNRUN_BY_LEFT_ROUTE_V2",
+  "source": "unitree_mujoco/unitree_robots/go2/challenge15.xml",
+  "changed_obstacle": "ppt_obstacle_03",
+  "changes": "x only; y,size,yaw and all other obstacles unchanged",
+  "runtime_installed": false,
+  "proposed_comparison": "A H=0 vs C H=0.02; E=effective X=-0.05; 10 runs per map/setting, 120 total; not run",
+  "geometric_witness_only": [
+    [
+      0.0,
+      0.0
+    ],
+    [
+      2.85,
+      -1.1
+    ],
+    [
+      6.6,
+      -1.15
+    ],
+    [
+      7.5,
+      0.0
+    ]
+  ],
+  "scenes": [
+    {
+      "name": "r1_ch15_x01",
+      "file": "r1_ch15_x01.xml",
+      "delta_x_m": -0.3,
+      "obstacle_03_x_m": 5.862843,
+      "obstacle_03_y_m": 0.305638,
+      "obstacle_02_03_center_dx_m": 1.091095,
+      "obstacle_02_03_shape_gap_m": 0.564783,
+      "minimum_shape_gap_m": 0.536708,
+      "lower_route_clearance_m": 0.813125
+    },
+    {
+      "name": "r1_ch15_x02",
+      "file": "r1_ch15_x02.xml",
+      "delta_x_m": -0.2,
+      "obstacle_03_x_m": 5.962843,
+      "obstacle_03_y_m": 0.305638,
+      "obstacle_02_03_center_dx_m": 1.191095,
+      "obstacle_02_03_shape_gap_m": 0.661958,
+      "minimum_shape_gap_m": 0.536708,
+      "lower_route_clearance_m": 0.813125
+    },
+    {
+      "name": "r1_ch15_x03",
+      "file": "r1_ch15_x03.xml",
+      "delta_x_m": -0.1,
+      "obstacle_03_x_m": 6.062843,
+      "obstacle_03_y_m": 0.305638,
+      "obstacle_02_03_center_dx_m": 1.291095,
+      "obstacle_02_03_shape_gap_m": 0.759692,
+      "minimum_shape_gap_m": 0.536708,
+      "lower_route_clearance_m": 0.813125
+    },
+    {
+      "name": "r1_ch15_x04",
+      "file": "r1_ch15_x04.xml",
+      "delta_x_m": 0.1,
+      "obstacle_03_x_m": 6.262843,
+      "obstacle_03_y_m": 0.305638,
+      "obstacle_02_03_center_dx_m": 1.491095,
+      "obstacle_02_03_shape_gap_m": 0.956286,
+      "minimum_shape_gap_m": 0.536708,
+      "lower_route_clearance_m": 0.813125
+    },
+    {
+      "name": "r1_ch15_x05",
+      "file": "r1_ch15_x05.xml",
+      "delta_x_m": 0.2,
+      "obstacle_03_x_m": 6.362843,
+      "obstacle_03_y_m": 0.305638,
+      "obstacle_02_03_center_dx_m": 1.591095,
+      "obstacle_02_03_shape_gap_m": 1.054975,
+      "minimum_shape_gap_m": 0.536708,
+      "lower_route_clearance_m": 0.813125
+    },
+    {
+      "name": "r1_ch15_x06",
+      "file": "r1_ch15_x06.xml",
+      "delta_x_m": 0.3,
+      "obstacle_03_x_m": 6.462843,
+      "obstacle_03_y_m": 0.305638,
+      "obstacle_02_03_center_dx_m": 1.691095,
+      "obstacle_02_03_shape_gap_m": 1.153851,
+      "minimum_shape_gap_m": 0.536708,
+      "lower_route_clearance_m": 0.767573
+    }
+  ],
+  "superseded_by": "../challenge15_left_route_v2/layouts.json"
+}

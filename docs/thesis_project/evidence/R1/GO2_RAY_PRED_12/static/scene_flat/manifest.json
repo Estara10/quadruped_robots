@@ -1,0 +1,122 @@
+{
+  "scene": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/scene_flat.xml",
+  "model": "archive/ray_pred_finetune/mujoco_finetune_soft_safety_20260611/ray_pred_mujoco_finetuned_best.pt",
+  "source": "grid",
+  "samples": 4,
+  "device": "cpu",
+  "camera_size": [
+    160,
+    90
+  ],
+  "camera_hfov_deg": 102.0,
+  "camera_fovy_deg": 69.5699795961589,
+  "camera_local_pos": [
+    0.0,
+    0.0,
+    0.27
+  ],
+  "ray_count": 11,
+  "ray_distance_range_m": [
+    0.1,
+    6.0
+  ],
+  "thresholds": {
+    "near_distance": 1.5,
+    "clear_distance": 3.0,
+    "false_safe_margin": 0.5,
+    "false_danger_margin": 0.5,
+    "min_target_clearance": 0.0
+  },
+  "visualizations": [
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/static/scene_flat/worst_samples/rank_01_sample_003_depth.png",
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/static/scene_flat/worst_samples/rank_01_sample_003_rays.png",
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/static/scene_flat/worst_samples/rank_02_sample_000_depth.png",
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/static/scene_flat/worst_samples/rank_02_sample_000_rays.png"
+  ],
+  "summary": {
+    "samples": 4,
+    "mean_abs_log2": 0.20679092407226562,
+    "rmse_log2": 0.3254375457763672,
+    "max_abs_log2": 0.8457992076873779,
+    "mean_abs_m": 0.5818169116973877,
+    "rmse_m": 1.0581259727478027,
+    "max_abs_m": 2.6615848541259766,
+    "false_safe_total": 0,
+    "false_danger_total": 12,
+    "mean_abs_log2_flipped": 0.20679092407226562,
+    "rmse_log2_flipped": 0.3254375159740448,
+    "max_abs_log2_flipped": 0.8457992076873779,
+    "mean_abs_m_flipped": 0.5818169116973877,
+    "rmse_m_flipped": 1.0581259727478027,
+    "max_abs_m_flipped": 2.6615848541259766,
+    "false_safe_total_flipped": 0,
+    "false_danger_total_flipped": 12,
+    "mean_render_ms": 33.73509645462036,
+    "mean_inference_ms": 35.40116548538208,
+    "per_ray_mean_abs_m": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.19677472114562988,
+      0.4070470333099365,
+      1.3278089761734009,
+      1.8067717552185059,
+      2.66158390045166
+    ],
+    "per_ray_max_abs_m": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.1967782974243164,
+      0.40704917907714844,
+      1.3278093338012695,
+      1.8067731857299805,
+      2.6615848541259766
+    ],
+    "per_ray_bias_m": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      -0.19677472114562988,
+      -0.4070470333099365,
+      -1.3278089761734009,
+      -1.8067717552185059,
+      -2.66158390045166
+    ],
+    "per_ray_mean_target_m": [
+      6.0,
+      6.0,
+      6.0,
+      6.0,
+      6.0,
+      6.0,
+      6.0,
+      6.0,
+      6.0,
+      6.0,
+      6.0
+    ],
+    "per_ray_mean_pred_m": [
+      6.0,
+      6.0,
+      6.0,
+      6.0,
+      6.0,
+      6.0,
+      5.803225517272949,
+      5.592953205108643,
+      4.6721906661987305,
+      4.193228244781494,
+      3.33841609954834
+    ]
+  }
+}

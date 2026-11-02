@@ -8,6 +8,8 @@
 #include <rclcpp/logging.hpp>
 
 #include <cmath>
+#include <chrono>
+#include <limits>
 #include <unistd.h>
 
 #include "crc32.h"
@@ -21,6 +23,12 @@ namespace
 constexpr float PosStopF = 2.146E+9f;
 constexpr float VelStopF = 16000.0f;
 constexpr double CommandEps = 1e-9;
+
+uint64_t monotonicNowNs()
+{
+    return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+}
 }
 
 using namespace unitree::robot;
@@ -71,6 +79,13 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn Hardwa
         info.hardware_parameters.end())
     {
         show_foot_force_ = show_foot_force_param->second == "true";
+    }
+    if (const auto freshness_param = info.hardware_parameters.find("state_freshness_timeout_ms");
+        freshness_param != info.hardware_parameters.end())
+    {
+        const long timeout_ms = std::stol(freshness_param->second);
+        if (timeout_ms <= 0) return CallbackReturn::ERROR;
+        state_freshness_timeout_ns_ = static_cast<uint64_t>(timeout_ms) * 1'000'000ULL;
     }
 
     RCLCPP_INFO(rclcpp::get_logger("unitree_hardware"), " network_interface: %s, domain: %d", network_interface_.c_str(), domain_);
@@ -214,32 +229,50 @@ std::vector<hardware_interface::CommandInterface> HardwareUnitree::export_comman
 
 return_type HardwareUnitree::read(const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/)
 {
+    unitree_go::msg::dds_::LowState_ low_state;
+    unitree_go::msg::dds_::SportModeState_ high_state;
+    uint64_t low_received_ns = 0;
+    uint64_t sport_received_ns = 0;
+    {
+        std::lock_guard<std::mutex> lock(state_mutex_);
+        low_state = low_state_;
+        high_state = high_state_;
+        low_received_ns = low_state_received_ns_;
+        sport_received_ns = sport_state_received_ns_;
+    }
+    const uint64_t now_ns = monotonicNowNs();
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const bool low_fresh = low_received_ns != 0 && now_ns >= low_received_ns &&
+                           now_ns - low_received_ns <= state_freshness_timeout_ns_;
+    const bool sport_fresh = sport_received_ns != 0 && now_ns >= sport_received_ns &&
+                             now_ns - sport_received_ns <= state_freshness_timeout_ns_;
+
     // joint states
     for (int i(0); i < 12; ++i)
     {
         const int motor_idx = motor_index_map_[i];
-        joint_position_[i] = low_state_.motor_state()[motor_idx].q();
-        joint_velocities_[i] = low_state_.motor_state()[motor_idx].dq();
-        joint_effort_[i] = low_state_.motor_state()[motor_idx].tau_est();
+        joint_position_[i] = low_fresh ? low_state.motor_state()[motor_idx].q() : nan;
+        joint_velocities_[i] = low_fresh ? low_state.motor_state()[motor_idx].dq() : nan;
+        joint_effort_[i] = low_fresh ? low_state.motor_state()[motor_idx].tau_est() : nan;
     }
 
     // imu states
-    imu_states_[0] = low_state_.imu_state().quaternion()[0]; // w
-    imu_states_[1] = low_state_.imu_state().quaternion()[1]; // x
-    imu_states_[2] = low_state_.imu_state().quaternion()[2]; // y
-    imu_states_[3] = low_state_.imu_state().quaternion()[3]; // z
-    imu_states_[4] = low_state_.imu_state().gyroscope()[0];
-    imu_states_[5] = low_state_.imu_state().gyroscope()[1];
-    imu_states_[6] = low_state_.imu_state().gyroscope()[2];
-    imu_states_[7] = low_state_.imu_state().accelerometer()[0];
-    imu_states_[8] = low_state_.imu_state().accelerometer()[1];
-    imu_states_[9] = low_state_.imu_state().accelerometer()[2];
+    imu_states_[0] = low_fresh ? low_state.imu_state().quaternion()[0] : nan; // w
+    imu_states_[1] = low_fresh ? low_state.imu_state().quaternion()[1] : nan; // x
+    imu_states_[2] = low_fresh ? low_state.imu_state().quaternion()[2] : nan; // y
+    imu_states_[3] = low_fresh ? low_state.imu_state().quaternion()[3] : nan; // z
+    imu_states_[4] = low_fresh ? low_state.imu_state().gyroscope()[0] : nan;
+    imu_states_[5] = low_fresh ? low_state.imu_state().gyroscope()[1] : nan;
+    imu_states_[6] = low_fresh ? low_state.imu_state().gyroscope()[2] : nan;
+    imu_states_[7] = low_fresh ? low_state.imu_state().accelerometer()[0] : nan;
+    imu_states_[8] = low_fresh ? low_state.imu_state().accelerometer()[1] : nan;
+    imu_states_[9] = low_fresh ? low_state.imu_state().accelerometer()[2] : nan;
 
     // contact states
-    foot_force_[0] = low_state_.foot_force()[0];
-    foot_force_[1] = low_state_.foot_force()[1];
-    foot_force_[2] = low_state_.foot_force()[2];
-    foot_force_[3] = low_state_.foot_force()[3];
+    foot_force_[0] = low_fresh ? low_state.foot_force()[0] : nan;
+    foot_force_[1] = low_fresh ? low_state.foot_force()[1] : nan;
+    foot_force_[2] = low_fresh ? low_state.foot_force()[2] : nan;
+    foot_force_[3] = low_fresh ? low_state.foot_force()[3] : nan;
 
     if (show_foot_force_)
     {
@@ -248,12 +281,12 @@ return_type HardwareUnitree::read(const rclcpp::Time& /*time*/, const rclcpp::Du
     }
 
     // high states
-    high_states_[0] = high_state_.position()[0];
-    high_states_[1] = high_state_.position()[1];
-    high_states_[2] = high_state_.position()[2];
-    high_states_[3] = high_state_.velocity()[0];
-    high_states_[4] = high_state_.velocity()[1];
-    high_states_[5] = high_state_.velocity()[2];
+    high_states_[0] = sport_fresh ? high_state.position()[0] : nan;
+    high_states_[1] = sport_fresh ? high_state.position()[1] : nan;
+    high_states_[2] = sport_fresh ? high_state.position()[2] : nan;
+    high_states_[3] = sport_fresh ? high_state.velocity()[0] : nan;
+    high_states_[4] = sport_fresh ? high_state.velocity()[1] : nan;
+    high_states_[5] = sport_fresh ? high_state.velocity()[2] : nan;
 
     // RCLCPP_INFO(get_logger(), "high state: %f %f %f %f %f %f", high_states_[0], high_states_[1], high_states_[2],
     //             high_states_[3], high_states_[4], high_states_[5]);
@@ -457,12 +490,16 @@ std::string HardwareUnitree::queryServiceName(const std::string& form, const std
 
 void HardwareUnitree::lowStateMessageHandle(const void* messages)
 {
+    std::lock_guard<std::mutex> lock(state_mutex_);
     low_state_ = *static_cast<const unitree_go::msg::dds_::LowState_*>(messages);
+    low_state_received_ns_ = monotonicNowNs();
 }
 
 void HardwareUnitree::highStateMessageHandle(const void* messages)
 {
+    std::lock_guard<std::mutex> lock(state_mutex_);
     high_state_ = *static_cast<const unitree_go::msg::dds_::SportModeState_*>(messages);
+    sport_state_received_ns_ = monotonicNowNs();
 }
 
 #include "pluginlib/class_list_macros.hpp"

@@ -22,6 +22,7 @@ from abs_rt_frame import (
     DEFAULT_STALE_TIMEOUT_NS,
     FRAME_MAGIC,
     FRAME_SIZE,
+    FRAME_V3_SIZE,
     FRAME_VERSION,
     FRAME_V2_SIZE,
     JOINT_COUNT,
@@ -136,8 +137,15 @@ def _pack_frame(
         + torque_saturated
     )
     assert len(qs) == 14 and len(uints) == 20 and len(floats) == 83
-    return _FRAME_STRUCT.pack(*(qs + uints + [sim_time_s] + floats + [
-        hold_status, hold_enabled, recovery_min_hold_s, hold_enter_sim_time_s, hold_elapsed_sim_s]))
+    base = qs + uints + [sim_time_s] + floats
+    if version == 2:
+        from abs_rt_frame import _FRAME_V2_STRUCT
+        return _FRAME_V2_STRUCT.pack(*base)
+    extension = [hold_status, hold_enabled, recovery_min_hold_s, hold_enter_sim_time_s, hold_elapsed_sim_s]
+    if version == 3:
+        from abs_rt_frame import _FRAME_V3_STRUCT
+        return _FRAME_V3_STRUCT.pack(*(base + extension))
+    return _FRAME_STRUCT.pack(*(base + extension + [12_000_000]))
 
 
 def _authoritative_fixture(**kwargs):
@@ -150,8 +158,9 @@ def _authoritative_fixture(**kwargs):
 
 class FrameContractTests(unittest.TestCase):
     def test_frame_size_matches_c_contract(self):
-        self.assertEqual(FRAME_SIZE, 568)
-        self.assertEqual(_FRAME_STRUCT.size, 568)
+        self.assertEqual(FRAME_SIZE, 576)
+        self.assertEqual(FRAME_V3_SIZE, 568)
+        self.assertEqual(_FRAME_STRUCT.size, 576)
 
     def test_default_fixture_is_synthetic_not_authoritative(self):
         # The default fixture source is SYNTHETIC_TEST, so an otherwise valid
@@ -169,6 +178,7 @@ class FrameContractTests(unittest.TestCase):
         self.assertEqual(frame.session_id, 42)
         self.assertEqual(frame.rl_step, 7)
         self.assertEqual(frame.source, SOURCE_AUTHORITATIVE_RUNTIME)
+        self.assertEqual(frame.policy_cycle_duration_ns, 12_000_000)
 
     def test_hysteresis_group_mode_is_valid(self):
         raw = _pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, switching_mode=SWITCH_HYSTERESIS)
@@ -197,13 +207,14 @@ class FrameContractTests(unittest.TestCase):
         self.assertEqual(hud.update(raw, _NOW_NS), FrameStatus.LIVE)
         shown = hud.display()
         self.assertEqual(shown["switching_mode"], SWITCH_MINIMUM_HOLD)
+        self.assertIsNone(hud._frame.policy_cycle_duration_ns)
         self.assertAlmostEqual(shown["hold_remaining_sim_s"], 0.2)
         self.assertAlmostEqual(shown["hold_enter_sim_time_s"], 0.8)
 
     def test_v2_exact_length_remains_readable_but_mismatch_is_rejected(self):
         v2 = _pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, version=2)[:FRAME_V2_SIZE]
         self.assertEqual(classify_frame(v2, _NOW_NS)[0], FrameStatus.LIVE)
-        self.assertEqual(classify_frame(_pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, version=2), _NOW_NS)[0],
+        self.assertEqual(classify_frame(_pack_frame(source=SOURCE_AUTHORITATIVE_RUNTIME, version=2) + b"\0", _NOW_NS)[0],
                          FrameStatus.INVALID)
 
     def test_missing_empty_data(self):

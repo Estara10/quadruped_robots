@@ -1,0 +1,11 @@
+{
+  "period_sim_s": 0.06,
+  "periodic_update_events": 1038,
+  "written_to_recovery_confirmed": "1038/1038",
+  "first_eligible_recovery_policy_cycle": "1038/1038",
+  "early_or_later_than_first_eligible": 0,
+  "elapsed_since_previous_update_sim_s_min": 0.06,
+  "elapsed_since_previous_update_sim_s_max": 0.104,
+  "max_sim_time_after_deadline_s": 0.04399999999998894,
+  "note": "Simulation-clock deadlines use exact comparisons without tolerance. Observed maximum 0.104 s is P+0.044 s because that next eligible policy cycle arrived 44 ms after the deadline; no update was made before the deadline or on a later eligible Recovery cycle."
+}

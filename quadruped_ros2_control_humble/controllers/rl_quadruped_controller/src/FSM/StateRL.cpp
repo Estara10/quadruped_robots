@@ -88,9 +88,18 @@ StateRL::StateRL(CtrlInterfaces& ctrl_interfaces,
     if (!node_->has_parameter("use_rl_thread")) {
         node_->declare_parameter("use_rl_thread", use_rl_thread_);
     }
+    if (!node_->has_parameter("runtime_mode")) {
+        node_->declare_parameter("runtime_mode", runtime_mode_);
+    }
     robot_pkg_ = node_->get_parameter("robot_pkg").as_string();
     model_folder_ = node_->get_parameter("model_folder").as_string();
     use_rl_thread_ = node_->get_parameter("use_rl_thread").as_bool();
+    runtime_mode_ = node_->get_parameter("runtime_mode").as_string();
+    if (runtime_mode_ != "mujoco" && runtime_mode_ != "hardware") {
+        throw std::invalid_argument("runtime_mode must be explicitly set to mujoco or hardware");
+    }
+    RCLCPP_INFO(node_->get_logger(), "[ABS-RUNTIME-CLOCK] mode=%s source=%s",
+                runtime_mode_.c_str(), runtime_mode_ == "hardware" ? "steady_clock" : "mujoco_sim_clock");
 
     RCLCPP_INFO(node_->get_logger(), "Using robot model from %s", robot_pkg_.c_str());
     const std::string package_share_directory = ament_index_cpp::get_package_share_directory(robot_pkg_);
@@ -327,6 +336,7 @@ StateRL::~StateRL()
 
 void StateRL::enter()
 {
+    periodic_twist_schedule_.reset();
     initial_policy_state_logged_ = false;
     goal_arrived_ = false;
     normal_shutdown_requested_ = false;
@@ -381,6 +391,9 @@ void StateRL::enter()
     // Real-time observation frame (single data link to HUD/recorder). The
     // controller owns this shm; source is AUTHORITATIVE_RUNTIME on every frame.
     rt_session_id_ = monotonicNowNs();
+    runtime_clock_time_s_ = 0.0;
+    runtime_clock_valid_ = false;
+    runtime_clock_segment_ = rt_session_id_;
     rt_frame_shm_fd_ = shm_open(abs_rt_frame::kFrameShmName, O_CREAT | O_RDWR, 0666);
     if (rt_frame_shm_fd_ >= 0)
     {
@@ -549,7 +562,7 @@ void StateRL::enter()
     sim_clock_segment_id_ = 0;
     sim_clock_mapping_replacement_pending_ = false;
     recovery_episode_id_ = 0;
-    recovery_enter_sim_time_s_ = 0.0;
+    recovery_enter_time_s_ = 0.0;
     recovery_clock_segment_ = 0;
     recovery_enter_time_valid_ = false;
     previous_risk_valid_ = false;
@@ -590,10 +603,10 @@ void StateRL::enter()
     path_start_initialized_ = false;
     in_recovery_ = false;
     rec_hold_left_ = 0;
-    recovery_enter_sim_time_s_ = 0.0;
+    recovery_enter_time_s_ = 0.0;
     recovery_clock_segment_ = 0;
     recovery_enter_time_valid_ = false;
-    recovery_enter_sim_time_s_ = 0.0;
+    recovery_enter_time_s_ = 0.0;
     recovery_clock_segment_ = 0;
     recovery_enter_time_valid_ = false;
     cached_rec_vx_ = 0.0;
@@ -656,6 +669,25 @@ void StateRL::enter()
 void StateRL::run(const rclcpp::Time&/*time*/, const rclcpp::Duration& period)
 {
     getState();
+    if (runtime_mode_ == "hardware")
+    {
+        bool fresh = ctrl_interfaces_.joint_position_state_interface_.size() >= 12 &&
+                     ctrl_interfaces_.joint_velocity_state_interface_.size() >= 12 &&
+                     ctrl_interfaces_.imu_state_interface_.size() >= 10 &&
+                     ctrl_interfaces_.foot_force_state_interface_.size() >= 4 &&
+                     ctrl_interfaces_.odom_state_interface_.size() >= 6;
+        for (const auto& interface : ctrl_interfaces_.joint_position_state_interface_)
+            fresh = fresh && std::isfinite(interface.get().get_value());
+        for (const auto& interface : ctrl_interfaces_.joint_velocity_state_interface_)
+            fresh = fresh && std::isfinite(interface.get().get_value());
+        for (const auto& interface : ctrl_interfaces_.imu_state_interface_)
+            fresh = fresh && std::isfinite(interface.get().get_value());
+        for (const auto& interface : ctrl_interfaces_.foot_force_state_interface_)
+            fresh = fresh && std::isfinite(interface.get().get_value());
+        for (const auto& interface : ctrl_interfaces_.odom_state_interface_)
+            fresh = fresh && std::isfinite(interface.get().get_value());
+        if (!fresh) safetyVeto("hardware state missing or stale");
+    }
     const double period_s = period.seconds();
     if (!startup_gain_transition_initialized_ || !std::isfinite(period_s) || period_s < 0.0)
     {
@@ -786,6 +818,7 @@ void StateRL::logSymmetryDebug(double robot_wx, double robot_wy, double robot_ya
 
 void StateRL::exit()
 {
+    periodic_twist_schedule_.reset();
     running_ = false;
     RCLCPP_INFO(rclcpp::get_logger("StateRL"), "[VERIFY-EXIT] RL steps executed: %d", rl_step_count_);
     rl_step_count_ = 0;
@@ -892,6 +925,51 @@ void StateRL::computeRecoveryTwist()
         ra_vals[0], ra_vals[1], ra_vals[2], obs_.ray2d[0][5].item<double>());
 
     torch::autograd::GradMode::set_enabled(false);
+}
+
+bool StateRL::optimizeRecoveryTwist(const char* update_type,
+                                    const std::array<double, 3>& before,
+                                    double elapsed_s)
+{
+    const uint64_t start_ns = monotonicNowNs();
+    computeRecoveryTwist();
+    const uint64_t optimizer_ns = monotonicNowNs() - start_ns;
+    const std::array<double, 3> after{
+        ctrl_component_.recovery_twist_vx,
+        ctrl_component_.recovery_twist_vy,
+        ctrl_component_.recovery_twist_wz};
+    const torch::Tensor candidate = torch::tensor({{after[0], after[1], after[2]}});
+    const bool finite = abs_observation::finite(candidate);
+    if (!finite)
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("StateRL"),
+            "[TWIST-UPDATE] episode=%lu type=%s policy_cycle=%d clock_source=%s runtime_time_s=%.9f "
+            "sim_time_valid=%d sim_time_s=%.9f period_s=%.3f elapsed_since_update_s=%.9f optimizer_ns=%lu "
+            "before=[%.6f,%.6f,%.6f] after=[%.6f,%.6f,%.6f] delta=[%.6f,%.6f,%.6f] written_to_recovery=0",
+            recovery_episode_id_, update_type, rl_step_count_,
+            runtime_mode_ == "hardware" ? "steady_clock" : "mujoco_sim_clock", runtime_clock_time_s_,
+            cycle_trace_.sim_clock_valid, cycle_trace_.sim_time_s,
+            abs_twist_update::kPeriodicPeriodS, elapsed_s, optimizer_ns,
+            before[0], before[1], before[2], after[0], after[1], after[2],
+            after[0] - before[0], after[1] - before[1], after[2] - before[2]);
+        safetyVeto("recovery twist");
+        return false;
+    }
+
+    cached_rec_vx_ = after[0];
+    cached_rec_vy_ = after[1];
+    cached_rec_wz_ = after[2];
+    RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+        "[TWIST-UPDATE] episode=%lu mode=%s type=%s policy_cycle=%d clock_source=%s runtime_time_s=%.9f "
+        "sim_time_valid=%d sim_time_s=%.9f period_s=%.3f elapsed_since_update_s=%.9f optimizer_ns=%lu "
+        "before=[%.6f,%.6f,%.6f] after=[%.6f,%.6f,%.6f] delta=[%.6f,%.6f,%.6f] written_to_recovery=1",
+        recovery_episode_id_, periodic_twist_updates_ ? "Periodic" : "Frozen", update_type,
+        rl_step_count_, runtime_mode_ == "hardware" ? "steady_clock" : "mujoco_sim_clock",
+        runtime_clock_time_s_, cycle_trace_.sim_clock_valid, cycle_trace_.sim_time_s,
+        abs_twist_update::kPeriodicPeriodS, elapsed_s, optimizer_ns,
+        before[0], before[1], before[2], after[0], after[1], after[2],
+        after[0] - before[0], after[1] - before[1], after[2] - before[2]);
+    return true;
 }
 
 torch::Tensor StateRL::computeRecoveryObservation(const torch::Tensor& twist)
@@ -1325,6 +1403,9 @@ void StateRL::writeRtFrame(uint32_t policy_state,
 
     // Publish the already-validated frame after the anchor reference has been
     // accepted.
+    const uint64_t publish_start_ns = monotonicNowNs();
+    local.policy_cycle_duration_ns = publish_start_ns >= cycle_trace_.cycle_start_monotonic_ns
+        ? publish_start_ns - cycle_trace_.cycle_start_monotonic_ns : 0;
     local.header.sequence = sequence + 2U;
     abs_rt_frame::storeRelease(&frame->header.sequence, sequence + 1U);
     std::memcpy(reinterpret_cast<char*>(frame) + sizeof(abs_rt_frame::FrameHeader),
@@ -1929,6 +2010,23 @@ void StateRL::loadYaml(const std::string& config_path)
         switching_mode_ = switching_config.mode;
         recovery_hold_steps_ = 0;
         recovery_min_hold_s_ = switching_config.recovery_min_hold_s;
+        abs_switching::TwistUpdateConfig twist_update_config;
+        try
+        {
+            twist_update_config = abs_switching::parseTwistUpdateConfig(abs_node);
+        }
+        catch (const std::exception& e)
+        {
+            RCLCPP_FATAL(rclcpp::get_logger("StateRL"),
+                "[TWIST-UPDATE-CONFIG] invalid configuration: %s", e.what());
+            throw;
+        }
+        periodic_twist_updates_ = twist_update_config.mode == abs_switching::TwistUpdateMode::periodic;
+        periodic_twist_schedule_.reset();
+        RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+            "[TWIST-UPDATE-CONFIG] mode=%s period_s=%.3f",
+            abs_switching::twistUpdateModeName(twist_update_config.mode),
+            abs_twist_update::kPeriodicPeriodS);
         params_.abs_max_episode_length_s = abs_node["max_episode_length_s"].as<double>();
         params_.abs_contact_threshold = abs_node["contact_threshold"].as<double>();
         params_.abs_ray2d_count = abs_node["ray2d_count"].as<int>();
@@ -2063,6 +2161,7 @@ void StateRL::getState()
 void StateRL::runModel()
 {
     cycle_trace_ = PolicyCycleTrace{};
+    cycle_trace_.cycle_start_monotonic_ns = monotonicNowNs();
     cycle_trace_.mode_before = in_recovery_ ? abs_rt_frame::kPolicyRecovery
                                              : abs_rt_frame::kPolicyAgile;
     cycle_trace_.switching_mode = switching_mode_ == abs_switching::SwitchMode::paper_faithful_switch
@@ -2075,7 +2174,8 @@ void StateRL::runModel()
         cycle_trace_.switching_mode = abs_rt_frame::kSwitchCombined;
     cycle_trace_.hold_enabled = recovery_min_hold_s_ > 0.0 ? 1U : 0U;
     cycle_trace_.hold_duration_s = recovery_min_hold_s_;
-    cycle_trace_.hold_enter_sim_time_s = recovery_enter_time_valid_ ? recovery_enter_sim_time_s_ : 0.0;
+    cycle_trace_.hold_enter_sim_time_s =
+        runtime_mode_ == "mujoco" && recovery_enter_time_valid_ ? recovery_enter_time_s_ : 0.0;
     cycle_trace_.hold_status = cycle_trace_.hold_enabled
         ? (in_recovery_ ? abs_rt_frame::kHoldClockInvalid : abs_rt_frame::kHoldNotInRecovery)
         : abs_rt_frame::kHoldDisabled;
@@ -2083,7 +2183,36 @@ void StateRL::runModel()
     cycle_trace_.exit_threshold = abs_switching::effectiveExitThreshold(
         switching_mode_, cycle_trace_.entry_threshold, switching_exit_threshold_);
     cycle_trace_.risk_condition_entered = abs_rt_frame::kRiskEdgeUnknown;
-    captureSimClock();
+    if (runtime_mode_ == "mujoco")
+    {
+        captureSimClock();
+    }
+    else
+    {
+        // A hardware session must never report a coincidentally present MuJoCo
+        // shared-memory clock as its task or switching clock.
+        cycle_trace_.sim_clock_valid = 0;
+        cycle_trace_.sim_clock_status = abs_rt_frame::kSimClockUnavailable;
+        cycle_trace_.sim_time_s = 0.0;
+        cycle_trace_.sim_clock_sequence = 0;
+        cycle_trace_.sim_clock_monotonic_ns = 0;
+        cycle_trace_.sim_clock_age_ns = 0;
+        cycle_trace_.sim_clock_segment_id = sim_clock_segment_id_;
+    }
+    if (runtime_mode_ == "hardware")
+    {
+        const uint64_t now_ns = monotonicNowNs();
+        runtime_clock_valid_ = now_ns >= rt_session_id_;
+        runtime_clock_time_s_ = runtime_clock_valid_
+            ? static_cast<double>(now_ns - rt_session_id_) / 1.0e9 : 0.0;
+        runtime_clock_segment_ = rt_session_id_;
+    }
+    else
+    {
+        runtime_clock_valid_ = cycle_trace_.sim_clock_valid != 0;
+        runtime_clock_time_s_ = cycle_trace_.sim_time_s;
+        runtime_clock_segment_ = cycle_trace_.sim_clock_segment_id;
+    }
 
     obs_.ang_vel = torch::tensor(robot_state_.imu.gyroscope).unsqueeze(0);
     obs_.base_quat = torch::tensor(robot_state_.imu.quaternion).unsqueeze(0);
@@ -2273,7 +2402,14 @@ void StateRL::runModel()
 
     // Deployment has no physical reset: paper_faithful_rolling supplies a documented
     // 9-second time-left phase and restarts only the timer phase at the horizon.
-    episode_timer_ += static_cast<double>(params_.decimation) / ctrl_interfaces_.frequency_;
+    if (runtime_mode_ == "hardware")
+    {
+        if (runtime_clock_valid_) episode_timer_ = runtime_clock_time_s_;
+    }
+    else
+    {
+        episode_timer_ += static_cast<double>(params_.decimation) / ctrl_interfaces_.frequency_;
+    }
 
     // Update contact from foot forces in controller order (FR, FL, RR, RL).
     // computeObservation() remaps it to ROS1 policy order (FL, FR, RL, RR).
@@ -2326,6 +2462,7 @@ void StateRL::runModel()
 
     // Cache last optimized twist (avoids recomputing GD every 8ms step)
 
+    bool entered_recovery_this_cycle = false;
     if (ra_loaded_ && rec_loaded_)
     {
         // P1-07: the switching decision is delegated to the single pure helper
@@ -2336,27 +2473,27 @@ void StateRL::runModel()
         // above; the helper additionally refuses any transition on NaN/Inf
         // (invalid=true) so it can never drive the state machine.
         const bool was_in_recovery = in_recovery_;
-        abs_switching::SwitchState sw{in_recovery_, rec_hold_left_, recovery_enter_sim_time_s_,
+        abs_switching::SwitchState sw{in_recovery_, rec_hold_left_, recovery_enter_time_s_,
                                       recovery_clock_segment_, recovery_enter_time_valid_};
         const abs_switching::SwitchDecision decision =
             abs_switching::stepSwitching(switching_mode_, sw, ra_value_,
                                          ra_entry_thr, ra_exit_thr, REC_HOLD_STEPS,
-                                         cycle_trace_.sim_time_s, cycle_trace_.sim_clock_valid != 0,
-                                         cycle_trace_.sim_clock_segment_id, recovery_min_hold_s_);
+                                         runtime_clock_time_s_, runtime_clock_valid_,
+                                         runtime_clock_segment_, recovery_min_hold_s_);
         const uint64_t decision_ns = monotonicNowNs();
         if (!decision.invalid)
         {
             in_recovery_ = decision.state.in_recovery;
             rec_hold_left_ = decision.state.hold_left;
-            recovery_enter_sim_time_s_ = decision.state.recovery_enter_sim_time_s;
+            recovery_enter_time_s_ = decision.state.recovery_enter_time_s;
             recovery_clock_segment_ = decision.state.recovery_clock_segment;
             recovery_enter_time_valid_ = decision.state.recovery_enter_time_valid;
             cycle_trace_.hold_status = static_cast<uint32_t>(decision.hold_status);
-            cycle_trace_.hold_elapsed_sim_s = decision.hold_elapsed_s;
-            if (recovery_enter_time_valid_)
-                cycle_trace_.hold_enter_sim_time_s = recovery_enter_sim_time_s_;
-            else if (abs_switching::usesMinimumHold(switching_mode_) && was_in_recovery)
-                cycle_trace_.hold_enter_sim_time_s = sw.recovery_enter_sim_time_s;
+            cycle_trace_.hold_elapsed_sim_s = runtime_mode_ == "mujoco" ? decision.hold_elapsed_s : 0.0;
+            if (recovery_enter_time_valid_ && runtime_mode_ == "mujoco")
+                cycle_trace_.hold_enter_sim_time_s = recovery_enter_time_s_;
+            else if (abs_switching::usesMinimumHold(switching_mode_) && was_in_recovery && runtime_mode_ == "mujoco")
+                cycle_trace_.hold_enter_sim_time_s = sw.recovery_enter_time_s;
             else
                 cycle_trace_.hold_enter_sim_time_s = 0.0;
             cycle_trace_.policy_mode_changed = was_in_recovery != in_recovery_ ? 1U : 0U;
@@ -2380,33 +2517,61 @@ void StateRL::runModel()
             }
             if (decision.enter_edge)
             {
+                entered_recovery_this_cycle = true;
                 ++recovery_episode_id_;
             }
             if (decision.enter_edge)
             {
-                // ENTER recovery (ROS1 L495-497): optimize + cache the safe twist
-                computeRecoveryTwist();  // GD optimization (ROS1 L498-525)
-                cached_rec_vx_ = ctrl_component_.recovery_twist_vx;
-                cached_rec_vy_ = ctrl_component_.recovery_twist_vy;
-                cached_rec_wz_ = ctrl_component_.recovery_twist_wz;
+                // ENTER recovery: optimize + validate + cache the initial twist.
+                const std::array<double, 3> before{
+                    obs_.lin_vel[0][0].item<double>(), obs_.lin_vel[0][1].item<double>(),
+                    obs_.ang_vel[0][2].item<double>()};
+                if (!optimizeRecoveryTwist("entry", before, 0.0)) return;
+                if (periodic_twist_updates_ && runtime_clock_valid_)
+                    periodic_twist_schedule_.begin(runtime_clock_time_s_, runtime_clock_segment_);
+                else
+                    periodic_twist_schedule_.reset();
                 RCLCPP_WARN(rclcpp::get_logger("StateRL"),
-                    "[RA-REC] 进入恢复 | group=%s mode=%s ra=%.4f entry=%.4f effective_exit=%.4f hysteresis=%s hold_s=%.4f sim_time=%.6f sim_clock_valid=%d 恢复速度=[%.2f,%.2f,%.2f]",
+                    "[RA-REC] 进入恢复 | group=%s mode=%s ra=%.4f entry=%.4f effective_exit=%.4f hysteresis=%s hold_s=%.4f clock_source=%s runtime_time_s=%.6f sim_time_s=%.6f sim_clock_valid=%d 恢复速度=[%.2f,%.2f,%.2f]",
                     switching_group_.c_str(), abs_switching::switchModeName(switching_mode_), ra_value_,
                     ra_entry_thr, ra_exit_thr, hysteresis_enabled ? "true" : "false",
-                    recovery_min_hold_s_, cycle_trace_.sim_time_s, cycle_trace_.sim_clock_valid,
+                    recovery_min_hold_s_, runtime_mode_ == "hardware" ? "steady_clock" : "mujoco_sim_clock",
+                    runtime_clock_time_s_, cycle_trace_.sim_time_s, cycle_trace_.sim_clock_valid,
                     cached_rec_vx_, cached_rec_vy_, cached_rec_wz_);
             }
             else if (was_in_recovery && !in_recovery_)
             {
+                periodic_twist_schedule_.reset();
                 const double return_thr = (switching_mode_ == abs_switching::SwitchMode::paper_faithful_switch ||
                                            switching_mode_ == abs_switching::SwitchMode::minimum_hold_switch)
                                               ? ra_entry_thr : ra_exit_thr;
                 RCLCPP_INFO(rclcpp::get_logger("StateRL"),
-                    "[RA-REC] 退出恢复 | group=%s mode=%s ra=%.4f < effective_exit=%.4f entry=%.4f hysteresis=%s hold_s=%.4f hold_elapsed=%.4f sim_time=%.6f, 回到敏捷策略",
+                    "[RA-REC] 退出恢复 | group=%s mode=%s ra=%.4f < effective_exit=%.4f entry=%.4f hysteresis=%s hold_s=%.4f hold_elapsed_s=%.4f clock_source=%s runtime_time_s=%.6f sim_time_s=%.6f, 回到敏捷策略",
                     switching_group_.c_str(), abs_switching::switchModeName(switching_mode_), ra_value_, return_thr, ra_entry_thr,
                     hysteresis_enabled ? "true" : "false", recovery_min_hold_s_,
-                    cycle_trace_.hold_elapsed_sim_s, cycle_trace_.sim_time_s);
+                    decision.hold_elapsed_s, runtime_mode_ == "hardware" ? "steady_clock" : "mujoco_sim_clock",
+                    runtime_clock_time_s_, cycle_trace_.sim_time_s);
             }
+        }
+    }
+
+    // Switching and the existing H gate run first. Update only if this policy
+    // cycle remains in Recovery; a reset/segment change rebases the scheduler.
+    if (!in_recovery_)
+    {
+        periodic_twist_schedule_.reset();
+    }
+    else if (periodic_twist_updates_ && !entered_recovery_this_cycle &&
+             runtime_clock_valid_ && std::isfinite(runtime_clock_time_s_))
+    {
+        const auto schedule_result = periodic_twist_schedule_.check(
+            runtime_clock_time_s_, runtime_clock_segment_);
+        if (schedule_result == abs_twist_update::ScheduleResult::due)
+        {
+            const std::array<double, 3> before{cached_rec_vx_, cached_rec_vy_, cached_rec_wz_};
+            const double elapsed_s = periodic_twist_schedule_.elapsedSinceUpdate(runtime_clock_time_s_);
+            if (!optimizeRecoveryTwist("periodic", before, elapsed_s)) return;
+            periodic_twist_schedule_.markUpdated(runtime_clock_time_s_, runtime_clock_segment_);
         }
     }
 

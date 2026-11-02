@@ -179,7 +179,28 @@ def qpos_shm_samples(args: argparse.Namespace) -> List[PoseSample]:
     return samples
 
 
-def obstacle_geom_ids(mujoco, model) -> Iterable[int]:
+def obstacle_geom_ids(mujoco, model, scene_filename: str) -> Iterable[int]:
+    # Match abs_scene::selectObstacleGeoms used by the controller's geometry writer.
+    if scene_filename == "scene_flat.xml":
+        return
+    if scene_filename == "challenge27.xml":
+        selected = []
+        for geom_id in range(model.ngeom):
+            name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_GEOM, geom_id)
+            static_collision = (int(model.geom_bodyid[geom_id]) == 0 and
+                                (int(model.geom_contype[geom_id]) != 0 or
+                                 int(model.geom_conaffinity[geom_id]) != 0))
+            eligible_shape = int(model.geom_type[geom_id]) not in {
+                int(mujoco.mjtGeom.mjGEOM_PLANE), int(mujoco.mjtGeom.mjGEOM_HFIELD),
+                int(mujoco.mjtGeom.mjGEOM_MESH)}
+            if static_collision and eligible_shape:
+                if name is None or not name.startswith("ppt_obstacle_"):
+                    raise RuntimeError(f"unrecognized static collision geometry for {scene_filename}: {name}")
+                selected.append(geom_id)
+        if len(selected) != 7:
+            raise RuntimeError(f"{scene_filename} catalog expects 7 named obstacles, found {len(selected)}")
+        yield from selected
+        return
     blocked_types = {
         int(mujoco.mjtGeom.mjGEOM_PLANE),
         int(mujoco.mjtGeom.mjGEOM_HFIELD),
@@ -273,7 +294,8 @@ def ray_round_distance(
     return ray_distance
 
 
-def compute_geometric_ray_log(mujoco, model, data, body_id: int) -> np.ndarray:
+def compute_geometric_ray_log(mujoco, model, data, body_id: int,
+                              scene_filename: str) -> np.ndarray:
     body_xpos = data.xpos[body_id]
     body_xmat = data.xmat[body_id]
     body_yaw = math.atan2(float(body_xmat[3]), float(body_xmat[0]))
@@ -282,7 +304,7 @@ def compute_geometric_ray_log(mujoco, model, data, body_id: int) -> np.ndarray:
     origin = np.array([ray_x0, ray_y0], dtype=np.float64)
 
     rays = np.full(RAY2D_COUNT, math.log2(RAY2D_MAX_DIST), dtype=np.float32)
-    geom_ids = list(obstacle_geom_ids(mujoco, model))
+    geom_ids = list(obstacle_geom_ids(mujoco, model, scene_filename))
     for ray_index in range(RAY2D_COUNT):
         theta = RAY2D_THETA_START + ray_index * RAY2D_THETA_STEP
         world_theta = theta + body_yaw
@@ -396,7 +418,8 @@ def evaluate_sample(
     args: argparse.Namespace,
 ) -> RayResult:
     apply_sample(mujoco, model, data, sample)
-    target_log = compute_geometric_ray_log(mujoco, model, data, body_id)
+    target_log = compute_geometric_ray_log(mujoco, model, data, body_id,
+                                           Path(args.scene_path).name)
     pred_log, depth_m, render_ms, inference_ms = predict_ray_log(
         torch, resnet, renderer, data, body_id, args.device, args.save_worst > 0
     )
@@ -619,7 +642,7 @@ def write_manifest(summary: Dict[str, object], args: argparse.Namespace, output_
         "scene": str(args.scene_path),
         "model": str(args.model),
         "source": args.source,
-        "samples": args.samples,
+        "samples": summary["samples"],
         "device": args.device,
         "camera_size": [CAM_W, CAM_H],
         "camera_hfov_deg": CAMERA_HFOV_DEG,
@@ -671,8 +694,8 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
-    import mujoco
     import torch
+    import mujoco
 
     if not args.scene_path.exists():
         raise FileNotFoundError(args.scene_path)
@@ -701,23 +724,25 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     output_dir = args.output_root / args.session_name
     output_dir.mkdir(parents=True, exist_ok=True)
     results: List[RayResult] = []
-    try:
-        for sample in samples:
-            result = evaluate_sample(mujoco, torch, model, data, renderer, resnet, body_id, sample, args)
-            if float(np.min(result.target_m)) < args.min_target_clearance:
-                print(
-                    f"[RayCompare] sample={sample.index:03d} skipped: "
-                    f"min_target={float(np.min(result.target_m)):.3f}m < {args.min_target_clearance:.3f}m"
-                )
-                continue
-            results.append(result)
+    for sample in samples:
+        result = evaluate_sample(mujoco, torch, model, data, renderer, resnet, body_id, sample, args)
+        if float(np.min(result.target_m)) < args.min_target_clearance:
             print(
-                f"[RayCompare] sample={sample.index:03d} "
-                f"mae={result.mean_abs_m:.3f}m max={result.max_abs_m:.3f}m "
-                f"false_safe={result.false_safe_count} false_danger={result.false_danger_count}"
+                f"[RayCompare] sample={sample.index:03d} skipped: "
+                f"min_target={float(np.min(result.target_m)):.3f}m < {args.min_target_clearance:.3f}m"
             )
-    finally:
-        renderer.close()
+            continue
+        results.append(result)
+        print(
+            f"[RayCompare] sample={sample.index:03d} "
+            f"mae={result.mean_abs_m:.3f}m max={result.max_abs_m:.3f}m "
+            f"false_safe={result.false_safe_count} false_danger={result.false_danger_count}"
+        )
+
+    # MuJoCo's Python renderer finalizer otherwise frees an already-freed EGL
+    # context on some packaged builds after explicit close.
+    renderer.close()
+    renderer._mjr_context = None
 
     if not results:
         raise RuntimeError("No samples left after min-target-clearance filtering")

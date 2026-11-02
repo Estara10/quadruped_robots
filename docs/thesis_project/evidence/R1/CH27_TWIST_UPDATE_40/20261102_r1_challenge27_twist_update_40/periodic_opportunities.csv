@@ -1,0 +1,5 @@
+configuration,recovery_fragments,entry_updates,periodic_updates,fragments_with_periodic_update,exited_before_first_periodic,exited_fragment_denominator,terminal_censored_fragments,periodic_writes_confirmed,first_update_elapsed_min_s,first_update_elapsed_max_s
+A-Frozen,1057,1057,0,0,,,1,0/0,,
+A-Periodic,697,697,360,139,558,696,1,360/360,0.06,0.092
+C-Frozen,488,488,0,0,,,1,0/0,,
+C-Periodic,491,491,678,491,0,488,3,678/678,0.06,0.104

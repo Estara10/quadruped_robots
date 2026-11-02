@@ -31,9 +31,9 @@ namespace abs_rt_frame {
 constexpr const char* kFrameShmName = "/mujoco_rt_frame";
 constexpr const char* kHistoryShmName = "/mujoco_rt_frame_history";
 constexpr uint64_t kMagic = 0x414253525446524DULL;  // mnemonic "ABSRTFRM"
-constexpr uint64_t kVersion = 3;
+constexpr uint64_t kVersion = 4;
 constexpr uint64_t kHistoryMagic = 0x4142535254484953ULL;  // "ABS RTHIS"
-constexpr uint64_t kHistoryVersion = 1;
+constexpr uint64_t kHistoryVersion = 2;
 constexpr uint64_t kHistoryCapacity = 2048;
 constexpr int kJointCount = 12;
 constexpr int kRayCount = 11;
@@ -117,8 +117,8 @@ struct FrameHeader {
 
 static_assert(sizeof(FrameHeader) == 32, "unexpected shared-memory header layout");
 
-// Fixed-layout frame. Field order matches Python format "<14Q20Id83f4x"
-// exactly (536 bytes), including the final explicit ABI padding.
+// Fixed-layout frame. Version 4 appends the measured policy-cycle duration to
+// the v3 payload so old readers can continue to identify their frame version.
 struct RuntimeFrame {
   FrameHeader header;             // offset 0..32
   uint64_t session_id;            // monotonicNowNs() assigned at StateRL::enter()
@@ -170,10 +170,12 @@ struct RuntimeFrame {
   double recovery_min_hold_s;     // configured H; zero when disabled
   double hold_enter_sim_time_s;   // MuJoCo time at the Agile -> Recovery decision
   double hold_elapsed_sim_s;      // valid current sim_time - t_enter, otherwise zero
+  uint64_t policy_cycle_duration_ns; // runModel wall time through frame publication start
 };
 
 static_assert(offsetof(RuntimeFrame, hold_status) == 536, "unexpected v3 hold offset");
-static_assert(sizeof(RuntimeFrame) == 568, "unexpected runtime frame layout");
+static_assert(offsetof(RuntimeFrame, policy_cycle_duration_ns) == 568, "unexpected v4 duration offset");
+static_assert(sizeof(RuntimeFrame) == 576, "unexpected runtime frame layout");
 
 // Fixed-size SPSC history for complete policy-cycle capture. The live frame
 // above remains the HUD/controller interface. A slot is committed with its
@@ -200,7 +202,7 @@ struct HistoryBuffer {
 };
 constexpr std::size_t kHistorySize = sizeof(HistoryBuffer);
 static_assert(sizeof(HistoryHeader) == 48, "unexpected policy history header");
-static_assert(sizeof(HistorySlot) == 584, "unexpected policy history slot");
+static_assert(sizeof(HistorySlot) == 592, "unexpected policy history slot");
 
 inline void publishHistory(HistoryBuffer* history, const RuntimeFrame& frame) {
   if (history == nullptr || history->header.magic != kHistoryMagic ||

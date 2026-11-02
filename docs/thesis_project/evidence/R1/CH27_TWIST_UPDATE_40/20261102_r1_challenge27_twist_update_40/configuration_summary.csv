@@ -1,0 +1,5 @@
+configuration,n_planned,n_started,record_valid,safe_T,safe_F,safe_U,arrivals,collisions,falls_terminal,sim_timeouts,wall_timeouts,collision_in_task_window,fall_true_in_task_window,fall_unknown_in_task_window,mean_progress_m,mean_final_distance_m,mean_path_length_m,arrival_time_n,mean_success_time_s,median_success_time_s,recovery_fragments,entry_updates,periodic_updates
+A-Frozen,10,10,10,3,7,0,3,4,0,3,0,4,0,0,4.602037467583673,2.936774513734935,7.720473745543546,3,8.726666666667226,5.320000000001378,1057,1057,0
+A-Periodic,10,10,10,6,4,0,6,1,0,3,0,1,0,0,5.605918135444832,1.9329154138161764,8.174126566435824,6,8.083333333334705,7.4610000000014685,697,697,360
+C-Frozen,10,10,10,2,8,0,2,3,0,5,0,3,0,0,4.6649575593295545,2.8738728919802843,9.320533380344916,2,11.138999999999212,11.138999999999212,488,488,0
+C-Periodic,10,10,10,2,8,0,2,1,1,6,0,1,1,1,3.9405554982123046,3.5982663867911096,7.905043839129264,2,5.731000000001642,5.731000000001642,491,491,678

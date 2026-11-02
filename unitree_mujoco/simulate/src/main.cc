@@ -29,6 +29,7 @@
 
 #include <mujoco/mujoco.h>
 #include "mujoco/glfw_adapter.h"
+#include "mujoco/egl_headless_adapter.h"
 #include "mujoco/simulate.h"
 #include "mujoco/array_safety.h"
 #include "unitree_sdk2_bridge.h"
@@ -742,8 +743,14 @@ int main(int argc, char **argv)
   }
 
   // simulate object encapsulates the UI
+  std::unique_ptr<mj::PlatformUIAdapter> ui_adapter;
+  if (envEnabled("ABS_MUJOCO_HEADLESS_EGL")) {
+    ui_adapter = std::make_unique<mj::EglHeadlessAdapter>();
+  } else {
+    ui_adapter = std::make_unique<mj::GlfwAdapter>();
+  }
   auto sim = std::make_unique<mj::Simulate>(
-    std::make_unique<mj::GlfwAdapter>(),
+    std::move(ui_adapter),
     &cam, &opt, &pert, /* is_passive = */ false);
 
   sim->use_elastic_band_ = param::config.enable_elastic_band;

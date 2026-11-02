@@ -9,6 +9,8 @@
 #include "hardware_interface/system_interface.hpp"
 
 #include <array>
+#include <cstdint>
+#include <mutex>
 #include <memory>
 
 #include <unitree/idl/go2/WirelessController_.hpp>
@@ -84,6 +86,10 @@ protected:
     unitree_go::msg::dds_::LowCmd_ low_cmd_{}; // default init
     unitree_go::msg::dds_::LowState_ low_state_{}; // default init
     unitree_go::msg::dds_::SportModeState_ high_state_{}; // default init
+    std::mutex state_mutex_;
+    uint64_t low_state_received_ns_ = 0;
+    uint64_t sport_state_received_ns_ = 0;
+    uint64_t state_freshness_timeout_ns_ = 100'000'000ULL;
     std::unique_ptr<unitree::robot::b2::MotionSwitcherClient> motion_switcher_;
 
     std::string network_interface_ = "lo";

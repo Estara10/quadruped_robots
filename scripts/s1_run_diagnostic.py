@@ -53,6 +53,7 @@ SOURCE_EVIDENCE_WAIT_S = 3.0
 M2_SELECTED_MAPSET_VERSION = "m2-selected-development/2.1"
 R1_MAPSET_VERSION = "r1-scene-gradients/1.0"
 R1_V2_MAPSET_VERSION = "r1-layout-proposals/2"
+R1_CH15_V2_MAPSET_VERSION = "r1-challenge15-left-route-v2/1"
 
 
 class ConfigOnlyComplete(Exception):
@@ -980,7 +981,9 @@ def build_env(capture_id: str, overlay: Path, display: str, xauthority: str,
               scene: object, run_dir: Path,
               field_bounds_m: dict | None = None,
               capture_framebuffer: bool = True,
-              no_window: bool = False) -> dict[str, str]:
+              no_window: bool = False,
+              ray_source: str = "geometric",
+              render_backend: str = "glfw") -> dict[str, str]:
     env = os.environ.copy()
     env["DISPLAY"] = display
     env["XAUTHORITY"] = xauthority
@@ -988,7 +991,13 @@ def build_env(capture_id: str, overlay: Path, display: str, xauthority: str,
     library_paths = [str(SDKLIB), str(LIBTORCH), "/usr/lib/x86_64-linux-gnu"]
     library_paths.extend(path for path in env.get("LD_LIBRARY_PATH", "").split(":") if path)
     env["LD_LIBRARY_PATH"] = ":".join(dict.fromkeys(library_paths))
-    env["MUJOCO_GL"] = "glfw"
+    env["MUJOCO_GL"] = "egl" if render_backend == "egl" else "glfw"
+    if render_backend == "egl":
+        env["ABS_MUJOCO_HEADLESS_EGL"] = "1"
+        env.pop("ABS_MUJOCO_NO_WINDOW", None)
+    else:
+        env.pop("ABS_MUJOCO_HEADLESS_EGL", None)
+    env["MUJOCO_RAY_SOURCE"] = "ray_pred" if ray_source == "prediction" else "geometric"
     if no_window:
         env["ABS_MUJOCO_NO_WINDOW"] = "1"
     else:
@@ -1013,6 +1022,41 @@ def build_env(capture_id: str, overlay: Path, display: str, xauthority: str,
         env.pop("ABS_MUJOCO_STANDING_FRAMEBUFFER_CAPTURE", None)
         env.pop("ABS_MUJOCO_FRAMEBUFFER_CAPTURE", None)
     return env
+
+
+def ray_prediction_frame_ready(timeout_s: float = 8.0) -> dict:
+    """Wait for one fresh, stable prediction frame before starting the controller."""
+    import mmap
+    import struct
+    import math
+
+    header_path = Path("/dev/shm/mujoco_ray2d_stamp")
+    payload_path = Path("/dev/shm/mujoco_ray2d")
+    header_struct = struct.Struct("<4Q")
+    deadline = time.monotonic() + timeout_s
+    last_reason = "shared-memory frame not available"
+    while time.monotonic() < deadline:
+        try:
+            with header_path.open("r+b") as header_file, payload_path.open("rb") as payload_file:
+                with mmap.mmap(header_file.fileno(), header_struct.size, access=mmap.ACCESS_READ) as header_map, \
+                     mmap.mmap(payload_file.fileno(), 11 * 4, access=mmap.ACCESS_READ) as payload_map:
+                    first = header_struct.unpack(header_map[:header_struct.size])
+                    payload_bytes = payload_map[:]
+                    second = header_struct.unpack(header_map[:header_struct.size])
+                payload = struct.unpack("<11f", payload_bytes)
+                magic, version, sequence, written_ns = second
+                age_ns = now_ns() - written_ns
+                if (first == second and magic == 0x415253594143544F and version == 2 and
+                        sequence > 0 and sequence % 2 == 0 and 0 <= age_ns <= 200_000_000 and
+                        len(payload) == 11 and all(math.isfinite(value) for value in payload)):
+                    return {"status": "FRESH_FRAME", "sequence": sequence,
+                            "written_monotonic_ns": written_ns, "age_ns": age_ns,
+                            "rays_log2": list(payload), "wait_limit_s": timeout_s}
+                last_reason = "frame was unstable, stale, malformed, or non-finite"
+        except (OSError, ValueError, struct.error) as exc:
+            last_reason = f"{type(exc).__name__}: {exc}"
+        time.sleep(0.02)
+    raise RuntimeError(f"prediction source did not publish a fresh ray frame: {last_reason}")
 
 
 def capture_one_joint_state(env: dict[str, str], timeout: float = 4.0) -> dict:
@@ -2302,6 +2346,10 @@ def resolve_map_manifest(scene_spec, goal_x: float, goal_y: float,
         code = "R1_V2_SCENE_SETTINGS_REJECTED"
         layout_path = ROOT / "docs/thesis_project/designs/R1/generated_maps_v2/layouts.json"
         library_version = R1_V2_MAPSET_VERSION
+    elif scene_spec.scene_id.startswith("r1ch15x"):
+        code = "R1_CH15_V2_SCENE_SETTINGS_REJECTED"
+        layout_path = ROOT / "docs/thesis_project/designs/R1/challenge15_left_route_v2/layouts.json"
+        library_version = R1_CH15_V2_MAPSET_VERSION
     elif scene_spec.scene_id.startswith("r1_"):
         code = "R1_SCENE_SETTINGS_REJECTED"
         layout_path = ROOT / "docs/thesis_project/designs/R1/generated_maps/layouts.json"
@@ -2320,7 +2368,8 @@ def resolve_map_manifest(scene_spec, goal_x: float, goal_y: float,
         if code == "M2_SELECTED_SCENE_SETTINGS_REJECTED":
             if library.get("mapset_version") != library_version:
                 raise ValueError("M2 selected mapset version is not the approved revision")
-        if code in ("R1_SCENE_SETTINGS_REJECTED", "R1_V2_SCENE_SETTINGS_REJECTED") and library.get("mapset_version") != library_version:
+        if code in ("R1_SCENE_SETTINGS_REJECTED", "R1_V2_SCENE_SETTINGS_REJECTED",
+                    "R1_CH15_V2_SCENE_SETTINGS_REJECTED") and library.get("mapset_version") != library_version:
             raise ValueError("R1 mapset version differs from the generated scene set")
         matches = [item for item in library.get("scenes", [])
                    if item.get("scene_id") == scene_spec.scene_id]
@@ -2347,7 +2396,8 @@ def resolve_map_manifest(scene_spec, goal_x: float, goal_y: float,
             bounds = record.get("field_bounds_m") or {}
             if list(bounds.get("x", [])) != [-0.5, 8.0] or list(bounds.get("y", [])) != [-3.0, 3.0]:
                 raise ValueError("M2 selected field bounds differ from the approved arena")
-        if code in ("R1_SCENE_SETTINGS_REJECTED", "R1_V2_SCENE_SETTINGS_REJECTED"):
+        if code in ("R1_SCENE_SETTINGS_REJECTED", "R1_V2_SCENE_SETTINGS_REJECTED",
+                    "R1_CH15_V2_SCENE_SETTINGS_REJECTED"):
             binding = record.get("production_scene_binding") or {}
             if (binding.get("scene_id") != scene_spec.scene_id or
                     binding.get("filename") != scene_spec.filename or
@@ -2400,7 +2450,14 @@ def run(args: argparse.Namespace) -> int:
     env = build_env(capture_id, overlay, args.display, args.xauthority, scene_spec, out,
                     map_record.get("field_bounds_m") if map_record else None,
                     capture_framebuffer=not args.disable_framebuffer_capture,
-                    no_window=args.no_window)
+                    no_window=args.no_window, ray_source=args.ray_source,
+                    render_backend=args.render_backend)
+    ray_model_path = Path(args.ray_model).resolve() if args.ray_source == "prediction" else None
+    if ray_model_path is not None:
+        if not ray_model_path.is_file():
+            raise RuntimeError(f"explicit ray prediction model is missing: {ray_model_path}")
+        env["RAY_PRED_MODEL"] = str(ray_model_path)
+        env["RAY_PRED_DEVICE"] = args.ray_device
     if args.startup_gain_trace:
         env["ABS_S6_STARTUP_GAIN_TRACE"] = "1"
     if args.startup_recovery_observation_s > 0.0:
@@ -2412,9 +2469,12 @@ def run(args: argparse.Namespace) -> int:
                             entry_threshold, exit_threshold, hold_duration_s)
     log_path = out / "ros_launch.log"
     mujoco_log_path = out / "mujoco.log"
+    ray_predictor_log_path = out / "ray_predictor.log"
     ros_log = log_path.open("w", encoding="utf-8")
     mujoco_log = mujoco_log_path.open("w", encoding="utf-8")
+    ray_predictor_log = ray_predictor_log_path.open("w", encoding="utf-8")
     mujoco: subprocess.Popen | None = None
+    ray_predictor: subprocess.Popen | None = None
     ros: subprocess.Popen | None = None
     stop_publisher: subprocess.Popen[str] | None = None
     post_terminal_shutdown: dict | None = None
@@ -2481,6 +2541,9 @@ def run(args: argparse.Namespace) -> int:
                      "entry_threshold": entry_threshold, "exit_threshold": exit_threshold,
                      "hysteresis": hysteresis, "hold": hold,
                      "recovery_min_hold_s": hold_duration_s,
+                     "ray_source": args.ray_source,
+                     "ray_prediction_model": str(ray_model_path) if ray_model_path else None,
+                     "ray_prediction_device": args.ray_device if ray_model_path else None,
                      "goal_world_m": [args.goal_x, args.goal_y], "arrival_threshold_m": 0.5,
                      "diagnostic_sim_limit_after_motion_s": args.sim_limit_s,
                      "standing_observation_sim_s": args.standing_observation_sim_s,
@@ -2497,7 +2560,7 @@ def run(args: argparse.Namespace) -> int:
                                      str(overlay / "share/go2_description/config/rec/policy.pt")],
                      "display": env.get("DISPLAY"),
                      "xauthority": env.get("XAUTHORITY"), "overlay": str(overlay),
-                     "rendering": {"backend": "GLFW", "requested_mode": "hidden" if args.no_window else "visible",
+                     "rendering": {"backend": args.render_backend.upper(), "requested_mode": "hidden" if (args.no_window or args.render_backend == "egl") else "visible",
                                    "window_visibility_variable": "ABS_MUJOCO_NO_WINDOW",
                                    "rviz_requested": "disabled" if (args.no_window or args.no_rviz) else "enabled",
                                    "rviz_launch_argument": "start_rviz:=false" if (args.no_window or args.no_rviz) else "start_rviz:=true",
@@ -2710,6 +2773,34 @@ def run(args: argparse.Namespace) -> int:
         write_json(out / "run_context.json", context)
         lifecycle_events.append({"phase": "startup_preparation", "event": "collision_source_live_confirmed",
                                  "monotonic_ns": context["lifecycle"]["mujoco_authority_live_monotonic_ns"]})
+        if args.ray_source == "prediction":
+            predictor_python = Path(args.ray_python).resolve()
+            if not predictor_python.is_file():
+                raise RuntimeError(f"ray prediction Python is missing: {predictor_python}")
+            predictor_env = env.copy()
+            # The controller needs the CPU LibTorch path, but it shadows the
+            # CUDA-enabled Torch libraries in the predictor's Anaconda env.
+            predictor_env["LD_LIBRARY_PATH"] = ":".join(
+                path for path in predictor_env.get("LD_LIBRARY_PATH", "").split(":")
+                if path and Path(path).resolve() != LIBTORCH.resolve())
+            predictor_env["MUJOCO_GL"] = "egl"
+            ray_predictor = subprocess.Popen(
+                [str(predictor_python), "-u", str(ROOT / "scripts/ray_predictor.py")],
+                cwd=ROOT, env=predictor_env, stdout=ray_predictor_log, stderr=subprocess.STDOUT,
+                start_new_session=True)
+            context["lifecycle"]["ray_predictor_started_monotonic_ns"] = now_ns()
+            context["preflight"]["ray_prediction_source"] = {
+                "status": "STARTED", "pid": ray_predictor.pid,
+                "python": str(predictor_python), "model": str(ray_model_path),
+                "device": args.ray_device,
+                "cpu_libtorch_path_excluded": True,
+                "writer": "scripts/ray_predictor.py", "geometry_writer_disabled": True}
+            ray_frame = ray_prediction_frame_ready(timeout_s=8.0)
+            context["preflight"]["ray_prediction_source"].update(ray_frame)
+            lifecycle_events.append({"phase": "startup_preparation", "event": "prediction_ray_frame_ready",
+                                     "monotonic_ns": now_ns(), "sequence": ray_frame["sequence"],
+                                     "age_ns": ray_frame["age_ns"]})
+            write_json(out / "run_context.json", context)
         ros_start_requested_ns = now_ns()
         rviz_setting = " start_rviz:=false" if (args.no_window or args.no_rviz) else " start_rviz:=true"
         launch_shell = (f"source /opt/ros/humble/setup.bash && source {ROS_WS}/install/setup.bash && "
@@ -3993,7 +4084,7 @@ def run(args: argparse.Namespace) -> int:
             # Preserve the requested order: close this run's MuJoCo first,
             # then its controller launch, then the prepared stop publisher.
             stop_results = []
-            owned_processes = (("mujoco", mujoco), ("ros2_launch", ros),
+            owned_processes = (("mujoco", mujoco), ("ray_predictor", ray_predictor), ("ros2_launch", ros),
                                ("startup_ros_query_control_session", stop_publisher))
             for name, proc in owned_processes:
                 if proc is None:
@@ -4226,6 +4317,13 @@ def main() -> int:
     parser.add_argument("--goal-y", type=float, default=0.0)
     parser.add_argument("--scene", default="scene_obstacle.xml",
                         help="supported MuJoCo scene XML filename (default: scene_obstacle.xml)")
+    parser.add_argument("--ray-source", choices=("geometric", "prediction"), default="geometric",
+                        help="single active ABS ray writer: simulator geometry or MuJoCo depth prediction")
+    parser.add_argument("--ray-model", default=str(ROOT / "archive/ray_pred_finetune/mujoco_finetune_soft_safety_20260611/ray_pred_mujoco_finetuned_best.pt"))
+    parser.add_argument("--ray-python", default="/home/lidio/anaconda3/envs/abs/bin/python",
+                        help="Python environment containing the predictor's MuJoCo, NumPy and Torch dependencies")
+    parser.add_argument("--ray-device", choices=("cpu", "cuda"), default="cpu",
+                        help="explicit Torch device for the prediction-ray writer; no device fallback")
     parser.add_argument("--sim-limit-s", type=float, default=6.0)
     parser.add_argument("--wall-cap-s", type=float, default=60.0)
     parser.add_argument("--standing-observation-sim-s", type=float, default=2.0,
@@ -4249,11 +4347,16 @@ def main() -> int:
     parser.add_argument("--no-rviz", action="store_true", help="关闭RViz，保留MuJoCo窗口设置")
     parser.add_argument("--no-window", action="store_true",
                         help="hide the production GLFW window; DISPLAY and OpenGL are still required")
+    parser.add_argument("--render-backend", choices=("glfw", "egl"), default="glfw",
+                        help="GLFW window or surfaceless EGL pbuffer for hidden MuJoCo rendering")
     parser.add_argument("--display", default=":0")
     default_xauthority = os.environ.get("XAUTHORITY") or os.path.join(
         os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"), "gdm", "Xauthority")
     parser.add_argument("--xauthority", default=default_xauthority)
     args = parser.parse_args()
+    if args.ray_source == "prediction":
+        if not Path(args.ray_model).is_file() or not Path(args.ray_python).is_file():
+            parser.error("prediction mode requires an existing --ray-model and --ray-python")
     if (not math.isfinite(args.entry_threshold) or not math.isfinite(args.exit_threshold) or
             not math.isfinite(args.hold_s) or args.exit_threshold >= args.entry_threshold or args.hold_s <= 0):
         parser.error("thresholds must be finite, X must be below E, and H must be positive")

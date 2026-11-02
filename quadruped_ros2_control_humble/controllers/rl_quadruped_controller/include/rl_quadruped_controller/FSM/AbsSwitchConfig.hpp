@@ -11,6 +11,37 @@
 
 namespace abs_switching {
 
+enum class TwistUpdateMode { frozen, periodic };
+
+struct TwistUpdateConfig {
+    TwistUpdateMode mode = TwistUpdateMode::frozen;
+};
+
+inline const char* twistUpdateModeName(TwistUpdateMode mode)
+{
+    return mode == TwistUpdateMode::periodic ? "Periodic" : "Frozen";
+}
+
+inline TwistUpdateConfig parseTwistUpdateConfig(const YAML::Node& abs_node)
+{
+    const YAML::Node update = abs_node["twist_update"];
+    if (!update) return {};
+    if (!update.IsMap())
+        throw std::invalid_argument("abs.twist_update must be a mapping");
+
+    for (const auto& item : update) {
+        if (!item.first.IsScalar() || item.first.as<std::string>() != "mode")
+            throw std::invalid_argument("unknown field under abs.twist_update");
+    }
+    const YAML::Node mode_node = update["mode"];
+    if (!mode_node || !mode_node.IsScalar())
+        throw std::invalid_argument("abs.twist_update.mode is required");
+    const std::string mode = mode_node.as<std::string>();
+    if (mode == "Frozen") return {TwistUpdateMode::frozen};
+    if (mode == "Periodic") return {TwistUpdateMode::periodic};
+    throw std::invalid_argument("abs.twist_update.mode must be Frozen or Periodic");
+}
+
 struct SwitchConfig {
     std::string group;
     SwitchMode mode = SwitchMode::paper_faithful_switch;

@@ -1,18 +1,24 @@
+2026-11-03射线输入复核：未发现可直接修复的相机、单位、预处理、标签转换或束序错误；12姿态固定比较显示开阔方向明显低估和challenge27高误差。完成4次授权观看：scene_flat两源到达，challenge27几何到达、CUDA预测碰撞障碍02。现阶段判断为模型适应性不足，建议一次ray-only有限微调后再评估，不扩展控制策略重训。报告与静态/动态结果见[evidence目录](evidence/R1/GO2_RAY_PRED_12/input_link_review/RAY_INPUT_REPAIR_REPORT.md)。R1唯一ACTIVE，实机未连接。
+
 # 当前项目状态
 
-2026-11-02收尾：今天停止实验，R1保持ACTIVE。下次先处理任务起始边界记录与收尾DDS超时，再继续原12项剩余9项；详见[当日续接记录](designs/R1/SESSION_20261102.md)。周报、原始日志和大型模型不随Git提交上传。
+2026-11-03 R1 Periodic A/B 45项比较已收尾：计划45项均有记录，43项取得有效任务结果，2项启动故障且未重试；终局为到达20、碰撞12、仿真限时11，无跌倒、墙钟保护或任务期安全中止；安全完成TRUE/FALSE/UNKNOWN为20/23/2。d09与m02的B_E04_X07出现局部线索，challenge27两档B到达均少于A；B_E05_X10未形成跨图改善。本批每格仅4–5个有效样本且均为开发图，不足以选择候选进入新布局验证。当前仿真继续采用几何射线＋Periodic P=0.06，只比较A/B，C/D不加入；深度预测优化暂缓，实机导航由独立规划器负责。分析、汇总、逐次结果和排程见[本批结果](evidence/R1/PERIODIC_AB_45/ANALYSIS_REPORT.md)与[运行计划](../../logs/09_R1_switch_constraints/periodic_ab_45/20261103_r1_periodic_ab_45/run_plan.json)。R1保持唯一ACTIVE，等待结果审阅；未连接实机。
+
+2026-11-03脚本整理：29个一次性工具、旧S7检查及独立历史批次脚本已移入[历史脚本归档](../../archive/scripts/20261103_cleanup/README.md)。当前有用的运行、分析、演示和公共依赖保持原位置，常用命令见[脚本导航](../../scripts/README.md)。本次未启动实验，也未改变R1状态或历史实验结果。
+
+2026-11-03收尾：原12项射线比较排程已完成（含原第3项CPU预测安全中止；第4—12项续跑结果见[核验报告](evidence/R1/GO2_RAY_PRED_12/STATUS_REPORT.md)）。独立CUDA动态项任务起点不满足既有严格时钟重建条件，安全完成/碰撞/跌倒保持UNKNOWN；DDS FATAL发生于正常停止请求后、ROS/controller实际关闭前，属收尾静止期，未改变任务期安全处理。所有环境已核对关闭。R1仍唯一ACTIVE，实机未连接。后续输入链路复核建议在扩展动态试验前先进行一次ray-only有限微调；碰撞因果仍未确认，详见[新复核报告](evidence/R1/GO2_RAY_PRED_12/input_link_review/RAY_INPUT_REPAIR_REPORT.md)。射线批次续接见[续接记录](designs/R1/SESSION_20261102.md)。周报、原始日志和大型模型不随Git提交上传。
 
 ## 当前唯一Active Task：R1
 
 S是毕业设计总体路线，不是当前执行中的单项任务。S7历史正式实验及数据保持原状，不重启；T1退出阈值预实验、T2最小保持时间预实验均已完成，作为历史选参记录保留。R1是唯一ACTIVE任务，阶段一只读分析已通过审阅。Periodic Twist最小实现P=0.06仿真秒、Frozen默认；challenge27 A/C×Frozen/Periodic 40项已完成，原结果见[40项报告](evidence/R1/CH27_TWIST_UPDATE_40/20261102_r1_challenge27_twist_update_40/RESULTS_SUMMARY.md)。
 
-原12项冻结比较仍暂停：两项几何条件ARRIVED，challenge27预测项因射线帧龄218.217ms超过200ms上限触发`SYSTEM_SAFETY_ABORT`，剩余9项未启动且本轮没有续跑。后续诊断确认原预测器固定在CPU，推理长尾导致停顿；启动环境中的CPU LibTorch路径还曾遮蔽Python CUDA运行库。已修正预测器子进程环境，增加显式CUDA选择、预热与分段计时，不改变原模型或安全规则。独立60秒CUDA运行最大帧间隔76.22ms；另一次独立scene_flat动态核验中，控制器419个任务窗周期均消费有效网络射线，帧间隔最大57.24ms，无几何回退或预测过期中止。该单次动态项ARRIVED，但任务窗碰撞/跌倒及安全完成因任务起始边界缺失仍为UNKNOWN；收尾阶段另有DDS超时FATAL并强制PASSIVE，进程正常退出。原第3项安全中止及旧批次记录保持不变。详细证据见[本轮核验报告](evidence/R1/GO2_RAY_PRED_12/STATUS_REPORT.md)。全部本轮进程已核对退出；实机和真实相机未连接，R1保持唯一ACTIVE。
+原12项冻结比较已完成：两项几何先到达，第3项challenge27 CPU预测因帧龄218.217ms超过200ms触发`SYSTEM_SAFETY_ABORT`并保留，第4—12项已续跑完成。后续诊断确认原预测器固定在CPU，推理长尾导致停顿；启动环境中的CPU LibTorch路径还曾遮蔽Python CUDA运行库。已修正预测器子进程环境，增加显式CUDA选择、预热与分段计时，不改变原模型或安全规则。独立60秒CUDA运行最大帧间隔76.22ms；另一次独立scene_flat动态核验中，控制器419个任务窗周期均消费有效网络射线，帧间隔最大57.24ms，无几何回退或预测过期中止。该单次动态项ARRIVED，但任务窗碰撞/跌倒及安全完成因任务起始边界缺失仍为UNKNOWN；收尾阶段另有DDS超时FATAL并强制PASSIVE，进程正常退出。原第3项安全中止及旧批次记录保持不变。原批次事实见[核验报告](evidence/R1/GO2_RAY_PRED_12/STATUS_REPORT.md)；后续固定样本和4项动态复核显示实现定义无直接错误但模型误差仍明显，建议有限ray-only微调后再决定是否扩展动态试验；碰撞原因尚不能归因。全部运行进程已核对退出；实机和真实相机未连接，R1保持唯一ACTIVE。
 
-## R1实机连接前准备：离线适配已构建，动态预测核验安全中止后暂停
+## R1实机连接前准备：离线适配已构建，射线模型动态复核完成
 
-阶段1代码/文档核对已完成；独立[Go2只读状态观察器](../../scripts/go2_readonly_state/README.md)通过loopback等待/退出检查。阶段2计时和状态新鲜度适配已构建；阶段3完成模型接入、静态比较及后续CUDA推理诊断。原12项冻结动态比较仍暂停（两项几何到达、一项预测安全中止、余9项未启动）；另一次独立scene_flat预测核验ARRIVED且未见预测帧过期，但安全完成仍UNKNOWN。详见[本轮核验报告](evidence/R1/GO2_RAY_PRED_12/STATUS_REPORT.md)。完整接口背景见[Go2实机准备计划](designs/R1/GO2_REAL_PREPARATION_PLAN.md)。
+阶段1代码/文档核对已完成；独立[Go2只读状态观察器](../../scripts/go2_readonly_state/README.md)通过loopback等待/退出检查。阶段2计时和状态新鲜度适配已构建；阶段3完成模型接入、静态比较及后续CUDA推理诊断。原12项动态比较已完成（含1项CPU预测安全中止及第4—12项续跑）；另一次独立scene_flat CUDA核验ARRIVED但安全完成仍UNKNOWN。详见[本轮核验报告](evidence/R1/GO2_RAY_PRED_12/STATUS_REPORT.md)。完整接口背景见[Go2实机准备计划](designs/R1/GO2_REAL_PREPARATION_PLAN.md)。
 
-Go2型号/固件、运行主机及架构、实际深度相机和部署依赖仍待用户提供或现场核实。CUDA诊断已消除本次环境中的CPU推理长尾；一次scene_flat并发核验未触发200ms保护，但原冻结比较剩余9项仍暂停，待审阅决定是否恢复。实机状态接收、字段正确性、消息频率和连续性仍待设备连接验证。实机运动状态维持NO-GO。
+Go2型号/固件、运行主机及架构、实际深度相机和部署依赖仍待用户提供或现场核实。CUDA诊断已消除本次环境中的CPU推理长尾；一次scene_flat并发核验未触发200ms保护，但续跑结果及模型复核见本批报告；当前不追加动态实验。实机状态接收、字段正确性、消息频率和连续性仍待设备连接验证。实机运动状态维持NO-GO。
 
 ## 上一批任务：图05 A/C保持时间比较已完成（2026-11-02）
 

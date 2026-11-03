@@ -82,3 +82,30 @@
 ## 下一步
 
 等待审阅后决定是否恢复原12项冻结比较的剩余9项；若恢复，预测器使用显式CUDA并保留现有200ms保护，原第3项不重跑、不替换。当前核验只说明这一环境下一次独立运行与一次scene_flat并发运行未再观察到长间断，不构成实时性、普遍安全或预测导航收益证明。scene_flat几何项的base-bounds UNKNOWN不由补跑解决；独立动态项的任务窗安全状态也仍UNKNOWN。实机型号、主机和相机仍待用户提供/现场确认。
+
+
+## 2026-11-03续跑与记录核对
+
+原独立CUDA动态项按` s1_analyze_run.resolve_decision_start_clock `既有规则检查。生命周期记录的任务起点是session内rl_step=0，但该决策时刻`sim_clock_valid=false`且`sim_time_s=null`；同周期发布帧同样没有有效仿真时钟。规则只允许在发布帧因推理延迟变为STALE、同时控制器S6-04 trace证明该同周期采样时刻有效且时间匹配时恢复。此处不满足前提，后续有效帧不能替代任务起点。原始记录未修改，任务窗碰撞、跌倒和安全完成继续UNKNOWN；未发现可据以重建的解析错误。
+
+DDS收尾顺序核对：原记录先有`NORMAL_SHUTDOWN_REQUESTED`（单调时刻39363938319944），约6.57秒后完成2秒仿真站立观察（39370506976232），再约1.18秒后记录DDS超时观察（39371689550397）；ROS日志中DDS FATAL先于launch收到SIGINT并向controller发送SIGINT。故超时发生在正常停止请求之后、ROS/controller资源实际关闭之前，处于收尾静止阶段，不是任务期通信异常。现有证据不足以归因于DSS序列/状态判断错误；该独立核验已完成并退出，未改任务期安全处理或通过降级日志隐藏FATAL。该次清理仍确认最终退出。
+
+原排程第4—12项已按原顺序续跑完成。第4项首次受限启动因SDK2无法枚举接口而在策略周期前失败，另一次启动使用已授权loopback环境后完成；该普通路径失败保留、不计导航终局。完整启动attempt与计划项状态见[原批次计划](../../../../logs/09_R1_switch_constraints/go2_ray_pred_12/20261102_r1_go2_ray_pred_12/run_plan.json)。第4项ARRIVED；第5项challenge27几何限时；第6项scene_flat预测限时；第7项challenge27预测碰撞障碍02；第8项scene_flat几何ARRIVED；第9项challenge27预测碰撞障碍02；第10项scene_flat预测ARRIVED；第11项challenge27几何ARRIVED；第12项scene_flat几何ARRIVED。各次真实终局均保留，不因结果重跑。第4—12项的有效记录均VALID，预测射线均由预测器独占写入并使用CUDA、预热和原200ms时龄保护；没有静默几何回退。
+
+12项计划现为：几何结果共6项（5次到达、1次challenge27限时；其中3次scene_flat到达的越界安全维度因无有限边界保持UNKNOWN）；预测条件含原第3项CPU安全中止（218.217ms过期）、独立诊断不入排程，以及第4—12项中的预测结果（scene_flat两次到达、一次限时；challenge27两次碰撞障碍02）。到达、碰撞和限时均分开报告；不把原CPU中止、独立CUDA诊断和本轮CUDA预测合并成12次同配置有效导航。计划第1项实际保留5次attempt（4次工程/来源启动失败及1次ARRIVED）；第4项3次attempt（2次预启动失败及1次ARRIVED）；其他项各1次。任务推进、Recovery占比及逐周期时延以各项派生`analysis/run_results.md`和逐帧预测记录为准，需按计划项读取；不同终局窗口不同，不合并成总体平均。挑战27预测两次均碰撞障碍02且未到达，几何项有两次到达和一次20秒限时，显示在这些少量样本中预测条件未消除该绕行碰撞风险；样本不足以归因普遍性能差异。
+
+本轮出现一次受限启动失败后使用loopback环境继续；所有12个计划项的实际终局完成，运行器、MuJoCo、ROS/controller、预测器、RViz及辅助进程已扫描确认无残留。原批次状态为COMPLETE。
+
+
+## 预测模型动态结果复核入口
+
+本批预测模型是否值得继续使用的只读分析见[模型复核报告](RAY_MODEL_REVIEW.md)和[总体结果表](RAY_MODEL_GROUP_SUMMARY.csv)。结论为暂缓扩展当前模型动态试验；两次challenge27预测碰撞均接触障碍02，但碰撞点缺乏同周期、同位姿的预测与几何射线配对，不能认定模型漏判或高估。scene_flat预测限时项推进至距目标0.718m，Recovery占比偏高是观察线索，不能据此断言较短射线错误或Recovery导致超时。
+
+
+## 射线输入链路复核与有限观看（2026-11-03）
+
+只读代码/训练来源核对未发现可直接修正的相机、单位、预处理、束序或标签转换错误。当前动态器和MuJoCo微调数据生成器共用相机位姿/深度处理；12个冻结姿态比较显示scene_flat参考全6m但输出右侧束系统偏短（MAE 0.582m，FD 18/66），challenge27 MAE 2.058m、FD 37/66、FS 0/66。无近障false-safe并不消除整体大误差。详细相机、标签语义和图像证据见[输入链路复核报告](input_link_review/RAY_INPUT_REPAIR_REPORT.md)，固定姿态见[清单](input_link_review/FIXED_POSES.csv)，逐姿态数据保留于两份比较目录。
+
+按条件继续的4次观看结果：scene_flat几何/预测均ARRIVED，预测末距0.497m、Recovery时长占比21.0%；challenge27几何ARRIVED，预测在16.830–16.834s接触障碍02、末距3.501m，之后PASSIVE确认。预测两项最大帧间隔分别57.94ms和54.21ms，最大控制器读取时龄49.05ms和43.60ms，均未触发200ms保护。scene_flat的安全完成因地图无有限边界仍UNKNOWN；challenge27预测为碰撞终局，安全完成FALSE。预测scene_flat在完成站立观察后的收尾有已知DDS FATAL，不扩大排查。四项使用相同地图构造/reset姿态及名义任务设置，实际首个策略周期状态保存在run_context；启动时速度略有差异，非严格状态配对。四项原始记录、分析和完整指标见[动态结果表](input_link_review/DYNAMIC_RESULTS.csv)及运行日志`logs/09_R1_switch_constraints/ray_input_review_20261103/`。所有环境已关闭。
+
+本轮没有代码或权重修正；固定样本中高误差更指向当前网络对相机深度图到水平2D射线标签的适应不足。建议先做一次受控、仅ray-head/network输出的有限微调，按场景/姿态留出验证，再决定是否恢复更广动态测试；Agile、RA、Recovery不纳入重训。原[模型复核](RAY_MODEL_REVIEW.md)中的“暂缓当前动态投入”结论由本节更新为“先微调射线网络，再评估扩展”，不是当前模型动态表现通过。

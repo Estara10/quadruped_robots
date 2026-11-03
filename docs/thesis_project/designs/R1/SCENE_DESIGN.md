@@ -13,7 +13,7 @@
 | M2 d09 / m2v2_d09 | 连续障碍绕行 | 02号圆柱的x位置，改变它与01号短箱体的前后间距 | [布局预览](../M2/selected_v2/d09.png) |
 | M2 m02 / m2v2_m02 | 有限空间绕行 | 07号箱体的y位置，改变它与03号箱体之间的局部空隙 | [布局预览](../M2/selected_v2/m02.png) |
 
-源文件为[布局JSON](../M2/selected_v2/layouts.json)、[d09.xml](../../../../unitree_mujoco/unitree_robots/go2/d09.xml)、[m02.xml](../../../../unitree_mujoco/unitree_robots/go2/m02.xml)。已只读核对两图障碍坐标与XML一致。几何计算使用原尺寸和旋转角，未改变任何地图。
+源文件为[布局JSON](../M2/selected_v2/layouts.json)、[M2_37.xml](../../../../unitree_mujoco/unitree_robots/go2/M2_37.xml)、[M2_24.xml](../../../../unitree_mujoco/unitree_robots/go2/M2_24.xml)。已只读核对两图障碍坐标与XML一致。几何计算使用原尺寸和旋转角，未改变任何地图。
 
 坐标约定：+x朝目标，+y为起始朝向的左侧；表内“下移”明确指y减小，不使用易混淆的前后称呼。起点(0,0)，目标(7.5,0)，声明范围x=[−0.5,8]、y=[−3,3]；范围不是实体墙。
 

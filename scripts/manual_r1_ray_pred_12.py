@@ -165,7 +165,7 @@ def main():
         schedule = plan.get("schedule", [])
         if len(schedule) != 12 or plan.get("seed") != 2026110203:
             raise SystemExit("existing plan does not match the frozen 12-item schedule")
-        if any(item.get("status") not in {"FINISHED", "NOT_STARTED", "STARTUP_FAILURE_NO_POLICY_CYCLE"}
+        if any(item.get("status") not in {"FINISHED", "NOT_STARTED", "STARTUP_FAILURE_NO_POLICY_CYCLE", "SYSTEM_SAFETY_ABORT"}
                for item in schedule):
             raise SystemExit("existing plan has an unresolved RUNNING or infrastructure status")
         if any(item.get("status") == "FINISHED" and not item.get("run_id") for item in schedule):
@@ -215,7 +215,7 @@ def main():
         config.write_text(text, encoding="utf-8")
         (OUTPUT / "effective_config.yaml").write_text(text, encoding="utf-8")
         for item in schedule:
-            if item.get("status") == "FINISHED":
+            if item.get("status") in {"FINISHED", "SYSTEM_SAFETY_ABORT"}:
                 continue
             item["status"] = "RUNNING"
             write_plan(plan)

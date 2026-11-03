@@ -22,7 +22,7 @@ C的准备观察记录显示：早期高度约0.206 m，fall candidate/confirmed
 
 ## 新增宽松开发变体
 
-- 来源是上述 S6-09 dense alternating-bypass 开发图。新内部 ID：`s610_dar_d01`；场景 XML：[scene_random_s6_10_dense_alternating_relaxed_dev_01.xml](../../../../unitree_mujoco/unitree_robots/go2/scene_random_s6_10_dense_alternating_relaxed_dev_01.xml)。专用构建脚本：[create_s6_10_relaxed_alternating_variant.py](../../../../scripts/create_s6_10_relaxed_alternating_variant.py)，布局：[variant_layout.json](../../designs/S6-10/variant_layout.json)，[俯视预览](../../designs/S6-10/s6_10_relaxed_alternating_dev01.png)。
+- 来源是上述 S6-09 dense alternating-bypass 开发图。新内部 ID：`s610_dar_d01`；场景 XML：[scene_random_s6_10_dense_alternating_relaxed_dev_01.xml](../../../../unitree_mujoco/unitree_robots/go2/scene_random_s6_10_dense_alternating_relaxed_dev_01.xml)。专用构建脚本：[create_s6_10_relaxed_alternating_variant.py](../../../../archive/scripts/20261103_cleanup/one_off/create_s6_10_relaxed_alternating_variant.py)，布局：[variant_layout.json](../../designs/S6-10/variant_layout.json)，[俯视预览](../../designs/S6-10/s6_10_relaxed_alternating_dev01.png)。
 - 原图、原60张库、留出集和旧运行记录均未改动。新变体只单独加入共享场景目录，不计入原60张库、留出或正式统计。
 - 原图几何要点与变体：
 

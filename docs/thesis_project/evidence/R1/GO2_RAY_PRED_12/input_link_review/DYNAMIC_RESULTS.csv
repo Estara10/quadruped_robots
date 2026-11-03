@@ -1,0 +1,5 @@
+index,scene,ray_source,terminal,start_goal_distance_m,end_goal_distance_m,motion_window_sim_s,recovery_time_share,safety_complete,run_directory
+1,scene_flat.xml,geometric,ARRIVED,7.539,0.495,3.940,0.0000,UNKNOWN,/home/lidio/quadruped_robots/logs/09_R1_switch_constraints/ray_input_review_20261103/01_scene_flat_geometric/A/rep_01/6d0f7905a1f34495acd1e79b52bae460
+2,scene_flat.xml,CUDA_prediction,ARRIVED,7.539,0.497,9.120,0.2103,UNKNOWN,/home/lidio/quadruped_robots/logs/09_R1_switch_constraints/ray_input_review_20261103/02_scene_flat_prediction/A/rep_01/0e6c843e5e9c46058bfbb78448605d43
+3,challenge27.xml,geometric,ARRIVED,7.539,0.481,17.420,0.3713,True,/home/lidio/quadruped_robots/logs/09_R1_switch_constraints/ray_input_review_20261103/03_challenge27_geometric/A/rep_01/6802d0418efc45d5b597f9be2e0e72a1
+4,challenge27.xml,CUDA_prediction,COLLISION_TERMINATION,7.539,3.501,5.354,0.1812,False,/home/lidio/quadruped_robots/logs/09_R1_switch_constraints/ray_input_review_20261103/04_challenge27_prediction/A/rep_01/dfff3b81a5c7403c8ced026ce24aade1

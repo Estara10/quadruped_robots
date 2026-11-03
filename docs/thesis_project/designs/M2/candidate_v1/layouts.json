@@ -6,7 +6,7 @@
   "scenes": [
     {
       "scene_id": "m2d01",
-      "filename": "m2dev01.xml",
+      "filename": "M2_01.xml",
       "preview": "m2dev01.png",
       "display_name": "M2-01",
       "model_name": "m2dev01",
@@ -204,18 +204,18 @@
         "minimum_obstacle_spacing_m": 0.7061868183830695
       },
       "production_scene_binding": {
-        "filename": "m2dev01.xml",
+        "filename": "M2_01.xml",
         "scene_id": "m2d01",
         "obstacle_count": 10,
         "root_sha256": "5efcbef08595265ef0f8ac060ed4630a2d33aa8a8995769e0692e3cecb64c7ae",
-        "closure_sha256": "258f4b32db29d122d63348a6d4fb55c8d762092bb458b3e3cbc386ec392599c1",
+        "closure_sha256": "df1b625f1840e354b759154b5f9651f15f09e1a6f39b5da18c9ee12f9b76da61",
         "model_fingerprint": "fd126e940736a9a230d6d4ec7eb2b77865481795edf4f91c4e96eccb11b97167",
         "runtime_mujoco_version": "3.3.3"
       }
     },
     {
       "scene_id": "m2d02",
-      "filename": "m2dev02.xml",
+      "filename": "M2_02.xml",
       "preview": "m2dev02.png",
       "display_name": "M2-02",
       "model_name": "m2dev02",
@@ -2786,18 +2786,18 @@
         "minimum_obstacle_spacing_m": 0.6077865355076522
       },
       "production_scene_binding": {
-        "filename": "m2dev02.xml",
+        "filename": "M2_02.xml",
         "scene_id": "m2d02",
         "obstacle_count": 9,
         "root_sha256": "18f2d8de697c3200f67f8786af897c450dc30cc9fd5ea85b34bd4c4ccd9de916",
-        "closure_sha256": "e69130636871eff4e763d25b12b9cdbabc7a0649e84e04b075f5851eec82cfbc",
+        "closure_sha256": "46333c50f72c89ab66183df6bdf383ca3643b8aa52201de81e216654a9dec0ca",
         "model_fingerprint": "7cb9dfcb09f8288cfb2f9a4f3cd5e0c2845c6092cf9851ccc29b5c1cff8b8465",
         "runtime_mujoco_version": "3.3.3"
       }
     },
     {
       "scene_id": "m2d03",
-      "filename": "m2dev03.xml",
+      "filename": "M2_03.xml",
       "preview": "m2dev03.png",
       "display_name": "M2-03",
       "model_name": "m2dev03",
@@ -5375,18 +5375,18 @@
         "minimum_obstacle_spacing_m": 0.7058114024229875
       },
       "production_scene_binding": {
-        "filename": "m2dev03.xml",
+        "filename": "M2_03.xml",
         "scene_id": "m2d03",
         "obstacle_count": 10,
         "root_sha256": "01acd1010e43153431b4c60ea498937c3d3a1f4803e756359bb3e19d1beaafb4",
-        "closure_sha256": "b457f6b0263dce008adafe7a44adf18aa81511102787a802cc391956667069d8",
+        "closure_sha256": "d1dccf6f3d7a0ca45da51711e952b5c46e5b42b65bc7b03c4519e84cb0427c9a",
         "model_fingerprint": "e919d28347e3688f42489ca7c9a89e019c28b7b0eb30f7856dff1b36e7558cea",
         "runtime_mujoco_version": "3.3.3"
       }
     },
     {
       "scene_id": "m2d04",
-      "filename": "m2dev04.xml",
+      "filename": "M2_04.xml",
       "preview": "m2dev04.png",
       "display_name": "M2-04",
       "model_name": "m2dev04",
@@ -5573,11 +5573,11 @@
         "minimum_obstacle_spacing_m": 0.5139402907419198
       },
       "production_scene_binding": {
-        "filename": "m2dev04.xml",
+        "filename": "M2_04.xml",
         "scene_id": "m2d04",
         "obstacle_count": 9,
         "root_sha256": "addf2d3a6b191a534c7bc93000f121c49a31b07226592ed98ef9602bca6b0708",
-        "closure_sha256": "698dcd97f97184d98b1b1b3dde34f1210ce73d2d652fde3f75c1ab41a9924128",
+        "closure_sha256": "602bcc95b5b41bf990423c4812efc50bdc4aac72790ed9697188e8d0404e140d",
         "model_fingerprint": "a59e6f4b4e2531ea2319b9c87922439df353cf14c87eb01e8ee8fbefd5063e63",
         "runtime_mujoco_version": "3.3.3"
       },
@@ -5629,7 +5629,7 @@
     },
     {
       "scene_id": "m2d05",
-      "filename": "m2dev05.xml",
+      "filename": "M2_05.xml",
       "preview": "m2dev05.png",
       "display_name": "M2-05",
       "model_name": "m2dev05",
@@ -5823,18 +5823,18 @@
         "minimum_obstacle_spacing_m": 0.6030368148938314
       },
       "production_scene_binding": {
-        "filename": "m2dev05.xml",
+        "filename": "M2_05.xml",
         "scene_id": "m2d05",
         "obstacle_count": 10,
         "root_sha256": "7c6caed391e3c542fdae1da7536d677b9c32f1c3156dc0e1795c54e34add3bc1",
-        "closure_sha256": "73659c473323ab7816774b4d3de22e55bd7b858fcc1c6924803d3a5061bf2bdf",
+        "closure_sha256": "87a52b45e497961f1f88382d24964ae50d6f627feddcfc88feeb41cc7f980607",
         "model_fingerprint": "e0b60a6139a73b654012375499054161e847424137621c6cf57be227d303614c",
         "runtime_mujoco_version": "3.3.3"
       }
     },
     {
       "scene_id": "m2d06",
-      "filename": "m2dev06.xml",
+      "filename": "M2_06.xml",
       "preview": "m2dev06.png",
       "display_name": "M2-06",
       "model_name": "m2dev06",
@@ -8404,11 +8404,11 @@
         "minimum_obstacle_spacing_m": 0.6157323018138329
       },
       "production_scene_binding": {
-        "filename": "m2dev06.xml",
+        "filename": "M2_06.xml",
         "scene_id": "m2d06",
         "obstacle_count": 9,
         "root_sha256": "714bb71a6d1d5f01d18d2d7d67563cc90b5ab74d01cde1033981cc40ecc0a3d4",
-        "closure_sha256": "e12e9f1e10528937dd5e80ab126e629273a895b374fe2afaaecdae09ebce860e",
+        "closure_sha256": "d2eb1fe6bb74a9b7f19521ffeeeb1a6fae629326944ec338fba783c8417dacdf",
         "model_fingerprint": "af2a79e8c05f32a4211bd88800d6d3f7f580d308f08096dafb2bb166cd135901",
         "runtime_mujoco_version": "3.3.3"
       }

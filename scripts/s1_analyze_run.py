@@ -1795,6 +1795,8 @@ def main() -> int:
                         help="targeted review: use a matching controller S6-04 decision-time clock for a publication-stale cycle0")
     parser.add_argument("--task-label", default="S1-04",
                         help="label used in each timeline title (default: S1-04)")
+    parser.add_argument("--no-timelines", action="store_true",
+                        help="write metrics and tables without per-run timeline images")
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     rows = []
@@ -1809,7 +1811,8 @@ def main() -> int:
             summary["scene"] = settings.get("scene_filename") or Path(settings.get("scene", "")).name or "UNKNOWN"
             summary["scene_id"] = settings.get("scene_id", "UNKNOWN")
             (run_dir / "metrics.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-            make_timeline(record, context, run_dir / "timeline.png", args.task_label)
+            if not args.no_timelines:
+                make_timeline(record, context, run_dir / "timeline.png", args.task_label)
             rows.append(summary)
     (args.output_dir / "run_results.json").write_text(json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     cols = ["run_id", "scene", "scene_id", "record_validity", "navigation_terminal_result",

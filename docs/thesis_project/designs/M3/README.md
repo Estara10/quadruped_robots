@@ -1,6 +1,6 @@
 # M3：历史筛选挑战地图集（30个XML布局）
 
-版本：`s7-challenge-test/1.4`。最新仅在04图红色03号与GOAL之间增加11号圆柱，位置(5.8,0.3)m，直径0.40m、高0.50m。左侧通路与前2.5m通行段保留，参考路线重新计算；其余29张不变。文件名和手动命令不变。
+版本：`s7-challenge-test/1.4`。最新仅在04图红色03号与GOAL之间增加11号圆柱，位置(5.8,0.3)m，直径0.40m、高0.50m。左侧通路与前2.5m通行段保留，参考路线重新计算；其余29张不变。当前文件名为M3_01–M3_30.xml；旧challenge名称仍兼容。
 
 [04最新新增障碍对照](comparison_04_center_obstacle.png) · [04此前左侧通道对照](comparison_04_left_opening.png) · [02/04/06此前修改前后对照](comparison_02_04_06_initial_opening.png) · [具体修改及静态射线说明](INITIAL_OPENING_REVISION.md)
 
@@ -12,7 +12,7 @@
 rtk proxy /usr/bin/python3 scripts/manual_map_view.py
 ```
 
-输入1–30选择地图，输入q退出。默认A组、可见视窗、不截图，收尾确认后删除临时记录。启动时可追加 `--group B`、`--group C` 或 `--group D` 选择组别；B/D使用X=−0.10，C/D使用H=0.20仿真秒。切换组别时先退出当前脚本，等待收尾完成，再用新组别启动。
+输入1–30选择M3地图，或输入M3编号文件名；旧challenge名称仍兼容，输入q退出。默认A组、可见视窗、不截图，收尾确认后删除临时记录。启动时可追加 `--group B`、`--group C` 或 `--group D` 选择组别；B/D使用X=−0.10，C/D使用H=0.20仿真秒。切换组别时先退出当前脚本，等待收尾完成，再用新组别启动。
 
 ## 修订与筛选依据
 
@@ -27,42 +27,42 @@ rtk proxy /usr/bin/python3 scripts/manual_map_view.py
 
 ## 位置
 
-本目录与M1、M2并列。运行XML位于 `unitree_mujoco/unitree_robots/go2/challenge01.xml`–`challenge30.xml`。旧M3 v1.0的布局、总览和XML保存在 `history/v1_before_distinct_layouts/`；M1/M2源地图未修改。
+本目录与M1、M2并列。运行XML位于 `unitree_mujoco/unitree_robots/go2/M3_01.xml`–`M3_30.xml`。完整旧名对照见[地图文件名对照](../MAP_FILENAME_CROSSWALK.md)。旧M3 v1.0的布局、总览和XML保存在 `history/v1_before_distinct_layouts/`；M1/M2源地图未修改。
 
 ## 当前地图
 
 | M3预览 | 源地图 | 本轮处理 | 历史未到达/有效导航 |
 |---|---|---|---|
-| [challenge01.xml](challenge01.png) | m01.xml | 保留 | — |
-| [challenge02.xml](challenge02.png) | holdout09.xml | v1.2前向开口修订 | 8/8（源图历史） |
-| [challenge03.xml](challenge03.png) | m02.xml | 保留 | — |
-| [challenge04.xml](challenge04.png) | holdout30.xml | v1.4左侧通道及新增圆柱 | 8/8（源图历史） |
-| [challenge05.xml](challenge05.png) | m03.xml | 保留 | — |
-| [challenge06.xml](challenge06.png) | dev30.xml | v1.2前向开口修订 | 3/3（源图历史） |
-| [challenge07.xml](challenge07.png) | m04.xml | 保留 | — |
-| [challenge08.xml](challenge08.png) | holdout25.xml | 替换 | 6/7 |
-| [challenge09.xml](challenge09.png) | m05.xml | 保留 | — |
-| [challenge10.xml](challenge10.png) | dev15.xml | 替换 | 36/43 |
-| [challenge11.xml](challenge11.png) | m06.xml | 保留 | — |
-| [challenge12.xml](challenge12.png) | holdout27.xml | 替换 | 6/8 |
-| [challenge13.xml](challenge13.png) | d01.xml | 保留 | — |
-| [challenge14.xml](challenge14.png) | holdout13.xml | 替换 | 5/8 |
-| [challenge15.xml](challenge15.png) | d02.xml | 保留 | — |
-| [challenge16.xml](challenge16.png) | holdout15.xml | 替换 | 4/8 |
-| [challenge17.xml](challenge17.png) | d03.xml | 保留 | — |
-| [challenge18.xml](challenge18.png) | dev28.xml | 替换 | 1/3 |
-| [challenge19.xml](challenge19.png) | d04.xml | 保留 | — |
-| [challenge20.xml](challenge20.png) | holdout03.xml | 替换 | 2/8 |
-| [challenge21.xml](challenge21.png) | d05.xml | 保留 | — |
-| [challenge22.xml](challenge22.png) | holdout16.xml | 替换 | 2/8 |
-| [challenge23.xml](challenge23.png) | d06.xml | 保留 | — |
-| [challenge24.xml](challenge24.png) | holdout17.xml | 替换 | 2/8 |
-| [challenge25.xml](challenge25.png) | d07.xml | 保留 | — |
-| [challenge26.xml](challenge26.png) | holdout26.xml | 替换 | 2/8 |
-| [challenge27.xml](challenge27.png) | d08.xml | 保留 | — |
-| [challenge28.xml](challenge28.png) | holdout07.xml | 替换 | 1/8 |
-| [challenge29.xml](challenge29.png) | d09.xml | 保留 | — |
-| [challenge30.xml](challenge30.png) | holdout14.xml | 替换 | 1/8 |
+| [M3_01.xml](challenge01.png) | M2_23.xml | 保留 | — |
+| [M3_02.xml](challenge02.png) | M1_39.xml | v1.2前向开口修订 | 8/8（源图历史） |
+| [M3_03.xml](challenge03.png) | M2_24.xml | 保留 | — |
+| [M3_04.xml](challenge04.png) | M1_60.xml | v1.4左侧通道及新增圆柱 | 8/8（源图历史） |
+| [M3_05.xml](challenge05.png) | M2_25.xml | 保留 | — |
+| [M3_06.xml](challenge06.png) | M1_30.xml | v1.2前向开口修订 | 3/3（源图历史） |
+| [M3_07.xml](challenge07.png) | M2_26.xml | 保留 | — |
+| [M3_08.xml](challenge08.png) | M1_55.xml | 替换 | 6/7 |
+| [M3_09.xml](challenge09.png) | M2_27.xml | 保留 | — |
+| [M3_10.xml](challenge10.png) | M1_15.xml | 替换 | 36/43 |
+| [M3_11.xml](challenge11.png) | M2_28.xml | 保留 | — |
+| [M3_12.xml](challenge12.png) | M1_57.xml | 替换 | 6/8 |
+| [M3_13.xml](challenge13.png) | M2_29.xml | 保留 | — |
+| [M3_14.xml](challenge14.png) | M1_43.xml | 替换 | 5/8 |
+| [M3_15.xml](challenge15.png) | M2_30.xml | 保留 | — |
+| [M3_16.xml](challenge16.png) | M1_45.xml | 替换 | 4/8 |
+| [M3_17.xml](challenge17.png) | M2_31.xml | 保留 | — |
+| [M3_18.xml](challenge18.png) | M1_28.xml | 替换 | 1/3 |
+| [M3_19.xml](challenge19.png) | M2_32.xml | 保留 | — |
+| [M3_20.xml](challenge20.png) | M1_33.xml | 替换 | 2/8 |
+| [M3_21.xml](challenge21.png) | M2_33.xml | 保留 | — |
+| [M3_22.xml](challenge22.png) | M1_46.xml | 替换 | 2/8 |
+| [M3_23.xml](challenge23.png) | M2_34.xml | 保留 | — |
+| [M3_24.xml](challenge24.png) | M1_47.xml | 替换 | 2/8 |
+| [M3_25.xml](challenge25.png) | M2_35.xml | 保留 | — |
+| [M3_26.xml](challenge26.png) | M1_56.xml | 替换 | 2/8 |
+| [M3_27.xml](challenge27.png) | M2_36.xml | 保留 | — |
+| [M3_28.xml](challenge28.png) | M1_37.xml | 替换 | 1/8 |
+| [M3_29.xml](challenge29.png) | M2_37.xml | 保留 | — |
+| [M3_30.xml](challenge30.png) | M1_44.xml | 替换 | 1/8 |
 
 ## 运行状态
 

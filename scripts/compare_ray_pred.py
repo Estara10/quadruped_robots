@@ -17,6 +17,10 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
+try:
+    from scripts.abs_scene import canonical_scene_filename
+except ModuleNotFoundError:
+    from abs_scene import canonical_scene_filename
 
 ROOT = Path.home() / "quadruped_robots"
 MUJOCO_DIR = ROOT / "unitree_mujoco"
@@ -96,8 +100,11 @@ def parse_float_list(value: str) -> List[float]:
 def resolve_scene(scene: str) -> Path:
     path = Path(scene).expanduser()
     if path.is_absolute():
+        alias = canonical_scene_filename(path.name)
+        if alias != path.name:
+            path = path.with_name(alias)
         return path
-    return SCENE_DIR / scene
+    return SCENE_DIR / canonical_scene_filename(path.name)
 
 
 def find_body_id(mujoco, model) -> int:
@@ -183,7 +190,7 @@ def obstacle_geom_ids(mujoco, model, scene_filename: str) -> Iterable[int]:
     # Match abs_scene::selectObstacleGeoms used by the controller's geometry writer.
     if scene_filename == "scene_flat.xml":
         return
-    if scene_filename == "challenge27.xml":
+    if canonical_scene_filename(scene_filename) == "M3_27.xml":
         selected = []
         for geom_id in range(model.ngeom):
             name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_GEOM, geom_id)

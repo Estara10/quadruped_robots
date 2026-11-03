@@ -5,7 +5,7 @@
   "wall_cap_s": 120.0,
   "scenes": [
     {
-      "filename": "r1_d09_gap_wide_v2.xml",
+      "filename": "R1_07.xml",
       "scene_id": "r1v2_d09_gap_wide",
       "obstacle_count": 10,
       "goal_m": [
@@ -25,21 +25,21 @@
       "split": "development_layout_viewing",
       "template": "d09_gap",
       "tier": "wide",
-      "source_v1": "r1_d09_gap_wide.xml",
+      "source_v1": "R1_01.xml",
       "layout_revision": "r1-layout-proposals/2",
       "sim_limit_s": 20.0,
       "wall_cap_s": 120.0,
       "production_scene_binding": {
-        "filename": "r1_d09_gap_wide_v2.xml",
+        "filename": "R1_07.xml",
         "scene_id": "r1v2_d09_gap_wide",
         "obstacle_count": 10,
         "root_sha256": "1aaa8d119c224a158ff3fda265ad61a9586e3fbee3364d21d4289a3613576a09",
-        "closure_sha256": "c654e47de25bae8543126742f06a333c5aa8f21f5e8b74cbd5c315a9cf814ebc",
+        "closure_sha256": "7ab2e399cb1e833a0ab45219fa051a94fd1735d1298efc2f32b90ad231844278",
         "model_fingerprint": "da9abc92b23ec9690fd1c92f10200da6075942e12b55b1f09a85c0b333aa8a1c"
       }
     },
     {
-      "filename": "r1_d09_gap_middle_v2.xml",
+      "filename": "R1_08.xml",
       "scene_id": "r1v2_d09_gap_middle",
       "obstacle_count": 10,
       "goal_m": [
@@ -59,21 +59,21 @@
       "split": "development_layout_viewing",
       "template": "d09_gap",
       "tier": "middle",
-      "source_v1": "r1_d09_gap_middle.xml",
+      "source_v1": "R1_02.xml",
       "layout_revision": "r1-layout-proposals/2",
       "sim_limit_s": 20.0,
       "wall_cap_s": 120.0,
       "production_scene_binding": {
-        "filename": "r1_d09_gap_middle_v2.xml",
+        "filename": "R1_08.xml",
         "scene_id": "r1v2_d09_gap_middle",
         "obstacle_count": 10,
         "root_sha256": "637cb600c1fa4f63f84c735df12e95b1385cc6cd3dda7d78ac4796ad6810b755",
-        "closure_sha256": "5da94b6525f4507cfde77e499f320121a7db4f9d8c39ff614678d2671f3e077a",
+        "closure_sha256": "378d67935b311afbb8d67d17ef18e964df07a9ec0cbc5e7b9e6c5019215cdb9f",
         "model_fingerprint": "d425c8613861b5d2aafb14cba1f3a9a9d4443a6fd58c27f2a7733501362de156"
       }
     },
     {
-      "filename": "r1_d09_gap_narrow_v2.xml",
+      "filename": "R1_09.xml",
       "scene_id": "r1v2_d09_gap_narrow",
       "obstacle_count": 10,
       "goal_m": [
@@ -93,21 +93,21 @@
       "split": "development_layout_viewing",
       "template": "d09_gap",
       "tier": "narrow",
-      "source_v1": "r1_d09_gap_narrow.xml",
+      "source_v1": "R1_03.xml",
       "layout_revision": "r1-layout-proposals/2",
       "sim_limit_s": 20.0,
       "wall_cap_s": 120.0,
       "production_scene_binding": {
-        "filename": "r1_d09_gap_narrow_v2.xml",
+        "filename": "R1_09.xml",
         "scene_id": "r1v2_d09_gap_narrow",
         "obstacle_count": 10,
         "root_sha256": "62cac30f330830771495d82e492423586202b53816c01195806bcdebf82a155b",
-        "closure_sha256": "5dd8dcc40e45c7699e5fe2c2eebf82b4f2cf772f99d43e93561c99b5d44a102b",
+        "closure_sha256": "251399248e950edbbebd81b4fd11deada86a7431e629388a495c698ee0ff69f2",
         "model_fingerprint": "e2f13d5cd18e158f80b24d44b9d1e190a8825462d184e6f9fd1974974133a0af"
       }
     },
     {
-      "filename": "r1_m02_space_wide_v2.xml",
+      "filename": "R1_10.xml",
       "scene_id": "r1v2_m02_space_wide",
       "obstacle_count": 9,
       "goal_m": [
@@ -127,21 +127,21 @@
       "split": "development_layout_viewing",
       "template": "m02_space",
       "tier": "wide",
-      "source_v1": "r1_m02_space_wide.xml",
+      "source_v1": "R1_04.xml",
       "layout_revision": "r1-layout-proposals/2",
       "sim_limit_s": 20.0,
       "wall_cap_s": 120.0,
       "production_scene_binding": {
-        "filename": "r1_m02_space_wide_v2.xml",
+        "filename": "R1_10.xml",
         "scene_id": "r1v2_m02_space_wide",
         "obstacle_count": 9,
         "root_sha256": "a37509060953fee022bcd5c7e062aa0f937058167e5710687ea4b2f42342f80d",
-        "closure_sha256": "783a82cdb4669098f3f0abda1df7f5f124ab4e68bccb6f4863d60c7ca6c5e747",
+        "closure_sha256": "5437a7f7079cc7089f420597dce5a7feea2cb4b2363a0859ed93dcc846e201ab",
         "model_fingerprint": "8aa100d47a627edbf1238e0c046b4740aa3d7332b22ee04044afd705d55023fe"
       }
     },
     {
-      "filename": "r1_m02_space_middle_v2.xml",
+      "filename": "R1_11.xml",
       "scene_id": "r1v2_m02_space_middle",
       "obstacle_count": 9,
       "goal_m": [
@@ -161,21 +161,21 @@
       "split": "development_layout_viewing",
       "template": "m02_space",
       "tier": "middle",
-      "source_v1": "r1_m02_space_middle.xml",
+      "source_v1": "R1_05.xml",
       "layout_revision": "r1-layout-proposals/2",
       "sim_limit_s": 20.0,
       "wall_cap_s": 120.0,
       "production_scene_binding": {
-        "filename": "r1_m02_space_middle_v2.xml",
+        "filename": "R1_11.xml",
         "scene_id": "r1v2_m02_space_middle",
         "obstacle_count": 9,
         "root_sha256": "ce0c0d23dc897b7f07b753c312007c06dd16be7056e5ace3d55258f81e4431df",
-        "closure_sha256": "b58510bcd5b158703d33350325cf8edfa724d4a0ec33969bd95dc59804d5b284",
+        "closure_sha256": "7f739a0ea52030ef545c2555bc0c1e9f484cb474524b0721c8c1be081b146e42",
         "model_fingerprint": "7eececa88d4897a4f9de24068bcf9895c3075ded14e48ff6b1d78509c29f03af"
       }
     },
     {
-      "filename": "r1_m02_space_narrow_v2.xml",
+      "filename": "R1_12.xml",
       "scene_id": "r1v2_m02_space_narrow",
       "obstacle_count": 9,
       "goal_m": [
@@ -195,16 +195,16 @@
       "split": "development_layout_viewing",
       "template": "m02_space",
       "tier": "narrow",
-      "source_v1": "r1_m02_space_narrow.xml",
+      "source_v1": "R1_06.xml",
       "layout_revision": "r1-layout-proposals/2",
       "sim_limit_s": 20.0,
       "wall_cap_s": 120.0,
       "production_scene_binding": {
-        "filename": "r1_m02_space_narrow_v2.xml",
+        "filename": "R1_12.xml",
         "scene_id": "r1v2_m02_space_narrow",
         "obstacle_count": 9,
         "root_sha256": "cbbd999c7675b0180cc3f5b76888cf23f184bbc8bfd2ea11a212eb49f4c01b5e",
-        "closure_sha256": "9762b569962b13620d9f68af7b555d2710c0e35430802427614aa660bb6909c3",
+        "closure_sha256": "dd9acb4b0d8d002c04d3bf133c95be750e8fccb40440b3a44f01dd7913b784b9",
         "model_fingerprint": "e0c20f0592720355669984a9cc613bc91ecc7d166facb5d58d3e76412bfb4e8c"
       }
     }

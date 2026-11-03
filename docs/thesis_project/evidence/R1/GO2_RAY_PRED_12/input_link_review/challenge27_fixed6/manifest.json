@@ -1,0 +1,130 @@
+{
+  "scene": "/home/lidio/quadruped_robots/unitree_mujoco/unitree_robots/go2/challenge27.xml",
+  "model": "archive/ray_pred_finetune/mujoco_finetune_soft_safety_20260611/ray_pred_mujoco_finetuned_best.pt",
+  "source": "grid",
+  "samples": 6,
+  "device": "cpu",
+  "camera_size": [
+    160,
+    90
+  ],
+  "camera_hfov_deg": 102.0,
+  "camera_fovy_deg": 69.5699795961589,
+  "camera_local_pos": [
+    0.0,
+    0.0,
+    0.27
+  ],
+  "ray_count": 11,
+  "ray_distance_range_m": [
+    0.1,
+    6.0
+  ],
+  "thresholds": {
+    "near_distance": 1.5,
+    "clear_distance": 3.0,
+    "false_safe_margin": 0.5,
+    "false_danger_margin": 0.5,
+    "min_target_clearance": 0.0
+  },
+  "visualizations": [
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/input_link_review/challenge27_fixed6/worst_samples/rank_01_sample_004_depth.png",
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/input_link_review/challenge27_fixed6/worst_samples/rank_01_sample_004_rays.png",
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/input_link_review/challenge27_fixed6/worst_samples/rank_02_sample_003_depth.png",
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/input_link_review/challenge27_fixed6/worst_samples/rank_02_sample_003_rays.png",
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/input_link_review/challenge27_fixed6/worst_samples/rank_03_sample_000_depth.png",
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/input_link_review/challenge27_fixed6/worst_samples/rank_03_sample_000_rays.png",
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/input_link_review/challenge27_fixed6/worst_samples/rank_04_sample_005_depth.png",
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/input_link_review/challenge27_fixed6/worst_samples/rank_04_sample_005_rays.png",
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/input_link_review/challenge27_fixed6/worst_samples/rank_05_sample_001_depth.png",
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/input_link_review/challenge27_fixed6/worst_samples/rank_05_sample_001_rays.png",
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/input_link_review/challenge27_fixed6/worst_samples/rank_06_sample_002_depth.png",
+    "docs/thesis_project/evidence/R1/GO2_RAY_PRED_12/input_link_review/challenge27_fixed6/worst_samples/rank_06_sample_002_rays.png"
+  ],
+  "summary": {
+    "samples": 6,
+    "mean_abs_log2": 0.9600816369056702,
+    "rmse_log2": 1.2690184116363525,
+    "max_abs_log2": 3.223147392272949,
+    "mean_abs_m": 2.0579206943511963,
+    "rmse_m": 2.737081527709961,
+    "max_abs_m": 5.357479095458984,
+    "false_safe_total": 0,
+    "false_danger_total": 37,
+    "mean_abs_log2_flipped": 1.5232963562011719,
+    "rmse_log2_flipped": 1.8731430768966675,
+    "max_abs_log2_flipped": 4.028107166290283,
+    "mean_abs_m_flipped": 2.603877305984497,
+    "rmse_m_flipped": 3.176785945892334,
+    "max_abs_m_flipped": 5.632235050201416,
+    "false_safe_total_flipped": 10,
+    "false_danger_total_flipped": 38,
+    "mean_render_ms": 33.549110094706215,
+    "mean_inference_ms": 27.514417966206867,
+    "per_ray_mean_abs_m": [
+      2.4329750537872314,
+      1.7785643339157104,
+      1.9336789846420288,
+      2.171935558319092,
+      0.7575656771659851,
+      1.7758413553237915,
+      1.9489814043045044,
+      2.5314624309539795,
+      1.6827692985534668,
+      2.0192368030548096,
+      3.604116201400757
+    ],
+    "per_ray_max_abs_m": [
+      4.921376705169678,
+      4.829328536987305,
+      5.347452640533447,
+      3.8575375080108643,
+      2.7200679779052734,
+      5.267519950866699,
+      4.685044288635254,
+      5.130260944366455,
+      4.706786155700684,
+      4.160431861877441,
+      5.357479095458984
+    ],
+    "per_ray_bias_m": [
+      -2.4329750537872314,
+      -1.7570573091506958,
+      -1.8720098733901978,
+      -2.171935558319092,
+      -0.7025951743125916,
+      -1.7649636268615723,
+      -1.7925515174865723,
+      -2.4926888942718506,
+      -1.3244932889938354,
+      -1.380885124206543,
+      -3.604116201400757
+    ],
+    "per_ray_mean_target_m": [
+      4.515961170196533,
+      3.4718105792999268,
+      3.4791858196258545,
+      4.21064567565918,
+      2.1387083530426025,
+      3.003999710083008,
+      3.383183479309082,
+      4.17832088470459,
+      3.2750232219696045,
+      3.786993980407715,
+      6.0
+    ],
+    "per_ray_mean_pred_m": [
+      2.0829856395721436,
+      1.71475350856781,
+      1.6071758270263672,
+      2.038710117340088,
+      1.4361129999160767,
+      1.2390360832214355,
+      1.5906318426132202,
+      1.685632348060608,
+      1.9505300521850586,
+      2.406109094619751,
+      2.395883798599243
+    ]
+  }
+}

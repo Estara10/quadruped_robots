@@ -5,69 +5,7 @@
   "wall_cap_s": 120.0,
   "scenes": [
     {
-      "filename": "r1_d09_gap_middle.xml",
-      "scene_id": "r1_d09_gap_middle",
-      "obstacle_count": 10,
-      "goal_m": [
-        7.5,
-        0.0
-      ],
-      "field_bounds_m": {
-        "x": [
-          -0.5,
-          8.0
-        ],
-        "y": [
-          -3.0,
-          3.0
-        ]
-      },
-      "split": "development_layout_viewing",
-      "layout_revision": "R1-d09-m02-gradients-20261031",
-      "source_template": "d09",
-      "difficulty_label": "middle",
-      "production_scene_binding": {
-        "filename": "r1_d09_gap_middle.xml",
-        "scene_id": "r1_d09_gap_middle",
-        "obstacle_count": 10,
-        "root_sha256": "742758b56f45f9fecf7568c31636c4f27f6c90e0eb21bb1e5d46365b51049961",
-        "closure_sha256": "ba9f89577599424145a362c5736f2786fcb98715c731879f9e40a9298eabfe58",
-        "model_fingerprint": "1477b38f87eb6e8e582959a8ed168a804d1d206195a7b02674512898ea414b7c"
-      }
-    },
-    {
-      "filename": "r1_d09_gap_narrow.xml",
-      "scene_id": "r1_d09_gap_narrow",
-      "obstacle_count": 10,
-      "goal_m": [
-        7.5,
-        0.0
-      ],
-      "field_bounds_m": {
-        "x": [
-          -0.5,
-          8.0
-        ],
-        "y": [
-          -3.0,
-          3.0
-        ]
-      },
-      "split": "development_layout_viewing",
-      "layout_revision": "R1-d09-m02-gradients-20261031",
-      "source_template": "d09",
-      "difficulty_label": "narrow",
-      "production_scene_binding": {
-        "filename": "r1_d09_gap_narrow.xml",
-        "scene_id": "r1_d09_gap_narrow",
-        "obstacle_count": 10,
-        "root_sha256": "320fe5d6b800057b2b60175ebf615ce68af8930897ef63c96a95927ba3920e19",
-        "closure_sha256": "1b585a60e33b4a5fe544095647ce4d46df9b7d129029a31f728ae150d630422b",
-        "model_fingerprint": "6573bb77c7b9643c9f148065a15817ec1533d261827a2213c649ed533ef249ee"
-      }
-    },
-    {
-      "filename": "r1_d09_gap_wide.xml",
+      "filename": "R1_01.xml",
       "scene_id": "r1_d09_gap_wide",
       "obstacle_count": 10,
       "goal_m": [
@@ -89,18 +27,18 @@
       "source_template": "d09",
       "difficulty_label": "wide",
       "production_scene_binding": {
-        "filename": "r1_d09_gap_wide.xml",
+        "filename": "R1_01.xml",
         "scene_id": "r1_d09_gap_wide",
         "obstacle_count": 10,
         "root_sha256": "33ce6133dfc140fcb8423589d3bbbb44481ff07bdb7c1f5a0852c58a60043b0a",
-        "closure_sha256": "308e8ebcaa0cd20bfed72edef9b4b045b26e816e9b4f11de7e226f10da3515df",
+        "closure_sha256": "efeca96d378848baa898851b0aa4520b8a1c02d1e9d568478fab00cc79b382b6",
         "model_fingerprint": "5267f51f31109b660798201e899c21c3f56ec007202c4ff7ab8ce13aa53a107c"
       }
     },
     {
-      "filename": "r1_m02_space_middle.xml",
-      "scene_id": "r1_m02_space_middle",
-      "obstacle_count": 9,
+      "filename": "R1_02.xml",
+      "scene_id": "r1_d09_gap_middle",
+      "obstacle_count": 10,
       "goal_m": [
         7.5,
         0.0
@@ -117,21 +55,21 @@
       },
       "split": "development_layout_viewing",
       "layout_revision": "R1-d09-m02-gradients-20261031",
-      "source_template": "m02",
+      "source_template": "d09",
       "difficulty_label": "middle",
       "production_scene_binding": {
-        "filename": "r1_m02_space_middle.xml",
-        "scene_id": "r1_m02_space_middle",
-        "obstacle_count": 9,
-        "root_sha256": "e5910dbc91288c9b5f2abff0aa12cdad1be1be4f07febe62099025d1f0d126bb",
-        "closure_sha256": "b0a500e0e27878760a8d4b760090b8a7874751c8d39eaa7769bbfdc2fc9840eb",
-        "model_fingerprint": "71b447498d92463730ae6e87a0848f08c882a6d065c67c2036d5410ea4eedccf"
+        "filename": "R1_02.xml",
+        "scene_id": "r1_d09_gap_middle",
+        "obstacle_count": 10,
+        "root_sha256": "742758b56f45f9fecf7568c31636c4f27f6c90e0eb21bb1e5d46365b51049961",
+        "closure_sha256": "51a4e22f1d425a8e4b46a64f4cebfba658a4122f132d63437013e4c48f25dcbf",
+        "model_fingerprint": "1477b38f87eb6e8e582959a8ed168a804d1d206195a7b02674512898ea414b7c"
       }
     },
     {
-      "filename": "r1_m02_space_narrow.xml",
-      "scene_id": "r1_m02_space_narrow",
-      "obstacle_count": 9,
+      "filename": "R1_03.xml",
+      "scene_id": "r1_d09_gap_narrow",
+      "obstacle_count": 10,
       "goal_m": [
         7.5,
         0.0
@@ -148,19 +86,19 @@
       },
       "split": "development_layout_viewing",
       "layout_revision": "R1-d09-m02-gradients-20261031",
-      "source_template": "m02",
+      "source_template": "d09",
       "difficulty_label": "narrow",
       "production_scene_binding": {
-        "filename": "r1_m02_space_narrow.xml",
-        "scene_id": "r1_m02_space_narrow",
-        "obstacle_count": 9,
-        "root_sha256": "4a3e61d2708f9551b06c6eb6509093d6925943a5e289f02d923b2742143fbd69",
-        "closure_sha256": "2d30848f055ee63521c13eb7f60507c5a8abbcbf87a6f57e9e09673339400552",
-        "model_fingerprint": "5b2db16dedb84b0f8d10192402bcad7dba83816cbef6239bd87d4d417a373118"
+        "filename": "R1_03.xml",
+        "scene_id": "r1_d09_gap_narrow",
+        "obstacle_count": 10,
+        "root_sha256": "320fe5d6b800057b2b60175ebf615ce68af8930897ef63c96a95927ba3920e19",
+        "closure_sha256": "8feb9f87cc282f9f251c5ef5849f283d4f201c40af62ec151f315778b66d0691",
+        "model_fingerprint": "6573bb77c7b9643c9f148065a15817ec1533d261827a2213c649ed533ef249ee"
       }
     },
     {
-      "filename": "r1_m02_space_wide.xml",
+      "filename": "R1_04.xml",
       "scene_id": "r1_m02_space_wide",
       "obstacle_count": 9,
       "goal_m": [
@@ -182,12 +120,74 @@
       "source_template": "m02",
       "difficulty_label": "wide",
       "production_scene_binding": {
-        "filename": "r1_m02_space_wide.xml",
+        "filename": "R1_04.xml",
         "scene_id": "r1_m02_space_wide",
         "obstacle_count": 9,
         "root_sha256": "1cdeb00fca13650136bad93c8632188f0dd15365456b98dcc7ce5b85b75b1b99",
-        "closure_sha256": "c1edbef0fd2a4ef6169d2f12672cdeddde5ab00fb9da027aeca136253d9f9a1f",
+        "closure_sha256": "72138450213ef600d28bc8512672b4a56bd23f1231c8b674352a0a7dcd636168",
         "model_fingerprint": "06f3f15ccf78b6e239c08b23448cc1221a0b11254e0b31ee92ba150345f8ab32"
+      }
+    },
+    {
+      "filename": "R1_05.xml",
+      "scene_id": "r1_m02_space_middle",
+      "obstacle_count": 9,
+      "goal_m": [
+        7.5,
+        0.0
+      ],
+      "field_bounds_m": {
+        "x": [
+          -0.5,
+          8.0
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "split": "development_layout_viewing",
+      "layout_revision": "R1-d09-m02-gradients-20261031",
+      "source_template": "m02",
+      "difficulty_label": "middle",
+      "production_scene_binding": {
+        "filename": "R1_05.xml",
+        "scene_id": "r1_m02_space_middle",
+        "obstacle_count": 9,
+        "root_sha256": "e5910dbc91288c9b5f2abff0aa12cdad1be1be4f07febe62099025d1f0d126bb",
+        "closure_sha256": "631e4a646d6aeed5ed8683546e072c404180c1f70218378fa8913fbfd86aaafe",
+        "model_fingerprint": "71b447498d92463730ae6e87a0848f08c882a6d065c67c2036d5410ea4eedccf"
+      }
+    },
+    {
+      "filename": "R1_06.xml",
+      "scene_id": "r1_m02_space_narrow",
+      "obstacle_count": 9,
+      "goal_m": [
+        7.5,
+        0.0
+      ],
+      "field_bounds_m": {
+        "x": [
+          -0.5,
+          8.0
+        ],
+        "y": [
+          -3.0,
+          3.0
+        ]
+      },
+      "split": "development_layout_viewing",
+      "layout_revision": "R1-d09-m02-gradients-20261031",
+      "source_template": "m02",
+      "difficulty_label": "narrow",
+      "production_scene_binding": {
+        "filename": "R1_06.xml",
+        "scene_id": "r1_m02_space_narrow",
+        "obstacle_count": 9,
+        "root_sha256": "4a3e61d2708f9551b06c6eb6509093d6925943a5e289f02d923b2742143fbd69",
+        "closure_sha256": "8ca353d0d8ed33572e56db8a2e2b738ea0587a452f551c326c5eea874769a55d",
+        "model_fingerprint": "5b2db16dedb84b0f8d10192402bcad7dba83816cbef6239bd87d4d417a373118"
       }
     }
   ]

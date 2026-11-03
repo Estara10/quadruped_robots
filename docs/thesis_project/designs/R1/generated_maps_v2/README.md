@@ -28,6 +28,15 @@
 
 六份小XML同时放在本目录与`unitree_mujoco/unitree_robots/go2/`，后者共用已有go2.xml与模型资源。没有复制六套模型。目录中XML的相对include沿用生产场景目录约定，静态加载检查使用Go2目录下的副本。
 
-新文件名为原名加`_v2.xml`。六份地图已加入独立`r1v2_*`身份、真实模型指纹及诊断器元数据；R1-6的72次运行使用这些身份，旧v1登记和旧运行不变。本批精确设置、顺序、结果和存储见[72项批次报告](../../../evidence/R1/R1v2_threshold_72/分析报告.md)及[run_plan.json](../../../../logs/09_R1_switch_constraints/r1_v2_threshold_72/20261031_r1_v2_threshold72/run_plan.json)。
+当前运行文件按本组顺序编号为R1_07–R1_12.xml；旧`_v2.xml`文件名仍可输入并解析到新文件。单图PNG与XML共用编号。完整映射见[地图文件名对照](../../MAP_FILENAME_CROSSWALK.md)。六份地图已加入独立`r1v2_*`身份、真实模型指纹及诊断器元数据；R1-6的72次运行使用这些身份，旧v1登记和旧运行不变。本批精确设置、顺序、结果和存储见[72项批次报告](../../../evidence/R1/R1v2_threshold_72/分析报告.md)及[run_plan.json](../../../../logs/09_R1_switch_constraints/r1_v2_threshold_72/20261031_r1_v2_threshold72/run_plan.json)。
 
 [逐图改动](changes.json) · [v1观看报告](../../../evidence/R1/layout_watch_6_20261031/观看报告.md)
+
+| 新文件 | 原地图 | 单图预览 |
+|---|---|---|
+| R1_07.xml | d09宽 | [R1_07.png](R1_07.png) |
+| R1_08.xml | d09中 | [R1_08.png](R1_08.png) |
+| R1_09.xml | d09窄 | [R1_09.png](R1_09.png) |
+| R1_10.xml | m02宽 | [R1_10.png](R1_10.png) |
+| R1_11.xml | m02中 | [R1_11.png](R1_11.png) |
+| R1_12.xml | m02窄 | [R1_12.png](R1_12.png) |

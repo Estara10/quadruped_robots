@@ -1,8 +1,18 @@
 # R1：切换约束作用与代价研究
 
-## 当前阶段：challenge27 A/C × Frozen/Periodic本机小批量完成（2026-11-02）
+当前运行目录中的R1地图使用`R1_01.xml`–`R1_12.xml`，顺序为d09宽/中/窄、m02宽/中/窄（v1后接v2）；旧名仍可输入。见[完整地图文件名对照](../MAP_FILENAME_CROSSWALK.md)。
 
-阶段一只读分析已通过审阅；Periodic Twist最小实现P=0.06仿真秒、Frozen默认。challenge27 A/C×Frozen/Periodic 40项作为历史结果保留。原12项动态射线比较仍暂停：两项几何ARRIVED，一项challenge27预测因帧龄218.217ms超过200ms触发`SYSTEM_SAFETY_ABORT`，剩余9项未启动。后续定位为CPU推理长尾及预测器子进程环境遮蔽CUDA；修正后独立60秒最大帧间隔76.22ms，一次独立scene_flat动态核验ARRIVED，419个周期读取有效预测射线、最大间隔57.24ms，无过期中止，但安全完成UNKNOWN且收尾记录DDS timeout FATAL。该独立核验不计入原批次；原剩余9项等待审阅决定。详见[Go2核验报告](../../evidence/R1/GO2_RAY_PRED_12/STATUS_REPORT.md)和[准备计划](GO2_REAL_PREPARATION_PLAN.md)。R1仍为唯一ACTIVE，实机未连接。
+## 最新批次：Periodic A/B双阈值比较（2026-11-03）
+
+45项冻结排程已结束，43项取得有效任务结果，2项启动故障未重试；到达20、碰撞12、仿真限时11，安全完成TRUE/FALSE/UNKNOWN为20/23/2。d09与m02上的B_E04_X07呈现局部改善线索；challenge27两档B到达均少于A；同E的B_E05_X10未显示跨图一致改善。样本每格4–5项，均为开发图，尚不支持选择B进入新布局验证。当前仿真保持几何射线＋Periodic P=0.06；范围仅A/B，C/D暂不加入。深度预测优化暂停，实机导航由独立规划器负责。R1保持ACTIVE并等待审阅。见[分析报告](../../evidence/R1/PERIODIC_AB_45/ANALYSIS_REPORT.md)、[逐次结果](../../evidence/R1/PERIODIC_AB_45/per_run_results.csv)、[九格汇总](../../evidence/R1/PERIODIC_AB_45/map_setting_summary.csv)、[冻结运行计划](../../../../logs/09_R1_switch_constraints/periodic_ab_45/20261103_r1_periodic_ab_45/run_plan.json)。
+
+## 已完成阶段：射线预测输入复核（2026-11-03）
+
+已核对当前MuJoCo相机与微调输入代码、深度/标签语义和控制器射线定义；未发现直接实现错误。固定12姿态误差仍显示开阔右侧束偏短与challenge27误差较大。4项有限动态观看中scene_flat几何/预测到达、challenge27几何到达而CUDA预测碰撞障碍02；无200ms过期中止。当前优先一次ray-only有限微调后复评，不扩大控制策略训练。见[输入复核报告](../../evidence/R1/GO2_RAY_PRED_12/input_link_review/RAY_INPUT_REPAIR_REPORT.md)、[固定姿态](../../evidence/R1/GO2_RAY_PRED_12/input_link_review/FIXED_POSES.csv)、[动态结果](../../evidence/R1/GO2_RAY_PRED_12/input_link_review/DYNAMIC_RESULTS.csv)。R1仍ACTIVE，实机未连接。
+
+## 历史阶段：challenge27 A/C × Frozen/Periodic本机小批量完成（2026-11-02）
+
+阶段一只读分析已通过审阅；Periodic Twist最小实现P=0.06仿真秒、Frozen默认。challenge27 A/C×Frozen/Periodic 40项作为历史结果保留。原12项动态射线比较已完成：两项几何先行ARRIVED，第3项CPU预测因帧龄218.217ms超过200ms触发`SYSTEM_SAFETY_ABORT`并保留，第4—12项已续跑。后续定位为CPU推理长尾及预测器子进程环境遮蔽CUDA；修正后独立60秒最大帧间隔76.22ms，一次独立scene_flat动态核验ARRIVED，419个周期读取有效预测射线、最大间隔57.24ms，无过期中止，但安全完成UNKNOWN且收尾记录DDS timeout FATAL。该独立核验不计入原批次；原剩余9项已按冻结排程续跑完成。详见[Go2核验报告](../../evidence/R1/GO2_RAY_PRED_12/STATUS_REPORT.md)和[准备计划](GO2_REAL_PREPARATION_PLAN.md)。R1仍为唯一ACTIVE，实机未连接。
 
 ## 上一批结果：图05 A/C保持时间比较（2026-11-02）
 

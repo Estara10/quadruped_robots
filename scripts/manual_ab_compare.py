@@ -34,7 +34,8 @@ def execute(command, log_path, env=None):
     last_result = None
     with log_path.open("w", encoding="utf-8") as log:
         child = subprocess.Popen(command, cwd=PROJECT, env=env, stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT, text=True, bufsize=1)
+                                 stderr=subprocess.STDOUT, text=True, bufsize=1,
+                                 start_new_session=True)
         try:
             for line in child.stdout:
                 print(line, end="", flush=True)
@@ -48,13 +49,17 @@ def execute(command, log_path, env=None):
                     pass
             code = child.wait()
         except KeyboardInterrupt:
-            print("\n已中断对比，等待当前诊断器清理；不会启动下一组。", flush=True)
-            if child.poll() is None:
-                child.send_signal(signal.SIGINT)
+            print("\n收到中断；通知当前诊断器执行进程清理，并等待收尾。", flush=True)
+            previous_sigint = signal.signal(signal.SIGINT, signal.SIG_IGN)
             try:
-                child.wait(timeout=60)
-            except (subprocess.TimeoutExpired, KeyboardInterrupt):
-                print("尚未确认诊断器退出，请检查本次项目进程。", flush=True)
+                if child.poll() is None:
+                    child.send_signal(signal.SIGINT)
+                try:
+                    child.wait(timeout=60)
+                except subprocess.TimeoutExpired:
+                    print(f"诊断器60秒内未退出；临时日志保留于：{log_path}", flush=True)
+            finally:
+                signal.signal(signal.SIGINT, previous_sigint)
             raise
     if code:
         raise RuntimeError(f"命令退出码为 {code}，详情：{log_path}")
@@ -305,7 +310,7 @@ def save_comparison(root, rows, groups, parameters=None, classification=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--scene", default="dev01.xml")
+    parser.add_argument("--scene", default="M1_01.xml")
     parser.add_argument("--goal-x", type=float, default=7.5,
                         help="world-frame goal x; used in overlay, controller validation, run context and analysis")
     parser.add_argument("--goal-y", type=float, default=0.0,
@@ -320,6 +325,8 @@ def main():
                         help="reuse a previously detached overlay whose config and model files are revalidated before each run")
     parser.add_argument("--disable-framebuffer-capture", action="store_true",
                         help="suppress optional live/standing PPM writes for storage-bounded batches")
+    parser.add_argument("--no-per-run-timelines", action="store_true",
+                        help="retain per-run metrics while omitting repeated timeline images")
     parser.add_argument("--no-rviz", action="store_true", help="关闭RViz，保留MuJoCo窗口设置")
     parser.add_argument("--no-window", action="store_true",
                         help="hide the production GLFW window; still uses its normal DISPLAY/OpenGL context")
@@ -484,9 +491,12 @@ def main():
                     # Keep this compatibility choice local to analysis only.
                     plot_env["PYTHONNOUSERSITE"] = "1"
                     plot_env.setdefault("MPLCONFIGDIR", "/tmp/manual_ab_compare_mpl")
-                    execute([args.plot_python, str(PROJECT / "scripts/s1_analyze_run.py"),
-                             "--runs-root", str(run_out), "--output-dir", str(analysis_root),
-                             "--task-label", f"S6-06-{group}-rep-{repeat_index:02d}"],
+                    analysis_command = [args.plot_python, str(PROJECT / "scripts/s1_analyze_run.py"),
+                                        "--runs-root", str(run_out), "--output-dir", str(analysis_root),
+                                        "--task-label", f"R1-periodic-{group}-rep-{repeat_index:02d}"]
+                    if args.no_per_run_timelines:
+                        analysis_command.append("--no-timelines")
+                    execute(analysis_command,
                             root / f"{group}_rep_{repeat_index:02d}_analysis.log", env=plot_env)
                     metrics = run_directory / "metrics.json"
                     metric = json.loads(metrics.read_text(encoding="utf-8"))
@@ -522,7 +532,9 @@ def main():
         save_comparison(root, rows, groups, parameters, args.classification)
         print(f"对比停止：{error}\n已有记录保留：{root}", file=sys.stderr)
         return 1
-    print(f"\n{'/'.join(groups)} 批次诊断及绘图已完成。\n对照表：{root / 'comparison.md'}\n机器可读汇总：{root / 'batch_summary.json'}")
+    completion = ("诊断与指标提取已完成（未生成逐次时间线）" if args.no_per_run_timelines
+                  else "批次诊断及绘图已完成")
+    print(f"\n{'/'.join(groups)} {completion}。\n对照表：{root / 'comparison.md'}\n机器可读汇总：{root / 'batch_summary.json'}")
     print("这是预实验准备核验，不用于成功率或性能结论；本脚本不会启动正式实验。")
     return 0
 

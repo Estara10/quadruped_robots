@@ -226,6 +226,16 @@ namespace rl_quadruped_controller
             next_state_name_ = current_state_->checkChange();
             if (next_state_name_ != current_state_->state_name)
             {
+                if (next_state_name_ == FSMStateName::RL_REC &&
+                    !state_list_.rlRec->hasSelectedLinearVelocityWorld())
+                {
+                    RCLCPP_ERROR_THROTTLE(get_node()->get_logger(), *get_node()->get_clock(), 1000,
+                        "Recovery entry blocked: selected velocity source '%s' is unavailable or non-finite",
+                        recoveryVelocitySourceName(recovery_velocity_source_));
+                    next_state_name_ = current_state_->state_name;
+                    updateNormalShutdown();
+                    return controller_interface::return_type::OK;
+                }
                 mode_ = FSMMode::CHANGE;
                 next_state_ = getNextState(next_state_name_);
                 RCLCPP_INFO(get_node()->get_logger(), "Switched from %s to %s",
@@ -464,6 +474,9 @@ namespace rl_quadruped_controller
             stand_pos_ = auto_declare<std::vector<double>>("stand_pos", stand_pos_);
             stand_kp_ = auto_declare<double>("stand_kp", stand_kp_);
             stand_kd_ = auto_declare<double>("stand_kd", stand_kd_);
+            const std::string recovery_velocity_source = auto_declare<std::string>(
+                "recovery_velocity_source", "odom");
+            recovery_velocity_source_ = parseRecoveryVelocitySource(recovery_velocity_source);
 
             get_node()->get_parameter("update_rate", ctrl_interfaces_.frequency_);
             RCLCPP_INFO(get_node()->get_logger(), "Controller Update Rate: %d Hz", ctrl_interfaces_.frequency_);
@@ -605,7 +618,8 @@ namespace rl_quadruped_controller
         state_list_.fixedDown = std::make_shared<StateFixedDown>(ctrl_interfaces_, down_pos_, stand_kp_, stand_kd_);
         state_list_.fixedStand = std::make_shared<StateFixedStand>(ctrl_interfaces_, stand_pos_, stand_kp_, stand_kd_);
         state_list_.rl = std::make_shared<StateRL>(ctrl_interfaces_, ctrl_component_, stand_pos_);
-        state_list_.rlRec = std::make_shared<StateRLRec>(ctrl_interfaces_, ctrl_component_, stand_pos_);
+        state_list_.rlRec = std::make_shared<StateRLRec>(
+            ctrl_interfaces_, ctrl_component_, stand_pos_, recovery_velocity_source_);
 
         // Initialize FSM
         current_state_ = state_list_.passive;
@@ -630,6 +644,14 @@ namespace rl_quadruped_controller
     controller_interface::CallbackReturn LeggedGymController::on_deactivate(
         const rclcpp_lifecycle::State& /*previous_state*/)
     {
+        // Stop inference before clearing commands. Hardware stays active when
+        // only this controller is deactivated: this unloads, not native takeover.
+        if (current_state_)
+        {
+            current_state_->exit();
+            current_state_ = state_list_.passive;
+            current_state_->enter();
+        }
         release_interfaces();
         return CallbackReturn::SUCCESS;
     }

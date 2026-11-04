@@ -19,12 +19,14 @@ std::vector<T> ReadVectorFromYamlRec(const YAML::Node& node)
 
 StateRLRec::StateRLRec(CtrlInterfaces& ctrl_interfaces,
                        CtrlComponent& ctrl_component,
-                       const std::vector<double>& target_pos) :
+                       const std::vector<double>& target_pos,
+                       RecoveryVelocitySource velocity_source) :
     FSMState(FSMStateName::RL_REC, "rl_rec", ctrl_interfaces),
     node_(ctrl_component.node_),
     ctrl_component_(ctrl_component),
     enable_estimator_(ctrl_component.enable_estimator_),
-    estimator_(ctrl_component.estimator_)
+    estimator_(ctrl_component.estimator_),
+    velocity_source_(velocity_source)
 {
     if (!node_->has_parameter("robot_pkg")) {
         node_->declare_parameter("robot_pkg", robot_pkg_);
@@ -56,6 +58,8 @@ StateRLRec::StateRLRec(CtrlInterfaces& ctrl_interfaces,
                 params_.rl_kp[0][0].item<double>(), params_.rl_kd[0][0].item<double>());
     RCLCPP_INFO(node_->get_logger(), "[REC-VERIFY] action_scale=%.2f dof_vel_scale=%.2f contact_thr=%.1fN",
                 params_.action_scale, params_.dof_vel_scale, params_.contact_threshold);
+    RCLCPP_INFO(node_->get_logger(), "[REC-VERIFY] recovery_velocity_source=%s",
+                recoveryVelocitySourceName(velocity_source_));
 
 }
 
@@ -430,20 +434,15 @@ void StateRLRec::runModel()
     obs_.ang_vel = torch::tensor(robot_state_.imu.gyroscope).unsqueeze(0);
     obs_.base_quat = torch::tensor(robot_state_.imu.quaternion).unsqueeze(0);
 
-    torch::Tensor lin_vel_world = torch::zeros({1, 3});
-    if (ctrl_interfaces_.odom_state_interface_.size() >= 6)
+    std::array<double, 3> selected_velocity{};
+    if (!selectedLinearVelocityWorld(selected_velocity))
     {
-        lin_vel_world = torch::tensor({{
-            ctrl_interfaces_.odom_state_interface_[3].get().get_value(),
-            ctrl_interfaces_.odom_state_interface_[4].get().get_value(),
-            ctrl_interfaces_.odom_state_interface_[5].get().get_value()
-        }});
+        safetyVeto("selected Recovery linear velocity source unavailable or non-finite");
+        return;
     }
-    else if (enable_estimator_)
-    {
-        lin_vel_world = torch::from_blob(estimator_->getVelocity().data(), {3}, torch::kDouble).clone().
-            to(torch::kFloat).unsqueeze(0);
-    }
+    const torch::Tensor lin_vel_world = torch::tensor({{
+        selected_velocity[0], selected_velocity[1], selected_velocity[2]
+    }}).to(torch::kFloat);
     obs_.lin_vel = quatRotateInverse(obs_.base_quat, lin_vel_world, params_.framework);
 
     // Recovery policy uses twist commands from ROS1 gradient descent optimization
@@ -503,6 +502,42 @@ void StateRLRec::runModel()
     if (!finiteMotorCommand()) { safetyVeto("recovery final motor command"); return; }
 
     rl_step_count_++;
+}
+
+bool StateRLRec::selectedLinearVelocityWorld(std::array<double, 3>& velocity) const
+{
+    std::array<double, 3> odom_velocity{};
+    const std::size_t odom_interface_count = ctrl_interfaces_.odom_state_interface_.size();
+    if (velocity_source_ == RecoveryVelocitySource::ODOM && odom_interface_count >= 6)
+    {
+        odom_velocity = {
+            ctrl_interfaces_.odom_state_interface_[3].get().get_value(),
+            ctrl_interfaces_.odom_state_interface_[4].get().get_value(),
+            ctrl_interfaces_.odom_state_interface_[5].get().get_value()
+        };
+    }
+
+    std::array<double, 3> estimator_velocity{};
+    const bool estimator_available = velocity_source_ == RecoveryVelocitySource::ESTIMATOR &&
+                                     enable_estimator_ && static_cast<bool>(estimator_);
+    if (estimator_available)
+    {
+        const Vec3 estimate = estimator_->getVelocity();
+        estimator_velocity = {estimate[0], estimate[1], estimate[2]};
+    }
+
+    const auto selected = selectRecoveryVelocityWorld(
+        velocity_source_, odom_interface_count, odom_velocity,
+        estimator_available, estimator_velocity);
+    if (!selected) return false;
+    velocity = *selected;
+    return true;
+}
+
+bool StateRLRec::hasSelectedLinearVelocityWorld() const
+{
+    std::array<double, 3> velocity{};
+    return selectedLinearVelocityWorld(velocity);
 }
 
 void StateRLRec::safetyVeto(const char* stage)

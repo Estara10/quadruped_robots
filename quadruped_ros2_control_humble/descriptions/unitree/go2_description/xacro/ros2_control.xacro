@@ -1,15 +1,16 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:arg name="network_interface" default="lo"/>
+    <xacro:arg name="domain" default="1"/>
 
 	<ros2_control name="UnitreeSystem" type="system">
 
 		<hardware>
 			<plugin>hardware_unitree_mujoco/HardwareUnitree</plugin>
-			<!-- Simulation: uses lo (loopback) by default — no params needed -->
-			<!-- Real robot: uncomment below and set correct network interface -->
+			<!-- Simulation defaults; real launch passes explicit xacro mappings. -->
 			<param name="state_freshness_timeout_ms">100</param>
-			<!--<param name="domain">0</param>-->
-			<!--<param name="network_interface">enp7s0</param>-->
+			<param name="domain">$(arg domain)</param>
+			<param name="network_interface">$(arg network_interface)</param>
 <!--			<param name="show_foot_force">true</param>-->
 		</hardware>
 

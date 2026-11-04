@@ -9,3 +9,6 @@ find_package(unitree_sdk2 CONFIG REQUIRED)
 
 add_executable(go2_readonly_state main.cpp)
 target_link_libraries(go2_readonly_state PRIVATE unitree_sdk2)
+
+add_executable(go2_readonly_camera camera.cpp)
+target_link_libraries(go2_readonly_camera PRIVATE unitree_sdk2)

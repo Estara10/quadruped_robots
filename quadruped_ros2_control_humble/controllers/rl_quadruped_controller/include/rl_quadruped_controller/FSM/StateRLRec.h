@@ -13,6 +13,7 @@
 #include <thread>
 
 #include "rl_quadruped_controller/common/StoppableThread.h"
+#include "rl_quadruped_controller/FSM/RecoveryVelocitySource.h"
 #include "controller_common/FSM/FSMState.h"
 
 struct CtrlComponent;
@@ -131,13 +132,15 @@ class StateRLRec final : public FSMState
 public:
     explicit StateRLRec(CtrlInterfaces& ctrl_interfaces,
                         CtrlComponent& ctrl_component,
-                        const std::vector<double>& target_pos);
+                        const std::vector<double>& target_pos,
+                        RecoveryVelocitySource velocity_source);
     ~StateRLRec() override;
 
     void enter() override;
     void run(const rclcpp::Time& time, const rclcpp::Duration& period) override;
     void exit() override;
     FSMStateName checkChange() override;
+    bool hasSelectedLinearVelocityWorld() const;
 
 private:
     torch::Tensor computeObservation();
@@ -147,6 +150,7 @@ private:
     torch::Tensor forward();
     void getState();
     void runModel();
+    bool selectedLinearVelocityWorld(std::array<double, 3>& velocity) const;
     void setCommand() const;
     void startRlThread();
     void stopRlThread();
@@ -158,6 +162,7 @@ private:
 
     bool enable_estimator_;
     std::shared_ptr<Estimator>& estimator_;
+    RecoveryVelocitySource velocity_source_;
 
     ModelParamsRec params_;
     ObservationsRec obs_;

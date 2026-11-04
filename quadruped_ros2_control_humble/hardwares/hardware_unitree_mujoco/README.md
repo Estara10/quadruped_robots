@@ -5,7 +5,7 @@ ROS2 hardware interface for Unitree Go2 LowCmd/LowState over `unitree_sdk2` DDS.
 Despite the historical package name, this interface is used for both:
 
 - MuJoCo simulation (`domain=1`, `network_interface=lo`)
-- Real Go2 low-level tests (`domain=0`, `network_interface=enp7s0`)
+- Real Go2 low-level tests (explicitly confirmed DDS domain and network interface)
 
 ---
 
@@ -83,46 +83,22 @@ kp=0, kd=0, tau=0
 
 ---
 
-## Real Go2 sport_mode Release
+## Control ownership and shutdown (2026-11-04)
 
-In real mode (`network_interface != lo`), the hardware interface initializes `MotionSwitcherClient` after `ChannelFactory::Init()` and releases native motion service:
+**Actual Go2 result:** restoring native `ai` caused an unintended stand during the separate prone handoff diagnostic. Do not treat `SelectMode("ai")` as a motionless cleanup/remote-return step. The real hardware control/automatic restore path remains NO-GO pending a revised recovery/support plan; this result is not standing-policy validation. See [actual record](../../../docs/thesis_project/real_go2/20261104_MODE_HANDOFF_RESULT.md).
 
-```text
-sport_mode / ai_sport / advanced_sport -> ReleaseMode()
-```
+- `on_init()` initializes DDS and state subscriptions. It does not create a LowCmd writer or release native motion control. This full plugin is still not the first-connection entry; use `scripts/go2_readonly_state`.
+- Hardware `on_activate()` queries and remembers the original native mode. It releases that mode and confirms that no native motion mode remains before creating the LowCmd writer. Query/release failure rejects activation. Activation clears old gains/torques.
+- Hardware `on_deactivate()`, `on_shutdown()` and destruction send a final stop sentinel, close the writer, then restore the original mode and query confirmation. A mutex excludes concurrent `write()`. Failure is logged explicitly; lifecycle callbacks return ERROR. A closed writer cannot send subsequent commands.
+- If no native mode was active at entry, shutdown does not invent a replacement mode. Manual remote recovery must be arranged onsite.
+- Deactivating only the RL controller clears commands to PASSIVE, but does not deactivate the hardware or restore native control. PASSIVE/command 1 or 9 unloads; it does not hold the robot upright or return control to the remote.
+- Native mode query confirmation is not confirmation that the physical remote works. Abrupt process death or computer/network loss cannot be covered by host shutdown callbacks.
 
-This prevents Go2 native controller from fighting ROS2 LowCmd.
+## Network configuration
 
-Expected log:
+`ros2_control.xacro` accepts `network_interface` and `domain` arguments, defaulting to `lo` and `1` for existing simulation launches. `real_go2.launch.py` requires both arguments and passes them into the hardware URDF parameters; no xacro editing is needed. This launch activates hardware and the controller; it is not a read-only entry. Supply only values confirmed for the actual robot network.
 
-```text
-Motion service 'sport_mode' is active; releasing before LowCmd control
-Motion service is already deactivated
-```
-
-If release fails or service remains active, stop and do not press keyboard commands.
-
----
-
-## Network Modes
-
-Simulation mode in `ros2_control.xacro`:
-
-```xml
-<!--<param name="domain">0</param>-->
-<!--<param name="network_interface">enp7s0</param>-->
-```
-
-Real Go2 mode:
-
-```xml
-<param name="domain">0</param>
-<param name="network_interface">enp7s0</param>
-```
-
-Rebuild `go2_description` after switching.
-
----
+Real hardware readiness and offline checks: [Go2 preparation notes](../../../docs/thesis_project/real_go2/README.md).
 
 ## Build
 

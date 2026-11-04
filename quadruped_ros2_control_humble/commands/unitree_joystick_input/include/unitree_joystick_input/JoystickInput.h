@@ -3,9 +3,11 @@
 //
 #pragma once
 
+#include <chrono>
 
 #include <rclcpp/rclcpp.hpp>
 #include <unitree/idl/go2/WirelessController_.hpp>
+#include <unitree/idl/go2/LowState_.hpp>
 #include <control_input_msgs/msg/inputs.hpp>
 #include <unitree/robot/channel/channel_subscriber.hpp>
 
@@ -38,13 +40,20 @@ class JoystickInput final : public rclcpp::Node {
 public:
     JoystickInput();
 
-    ~JoystickInput() override = default;
+    ~JoystickInput() override;
 
 private:
     void remoteWirelessHandle(const void *messages);
+    void lowStateRemoteHandle(const void *messages);
 
     std::string network_interface_ = "lo";
     int domain_ = 0;
+    bool read_only_ = false;
+    bool stop_only_ = false;
+    std::string state_source_ = "wirelesscontroller";
+    uint16_t last_logged_keys_ = 0;
+    uint64_t receive_count_ = 0;
+    std::chrono::steady_clock::time_point last_log_{};
 
     unitree_go::msg::dds_::WirelessController_ wireless_controller_{};
     xKeySwitchUnion xKeySwitchUnion_{};
@@ -52,4 +61,5 @@ private:
     control_input_msgs::msg::Inputs inputs_;
     rclcpp::Publisher<control_input_msgs::msg::Inputs>::SharedPtr publisher_;
     unitree::robot::ChannelSubscriberPtr<unitree_go::msg::dds_::WirelessController_> subscriber_;
+    unitree::robot::ChannelSubscriberPtr<unitree_go::msg::dds_::LowState_> low_state_subscriber_;
 };

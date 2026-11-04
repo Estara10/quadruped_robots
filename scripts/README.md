@@ -49,7 +49,8 @@ rtk proxy /usr/bin/python3 scripts/abs_live_hud.py --interval 0.2
 | 物理事件与任务安全分类 | [abs_collision.py](abs_collision.py)、[abs_base_bounds.py](abs_base_bounds.py)、[safety_task_completion.py](safety_task_completion.py) |
 | 预测射线 | [ray_predictor.py](ray_predictor.py)、[compare_ray_pred.py](compare_ray_pred.py) |
 | 已完成12项射线批次入口 | [manual_r1_ray_pred_12.py](manual_r1_ray_pred_12.py)，保留复核用途，不作为日常演示入口 |
-| 实机首次只读连接 | [go2_readonly_state/](go2_readonly_state/README.md)，不发送电机命令；实机仍待验证 |
+| 实机首次只读连接 | [go2_readonly_state/](go2_readonly_state/README.md)，不发送电机命令；首次通信已验证，接管待验证 |
+| 实机状态曲线与前置相机 | [go2_live_view.py](go2_live_view.py)，只读窗口；运行说明见[观察器文档](go2_readonly_state/README.md#曲线与前置相机窗口) |
 
 `manual_r1_*`和`analyze_r1_*`保留现有路径，用于R1历史记录与结果复核；它们不是可随意重复启动的普通演示脚本。训练、模型导出、相机和地图工具也保留，存在脚本不代表已验证或获得运行授权。
 

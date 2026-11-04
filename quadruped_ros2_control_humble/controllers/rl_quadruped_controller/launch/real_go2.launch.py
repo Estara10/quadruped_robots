@@ -13,10 +13,15 @@ from launch_ros.substitutions import FindPackageShare
 def launch_setup(context, *args, **kwargs):
     package_description = context.launch_configurations['pkg_description']
     network_interface = context.launch_configurations['network_interface']
+    domain = context.launch_configurations['domain']
+    if network_interface == 'lo' or not network_interface:
+        raise ValueError('Real Go2 launch requires an explicitly confirmed non-loopback interface')
     pkg_path = os.path.join(get_package_share_directory(package_description))
 
     xacro_file = os.path.join(pkg_path, 'xacro', 'robot.xacro')
-    robot_description = xacro.process_file(xacro_file).toxml()
+    robot_description = xacro.process_file(xacro_file, mappings={
+        'network_interface': network_interface, 'domain': domain,
+    }).toxml()
 
     robot_controllers = PathJoinSubstitution(
         [
@@ -44,9 +49,6 @@ def launch_setup(context, *args, **kwargs):
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[robot_controllers, {
-            # Override for real robot: domain 0, user-specified network
-            'network_interface': network_interface,
-            'domain': 0,
             'rl_quadruped_controller.runtime_mode': 'hardware',
         }],
         remappings=[
@@ -75,7 +77,23 @@ def launch_setup(context, *args, **kwargs):
         arguments=["rl_quadruped_controller", "--controller-manager", "/controller_manager"],
     )
 
+    remote_input = Node(
+        package='unitree_joystick_input',
+        executable='joystick_input',
+        name='go2_remote_input',
+        parameters=[{
+            'network_interface': network_interface,
+            'domain': int(domain),
+            'read_only': False,
+            # Until standing/motion commissioning explicitly enables other inputs.
+            'stop_only': True,
+            'state_source': 'lowstate',
+        }],
+        output='screen',
+    )
+
     return [
+        remote_input,
         robot_state_publisher,
         controller_manager,
         joint_state_publisher,
@@ -102,13 +120,13 @@ def generate_launch_description():
     )
     network_interface = DeclareLaunchArgument(
         'network_interface',
-        default_value='enp46s0',
-        description='Network interface for DDS (real robot: enp46s0 or wlan0)'
+        description='Confirmed network interface for the real Go2 DDS connection'
     )
 
     return LaunchDescription([
         pkg_description,
         network_interface,
+        DeclareLaunchArgument('domain', description='Confirmed DDS domain for the real Go2'),
         # A test fault inherited from a developer shell must fail closed, never arm on hardware.
         SetEnvironmentVariable('ABS_SIMULATION_TEST', '0'),
         OpaqueFunction(function=launch_setup),

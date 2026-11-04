@@ -19,6 +19,7 @@ find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 find_package(Python3 COMPONENTS NumPy)
 
 find_package(yaml-cpp REQUIRED)
+option(BUILD_GO2_READONLY_ESTIMATOR_OBSERVER "Build the opt-in, LowState-only Go2 estimator observer" OFF)
 
 set(dependencies
         pluginlib
@@ -86,6 +87,28 @@ install(
         LIBRARY DESTINATION lib/${PROJECT_NAME}
         RUNTIME DESTINATION bin
 )
+
+# Offline-built, read-only Go2 estimator observer. It requires the explicit
+# BUILD_GO2_READONLY_ESTIMATOR_OBSERVER=ON option and Unitree SDK2; the target
+# is separate from the controller runtime and uses the same model/Estimator sources.
+if (BUILD_GO2_READONLY_ESTIMATOR_OBSERVER)
+    find_package(unitree_sdk2 CONFIG REQUIRED)
+    add_executable(go2_readonly_estimator
+            src/go2_readonly_estimator.cpp
+            src/control/Estimator.cpp
+            src/robot/QuadrupedRobot.cpp
+            src/robot/RobotLeg.cpp)
+    target_include_directories(go2_readonly_estimator PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../../common
+            ${TORCH_INCLUDE_DIRS})
+    ament_target_dependencies(go2_readonly_estimator
+            kdl_parser controller_common hardware_interface)
+    target_link_libraries(go2_readonly_estimator unitree_sdk2)
+    install(TARGETS go2_readonly_estimator
+            RUNTIME DESTINATION lib/${PROJECT_NAME})
+endif ()
 
 install(
         DIRECTORY launch

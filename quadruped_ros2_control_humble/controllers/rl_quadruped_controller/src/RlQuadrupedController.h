@@ -88,6 +88,7 @@ namespace rl_quadruped_controller
         // Odometer Sensor (world-frame position + velocity from MuJoCo)
         std::string odom_name_ = "odometer";
         std::vector<std::string> odom_interface_types_;
+        RecoveryVelocitySource recovery_velocity_source_ = RecoveryVelocitySource::ODOM;
 
         // FR FL RR RL (matches IsaacGym training URDF, MuJoCo actuators, DDS motor_state)
         // Values match training default_joint_angles: hip=0, thigh=0.8, calf=-1.5

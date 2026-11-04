@@ -28,6 +28,9 @@ public:
 
     CallbackReturn on_init(const hardware_interface::HardwareInfo &info) override;
 
+    CallbackReturn on_activate(const rclcpp_lifecycle::State &previous_state) override;
+    CallbackReturn on_deactivate(const rclcpp_lifecycle::State &previous_state) override;
+
     CallbackReturn on_shutdown(const rclcpp_lifecycle::State &previous_state) override;
 
     std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
@@ -70,12 +73,9 @@ protected:
 
     void stopMotorCmd(unitree_go::msg::dds_::MotorCmd_& motor_cmd) const;
 
-    void releaseMotionMode();
-    void restoreMotionMode();
-
-    int queryMotionStatus(std::string& service_name);
-
-    std::string queryServiceName(const std::string& form, const std::string& name) const;
+    bool releaseMotionMode();
+    bool restoreMotionMode();
+    bool stopAndRestoreMotionMode();
 
     void lowStateMessageHandle(const void *messages);
 
@@ -91,6 +91,10 @@ protected:
     uint64_t sport_state_received_ns_ = 0;
     uint64_t state_freshness_timeout_ns_ = 100'000'000ULL;
     std::unique_ptr<unitree::robot::b2::MotionSwitcherClient> motion_switcher_;
+    std::mutex command_mutex_;
+    std::string original_form_;
+    std::string original_mode_;
+    bool restore_required_ = false;
 
     std::string network_interface_ = "lo";
     int domain_ = 1;

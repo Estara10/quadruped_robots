@@ -1,0 +1,18 @@
+{
+  "infra1": {
+    "header_max_gap_ms": 340.6870365142822,
+    "arrival_max_gap_after_first_2s_ms": 132.39381200037315
+  },
+  "infra2": {
+    "header_max_gap_ms": 340.6870365142822,
+    "arrival_max_gap_after_first_2s_ms": 70.56107499738573
+  },
+  "depth": {
+    "header_max_gap_ms": 273.8761901855469,
+    "arrival_max_gap_after_first_2s_ms": 200.44585899813683
+  },
+  "color": {
+    "header_max_gap_ms": 333.5697650909424,
+    "arrival_max_gap_after_first_2s_ms": 332.8124870022293
+  }
+}

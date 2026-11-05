@@ -1,0 +1,39 @@
+{
+  "duration_s": 1.198514771000191,
+  "motion_instruction": "camera stationary; no robot operation",
+  "streams": {
+    "left": {
+      "count": 2,
+      "frame_id": "camera_infra1_optical_frame",
+      "all_values_finite": true,
+      "arrival_hz": 15.539679631802297,
+      "max_arrival_gap_ms": 64.35139099994558,
+      "non_increasing_header_count": 0
+    },
+    "right": {
+      "count": 2,
+      "frame_id": "camera_infra2_optical_frame",
+      "all_values_finite": true,
+      "arrival_hz": 15.892211646870036,
+      "max_arrival_gap_ms": 62.92390399903525,
+      "non_increasing_header_count": 0
+    },
+    "imu": {
+      "count": 20,
+      "frame_id": "camera_imu_optical_frame",
+      "all_values_finite": true,
+      "arrival_hz": 200.89751493323584,
+      "max_arrival_gap_ms": 5.260321999230655,
+      "non_increasing_header_count": 0
+    },
+    "track": {
+      "count": 0
+    },
+    "odom": {
+      "count": 0
+    },
+    "propagate": {
+      "count": 0
+    }
+  }
+}

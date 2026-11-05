@@ -1,0 +1,40 @@
+{
+  "odom": {
+    "after5s_count": 224,
+    "speed_mean_m_s": 0.002703648080750073,
+    "speed_max_m_s": 0.015072970395836,
+    "velocity_mean_body_m_s": [
+      -0.000796354820572987,
+      -0.001516375856996839,
+      -0.0004542283372266761
+    ],
+    "position_net_change_m": [
+      -0.0006521855013427801,
+      0.00012101512518502254,
+      0.0006094273557013081
+    ],
+    "position_max_distance_from_start_m": 0.001413615534128959
+  },
+  "propagate": {
+    "after5s_count": 5998,
+    "speed_mean_m_s": 0.005880305961759561,
+    "speed_max_m_s": 0.026754158745913012,
+    "velocity_mean_body_m_s": [
+      -0.0023881461864916284,
+      -0.0031570465343659336,
+      -0.0011502907628770413
+    ],
+    "position_net_change_m": [
+      -0.0009239921101883975,
+      0.00010156838189408809,
+      0.0005205425986662608
+    ],
+    "position_max_distance_from_start_m": 0.0045355446301518524
+  },
+  "left_right_header_pairing": {
+    "left_count": 510,
+    "right_count": 510,
+    "left_within_3ms": 510,
+    "max_nearest_gap_ms": 0.0
+  }
+}

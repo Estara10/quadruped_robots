@@ -1,0 +1,32 @@
+{
+  "excluded_malformed_rows": {
+    "20261105_104408_native_slow_walk": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "20261105_104924_native_slow_walk_repeat": [
+      2,
+      3,
+      4
+    ]
+  },
+  "windows": {
+    "20261105_104408_native_slow_walk": [
+      78,
+      90
+    ],
+    "20261105_104924_native_slow_walk_repeat": [
+      25,
+      40
+    ]
+  },
+  "notes": [
+    "raw CSV unchanged",
+    "0.5s binned mean is display only",
+    "Sport raw values use their own receive times",
+    "No exact event alignment; no ground truth claim",
+    "Horizontal net displacement is not accumulated path length"
+  ]
+}

@@ -1,0 +1,584 @@
+diff --git a/camera_models/include/camodocal/camera_models/Camera.h b/camera_models/include/camodocal/camera_models/Camera.h
+index 68e2bd7..ec033b0 100755
+--- a/camera_models/include/camodocal/camera_models/Camera.h
++++ b/camera_models/include/camodocal/camera_models/Camera.h
+@@ -2,7 +2,7 @@
+ #define CAMERA_H
+ 
+ #include <boost/shared_ptr.hpp>
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ #include <opencv2/core/core.hpp>
+ #include <vector>
+ 
+diff --git a/camera_models/include/camodocal/gpl/EigenQuaternionParameterization.h b/camera_models/include/camodocal/gpl/EigenQuaternionParameterization.h
+index c892ec8..aead62a 100755
+--- a/camera_models/include/camodocal/gpl/EigenQuaternionParameterization.h
++++ b/camera_models/include/camodocal/gpl/EigenQuaternionParameterization.h
+@@ -6,22 +6,17 @@
+ namespace camodocal
+ {
+ 
+-class EigenQuaternionParameterization : public ceres::Manifold
++class EigenQuaternionParameterization : public ceres::LocalParameterization
+ {
+ public:
+     virtual ~EigenQuaternionParameterization() {}
+     bool Plus(const double* x,
+               const double* delta,
+               double* x_plus_delta) const override;
+-    bool PlusJacobian(const double* x,
+-                      double* jacobian) const override;
+-    bool Minus(const double* y,
+-               const double* x,
+-               double* y_minus_x) const override;
+-    bool MinusJacobian(const double* x,
+-                       double* jacobian) const override;
+-    int AmbientSize() const override { return 4; }
+-    int TangentSize() const override { return 3; }
++    bool ComputeJacobian(const double* x,
++                         double* jacobian) const override;
++    int GlobalSize() const override { return 4; }
++    int LocalSize() const override { return 3; }
+ 
+ private:
+     template<typename T>
+diff --git a/camera_models/include/camodocal/gpl/EigenUtils.h b/camera_models/include/camodocal/gpl/EigenUtils.h
+index 72b46c7..f058499 100755
+--- a/camera_models/include/camodocal/gpl/EigenUtils.h
++++ b/camera_models/include/camodocal/gpl/EigenUtils.h
+@@ -1,7 +1,7 @@
+ #ifndef EIGENUTILS_H
+ #define EIGENUTILS_H
+ 
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ 
+ #include "ceres/rotation.h"
+ #include "camodocal/gpl/gpl.h"
+diff --git a/camera_models/include/camodocal/sparse_graph/Transform.h b/camera_models/include/camodocal/sparse_graph/Transform.h
+index c164b0a..f6c52db 100755
+--- a/camera_models/include/camodocal/sparse_graph/Transform.h
++++ b/camera_models/include/camodocal/sparse_graph/Transform.h
+@@ -2,7 +2,7 @@
+ #define TRANSFORM_H
+ 
+ #include <boost/shared_ptr.hpp>
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ #include <stdint.h>
+ 
+ namespace camodocal
+diff --git a/camera_models/src/calib/CameraCalibration.cc b/camera_models/src/calib/CameraCalibration.cc
+index e3e9807..9880931 100755
+--- a/camera_models/src/calib/CameraCalibration.cc
++++ b/camera_models/src/calib/CameraCalibration.cc
+@@ -1,7 +1,7 @@
+ #include "camodocal/calib/CameraCalibration.h"
+ 
+ #include <cstdio>
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ #include <iomanip>
+ #include <iostream>
+ #include <algorithm>
+@@ -504,11 +504,11 @@ CameraCalibration::optimize(CameraPtr& camera,
+                                      transformVec.at(i).translationData());
+         }
+ 
+-        ceres::Manifold* quaternionManifold =
++        ceres::LocalParameterization* quaternionParameterization =
+             new EigenQuaternionParameterization;
+ 
+-        problem.SetManifold(transformVec.at(i).rotationData(),
+-                            quaternionManifold);
++        problem.SetParameterization(transformVec.at(i).rotationData(),
++                                    quaternionParameterization);
+     }
+ 
+     std::cout << "begin ceres" << std::endl;
+diff --git a/camera_models/src/camera_models/CataCamera.cc b/camera_models/src/camera_models/CataCamera.cc
+index 7eacaa5..63cbdec 100755
+--- a/camera_models/src/camera_models/CataCamera.cc
++++ b/camera_models/src/camera_models/CataCamera.cc
+@@ -2,7 +2,7 @@
+ 
+ #include <cmath>
+ #include <cstdio>
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ #include <iomanip>
+ #include <iostream>
+ #include <opencv2/calib3d/calib3d.hpp>
+diff --git a/camera_models/src/camera_models/EquidistantCamera.cc b/camera_models/src/camera_models/EquidistantCamera.cc
+index 480f51a..18dc4b3 100755
+--- a/camera_models/src/camera_models/EquidistantCamera.cc
++++ b/camera_models/src/camera_models/EquidistantCamera.cc
+@@ -2,7 +2,7 @@
+ 
+ #include <cmath>
+ #include <cstdio>
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ #include <iomanip>
+ #include <iostream>
+ #include <opencv2/calib3d/calib3d.hpp>
+diff --git a/camera_models/src/camera_models/PinholeCamera.cc b/camera_models/src/camera_models/PinholeCamera.cc
+index 9839724..fe3c478 100755
+--- a/camera_models/src/camera_models/PinholeCamera.cc
++++ b/camera_models/src/camera_models/PinholeCamera.cc
+@@ -2,7 +2,7 @@
+ 
+ #include <cmath>
+ #include <cstdio>
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ #include <iomanip>
+ #include <opencv2/calib3d/calib3d.hpp>
+ #include <opencv2/core/eigen.hpp>
+diff --git a/camera_models/src/camera_models/PinholeFullCamera.cc b/camera_models/src/camera_models/PinholeFullCamera.cc
+index 5365c06..828b4f5 100755
+--- a/camera_models/src/camera_models/PinholeFullCamera.cc
++++ b/camera_models/src/camera_models/PinholeFullCamera.cc
+@@ -2,7 +2,7 @@
+ 
+ #include <cmath>
+ #include <cstdio>
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ #include <iomanip>
+ #include <opencv2/calib3d/calib3d.hpp>
+ #include <opencv2/core/eigen.hpp>
+diff --git a/camera_models/src/camera_models/ScaramuzzaCamera.cc b/camera_models/src/camera_models/ScaramuzzaCamera.cc
+index 3615594..657c973 100755
+--- a/camera_models/src/camera_models/ScaramuzzaCamera.cc
++++ b/camera_models/src/camera_models/ScaramuzzaCamera.cc
+@@ -2,8 +2,8 @@
+ 
+ #include <cmath>
+ #include <cstdio>
+-#include <eigen3/Eigen/Dense>
+-#include <eigen3/Eigen/SVD>
++#include <Eigen/Dense>
++#include <Eigen/SVD>
+ #include <iomanip>
+ #include <iostream>
+ #include <opencv2/calib3d/calib3d.hpp>
+diff --git a/camera_models/src/gpl/EigenQuaternionParameterization.cc b/camera_models/src/gpl/EigenQuaternionParameterization.cc
+index 5d28789..f743d2e 100755
+--- a/camera_models/src/gpl/EigenQuaternionParameterization.cc
++++ b/camera_models/src/gpl/EigenQuaternionParameterization.cc
+@@ -33,8 +33,8 @@ EigenQuaternionParameterization::Plus(const double* x,
+ }
+ 
+ bool
+-EigenQuaternionParameterization::PlusJacobian(const double* x,
+-                                              double* jacobian) const
++EigenQuaternionParameterization::ComputeJacobian(const double* x,
++                                                 double* jacobian) const
+ {
+     jacobian[0] =  x[3]; jacobian[1]  =  x[2]; jacobian[2]  = -x[1];  // NOLINT
+     jacobian[3] = -x[2]; jacobian[4]  =  x[3]; jacobian[5]  =  x[0];  // NOLINT
+@@ -43,50 +43,5 @@ EigenQuaternionParameterization::PlusJacobian(const double* x,
+     return true;
+ }
+ 
+-bool
+-EigenQuaternionParameterization::Minus(const double* y,
+-                                       const double* x,
+-                                       double* y_minus_x) const
+-{
+-    // Compute x_inverse * y
+-    // x_inverse for unit quaternion: conjugate
+-    double x_inv[4] = {-x[0], -x[1], -x[2], x[3]};
+-    double delta_q[4];
+-    EigenQuaternionProduct(x_inv, y, delta_q);
+-
+-    // Convert quaternion to angle-axis
+-    // delta_q = [sin(theta/2) * axis, cos(theta/2)]
+-    const double sin_half_angle = sqrt(delta_q[0] * delta_q[0] +
+-                                       delta_q[1] * delta_q[1] +
+-                                       delta_q[2] * delta_q[2]);
+-    if (sin_half_angle > 0.0)
+-    {
+-        const double cos_half_angle = delta_q[3];
+-        const double two_theta = 2.0 * atan2(sin_half_angle, cos_half_angle);
+-        const double k = two_theta / sin_half_angle;
+-        y_minus_x[0] = k * delta_q[0];
+-        y_minus_x[1] = k * delta_q[1];
+-        y_minus_x[2] = k * delta_q[2];
+-    }
+-    else
+-    {
+-        y_minus_x[0] = 2.0 * delta_q[0];
+-        y_minus_x[1] = 2.0 * delta_q[1];
+-        y_minus_x[2] = 2.0 * delta_q[2];
+-    }
+-    return true;
+-}
+-
+-bool
+-EigenQuaternionParameterization::MinusJacobian(const double* x,
+-                                               double* jacobian) const
+-{
+-    // The MinusJacobian at identity is the pseudo-inverse of PlusJacobian
+-    // For unit quaternion manifold, this is approximately:
+-    jacobian[0] =  x[3]; jacobian[1]  = -x[2]; jacobian[2]  =  x[1]; jacobian[3]  = -x[0];  // NOLINT
+-    jacobian[4] =  x[2]; jacobian[5]  =  x[3]; jacobian[6]  = -x[0]; jacobian[7]  = -x[1];  // NOLINT
+-    jacobian[8] = -x[1]; jacobian[9]  =  x[0]; jacobian[10] =  x[3]; jacobian[11] = -x[2];  // NOLINT
+-    return true;
+-}
+ 
+ }
+diff --git a/vins/src/estimator/estimator.cpp b/vins/src/estimator/estimator.cpp
+index ac014af..cb42c1a 100755
+--- a/vins/src/estimator/estimator.cpp
++++ b/vins/src/estimator/estimator.cpp
+@@ -13,6 +13,10 @@
+ Estimator::Estimator(): f_manager{Rs}
+ {
+     ROS_INFO("init begins");
++    for (int i = 0; i < WINDOW_SIZE + 1; ++i)
++        pre_integrations[i] = nullptr;
++    tmp_pre_integration = nullptr;
++    last_marginalization_info = nullptr;
+     initThreadFlag = false;
+     clearState();
+ }
+@@ -1068,7 +1072,7 @@ void Estimator::optimization()
+     //ceres::LossFunction* loss_function = new ceres::HuberLoss(1.0);
+     for (int i = 0; i < frame_count + 1; i++)
+     {
+-        ceres::Manifold *local_parameterization = new PoseLocalParameterization();
++        ceres::LocalParameterization *local_parameterization = new PoseLocalParameterization();
+         problem.AddParameterBlock(para_Pose[i], SIZE_POSE, local_parameterization);
+         if(USE_IMU)
+             problem.AddParameterBlock(para_SpeedBias[i], SIZE_SPEEDBIAS);
+@@ -1078,7 +1082,7 @@ void Estimator::optimization()
+ 
+     for (int i = 0; i < NUM_OF_CAM; i++)
+     {
+-        ceres::Manifold *local_parameterization = new PoseLocalParameterization();
++        ceres::LocalParameterization *local_parameterization = new PoseLocalParameterization();
+         problem.AddParameterBlock(para_Ex_Pose[i], SIZE_POSE, local_parameterization);
+         if ((ESTIMATE_EXTRINSIC && frame_count == WINDOW_SIZE && Vs[0].norm() > 0.2) || openExEstimation)
+         {
+@@ -1166,12 +1170,7 @@ void Estimator::optimization()
+ 
+     ceres::Solver::Options options;
+ 
+-    if (USE_GPU_CERES)
+-        // std::cout << "1" << endl;
+-        options.dense_linear_algebra_library_type = ceres::CUDA;
+-    else
+-        // std::cout << "2" << endl;
+-        options.linear_solver_type = ceres::DENSE_SCHUR;
++    options.linear_solver_type = ceres::DENSE_SCHUR;
+ 
+     //options.num_threads = 2;
+     options.trust_region_strategy_type = ceres::DOGLEG;
+diff --git a/vins/src/estimator/estimator.h b/vins/src/estimator/estimator.h
+index bf27b8c..5d34770 100755
+--- a/vins/src/estimator/estimator.h
++++ b/vins/src/estimator/estimator.h
+@@ -17,8 +17,8 @@
+ #include <unordered_map>
+ #include <queue>
+ #include <opencv2/core/eigen.hpp>
+-#include <eigen3/Eigen/Dense>
+-#include <eigen3/Eigen/Geometry>
++#include <Eigen/Dense>
++#include <Eigen/Geometry>
+ 
+ #include "parameters.h"
+ #include "feature_manager.h"
+diff --git a/vins/src/estimator/feature_manager.h b/vins/src/estimator/feature_manager.h
+index 9bb80eb..372b75c 100755
+--- a/vins/src/estimator/feature_manager.h
++++ b/vins/src/estimator/feature_manager.h
+@@ -16,7 +16,7 @@
+ #include <numeric>
+ using namespace std;
+ 
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ using namespace Eigen;
+ 
+ // #include <ros/console.h>
+diff --git a/vins/src/estimator/parameters.h b/vins/src/estimator/parameters.h
+index 34685c7..530d98f 100755
+--- a/vins/src/estimator/parameters.h
++++ b/vins/src/estimator/parameters.h
+@@ -11,7 +11,7 @@
+ 
+ #include <rclcpp/rclcpp.hpp>
+ #include <vector>
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ #include "../utility/utility.h"
+ #include <opencv2/opencv.hpp>
+ #include <opencv2/core/eigen.hpp>
+diff --git a/vins/src/factor/imu_factor.h b/vins/src/factor/imu_factor.h
+index 5fbc130..019b8c2 100755
+--- a/vins/src/factor/imu_factor.h
++++ b/vins/src/factor/imu_factor.h
+@@ -10,7 +10,7 @@
+ #pragma once
+ #include <rcpputils/asserts.hpp>
+ #include <iostream>
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ 
+ #include "../utility/utility.h"
+ #include "../estimator/parameters.h"
+diff --git a/vins/src/factor/pose_local_parameterization.cpp b/vins/src/factor/pose_local_parameterization.cpp
+index 663415a..8070f43 100755
+--- a/vins/src/factor/pose_local_parameterization.cpp
++++ b/vins/src/factor/pose_local_parameterization.cpp
+@@ -27,7 +27,7 @@ bool PoseLocalParameterization::Plus(const double *x, const double *delta, doubl
+     return true;
+ }
+ 
+-bool PoseLocalParameterization::PlusJacobian(const double *x, double *jacobian) const
++bool PoseLocalParameterization::ComputeJacobian(const double *x, double *jacobian) const
+ {
+     Eigen::Map<Eigen::Matrix<double, 7, 6, Eigen::RowMajor>> j(jacobian);
+     j.topRows<6>().setIdentity();
+@@ -35,34 +35,3 @@ bool PoseLocalParameterization::PlusJacobian(const double *x, double *jacobian)
+ 
+     return true;
+ }
+-
+-bool PoseLocalParameterization::Minus(const double *y, const double *x, double *y_minus_x) const
+-{
+-    Eigen::Map<const Eigen::Vector3d> p_y(y);
+-    Eigen::Map<const Eigen::Quaterniond> q_y(y + 3);
+-    Eigen::Map<const Eigen::Vector3d> p_x(x);
+-    Eigen::Map<const Eigen::Quaterniond> q_x(x + 3);
+-
+-    Eigen::Map<Eigen::Vector3d> dp(y_minus_x);
+-    dp = p_y - p_x;
+-
+-    Eigen::Quaterniond dq = q_x.inverse() * q_y;
+-    // Extract the rotation vector (angle-axis) from the quaternion
+-    Eigen::AngleAxisd aa(dq);
+-    Eigen::Map<Eigen::Vector3d> dtheta(y_minus_x + 3);
+-    dtheta = aa.angle() * aa.axis();
+-
+-    return true;
+-}
+-
+-bool PoseLocalParameterization::MinusJacobian(const double *x, double *jacobian) const
+-{
+-    Eigen::Map<Eigen::Matrix<double, 6, 7, Eigen::RowMajor>> j(jacobian);
+-    j.setZero();
+-    j.topLeftCorner<3, 3>().setIdentity();
+-    // For small perturbations, the Jacobian of Minus w.r.t. quaternion is approximately 2 * [qw*I + [qxyz]_x]^-1
+-    // but for the purpose of optimization, identity on the tangent space is sufficient
+-    j.block<3, 3>(3, 3).setIdentity();
+-
+-    return true;
+-}
+diff --git a/vins/src/factor/pose_local_parameterization.h b/vins/src/factor/pose_local_parameterization.h
+index 83a57e8..e0bf7c9 100755
+--- a/vins/src/factor/pose_local_parameterization.h
++++ b/vins/src/factor/pose_local_parameterization.h
+@@ -9,17 +9,15 @@
+ 
+ #pragma once
+ 
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ #include <ceres/ceres.h>
+ #include "../utility/utility.h"
+ 
+-class PoseLocalParameterization : public ceres::Manifold
++class PoseLocalParameterization : public ceres::LocalParameterization
+ {
+ public:
+     bool Plus(const double *x, const double *delta, double *x_plus_delta) const override;
+-    bool PlusJacobian(const double *x, double *jacobian) const override;
+-    bool Minus(const double *y, const double *x, double *y_minus_x) const override;
+-    bool MinusJacobian(const double *x, double *jacobian) const override;
+-    int AmbientSize() const override { return 7; }
+-    int TangentSize() const override { return 6; }
++    bool ComputeJacobian(const double *x, double *jacobian) const override;
++    int GlobalSize() const override { return 7; }
++    int LocalSize() const override { return 6; }
+ };
+diff --git a/vins/src/featureTracker/feature_tracker.h b/vins/src/featureTracker/feature_tracker.h
+index 7f4d8f5..0728e79 100755
+--- a/vins/src/featureTracker/feature_tracker.h
++++ b/vins/src/featureTracker/feature_tracker.h
+@@ -20,7 +20,7 @@
+ #include <execinfo.h>
+ #include <csignal>
+ #include <opencv2/opencv.hpp>
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ 
+ #ifdef GPU_MODE
+ #include <opencv2/cudaoptflow.hpp>
+diff --git a/vins/src/initial/initial_alignment.h b/vins/src/initial/initial_alignment.h
+index 2e1132f..dcdb350 100755
+--- a/vins/src/initial/initial_alignment.h
++++ b/vins/src/initial/initial_alignment.h
+@@ -10,7 +10,7 @@
+  *******************************************************/
+ 
+ #pragma once
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ #include <iostream>
+ #include "../factor/imu_factor.h"
+ #include "../utility/utility.h"
+diff --git a/vins/src/initial/initial_ex_rotation.h b/vins/src/initial/initial_ex_rotation.h
+index 607f5d8..c03fc6d 100755
+--- a/vins/src/initial/initial_ex_rotation.h
++++ b/vins/src/initial/initial_ex_rotation.h
+@@ -17,7 +17,7 @@ using namespace std;
+ 
+ #include <opencv2/opencv.hpp>
+ 
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ using namespace Eigen;
+ // #include <ros/console.h>
+ 
+diff --git a/vins/src/initial/initial_sfm.cpp b/vins/src/initial/initial_sfm.cpp
+index 686123b..c40df86 100755
+--- a/vins/src/initial/initial_sfm.cpp
++++ b/vins/src/initial/initial_sfm.cpp
+@@ -242,7 +242,7 @@ bool GlobalSFM::construct(int frame_num, Quaterniond* q, Vector3d* T, int l,
+ */
+ 	//full BA
+ 	ceres::Problem problem;
+-	ceres::Manifold* quaternion_manifold = new ceres::QuaternionManifold();
++	ceres::LocalParameterization* quaternion_parameterization = new ceres::QuaternionParameterization();
+ 	//cout << " begin full BA " << endl;
+ 	for (int i = 0; i < frame_num; i++)
+ 	{
+@@ -254,7 +254,7 @@ bool GlobalSFM::construct(int frame_num, Quaterniond* q, Vector3d* T, int l,
+ 		c_rotation[i][1] = c_Quat[i].x();
+ 		c_rotation[i][2] = c_Quat[i].y();
+ 		c_rotation[i][3] = c_Quat[i].z();
+-		problem.AddParameterBlock(c_rotation[i], 4, quaternion_manifold);
++		problem.AddParameterBlock(c_rotation[i], 4, quaternion_parameterization);
+ 		problem.AddParameterBlock(c_translation[i], 3);
+ 		if (i == l)
+ 		{
+diff --git a/vins/src/initial/initial_sfm.h b/vins/src/initial/initial_sfm.h
+index de1cbc5..72d5521 100755
+--- a/vins/src/initial/initial_sfm.h
++++ b/vins/src/initial/initial_sfm.h
+@@ -12,7 +12,7 @@
+ #pragma once 
+ #include <ceres/ceres.h>
+ #include <ceres/rotation.h>
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ #include <iostream>
+ #include <cstdlib>
+ #include <deque>
+diff --git a/vins/src/initial/solve_5pts.h b/vins/src/initial/solve_5pts.h
+index 8587e48..041c122 100755
+--- a/vins/src/initial/solve_5pts.h
++++ b/vins/src/initial/solve_5pts.h
+@@ -16,7 +16,7 @@ using namespace std;
+ 
+ #include <opencv2/opencv.hpp>
+ //#include <opencv2/core/eigen.hpp>
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ using namespace Eigen;
+ 
+ // #include <ros/console.h>
+diff --git a/vins/src/utility/utility.h b/vins/src/utility/utility.h
+index 503c234..3f18bb6 100755
+--- a/vins/src/utility/utility.h
++++ b/vins/src/utility/utility.h
+@@ -12,7 +12,7 @@
+ #include <cmath>
+ #include <cassert>
+ #include <cstring>
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ 
+ class Utility
+ {
+diff --git a/vins/src/utility/visualization.cpp b/vins/src/utility/visualization.cpp
+index 8146f19..ea31e11 100755
+--- a/vins/src/utility/visualization.cpp
++++ b/vins/src/utility/visualization.cpp
+@@ -60,6 +60,7 @@ void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, co
+     odometry.header.stamp.nanosec = nsec_ts;
+ 
+     odometry.header.frame_id = WORLD_FRAME_ID;
++    odometry.child_frame_id = BODY_FRAME_ID;
+     odometry.pose.pose.position.x = P.x();
+     odometry.pose.pose.position.y = P.y();
+     odometry.pose.pose.position.z = P.z();
+@@ -67,9 +68,10 @@ void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, co
+     odometry.pose.pose.orientation.y = Q.y();
+     odometry.pose.pose.orientation.z = Q.z();
+     odometry.pose.pose.orientation.w = Q.w();
+-    odometry.twist.twist.linear.x = V.x();
+-    odometry.twist.twist.linear.y = V.y();
+-    odometry.twist.twist.linear.z = V.z();
++    const Eigen::Vector3d V_body = Q.conjugate() * V;
++    odometry.twist.twist.linear.x = V_body.x();
++    odometry.twist.twist.linear.y = V_body.y();
++    odometry.twist.twist.linear.z = V_body.z();
+     pub_latest_odometry->publish(odometry);
+ }
+ 
+@@ -140,6 +142,7 @@ void pubOdometry(const Estimator &estimator, const std_msgs::msg::Header &header
+         odometry.header = header;
+         odometry.header.frame_id = WORLD_FRAME_ID;
+         odometry.child_frame_id = BODY_FRAME_ID;
++        const Eigen::Vector3d V_body = estimator.Rs[WINDOW_SIZE].transpose() * estimator.Vs[WINDOW_SIZE];
+         Quaterniond tmp_Q;
+         tmp_Q = Quaterniond(estimator.Rs[WINDOW_SIZE]);
+         odometry.pose.pose.position.x = estimator.Ps[WINDOW_SIZE].x();
+@@ -149,9 +152,9 @@ void pubOdometry(const Estimator &estimator, const std_msgs::msg::Header &header
+         odometry.pose.pose.orientation.y = tmp_Q.y();
+         odometry.pose.pose.orientation.z = tmp_Q.z();
+         odometry.pose.pose.orientation.w = tmp_Q.w();
+-        odometry.twist.twist.linear.x = estimator.Vs[WINDOW_SIZE].x();
+-        odometry.twist.twist.linear.y = estimator.Vs[WINDOW_SIZE].y();
+-        odometry.twist.twist.linear.z = estimator.Vs[WINDOW_SIZE].z();
++        odometry.twist.twist.linear.x = V_body.x();
++        odometry.twist.twist.linear.y = V_body.y();
++        odometry.twist.twist.linear.z = V_body.z();
+         pub_odometry->publish(odometry);
+ 
+         geometry_msgs::msg::PoseStamped pose_stamped;
+@@ -198,7 +201,7 @@ void pubKeyPoses(const Estimator &estimator, const std_msgs::msg::Header &header
+     key_poses.type = visualization_msgs::msg::Marker::SPHERE_LIST;
+     key_poses.action = visualization_msgs::msg::Marker::ADD;
+     key_poses.pose.orientation.w = 1.0;
+-    key_poses.lifetime = rclcpp::Duration(0, 0);
++    key_poses.lifetime = rclcpp::Duration::from_seconds(0.0);
+ 
+     //static int key_poses_id = 0;
+     key_poses.id = 0; //key_poses_id++;
+@@ -538,4 +541,4 @@ void pubKeyframe(const Estimator &estimator)
+         }
+         pub_keyframe_point->publish(point_cloud);
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/vins/src/utility/visualization.h b/vins/src/utility/visualization.h
+index ab31748..f36619f 100755
+--- a/vins/src/utility/visualization.h
++++ b/vins/src/utility/visualization.h
+@@ -27,7 +27,7 @@
+ #include <tf2/LinearMath/Quaternion.h>
+ #include <tf2/LinearMath/Transform.h>
+ #include "CameraPoseVisualization.h"
+-#include <eigen3/Eigen/Dense>
++#include <Eigen/Dense>
+ #include "../estimator/estimator.h"
+ #include "../estimator/parameters.h"
+ #include <fstream>

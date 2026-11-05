@@ -1,0 +1,72 @@
+%YAML:1.0
+
+# Candidate for the D435i on this host at the enumerated 640x480 IR mode.
+# IMU noise values are copied from the upstream VINS D435i example; they are
+# not measured or calibrated for this unit. IMU extrinsics below are the
+# SDK-enumerated defaults recorded on 2026-11-05, not independently verified.
+imu: 1
+num_of_cam: 2
+imu_topic: "/camera/camera/imu"
+image0_topic: "/camera/camera/infra1/image_rect_raw"
+image1_topic: "/camera/camera/infra2/image_rect_raw"
+output_path: "/home/lidio/quadruped_robots/logs/real_go2/20261105_155808_d435i_vins_first_static/vins_output"
+cam0_calib: "/home/lidio/quadruped_robots/scripts/go2_vins/config/d435i_640x480/left.yaml"
+cam1_calib: "/home/lidio/quadruped_robots/scripts/go2_vins/config/d435i_640x480/right.yaml"
+image_width: 640
+image_height: 480
+
+use_gpu: 0
+use_gpu_acc_flow: 0
+use_gpu_ceres: 0
+
+# VINS body is the camera IMU/gyro frame. Matrices use p_body = R_body_cam*p_cam + t_body_cam.
+# Seed values are from rs-enumerate-devices, Infrared 1/2 -> Gyro; estimate mode 1
+# allows VINS to optimize around this initial guess after sufficient motion.
+estimate_extrinsic: 1
+body_T_cam0: !!opencv-matrix
+   rows: 4
+   cols: 4
+   dt: d
+   data: [ 1., 0., 0., -0.00552000012248755,
+           0., 1., 0.,  0.00510000018402934,
+           0., 0., 1.,  0.011739999987185,
+           0., 0., 0.,  1. ]
+body_T_cam1: !!opencv-matrix
+   rows: 4
+   cols: 4
+   dt: d
+   data: [ 1., 0., 0.,  0.0445049591362476,
+           0., 1., 0.,  0.00510000018402934,
+           0., 0., 1.,  0.011739999987185,
+           0., 0., 0.,  1. ]
+
+multiple_thread: 1
+max_cnt: 150
+min_dist: 30
+freq: 10
+F_threshold: 1.0
+show_track: 1
+flow_back: 1
+
+max_solver_time: 0.04
+max_num_iterations: 8
+keyframe_parallax: 10.0
+
+# VINS D435i example priors, not device-specific calibration measurements.
+acc_n: 0.1
+gyr_n: 0.01
+acc_w: 0.001
+gyr_w: 0.0001
+g_norm: 9.805
+
+# Initial camera/IMU clock offset is unknown. Let VINS estimate it when excited.
+estimate_td: 1
+td: 0.0
+
+load_previous_pose_graph: 0
+pose_graph_save_path: "/home/lidio/quadruped_robots/logs/real_go2/20261105_155808_d435i_vins_first_static/vins_output/pose_graph"
+save_image: 0
+
+world_frame_id: "vins_world"
+body_frame_id: "camera_imu_optical_frame"
+camera_frame_id: "camera_infra1_optical_frame"

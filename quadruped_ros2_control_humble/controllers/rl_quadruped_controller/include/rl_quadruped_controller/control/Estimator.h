@@ -16,7 +16,23 @@ struct CtrlComponent;
 
 class Estimator {
 public:
-    explicit Estimator(CtrlInterfaces &ctrl_interfaces, CtrlComponent &ctrl_component, int feet_force_threshold = 1);
+    enum class FootMeasurementMode {
+        LegacyBodyAsWorld,
+        RotateToWorld,
+        RotateToWorldWithGyro
+    };
+    struct WorldFootMeasurement {
+        Vec3 position;
+        Vec3 velocity;
+    };
+
+    static WorldFootMeasurement footMeasurementToWorld(const Vec3& p_body, const Vec3& j_qd_body,
+                                                        const Vec3& gyro_body, const RotMat& body_to_world,
+                                                        bool include_gyro_term);
+
+    explicit Estimator(CtrlInterfaces &ctrl_interfaces, CtrlComponent &ctrl_component,
+                       int feet_force_threshold = 1,
+                       FootMeasurementMode foot_measurement_mode = FootMeasurementMode::LegacyBodyAsWorld);
 
     ~Estimator() = default;
 
@@ -109,6 +125,7 @@ private:
     CtrlInterfaces &ctrl_interfaces_;
     std::shared_ptr<QuadrupedRobot> &robot_model_;
     double feet_force_threshold_;
+    FootMeasurementMode foot_measurement_mode_;
 
     Eigen::Matrix<double, 18, 1> x_hat_; // The state of estimator, position(3)+velocity(3)+feet position(3x4)
 

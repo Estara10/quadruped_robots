@@ -70,7 +70,10 @@ LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/home/lidio/Libraries/unitree_sdk2/lib
 
 ## Estimator只读观察（需ROS/控制器构建依赖）
 
-`rl_quadruped_controller`包提供可选目标`go2_readonly_estimator`。它复用包内的`Estimator`和`QuadrupedRobot`，不复制算法。实时模式只订阅`rt/lowstate`，不创建`LowCmd`发布器、`MotionSwitcher`客户端、ROS controller或策略模型；`--self-check`不初始化DDS。
+`rl_quadruped_controller`包提供可选目标`go2_readonly_estimator`。它复用包内的`Estimator`和`QuadrupedRobot`，不复制算法。实时模式只订阅`rt/lowstate`与`rt/sportmodestate`，不创建`LowCmd`发布器、`MotionSwitcher`客户端、ROS controller或策略模型；`--self-check`不初始化DDS。Estimator只使用LowState；SportModeState单独记录作原生状态对照，不作为真值或Estimator输入。
+同一CMake选项还构建`go2_estimator_replay`：它只读历史Estimator CSV，复用同一Estimator和Go2 KDL链，不初始化DDS；A/B/C回放命令及产物见[动态回放修复报告](../../docs/thesis_project/real_go2/20261105_ESTIMATOR_DYNAMIC_REPLAY_FIX.md)。
+
+观察器可显式传`--foot-measurement-mode legacy|world|world_gyro`：`legacy`为默认值并保持已有行为；`world`将KDL足端位置与相对速度旋转到世界系；`world_gyro`再加入机身角速度叉乘足端位置项。该选项仅实例化观察器中的共享Estimator，不会修改控制器构造的默认模式。坐标/角速度语义仍须按报告中的假设边界审阅，构建或离线回放不代表实机精度。
 
 ### 离线构建与自检
 
@@ -115,8 +118,12 @@ env LD_LIBRARY_PATH=/opt/ros/humble/lib:/usr/lib/x86_64-linux-gnu:/home/lidio/Li
 ### 频率、记录与判据
 
 - Go2配置中controller manager为1000Hz，而`rl_quadruped_controller.update_rate`为200Hz；Estimator构造时以控制器频率设固定`dt=0.005s`。观察器按200Hz调用现有Estimator，使其固定dt与当前RL控制器配置一致；不会按每条LowState更新。LowState在各Estimator周期之间若未变化，CSV会以`repeated_sample=1`标出，并记录接收序号、原始tick、接收间隔和样本时龄。
-- 原始输入逐周期写入CSV：FR/FL/RR/RL各腿hip/thigh/calf的q/dq，IMU四元数wxyz、角速度和加速度，四路原始足力。IMU顺序与硬件插件一致；四足接触列使用Estimator当前比较规则`force >= 1`，不改阈值。原始足力物理单位/标定仍未知。
-- 同行记录Estimator世界系速度与`R.transpose()*v_world`机体系速度，角度转换用于Recovery契约对照。采集运行时间和间隔使用本机steady clock，不是机器人传感器时间戳。
-- CSV包含相对本机steady起点的Estimator更新时间和LowState接收时间、两次Estimator调用间隔、样本时龄、DDS回调间隔、本地接收序号及原始tick。LowState未到达3秒则不更新并退出；已收到的样本若时龄超过100ms、输入非有限/四元数为零或估计输出非有限，先记录最后一行再停止。按Ctrl+C可提前正常结束。完成后查看CSV中的接收间隔、时龄、重复标记、输入/估计有效标志、姿态稳定性、接触判断以及静止速度是否稳定/明显漂移。
+- 原始输入逐Estimator周期写入CSV：FR/FL/RR/RL各腿hip/thigh/calf的q/dq/tau_est，IMU四元数wxyz、角速度和加速度，四路原始足力。IMU顺序与硬件插件一致；四足接触列使用Estimator当前比较规则`force >= 1`，不改阈值。原始足力物理单位/标定仍未知，tau_est也只是设备估计字段，未独立标定。
+- 同行记录Estimator世界系速度与`R.transpose()*v_world`机体系速度，以及SportModeState最近一条的原始position/velocity。`estimator_world_*_m_s`依据现有Estimator状态定义；SportModeState字段仍保留`_raw`后缀，其单位、坐标系及stamp含义待核实。两路消息异步，主CSV每行分别记录各自接收时刻、年龄和序号；一行不代表两路严格同步采样。SportModeState每条接收消息还完整追加到`--csv`路径后缀为`.sport.csv`的伴随文件，回调只入队，文件由主循环写入。缺少SportModeState时该组主CSV数值留空并标记`sport_received=0`，不会补零或回退。两文件使用同一进程的steady clock起点，不是机器人传感器采样时间。
+- CSV同时包含Estimator更新时间与实际调用间隔。当前按200Hz调用（固定dt=5ms），不按每条约500Hz LowState调用；Estimator周期之间样本可能重复，由`repeated_sample`和LowState接收序号标识。终端每秒显示两路序号/时龄、该秒是否有新消息及Sport字段有限标记。LowState未到达3秒则不更新并退出；已收到的样本若时龄超过100ms、输入非有限/四元数为零或估计输出非有限，记录最后故障行、以非零码结束采集并进入清理：关闭两路订阅、写出队列中剩余Sport记录、刷新CSV、释放SDK通道。Sport不使用未经确认的固定过期阈值；终端显示未更新和年龄增长情况供操作者按停止条件处理。
 - 静止速度接近零只验证输入链路、初始化和静态数值基础表现。趴伏四足力14–16仍会按阈值1判为接触，按用户要求保留并单独解释；此姿态不能用来证明支撑接触语义正确。静止观察不能证明走动时速度的方向、幅值、延迟或Recovery兼容性。
-- 如果设备姿态/支撑不稳定、有人要控制机器人、状态过期/非有限值触发退出，或任何数据映射不符，立即停止观察；工具本身不承担机器人的停止动作。此方案不验证电脑失联停止、遥控停止效果或控制权交还。
+- 如果步态/姿态异常、网线接近足部或被拉紧、原生遥控停止响应异常、数据中断/无效或现场人员要求停止，操作者应优先用原生遥控停止运动，再结束采集。数据异常会使程序结束采集，但采集器没有停止机器人能力；进程退出不代表机器人已停止。此方案不验证电脑失联停止、遥控停止效果或控制权交还。
+
+## 原生遥控慢走速度对照准备
+
+独立的短距离慢走观察顺序、建议时长/路线、参考量、停止条件和分析方法见[动态速度对照观察准备](../../docs/thesis_project/real_go2/20261105_DYNAMIC_VELOCITY_COMPARISON_PREPARATION.md)。本工具只采集；动作全由用户使用原生遥控器完成。保留原生运动服务运行，不进入项目低层控制。

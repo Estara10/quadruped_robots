@@ -1,0 +1,12 @@
+{
+  "vins": {
+    "pid": 141464,
+    "returncode": -11,
+    "action": "already_exited"
+  },
+  "camera": {
+    "pid": 141463,
+    "returncode": 0,
+    "action": "SIGINT"
+  }
+}

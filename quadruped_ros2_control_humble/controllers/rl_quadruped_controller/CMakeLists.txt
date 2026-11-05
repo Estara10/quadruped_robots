@@ -108,6 +108,22 @@ if (BUILD_GO2_READONLY_ESTIMATOR_OBSERVER)
     target_link_libraries(go2_readonly_estimator unitree_sdk2)
     install(TARGETS go2_readonly_estimator
             RUNTIME DESTINATION lib/${PROJECT_NAME})
+
+    add_executable(go2_estimator_replay
+            src/go2_estimator_replay.cpp
+            src/control/Estimator.cpp
+            src/robot/QuadrupedRobot.cpp
+            src/robot/RobotLeg.cpp)
+    target_include_directories(go2_estimator_replay PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../../common
+            ${TORCH_INCLUDE_DIRS})
+    ament_target_dependencies(go2_estimator_replay
+            kdl_parser controller_common hardware_interface)
+    target_link_libraries(go2_estimator_replay ${TORCH_LIBRARIES})
+    install(TARGETS go2_estimator_replay
+            RUNTIME DESTINATION lib/${PROJECT_NAME})
 endif ()
 
 install(

@@ -1,6 +1,6 @@
 # Go2实机准备与接口修复
 
-> **当前续接（2026-11-06）：**两次原生遥控慢走已记录，足端Estimator动态异常仍未解决；D435i双目＋IMU已在现场连续配对并输出，VINS初始化后的SIGINT退出码为0。可靠订阅候选现场有效；随后一次相机-only视频参考平移约70秒，按消息窗口净位移1.011 m，未复现秒级交付空档和0.436 m级相邻跳变；但用户忘记挥手同步，视频只作粗略审阅，动态精度仍未验证。此前记录的优化位姿约0.436 m回摆及传播约0.507 m重锚定跳变仍保留为未定因现象。相机现已固定安装到Go2；用户报告传输速率由USB3.0降为USB2.0，初步怀疑扩展坞限制，尚未核实。下一项先只读核对固定安装后的USB拓扑与实际协商速率，再安排电脑只读、原生遥控的受控低速运动观察。动态速度准确性、安装变换及障碍观测未验证，项目低层控制仍不启动。见[视频参考平移记录](20261106_VINS_VIDEO_REFERENCE_TRANSLATION.md)、[停止修复记录](20261106_VINS_SHUTDOWN_FIX.md)、[配对缺口诊断](20261106_VINS_STEREO_PAIRING_GAP_DIAGNOSIS.md)、[右图交付QoS离线诊断](20261106_VINS_RIGHT_IMAGE_DELIVERY_QOS_DIAGNOSIS.md)、[位置回摆审阅](20261106_VINS_POSITION_BOUNCE_REVIEW.md)和[当日续接记录](SESSION_20261105.md)。以下准备与历史记录按各自日期理解。
+> **当前续接（2026-11-06 晚）：**此前相机-only视频参考平移约70秒、消息窗口净位移1.011 m，未复现秒级空档或0.436 m级相邻跳变；外部视频漏做同步，动态精度仍未验证。相机固定安装到Go2后，只读确认当前为USB2（Bus 01 480Mb/s，Bus 02 10000M未使用）。机载Orin已安装RealSense Foxy驱动和最小udev规则：480×270@15双IR+IMU在Orin本机稳定（15.15/200.06 Hz），640×480双IR因右路MIPI错误不可用；跨机到电脑FastDDS仅0.2–2.5 Hz，时钟对齐与ufw排除后仍无改善，根因未证明。480×270 VINS配置已建立但未初始化。电脑已装CycloneDDS，下一步两端统一切换后复测；Go2控制链未启动，无残留进程。见[机载驱动与跨机排查](20261106_ONBOARD_REALSENSE_BRINGUP.md)、[视频参考平移记录](20261106_VINS_VIDEO_REFERENCE_TRANSLATION.md)、[停止修复记录](20261106_VINS_SHUTDOWN_FIX.md)、[配对缺口诊断](20261106_VINS_STEREO_PAIRING_GAP_DIAGNOSIS.md)、[右图交付QoS离线诊断](20261106_VINS_RIGHT_IMAGE_DELIVERY_QOS_DIAGNOSIS.md)、[位置回摆审阅](20261106_VINS_POSITION_BOUNCE_REVIEW.md)和[当日续接记录](SESSION_20261105.md)。以下准备与历史记录按各自日期理解。
 
 > 2026-11-04实机发现：恢复原生ai后机器人意外起立，趴伏交接未通过；用户已遥控趴伏，所有电脑检测进程已退出。交接诊断入口已冻结，完整实机控制/自动恢复路径继续NO-GO。释放原生服务时SportModeState确实停更；Recovery已有Estimator速度候选，但动态准确性未验证，独立世界位置来源仍未解决。见[实际结果](20261104_MODE_HANDOFF_RESULT.md)和[Recovery速度来源审查](20261104_RECOVERY_VELOCITY_SOURCE.md)。
 
@@ -14,6 +14,7 @@
 - [VINS右图交付QoS离线诊断](20261106_VINS_RIGHT_IMAGE_DELIVERY_QOS_DIAGNOSIS.md)：最新现场记录确认相机图像为可靠发布、VINS图像为best-effort订阅；单次同包候选回放收齐全部源图像，但未复现现场长间隔，根因和现场效果仍待验证。
 - [VINS位置回摆现场数据审阅](20261106_VINS_POSITION_BOUNCE_REVIEW.md)：定位到优化状态校正先进入odom、再重锚IMU传播；无明确代码缺陷，真实运动仍缺独立记录。
 - [VINS视频参考平移采集](20261106_VINS_VIDEO_REFERENCE_TRANSLATION.md)：相机-only约70秒，消息窗口净位移1.011 m，无秒级空档或0.436 m级跳变；外部视频漏做同步动作，未精确对齐，动态精度未验证。
+- [机载D435i驱动与跨机排查](20261106_ONBOARD_REALSENSE_BRINGUP.md)：Foxy/arm64驱动与最小udev规则已装；480×270双IR+IMU本机15/200 Hz，640×480双IR右路MIPI失败；跨机FastDDS仅0.2–2.5 Hz；VINS未初始化；CycloneDDS待测。
 - [Estimator只读观察程序准备](20261104_ESTIMATOR_OBSERVER_PREPARATION.md)：复用现有Estimator与Go2 URDF，独立LowState观察器已离线构建和静态自检；未初始化DDS或执行现场观察。
 - [Recovery线速度来源显式选择](20261104_RECOVERY_VELOCITY_SOURCE.md)：Recovery现支持明确选 `odom` 或 `estimator`，静态仿真默认仍选 odom；Estimator 实机候选未接入 launch，动态速度精度未验证。
 - [原生遥控慢走速度对照准备](20261105_DYNAMIC_VELOCITY_COMPARISON_PREPARATION.md)：历史现场方案；两次慢走已执行，观察器增加Sport逐条记录及共用时间基准，实际结果见当日续接记录。
@@ -23,7 +24,7 @@
 
 ## 已知设备与推进顺序
 
-已确认Go2 EDU，使用本台外接电脑；enp7s0、电脑192.168.123.99/24、DDS domain=0已实际通信。双手遥控器照片和L2+B按下/松开数据已核对，原生前置彩色相机可预览；Go2固件仍待确认。外接深度设备现为D435i，图像/IMU已收到；相机已固定安装到Go2，用户报告USB传输速率由3.0降为2.0，初步怀疑扩展坞限制，实际协商速率和拓扑待只读核对。VINS仅完成静止、候选连续性和一次视频参考平移检查；独立动态位置/速度尚未验证。机载Orin NX为Ubuntu 20.04/arm64/Foxy、D435i在机载侧曾以480Mb/s枚举、无RealSense ROS 2驱动、机载时钟未对齐。原生服务释放期间SportModeState停更已实测。Recovery可显式选Estimator，但两次慢走动态异常尚未解决，未启用实机策略。
+已确认Go2 EDU，使用本台外接电脑；enp7s0、电脑192.168.123.99/24、DDS domain=0已实际通信。双手遥控器照片和L2+B按下/松开数据已核对，原生前置彩色相机可预览；Go2固件仍待确认。外接深度设备现为D435i，图像/IMU已收到；相机已固定安装到Go2，用户报告USB传输速率由3.0降为2.0。只读核对确认相机当前在Bus 01、协商480Mb/s；换线绕过USB2 Hub后仍为480Mb/s，Bus 02的10000M根口未使用。限制在端口/上行链路或线缆，当前扩展坞无已确认的USB3路径，按USB2设计。机载Orin NX为Ubuntu 20.04/arm64/Foxy；已装RealSense 4.51.1/2.51.1驱动和仅针对8086:0b3a的udev规则，系统时钟已对齐电脑；480×270双IR+IMU本机15/200Hz，640×480双IR右路MIPI失败；跨机FastDDS图像仅0.2–2.5Hz，电脑已装CycloneDDS待测。VINS的480×270配置已建立但尚未初始化；动态位置/速度仍未验证。原生服务释放期间SportModeState停更已实测。Recovery可显式选Estimator，但两次慢走动态异常尚未解决，未启用实机策略。
 
 只读状态连接 → 静止接口/遥控输入核对 → 有支撑的控制权与停止确认 → 受控站立 → 人工操控慢走 → 速度、姿态、关节状态与估计力矩正常后再慢跑 → 真实障碍感知 → 代表性简单障碍实验。每一步须按实际结果决定下一步，不把构建通过当作实机可用。
 
@@ -49,7 +50,7 @@
 
 ## 下一项任务
 
-只推荐先做一次固定安装后的USB链路只读核对：在机载Orin上确认D435i实际协商速率、经过的hub/port和可用profile，判断USB2能否满足当前双IR+IMU配置及后续深度需求；核对前不更换线缆或扩展坞、不安装驱动。随后再安排电脑只读、原生遥控的受控低速运动观察，评价VINS在实际安装与运动下的位置、速度和异常跳变。具体证据边界见[视频参考平移记录](20261106_VINS_VIDEO_REFERENCE_TRANSLATION.md)。SportModeState停更与恢复ai起立的历史结果保留，不重复趴伏交接流程。完整控制器及RL运动仍需有效状态来源和明确的支撑/停止/恢复方案。
+下一项：两端统一 `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`（电脑已装 `ros-humble-rmw-cyclonedds-cpp 1.3.5`），在 domain 42、非 localhost 下重测图像/IMU 跨机速率。若恢复约 15/200 Hz，运行 480×270 VINS；若仍慢，再比较机载 VINS 或非 DDS 图像传输。不先改 VINS 算法或标定；640×480 双 IR 的 USB2 限制留待跨机链路结论后决定。Go2 控制链不启动。SportModeState 停更与恢复 ai 起立的历史结果保留，不重复趴伏交接流程。完整控制器及 RL 运动仍需有效状态来源和明确的支撑/停止/恢复方案。细节见[机载驱动与跨机排查](20261106_ONBOARD_REALSENSE_BRINGUP.md)。
 
 ## 现场记录
 

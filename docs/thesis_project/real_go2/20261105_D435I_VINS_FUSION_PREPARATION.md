@@ -59,6 +59,7 @@ VINS内部状态位置和速度是配置中IMU body参考点在初始化VINS世�
 - 将本次构建包内的Eigen头文件改为`<Eigen/...>`，避免上游`<eigen3/Eigen/...>`先命中本机`/usr/local/include/eigen3`中的Eigen 3.3.9、再与APT Eigen 3.4.0/OpenCV混用。
 - 将Humble下Marker寿命设为`Duration::from_seconds(0.0)`。
 - 将两类Odometry的世界系速度旋为child/body系，并为`imu_propagate`设置child frame。
+- 2026-11-06增加有序停止：SIGINT后停止并join图像同步线程，停止并joinEstimator处理线程，再于局部Node销毁前释放全局Publisher。具体根因和验证边界见[停止修复记录](20261106_VINS_SHUTDOWN_FIX.md)。
 
 Humble补丁来源是[RTAB-Map示例引用的VINS补丁](https://gist.github.com/matlabbe/ebbb343cd744da9d6d6d6ded2e1557fd)；本项目仅取独立CPU估计器所需改动，不应用其中loop_fusion、共享库导出等无关部分。所选仓库源码已有GPU宏注释，因此没有改该文件。适配涉及`camera_models`的四元数局部参数化、`vins/src/factor/pose_local_parameterization.*`、`estimator.cpp`与`initial_sfm.cpp`；新旧API仅调整接口名与注册方式，保留原加法更新和Jacobian计算。
 
@@ -92,7 +93,7 @@ colcon --log-base /tmp/go2_vins_build/log build --packages-up-to vins \
 '
 ```
 
-本命令只选择`camera_models`与`vins`依赖链；不会构建`loop_fusion`或`global_fusion`，也不安装完整RTAB-Map。SDK配置和链接检查已通过：`ros2 pkg prefix vins`解析为`/tmp/go2_vins_build/install/vins`，可执行入口为`vins vins_node`；`ldd`解析了181个动态依赖条目，没有`not found`，包括系统`libceres.so.2`。没有执行节点来做启动试验，因为源码在订阅前启动常驻同步线程和ROS executor，无相机也会留在等待状态。
+本命令只选择`camera_models`与`vins`依赖链；不会构建`loop_fusion`或`global_fusion`，也不安装完整RTAB-Map。SDK配置和链接检查已通过：`ros2 pkg prefix vins`解析为`/tmp/go2_vins_build/install/vins`，可执行入口为`vins vins_node`；`ldd`解析了181个动态依赖条目，没有`not found`，包括系统`libceres.so.2`。2026-11-06在固定提交`72023bc5d2abb14faa4c02a5c040d84f996b587a`上更新同一补丁并增量重建`vins`成功；安装入口仍为`/tmp/go2_vins_build/install/vins/lib/vins/vins_node`，候选配置和启动命令未变。
 
 ## 后续相机现场命令
 
@@ -116,6 +117,8 @@ ros2 launch realsense2_camera rs_launch.py \
 ```
 
 **终端B：启动VINS。**
+
+普通运行默认关闭同步诊断。后续定位双目接收/配对问题时，可在终端B命令的环境中显式设置`VINS_SYNC_DIAGNOSTICS=1`，记录图像回调接收时刻、header时间、队列长度、配对/丢弃原因和派发时刻。具体字段和离线对照见[配对缺口诊断](20261106_VINS_STEREO_PAIRING_GAP_DIAGNOSIS.md)。
 
 ```bash
 env -i HOME=/home/lidio PATH=/usr/bin:/bin LANG=C.UTF-8 TERM=xterm \
@@ -156,13 +159,13 @@ ros2 topic echo /vins/imu_propagate --once
 
 首次判断：日志出现`Initialization finish!`且`/vins/odometry`开始发布，表示内部初始化完成；`/vins/image_track`应持续发布并可视检查跟踪点。若无优化里程计、图像时间持续出现大间隔或跟踪明显丢失，先Ctrl+C停止VINS和相机进程，保存输出，不尝试接入Recovery。无初始化状态话题，也没有单次静止运行就证明动态速度准确的判据。检查速度时使用补丁后的body系`twist`；不要再把它旋转一次。输出参考点仍是相机IMU原点。
 
-正常退出时先在终端B按Ctrl+C，再在终端A按Ctrl+C，等待二者报告退出；随后在ROS域42终端执行`ros2 node list`，确认`/camera/camera`与VINS节点已消失，并用`ps -eo pid,ppid,args | grep -E '[r]ealsense2_camera_node|[v]ins_node'`核对本次进程。若使用过ROS CLI daemon，再执行`ros2 daemon stop`。观察器与VINS均不具备停止Go2机器人的能力。
+正常退出时先在终端B按Ctrl+C，等待VINS报告退出码0且日志没有`terminate called`或FastDDS清理错误；再在终端A按Ctrl+C，等待相机退出。随后在ROS域42终端执行`ros2 node list`，确认`/camera/camera`与VINS节点已消失，并用`ps -eo pid,ppid,args | grep -E '[r]ealsense2_camera_node|[v]ins_node'`核对本次进程。若使用过ROS CLI daemon，再执行`ros2 daemon stop`。无输入等待阶段的退出已离线验证；初始化后或Estimator正在处理传感器数据时的SIGINT仍待现场检查。观察器与VINS均不具备停止Go2机器人的能力。
 
 ## 适用边界和下一步
 
-本轮没有运行RealSense节点、打开viewer、启动VINS、录制相机数据或操作Go2。相机ROS 4.58.4和librealsense 2.58.4的版本及此前数据流来自已有现场记录；本轮只构建软件并检查配置和链接。当前证据不证明图像/IMU硬件同步、IMU标定、时间偏差估计收敛、动态速度准确、相机到Go2基座外参或VINS在该设备上能跟踪。
+本准备记录对应的软件构建轮次，没有运行RealSense节点、打开viewer或操作Go2。2026-11-06另做了输入-only rosbag回放，未连接相机。相机ROS 4.58.4和librealsense 2.58.4的版本及现场数据流来自已有记录；当前证据不证明图像/IMU硬件同步、IMU标定、时间偏差估计收敛、动态速度准确、相机到Go2基座外参或现场实时接收链路可靠。
 
-下一项只推荐：由主助手执行一次**Go2控制关闭状态下的相机-only VINS首次跟踪观察**。先确认静止纹理场景的双目/IMU数据和初始化，再仅在设备安全固定、线缆有余量时做短时人工相机平移/转动以观察方向与跟踪连续性；不命令机器人运动，不据此启用Recovery。完整图像+IMU录包、标定验证和Go2安装变换应另行评估。
+首次相机-only静止跟踪观察已完成；此后初始化后SIGINT退出、可靠订阅候选现场运行及一次视频参考平移也已记录。当前下一项只推荐：先做固定安装后的USB链路只读核对，确认D435i实际协商速率、经过的hub/port和可用profile，判断USB2能否满足当前双IR+IMU配置及后续深度需求；核对前不更换线缆或扩展坞、不安装驱动。核对后再安排电脑只读、原生遥控的受控低速运动观察，不命令机器人按项目控制链运动，不据此启用Recovery。结果与限制见[视频参考平移记录](20261106_VINS_VIDEO_REFERENCE_TRANSLATION.md)、[机载只读检查](20261106_ONBOARD_D435I_READONLY_CHECK.md)及[配对缺口诊断](20261106_VINS_STEREO_PAIRING_GAP_DIAGNOSIS.md)。
 
 ## 主要来源
 

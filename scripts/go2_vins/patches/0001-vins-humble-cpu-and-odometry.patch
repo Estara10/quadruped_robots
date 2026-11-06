@@ -231,10 +231,10 @@ index 5d28789..f743d2e 100755
  
  }
 diff --git a/vins/src/estimator/estimator.cpp b/vins/src/estimator/estimator.cpp
-index ac014af..cb42c1a 100755
+index ac014af..3ecdcca 100755
 --- a/vins/src/estimator/estimator.cpp
 +++ b/vins/src/estimator/estimator.cpp
-@@ -13,6 +13,10 @@
+@@ -13,13 +13,23 @@
  Estimator::Estimator(): f_manager{Rs}
  {
      ROS_INFO("init begins");
@@ -245,7 +245,39 @@ index ac014af..cb42c1a 100755
      initThreadFlag = false;
      clearState();
  }
-@@ -1068,7 +1072,7 @@ void Estimator::optimization()
+ 
+ Estimator::~Estimator()
+ {
+-    if (MULTIPLE_THREAD)
++    shutdown();
++}
++
++void Estimator::shutdown()
++{
++    processThreadStopRequested.store(true);
++    if (processThread.joinable())
+     {
+         processThread.join();
+         printf("join thread \n");
+@@ -283,7 +293,7 @@ bool Estimator::IMUAvailable(double t)
+ 
+ void Estimator::processMeasurements()
+ {
+-    while (1)
++    while (!processThreadStopRequested.load())
+     {
+         // cout << "[processMeasurements]  loop - start" << endl;
+ 
+@@ -297,6 +307,8 @@ void Estimator::processMeasurements()
+             // std::cout << "t0: " << std::fixed << curTime << std::endl;
+             while(1)
+             {
++                if (processThreadStopRequested.load())
++                    return;
+                 if ((!USE_IMU  || IMUAvailable(feature.first + td)))
+                     break;
+                 else
+@@ -1068,7 +1080,7 @@ void Estimator::optimization()
      //ceres::LossFunction* loss_function = new ceres::HuberLoss(1.0);
      for (int i = 0; i < frame_count + 1; i++)
      {
@@ -254,7 +286,7 @@ index ac014af..cb42c1a 100755
          problem.AddParameterBlock(para_Pose[i], SIZE_POSE, local_parameterization);
          if(USE_IMU)
              problem.AddParameterBlock(para_SpeedBias[i], SIZE_SPEEDBIAS);
-@@ -1078,7 +1082,7 @@ void Estimator::optimization()
+@@ -1078,7 +1090,7 @@ void Estimator::optimization()
  
      for (int i = 0; i < NUM_OF_CAM; i++)
      {
@@ -263,7 +295,7 @@ index ac014af..cb42c1a 100755
          problem.AddParameterBlock(para_Ex_Pose[i], SIZE_POSE, local_parameterization);
          if ((ESTIMATE_EXTRINSIC && frame_count == WINDOW_SIZE && Vs[0].norm() > 0.2) || openExEstimation)
          {
-@@ -1166,12 +1170,7 @@ void Estimator::optimization()
+@@ -1166,12 +1178,7 @@ void Estimator::optimization()
  
      ceres::Solver::Options options;
  
@@ -278,10 +310,18 @@ index ac014af..cb42c1a 100755
      //options.num_threads = 2;
      options.trust_region_strategy_type = ceres::DOGLEG;
 diff --git a/vins/src/estimator/estimator.h b/vins/src/estimator/estimator.h
-index bf27b8c..5d34770 100755
+index bf27b8c..be7a338 100755
 --- a/vins/src/estimator/estimator.h
 +++ b/vins/src/estimator/estimator.h
-@@ -17,8 +17,8 @@
+@@ -9,6 +9,7 @@
+ 
+ #pragma once
+  
++#include <atomic>
+ #include <thread>
+ #include <mutex>
+ #include <std_msgs/msg/header.h>
+@@ -17,8 +18,8 @@
  #include <unordered_map>
  #include <queue>
  #include <opencv2/core/eigen.hpp>
@@ -292,6 +332,22 @@ index bf27b8c..5d34770 100755
  
  #include "parameters.h"
  #include "feature_manager.h"
+@@ -46,6 +47,7 @@ class Estimator
+   public:
+     Estimator();
+     ~Estimator();
++    void shutdown();
+     void setParameter();
+ 
+     // interface
+@@ -107,6 +109,7 @@ class Estimator
+ 
+     std::thread trackThread;
+     std::thread processThread;
++    std::atomic<bool> processThreadStopRequested{false};
+ 
+     FeatureTracker featureTracker;
+ 
 diff --git a/vins/src/estimator/feature_manager.h b/vins/src/estimator/feature_manager.h
 index 9bb80eb..372b75c 100755
 --- a/vins/src/estimator/feature_manager.h
@@ -493,6 +549,189 @@ index 8587e48..041c122 100755
  using namespace Eigen;
  
  // #include <ros/console.h>
+diff --git a/vins/src/rosNodeTest.cpp b/vins/src/rosNodeTest.cpp
+index 37bd75c..291a86f 100755
+--- a/vins/src/rosNodeTest.cpp
++++ b/vins/src/rosNodeTest.cpp
+@@ -12,6 +12,10 @@
+ #include <stdio.h>
+ #include <queue>
+ #include <map>
++#include <atomic>
++#include <chrono>
++#include <cstdlib>
++#include <string>
+ #include <thread>
+ #include <mutex>
+ #include <rclcpp/rclcpp.hpp>
+@@ -28,22 +32,41 @@ queue<sensor_msgs::msg::PointCloud::ConstPtr> feature_buf;
+ queue<sensor_msgs::msg::Image::ConstPtr> img0_buf;
+ queue<sensor_msgs::msg::Image::ConstPtr> img1_buf;
+ std::mutex m_buf;
++bool sync_diagnostics = false;
++std::chrono::steady_clock::time_point sync_diagnostics_start;
++
++double sync_diagnostics_time()
++{
++    return std::chrono::duration<double>(std::chrono::steady_clock::now() - sync_diagnostics_start).count();
++}
+ 
+ // header: 1403715278
+ void img0_callback(const sensor_msgs::msg::Image::SharedPtr img_msg)
+ {
++    const double arrival_s = sync_diagnostics ? sync_diagnostics_time() : 0.0;
++    const double header_s = img_msg->header.stamp.sec + img_msg->header.stamp.nanosec * 1e-9;
+     m_buf.lock();
+     // std::cout << "Left : " << img_msg->header.stamp.sec << "." << img_msg->header.stamp.nanosec << endl;
+     img0_buf.push(img_msg);
++    const size_t left_size = img0_buf.size();
++    const size_t right_size = img1_buf.size();
+     m_buf.unlock();
++    if (sync_diagnostics)
++        printf("SYNC_DIAG receive side=left arrival_s=%.6f header_s=%.9f q_left=%zu q_right=%zu\n", arrival_s, header_s, left_size, right_size);
+ }
+ 
+ void img1_callback(const sensor_msgs::msg::Image::SharedPtr img_msg)
+ {
++    const double arrival_s = sync_diagnostics ? sync_diagnostics_time() : 0.0;
++    const double header_s = img_msg->header.stamp.sec + img_msg->header.stamp.nanosec * 1e-9;
+     m_buf.lock();
+     // std::cout << "Right: " << img_msg->header.stamp.sec << "." << img_msg->header.stamp.nanosec << endl;
+     img1_buf.push(img_msg);
++    const size_t left_size = img0_buf.size();
++    const size_t right_size = img1_buf.size();
+     m_buf.unlock();
++    if (sync_diagnostics)
++        printf("SYNC_DIAG receive side=right arrival_s=%.6f header_s=%.9f q_left=%zu q_right=%zu\n", arrival_s, header_s, left_size, right_size);
+ }
+ 
+ 
+@@ -71,15 +94,19 @@ cv::Mat getImageFromMsg(const sensor_msgs::msg::Image::ConstPtr &img_msg)
+ }
+ 
+ // extract images with same timestamp from two topics
+-void sync_process()
++void sync_process(std::atomic<bool> *running)
+ {
+-    while(1)
++    while(running->load())
+     {
+         if(STEREO)
+         {
+             cv::Mat image0, image1;
+             std_msgs::msg::Header header;
+             double time = 0;
++            int diag_action = 0;
++            double diag_left_s = 0.0, diag_right_s = 0.0;
++            size_t diag_left_q = 0, diag_right_q = 0;
++            size_t diag_dropped_left = 0, diag_dropped_right = 0;
+             m_buf.lock();
+             if (!img0_buf.empty() && !img1_buf.empty())
+             {
+@@ -90,11 +117,17 @@ void sync_process()
+                 if(time0 < time1 - 0.003)
+                 {
+                     img0_buf.pop();
++                    diag_action = 1;
++                    diag_left_s = time0;
++                    diag_right_s = time1;
+                     printf("throw img0\n");
+                 }
+                 else if(time0 > time1 + 0.003)
+                 {
+                     img1_buf.pop();
++                    diag_action = 2;
++                    diag_left_s = time0;
++                    diag_right_s = time1;
+                     printf("throw img1\n");
+                 }
+                 else
+@@ -110,12 +143,29 @@ void sync_process()
+                     {
+                         img0_buf.pop();
+                         img1_buf.pop();
++                        ++diag_dropped_left;
++                        ++diag_dropped_right;
+                     }
++                    diag_action = 3;
++                    diag_left_s = time;
++                    diag_right_s = time1;
+                 }
++                diag_left_q = img0_buf.size();
++                diag_right_q = img1_buf.size();
+             }
+             m_buf.unlock();
++            if (sync_diagnostics && diag_action == 1)
++                printf("SYNC_DIAG drop decision_s=%.6f side=left reason=header_older_than_right dt_s=%.9f header_left=%.9f header_right=%.9f q_left=%zu q_right=%zu\n", sync_diagnostics_time(), diag_right_s - diag_left_s, diag_left_s, diag_right_s, diag_left_q, diag_right_q);
++            else if (sync_diagnostics && diag_action == 2)
++                printf("SYNC_DIAG drop decision_s=%.6f side=right reason=header_older_than_left dt_s=%.9f header_left=%.9f header_right=%.9f q_left=%zu q_right=%zu\n", sync_diagnostics_time(), diag_left_s - diag_right_s, diag_left_s, diag_right_s, diag_left_q, diag_right_q);
++            else if (sync_diagnostics && diag_action == 3)
++                printf("SYNC_DIAG pair decision_s=%.6f header_left=%.9f header_right=%.9f q_left=%zu q_right=%zu discarded_left=%zu discarded_right=%zu\n", sync_diagnostics_time(), diag_left_s, diag_right_s, diag_left_q, diag_right_q, diag_dropped_left, diag_dropped_right);
+             if(!image0.empty())
++            {
+                 estimator.inputImage(time, image0, image1);
++                if (sync_diagnostics)
++                    printf("SYNC_DIAG dispatched header_s=%.9f arrival_s=%.6f\n", time, sync_diagnostics_time());
++            }
+         }
+         else
+         {
+@@ -245,6 +295,9 @@ void cam_switch_callback(const std_msgs::msg::Bool::SharedPtr switch_msg)
+ 
+ int main(int argc, char **argv)
+ {
++    const char *sync_diagnostics_env = std::getenv("VINS_SYNC_DIAGNOSTICS");
++    sync_diagnostics = sync_diagnostics_env != nullptr && sync_diagnostics_env[0] == '1' && sync_diagnostics_env[1] == '\0';
++    sync_diagnostics_start = std::chrono::steady_clock::now();
+     rclcpp::init(argc, argv);
+ 	auto n = rclcpp::Node::make_shared("vins_estimator");
+     // ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Info);
+@@ -279,22 +332,42 @@ int main(int argc, char **argv)
+         sub_imu = n->create_subscription<sensor_msgs::msg::Imu>(IMU_TOPIC, rclcpp::SensorDataQoS().keep_last(2000), imu_callback);
+     }
+     auto sub_feature = n->create_subscription<sensor_msgs::msg::PointCloud>("/feature_tracker/feature", rclcpp::QoS(rclcpp::KeepLast(2000)), feature_callback);
+-    auto sub_img0 = n->create_subscription<sensor_msgs::msg::Image>(IMAGE0_TOPIC, rclcpp::SensorDataQoS(), img0_callback);
++    rclcpp::QoS image_qos = rclcpp::SensorDataQoS();
++    const char *image_qos_env = std::getenv("VINS_IMAGE_QOS");
++    if (image_qos_env != nullptr)
++    {
++        const std::string image_qos_setting(image_qos_env);
++        if (image_qos_setting == "reliable")
++            image_qos.reliable();
++        else if (image_qos_setting != "best_effort")
++        {
++            RCLCPP_FATAL(n->get_logger(), "VINS_IMAGE_QOS must be best_effort or reliable");
++            rclcpp::shutdown();
++            return 2;
++        }
++    }
++    auto sub_img0 = n->create_subscription<sensor_msgs::msg::Image>(IMAGE0_TOPIC, image_qos, img0_callback);
+ 
+     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr sub_img1 = NULL;
+     if(STEREO)
+     {
+-        sub_img1 = n->create_subscription<sensor_msgs::msg::Image>(IMAGE1_TOPIC, rclcpp::SensorDataQoS(), img1_callback);
++        sub_img1 = n->create_subscription<sensor_msgs::msg::Image>(IMAGE1_TOPIC, image_qos, img1_callback);
+     }
+ 
+     auto sub_restart = n->create_subscription<std_msgs::msg::Bool>("/vins_restart", rclcpp::QoS(rclcpp::KeepLast(100)), restart_callback);
+     auto sub_imu_switch = n->create_subscription<std_msgs::msg::Bool>("/vins_imu_switch", rclcpp::QoS(rclcpp::KeepLast(100)), imu_switch_callback);
+     auto sub_cam_switch = n->create_subscription<std_msgs::msg::Bool>("/vins_cam_switch", rclcpp::QoS(rclcpp::KeepLast(100)), cam_switch_callback);
+ 
+-    std::thread sync_thread{sync_process};
++    std::atomic<bool> sync_thread_running{true};
++    std::thread sync_thread{sync_process, &sync_thread_running};
+     rclcpp::executors::MultiThreadedExecutor executor;
+     executor.add_node(n);
+     executor.spin();
+ 
++    sync_thread_running.store(false);
++    sync_thread.join();
++    estimator.shutdown();
++    clearPub();
++
+     return 0;
+ }
 diff --git a/vins/src/utility/utility.h b/vins/src/utility/utility.h
 index 503c234..3f18bb6 100755
 --- a/vins/src/utility/utility.h
@@ -507,10 +746,33 @@ index 503c234..3f18bb6 100755
  class Utility
  {
 diff --git a/vins/src/utility/visualization.cpp b/vins/src/utility/visualization.cpp
-index 8146f19..ea31e11 100755
+index 8146f19..642742a 100755
 --- a/vins/src/utility/visualization.cpp
 +++ b/vins/src/utility/visualization.cpp
-@@ -60,6 +60,7 @@ void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, co
+@@ -50,6 +50,22 @@ void registerPub(rclcpp::Node::SharedPtr n)
+     cameraposevisual.setLineWidth(0.01);
+ }
+ 
++void clearPub()
++{
++    pub_latest_odometry.reset();
++    pub_path.reset();
++    pub_odometry.reset();
++    pub_point_cloud.reset();
++    pub_margin_cloud.reset();
++    pub_key_poses.reset();
++    pub_camera_pose.reset();
++    pub_camera_pose_visual.reset();
++    pub_keyframe_pose.reset();
++    pub_keyframe_point.reset();
++    pub_extrinsic.reset();
++    pub_image_track.reset();
++}
++
+ void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, const Eigen::Vector3d &V, double t)
+ {
+     nav_msgs::msg::Odometry odometry;
+@@ -60,6 +76,7 @@ void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, co
      odometry.header.stamp.nanosec = nsec_ts;
  
      odometry.header.frame_id = WORLD_FRAME_ID;
@@ -518,7 +780,7 @@ index 8146f19..ea31e11 100755
      odometry.pose.pose.position.x = P.x();
      odometry.pose.pose.position.y = P.y();
      odometry.pose.pose.position.z = P.z();
-@@ -67,9 +68,10 @@ void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, co
+@@ -67,9 +84,10 @@ void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, co
      odometry.pose.pose.orientation.y = Q.y();
      odometry.pose.pose.orientation.z = Q.z();
      odometry.pose.pose.orientation.w = Q.w();
@@ -532,7 +794,7 @@ index 8146f19..ea31e11 100755
      pub_latest_odometry->publish(odometry);
  }
  
-@@ -140,6 +142,7 @@ void pubOdometry(const Estimator &estimator, const std_msgs::msg::Header &header
+@@ -140,6 +158,7 @@ void pubOdometry(const Estimator &estimator, const std_msgs::msg::Header &header
          odometry.header = header;
          odometry.header.frame_id = WORLD_FRAME_ID;
          odometry.child_frame_id = BODY_FRAME_ID;
@@ -540,7 +802,7 @@ index 8146f19..ea31e11 100755
          Quaterniond tmp_Q;
          tmp_Q = Quaterniond(estimator.Rs[WINDOW_SIZE]);
          odometry.pose.pose.position.x = estimator.Ps[WINDOW_SIZE].x();
-@@ -149,9 +152,9 @@ void pubOdometry(const Estimator &estimator, const std_msgs::msg::Header &header
+@@ -149,9 +168,9 @@ void pubOdometry(const Estimator &estimator, const std_msgs::msg::Header &header
          odometry.pose.pose.orientation.y = tmp_Q.y();
          odometry.pose.pose.orientation.z = tmp_Q.z();
          odometry.pose.pose.orientation.w = tmp_Q.w();
@@ -553,7 +815,7 @@ index 8146f19..ea31e11 100755
          pub_odometry->publish(odometry);
  
          geometry_msgs::msg::PoseStamped pose_stamped;
-@@ -198,7 +201,7 @@ void pubKeyPoses(const Estimator &estimator, const std_msgs::msg::Header &header
+@@ -198,7 +217,7 @@ void pubKeyPoses(const Estimator &estimator, const std_msgs::msg::Header &header
      key_poses.type = visualization_msgs::msg::Marker::SPHERE_LIST;
      key_poses.action = visualization_msgs::msg::Marker::ADD;
      key_poses.pose.orientation.w = 1.0;
@@ -562,7 +824,7 @@ index 8146f19..ea31e11 100755
  
      //static int key_poses_id = 0;
      key_poses.id = 0; //key_poses_id++;
-@@ -538,4 +541,4 @@ void pubKeyframe(const Estimator &estimator)
+@@ -538,4 +557,4 @@ void pubKeyframe(const Estimator &estimator)
          }
          pub_keyframe_point->publish(point_cloud);
      }
@@ -570,7 +832,7 @@ index 8146f19..ea31e11 100755
 \ No newline at end of file
 +}
 diff --git a/vins/src/utility/visualization.h b/vins/src/utility/visualization.h
-index ab31748..f36619f 100755
+index ab31748..622d24d 100755
 --- a/vins/src/utility/visualization.h
 +++ b/vins/src/utility/visualization.h
 @@ -27,7 +27,7 @@
@@ -582,3 +844,11 @@ index ab31748..f36619f 100755
  #include "../estimator/estimator.h"
  #include "../estimator/parameters.h"
  #include <fstream>
+@@ -43,6 +43,7 @@ extern rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr pub_po
+ extern int IMAGE_ROW, IMAGE_COL;
+ 
+ void registerPub(rclcpp::Node::SharedPtr n);
++void clearPub();
+ 
+ void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q, const Eigen::Vector3d &V, double t);
+ 

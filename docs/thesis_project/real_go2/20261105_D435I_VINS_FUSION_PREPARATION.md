@@ -95,7 +95,11 @@ colcon --log-base /tmp/go2_vins_build/log build --packages-up-to vins \
 
 本命令只选择`camera_models`与`vins`依赖链；不会构建`loop_fusion`或`global_fusion`，也不安装完整RTAB-Map。SDK配置和链接检查已通过：`ros2 pkg prefix vins`解析为`/tmp/go2_vins_build/install/vins`，可执行入口为`vins vins_node`；`ldd`解析了181个动态依赖条目，没有`not found`，包括系统`libceres.so.2`。2026-11-06在固定提交`72023bc5d2abb14faa4c02a5c040d84f996b587a`上更新同一补丁并增量重建`vins`成功；安装入口仍为`/tmp/go2_vins_build/install/vins/lib/vins/vins_node`，候选配置和启动命令未变。
 
+**2026-11-08 恢复构建：**`/tmp`下源码和安装树均已丢失；已在同一固定提交上重新clone、应用同一补丁并完整构建`camera_models`/`vins`成功（2 packages finished，exit 0）。入口仍为`/tmp/go2_vins_build/install/vins/lib/vins/vins_node`；`ros2 pkg prefix vins`解析正确；`ldd`共183项，无`not found`。本轮未安装或升级系统包。构建与IMU告警审阅、下一次现场命令见[2026-11-08记录](20261108_VINS_BUILD_AND_IMU_REVIEW.md)。
+
 ## 后续相机现场命令
+
+> 当前现场以 480×270、CycloneDDS 和 VINS 记录为准，命令见[2026-11-08记录](20261108_VINS_BUILD_AND_IMU_REVIEW.md)与[CYCLONE_FIELD_CHECK.md](../../../scripts/go2_vins/CYCLONE_FIELD_CHECK.md)。本节保留首次 640×480 相机-only 检查的历史命令，不直接用于下一次 480×270 VINS 观察。
 
 以下是后续相机-only首次跟踪检查的准确命令，不启动Go2控制。本轮未执行。两个命令分别放在终端A、终端B；二者都使用ROS域42，避免和项目Go2域0混用。
 

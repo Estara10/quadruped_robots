@@ -1,5 +1,17 @@
 # Go2实机准备与接口修复
 
+> **三轮重复慢走审阅（2026-11-08）：**第 1 轮 VINS 水平净位移 2.875 m、世界 Z -0.901 m，约 +37 s 出现 0.868 m 水平/1.009 m 3D 状态跳变，传播数毫秒后跟随；pre/post 窗口稳定，敏感性约 2 mm，不是选窗造成。最终在线外参偏离初值约 2.49 m/14.7°、td 0.054 s；第 2/3 轮约 0.057 m/1.1°、td 0.0027 s，净位移 1.204/1.207 m。第 1 轮大跳变符合优化重锚定，Z 不能直接解释为实际下降；输入连续、无 reset；第 2/3 轮共享一次初始化，不能当独立重复。仍只读，不接 goto。下一项为限定离线回放第 1 轮，比较原始与冻结在线外参的诊断配置，区分外参/td 发散的贡献。详见[审阅文档](20261108_REPEAT_WALK_REVIEW.md)。本轮未连接设备，未提交 Git。
+
+> **最新动态观察审阅（2026-11-08）：**原生遥控短直线慢走已完成一次 VINS 只读记录。运动前后探索窗口水平净位移约 1.232 m，但该 pre/post 中位数口径相隔约 11.6 s 并包含停后 9.6 cm 优化重锚定；最接近约 3 s 的滑动窗口为 1.12–1.14 m，用户约 1 m/3 s 仅为粗估，不能据此报 23% 尺度误差。双目/IMU 无秒级断流，VINS 只初始化一次；`n_pts` 是每帧新补充点数、不是总跟踪数，不能据此判断特征不足；停后窗口只有约 3.3 s。停后跳变有传播跟随/优化重锚定证据，不是传感器断流；暂不具备接入 goto 的依据，只可继续只读验证。下一项为受控重复短直线对照（独立起停、≥10 s 停后）。详见[审阅文档](20261108_VINS_NATIVE_WALK_REVIEW.md)。本轮未连接设备，未提交 Git。
+
+> **最新定位进展（2026-11-08）：**安装状态下约60秒相机只读观察中，VINS已初始化并持续输出，IMU数值有限且header连续；优化位置静态最大变化约1.83cm，不等于动态精度已验证。本次Motion Module failure未复现，默认标定/HID警告仍存在。采集期间保留约5.8秒跨机时差，收尾后已校正至约1ms并保留原记录；不把该偏差当作纯算法延迟。全部采集、VINS、SSH已关闭。下一项为原生遥控低速短直线下的独立动态位姿/速度对照，暂不接控制。详见[静态观察结果](20261108_VINS_STATIC_OBSERVATION.md)。
+
+> **当前续接（2026-11-08 离线）：**旧 `/tmp` VINS 源码和构建均已丢失；已按固定提交 `72023bc5d2abb14faa4c02a5c040d84f996b587a` 重新取源码、应用仓库原补丁，并完成 Humble/CPU 隔离构建：`vins_node` 存在、`ros2 pkg prefix` 正确、183 个动态依赖无缺失。IMU 告警审阅结论：`Motion Module failure` 是设备固件 HW error report，本次仅启动阶段出现；`HID set_power 1 failed` 在本版本可能只是“目标值已经是 1”导致的返回值误报；IMU 标定不可用，使用默认内外参。下一次现场先做静态只读定位观察；命令、QoS、记录、停止与清理见[新记录](20261108_VINS_BUILD_AND_IMU_REVIEW.md)。本轮未连接机器人/相机，未运行 VINS 或现场回放，未提交 Git。以下按日期理解。
+
+> **最新相机实测（2026-11-08）：**统一CycloneDDS后，机载Orin到电脑的左右图像接收恢复约15 Hz、合并IMU约200 Hz，12秒检查未见此前数秒级空档。启动仍报Motion Module failure且使用默认IMU标定；Orin时钟重启后回到1970，旧电脑VINS临时二进制已不存在。当前不运行VINS或接控制；下一项为离线恢复已有VINS构建并审阅IMU告警。相机、订阅均已关闭，两端进程及SSH已清理。详见[本次传输结果](20261108_CYCLONE_CAMERA_TRANSPORT_RESULT.md)。
+
+> **当前优先级（2026-11-08，用户明确）：**回归毕业设计，优先解决独立定位与线速度来源。用户在原生goto对照中报告横向、纵向真实误差，现阶段不再仅通过收紧容差追求到点；现场不布置地面定位标记，不采用动捕。候选为已准备的D435i双目IR＋相机自身IMU、VINS视觉惯性里程计，利用自然场景特征，输出经安装外参转换后的机身位姿与速度。当前暂停goto精度调参，先完成相机安装状态下的独立只读定位验证；不据此启动项目低层策略或改变R1任务状态。相机/VINS已完成部分及跨机传输未解决项见下方2026-11-06记录。下一项限定为两端统一CycloneDDS后短时核对图像/IMU到达质量；该项若仍失败，再决定机载运行VINS，不预设机载版本已构建或实机精度已通过。地面标尺/卷尺仅作误差测量，不作为定位算法输入。无标记条件不等于不需要自然视觉纹理；动态精度、场地适应性和安装外参仍待验证。
+
 > **当前续接（2026-11-06 晚）：**此前相机-only视频参考平移约70秒、消息窗口净位移1.011 m，未复现秒级空档或0.436 m级相邻跳变；外部视频漏做同步，动态精度仍未验证。相机固定安装到Go2后，只读确认当前为USB2（Bus 01 480Mb/s，Bus 02 10000M未使用）。机载Orin已安装RealSense Foxy驱动和最小udev规则：480×270@15双IR+IMU在Orin本机稳定（15.15/200.06 Hz），640×480双IR因右路MIPI错误不可用；跨机到电脑FastDDS仅0.2–2.5 Hz，时钟对齐与ufw排除后仍无改善，根因未证明。480×270 VINS配置已建立但未初始化。电脑已装CycloneDDS，下一步两端统一切换后复测；Go2控制链未启动，无残留进程。见[机载驱动与跨机排查](20261106_ONBOARD_REALSENSE_BRINGUP.md)、[视频参考平移记录](20261106_VINS_VIDEO_REFERENCE_TRANSLATION.md)、[停止修复记录](20261106_VINS_SHUTDOWN_FIX.md)、[配对缺口诊断](20261106_VINS_STEREO_PAIRING_GAP_DIAGNOSIS.md)、[右图交付QoS离线诊断](20261106_VINS_RIGHT_IMAGE_DELIVERY_QOS_DIAGNOSIS.md)、[位置回摆审阅](20261106_VINS_POSITION_BOUNCE_REVIEW.md)和[当日续接记录](SESSION_20261105.md)。以下准备与历史记录按各自日期理解。
 
 > 2026-11-04实机发现：恢复原生ai后机器人意外起立，趴伏交接未通过；用户已遥控趴伏，所有电脑检测进程已退出。交接诊断入口已冻结，完整实机控制/自动恢复路径继续NO-GO。释放原生服务时SportModeState确实停更；Recovery已有Estimator速度候选，但动态准确性未验证，独立世界位置来源仍未解决。见[实际结果](20261104_MODE_HANDOFF_RESULT.md)和[Recovery速度来源审查](20261104_RECOVERY_VELOCITY_SOURCE.md)。
@@ -15,6 +27,10 @@
 - [VINS位置回摆现场数据审阅](20261106_VINS_POSITION_BOUNCE_REVIEW.md)：定位到优化状态校正先进入odom、再重锚IMU传播；无明确代码缺陷，真实运动仍缺独立记录。
 - [VINS视频参考平移采集](20261106_VINS_VIDEO_REFERENCE_TRANSLATION.md)：相机-only约70秒，消息窗口净位移1.011 m，无秒级空档或0.436 m级跳变；外部视频漏做同步动作，未精确对齐，动态精度未验证。
 - [机载D435i驱动与跨机排查](20261106_ONBOARD_REALSENSE_BRINGUP.md)：Foxy/arm64驱动与最小udev规则已装；480×270双IR+IMU本机15/200 Hz，640×480双IR右路MIPI失败；跨机FastDDS仅0.2–2.5 Hz；VINS未初始化；CycloneDDS待测。
+- [CycloneDDS跨机传输恢复](20261108_CYCLONE_CAMERA_TRANSPORT_RESULT.md)：统一CycloneDDS后电脑接收约15/200 Hz，12秒未见数秒空档；CLI统计不等于无丢帧或定位精度。
+- [VINS构建恢复与IMU告警审阅](20261108_VINS_BUILD_AND_IMU_REVIEW.md)：固定提交+原补丁构建成功；Motion Module/HID/标定告警的证据边界；下一次静态只读观察命令、QoS、记录与清理。
+- [原生遥控慢走VINS审阅](20261108_VINS_NATIVE_WALK_REVIEW.md)：1.23 m pre/post 口径相隔约 11.6 s，含停后 9.6 cm 重锚定；3 s 最大约 1.12–1.14 m；`n_pts` 为新补充点数，不能判断特征不足；输入链无秒级断流；仅可只读验证，不接 goto。
+- [三轮重复慢走VINS审阅](20261108_REPEAT_WALK_REVIEW.md)：第 1 轮 2.875 m/Z -0.901/1 m 跳变；pre/post 窗口稳定，最终外参约 2.49 m/14.7°；第 2/3 轮 1.204/1.207 m、共享一次初始化；仅只读，不接 goto。
 - [Estimator只读观察程序准备](20261104_ESTIMATOR_OBSERVER_PREPARATION.md)：复用现有Estimator与Go2 URDF，独立LowState观察器已离线构建和静态自检；未初始化DDS或执行现场观察。
 - [Recovery线速度来源显式选择](20261104_RECOVERY_VELOCITY_SOURCE.md)：Recovery现支持明确选 `odom` 或 `estimator`，静态仿真默认仍选 odom；Estimator 实机候选未接入 launch，动态速度精度未验证。
 - [原生遥控慢走速度对照准备](20261105_DYNAMIC_VELOCITY_COMPARISON_PREPARATION.md)：历史现场方案；两次慢走已执行，观察器增加Sport逐条记录及共用时间基准，实际结果见当日续接记录。
@@ -50,10 +66,11 @@
 
 ## 下一项任务
 
-下一项：两端统一 `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`（电脑已装 `ros-humble-rmw-cyclonedds-cpp 1.3.5`），在 domain 42、非 localhost 下重测图像/IMU 跨机速率。若恢复约 15/200 Hz，运行 480×270 VINS；若仍慢，再比较机载 VINS 或非 DDS 图像传输。不先改 VINS 算法或标定；640×480 双 IR 的 USB2 限制留待跨机链路结论后决定。Go2 控制链不启动。SportModeState 停更与恢复 ai 起立的历史结果保留，不重复趴伏交接流程。完整控制器及 RL 运动仍需有效状态来源和明确的支撑/停止/恢复方案。细节见[机载驱动与跨机排查](20261106_ONBOARD_REALSENSE_BRINGUP.md)。
+下一项：限定离线回放第 1 轮已关闭的 bag，先复现 2.875 m/Z -0.901/1.0 m 跳变；再用同一 bag 的诊断配置冻结在线外参于初值（`estimate_extrinsic:0`，其他不变），比较是否消失或显著减小，以区分在线外参/td 发散与视觉/IMU/姿态因素。该回放只用于解释机制，不修改生产配置，不调尺度、标定或阈值，不追求“通过”；若冻结外参后异常仍在，转向视觉/IMU/姿态。完成条件：能说明第 1 轮异常对在线外参发散的依赖程度及仍未知部分。不接 goto/Recovery/策略，不因结果不理想反复调参或重跑。详见[三轮审阅](20261108_REPEAT_WALK_REVIEW.md)。Go2 控制链不启动。SportModeState 停更与恢复 ai 起立的历史结果保留，不重复趴伏交接流程。
 
 ## 现场记录
 
+- [StopMove=-1 排查与只读查询准备](20261108_STOPMOVE_RETURN_MINUS1_INVESTIGATION.md)：三次现场日志（包括无 origin、无任务直接 quit）的 StopMove 均返回服务响应状态 -1；已排除客户端异常、发送失败、超时、API 未注册和响应不匹配。只读查询入口已构建，待现场执行；未连接设备。
 - [首次只读连接](20261104_FIRST_READONLY.md)：两路消息接收通过。
 - [静止接口核对](20261104_STATIC_INTERFACES.md)：原生服务ai；已完成数值基础检查，用户确认趴伏且略有前后倾斜，固件信息待提供。
 - [只读状态曲线与前置相机](20261104_LIVE_VIEW.md)：实际取图成功，窗口显示及关闭检查通过。

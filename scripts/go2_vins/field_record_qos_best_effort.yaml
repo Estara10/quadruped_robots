@@ -1,0 +1,18 @@
+# QoS overrides for the 2026-11-08 Orin camera -> PC VINS observation.
+# The Foxy RealSense image/IMU publishers use sensor-data (best-effort).
+# VINS odometry/propagation publishers use the node default (reliable).
+/camera/camera/imu:
+  history: keep_last
+  depth: 500
+  reliability: best_effort
+  durability: volatile
+/vins/odometry:
+  history: keep_last
+  depth: 100
+  reliability: reliable
+  durability: volatile
+/vins/imu_propagate:
+  history: keep_last
+  depth: 100
+  reliability: reliable
+  durability: volatile

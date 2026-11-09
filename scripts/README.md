@@ -2,6 +2,20 @@
 
 当前常用脚本和公共模块仍放在原位置。2026-11-03已将29个历史脚本移到[归档目录](../archive/scripts/20261103_cleanup/README.md)，没有删除实验数据或模型。
 
+## 实机与独立定位（2026-11-09）
+
+当前先测相机安装变换并核对固定机身位姿／速度，为原生 A→B 和 ABS 共用。硬件消息可读、程序构建通过与实机精度分别判断。
+
+| 用途 | 入口 | 当前范围 |
+|---|---|---|
+| Go2 状态观察／Estimator 观察 | [go2_readonly_state/README.md](go2_readonly_state/README.md) | 只订阅；动态 Estimator 速度未通过 |
+| 终端原生运动／只读服务查询 | [go2_native_motion/README.md](go2_native_motion/README.md)／[现场命令](go2_native_motion/FIELD_COMMANDS.md) | Move／StopMove 与 LowCmd 分开；goto 仍用原生位置 |
+| D435i／VINS 数据链 | [go2_vins/README.md](go2_vins/README.md)／[跨机说明](go2_vins/CYCLONE_FIELD_CHECK.md) | USB2 480×270 双 IR＋相机 IMU；固定版本与补丁另行构建 |
+| 相机 IMU→Go2 base | [go2_vins/BODY_FRAME.md](go2_vins/BODY_FRAME.md)／[转换程序](go2_vins/go2_body_odometry.py) | 7 项离线检查通过；真实安装未测、在线未验证、不发运动命令 |
+| 实机实际进展 | [实机文档](../docs/thesis_project/real_go2/README.md) | 当前下一项与历史现场记录 |
+
+原生 A→B 使用宇树运动服务；完整 ABS 则运行自己的策略与 LowCmd。现有 VINS／转换程序尚未接入两者；不因看到脚本就启动实机控制。A1 工程独立规划，当前库不覆盖其文件。
+
 ## 日常观看与演示
 
 | 用途 | 入口 | 说明 |

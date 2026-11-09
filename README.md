@@ -1,164 +1,87 @@
 # Go2 四足机器人风险驱动安全策略切换研究
 
-本仓库服务于毕业设计《面向复杂障碍环境的四足机器人风险驱动安全策略切换方法研究》。ABS 复现和 Go2 部署是研究基础，当前核心是比较原始单阈值、仅滞回、仅 Recovery 保持、滞回+保持四种切换机制：
+本科毕业设计：《面向复杂障碍环境的四足机器人风险驱动安全策略切换方法研究》。
 
-```text
-MuJoCo 仿真 + 几何 ray2d → ROS2 Humble + LibTorch → Go2 实机 LowCmd
-```
+**更新：2026-11-09。** 实机工作的方向是先在 Go2 上实现 ABS 原论文的 Agile／RA／Recovery 控制链，再验证本课题的策略切换方法。电脑原生 A→B 是定位与导航基础验证；它调用宇树运动算法，不能替代 ABS 策略实机验证。
 
-Paper: https://agile-but-safe.github.com/  
-Reference code: https://github.com/LeCAR-Lab/ABS
+参考：[ABS 论文项目](https://agile-but-safe.github.io/) · [原作者代码](https://github.com/LeCAR-Lab/ABS) · [本仓库原作者部署参考](ABS/README.md#hardware-deployment)
 
----
+## 当前做到哪里
 
-## 当前状态与入口
+| 工作 | 已完成范围 | 尚未完成 |
+|---|---|---|
+| Go2 仿真 | Go2 Agile／RA／Recovery、A/B/C/D 切换和多批比较已有运行记录 | 未证明某种切换约束普遍改善任务表现 |
+| 状态通信 | Go2 EDU 的 LowState／SportModeState 已实际接收，状态观察与记录可用 | 部分单位、轴向及低层控制期间的使用仍需核对 |
+| 电脑原生运动 | 终端 straight／goto／yaw／stop 已实现；现场观察到 0.30 m/s 指令下行走及多次 StopMove 成功响应 | 实际定位误差仍存在；未实现五厘米到点 |
+| D435i 数据链 | 相机固定安装；Orin 采集、CycloneDDS 传到电脑，双 IR 约 15 Hz、合并 IMU 约 200 Hz | USB2 限制；IMU 默认标定和间歇告警仍有局限 |
+| VINS | 电脑 Humble／CPU 构建、实机初始化及只读动态采集完成 | 第一组严重异常未解决；位置与动态速度准确性未通过 |
+| 相机 IMU→机身 | 独立刚体转换代码及 7 项离线检查完成，处理转动杠杆臂速度 | 安装偏移／倾角未测，ROS 在线转换未验证，未接控制 |
+| ABS 实机 | 模型、观测接口、硬件生命周期已有代码与离线检查 | 完整策略实机闭环、真实障碍输入、低层停止及交接未验证 |
 
-开题报告是“应该做什么”的最高依据；代码、配置和证据决定“实际做到哪里”。旧 Phase/Gate/P1 计划已降级为历史资料。
+构建成功、收到消息、轨迹稳定和真实精度是不同层次，不相互替代。VINS 第二、三组位移与人工参考相差约 4–6 cm，测量近似且共享初始化，不能据此宣称五厘米精度。第一组异常保留，见[实机记录](docs/thesis_project/real_go2/README.md)。
 
-- 项目目标：[`docs/thesis_project/OVERVIEW.md`](docs/thesis_project/OVERVIEW.md)
-- 当前状态与 Active Task：[`docs/thesis_project/CURRENT_STATE.md`](docs/thesis_project/CURRENT_STATE.md)
-- 新路线：[`docs/thesis_project/ROADMAP.md`](docs/thesis_project/ROADMAP.md)
-- 实验设计：[`docs/thesis_project/EXPERIMENT_PLAN.md`](docs/thesis_project/EXPERIMENT_PLAN.md)
-- 当前任务：[`R1：切换约束作用与代价研究`](docs/thesis_project/tasks/R1.md)
-- 独立项目：[`R1项目首页`](docs/thesis_project/designs/R1/README.md)及[研究计划](docs/thesis_project/designs/R1/PLAN.md)
+## 现在做什么
 
-**当前唯一Active Task为[R1](docs/thesis_project/tasks/R1.md)，状态ACTIVE / R1-11完成、等待后续决策（2026-10-31）。** 今日完成R1地图v1/v2与观看，R1-6至R1-11共429项开发比较。最新四图同期对照中E05/X10到达数较高，但区间宽、局部有退化，尚未证明稳定收益；暂留作有限候选。短保持H比较仅为建议、尚未授权运行。详见[当日进度与续接](docs/thesis_project/designs/R1/SESSION_20261031.md)，实机保持 **NO-GO**。
+**当前下一项：定位 Go2 固定机身原点，测量相机安装变换，完成只读机身位姿／速度核对。**
 
-接受频繁、反向切换是现有策略的正常现象。研究重点是双阈值和最小保持在这种情况下对碰撞、到达、超时、推进和耗时的作用；切换更少不单独代表方法更好。最新结果见[四图120项报告](docs/thesis_project/evidence/R1/AB_TWO_CANDIDATES_120/分析报告.md)及[当前状态](docs/thesis_project/CURRENT_STATE.md)。原A/B/C/D仍使用E=−0.05、B/D的X=−0.10、C/D的H=0.20仿真秒；新候选独立命名。
+当前 URDF 的 `base` 与 `trunk` 重合，采用 `base`，不以质心为原点。安装参数尚未测量，提供的占位配置会在初始化 DDS 前拒绝运行。具体测量表、转换约定和只读使用方法见[机身坐标转换说明](scripts/go2_vins/BODY_FRAME.md)。
 
-已结束任务、旧提示词、旧P1治理和日报已归入[Markdown历史资料](archive/markdown/20261018/README.md)，只供历史参考；当前文档入口见[项目文档导航](docs/thesis_project/README.md)。
+推进顺序：机身转换 → 独立定位只读核对 → 成熟路径跟踪算法离线验证 → 原生 A→B 受控测试 → ABS 观测接入和低层控制准备 → Agile 基础运动 → RA／Recovery 与简单障碍验证。低层停止／交接、真实障碍输入与模型接口按其进入阶段解决；不默认高速运行或重训策略。
 
----
+路径跟踪优先评估 [Nav2 Humble Regulated Pure Pursuit](https://api.nav2.org/nav2-humble/html/md_nav2_regulated_pure_pursuit_controller_README.html)，尚未接入或运行。它是路径跟踪器，还需要可跟踪路径和相关状态接口。
 
-## 目录
+## 仿真与实机分工
 
-| 路径 | 作用 |
-|------|------|
-| `quadruped_ros2_control_humble/` | ROS2 Humble 控制器、硬件接口、Go2 描述 |
-| `unitree_mujoco/` | MuJoCo 仿真器与 Go2 场景 |
-| `ABS/` | ABS 论文原始训练/部署参考 |
-| `scripts/` | 启动、评估、数据采集脚本 |
-| `scripts/launch_abs_obstacle.sh` | MuJoCo + ROS2 仿真启动脚本 |
-| `quadruped_ros2_control_humble/controllers/rl_quadruped_controller/doc/real_go2_deployment.md` | Go2 真机部署说明 |
-| `scene.txt` | 场景列表和推荐测试顺序 |
-| `command.txt` / `命令.txt` | 常用命令速查 |
-| `archive/lab_notes/` | 历史实验笔记（归档，非当前任务指令） |
+- **R1 仍为唯一 ACTIVE 研究任务。** 最新仿真批次为 Periodic A/B 45 项：43 项有效结果、2 项启动故障保留；到达 20、碰撞 12、仿真限时 11。当前仿真采用几何射线＋Periodic P=0.06 s；未据此确定普遍有效的 B 配置。见[结果](docs/thesis_project/evidence/R1/PERIODIC_AB_45/ANALYSIS_REPORT.md)。
+- 实机工作单独记录于 [real_go2](docs/thesis_project/real_go2/README.md)，不改写历史仿真参数、模型或结论。原生运动服务释放后 SportModeState 停更已实测，独立状态来源是 ABS 接入所需工作。
+- A1 平地高精度曲线导航在独立 `go2_navigation` 工程规划；本仓库保留[需求记录](docs/thesis_project/real_go2/A1_PROJECT_REQUIREMENTS.md)。共用定位／机身接口，分别验收；五厘米到点是 A1 目标，尚未证实为运行 ABS 的硬性前提。
 
----
+## 文档入口
 
-## 仿真快速启动
+| 入口 | 用途 |
+|---|---|
+| [项目总览](docs/thesis_project/OVERVIEW.md) | 研究目标和范围 |
+| [当前状态](docs/thesis_project/CURRENT_STATE.md) | 最新事实、缺口与下一步 |
+| [路线图](docs/thesis_project/ROADMAP.md) | 仿真与实机推进顺序 |
+| [实验计划](docs/thesis_project/EXPERIMENT_PLAN.md) | 阶段完成条件与实验边界 |
+| [文档导航](docs/thesis_project/README.md) | 报告、地图与历史记录 |
+| [R1 任务](docs/thesis_project/tasks/R1.md)／[项目入口](docs/thesis_project/designs/R1/README.md) | 切换约束研究与批次结果 |
+| [实机入口](docs/thesis_project/real_go2/README.md) | 设备、现场记录和实机限制 |
+| [脚本导航](scripts/README.md) | 仿真、观察、原生控制与 VINS 工具 |
 
-### 避障自动演示
+## 目录与使用
 
-```bash
-cd ~/quadruped_robots
-source /opt/ros/humble/setup.bash
-source quadruped_ros2_control_humble/install/setup.bash
-export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:$LD_LIBRARY_PATH
-MUJOCO_SCENE=scene_obstacle.xml ./scripts/launch_abs_obstacle.sh
-```
+| 路径 | 内容 |
+|---|---|
+| `quadruped_ros2_control_humble/` | ROS 2 Humble 控制器、硬件接口和 Go2 描述 |
+| `unitree_mujoco/` | MuJoCo 仿真器与场景 |
+| `ABS/` | 原论文训练／部署参考；原作者 Go1／ZED／ROS1 代码不能直接作为 Go2 启动步骤 |
+| `scripts/go2_readonly_state/` | 独立状态观察器及 Estimator 观察说明 |
+| `scripts/go2_native_motion/` | 保留原生服务的终端运动工具及只读服务查询 |
+| `scripts/go2_vins/` | D435i 配置、VINS 适配补丁、机身转换及现场说明 |
+| `docs/thesis_project/` | 当前研究文档、结果和实机报告 |
+| `logs/` | 本地原始数据与分析；大型 bag／视频不随 README 发布 |
+| `archive/` | 历史资产，按各自截止日期阅读 |
 
-### 平地直线测试
+本仓库依赖外部 Unitree SDK2、ROS 2、MuJoCo、LibTorch；VINS 源码通过固定提交和补丁单独构建。不是任意电脑克隆后即可控制机器人的安装包。原有绝对路径是已用主机示例，使用前按工具文档配置依赖；`/tmp` 构建产物可能丢失，不能当作持久发布物。
 
-```bash
-MUJOCO_SCENE=scene_flat.xml ./scripts/launch_abs_obstacle.sh
-```
+- 仿真观看与运行：[脚本导航](scripts/README.md)，默认仿真配置和历史批次设置分别记录。
+- 原生运动构建与自检：[工具说明](scripts/go2_native_motion/README.md)；现场命令会发送运动／停止请求，不能当作只读检查执行。
+- 相机与 VINS：[跨机数据链](scripts/go2_vins/CYCLONE_FIELD_CHECK.md)、[构建准备](docs/thesis_project/real_go2/20261105_D435I_VINS_FUSION_PREPARATION.md)、[构建恢复](docs/thesis_project/real_go2/20261108_VINS_BUILD_AND_IMU_REVIEW.md)。
 
-### 手动 FSM 测试
-
-```bash
-AUTO_RL=false MUJOCO_SCENE=scene_flat.xml ./scripts/launch_abs_obstacle.sh
-```
-
-另开终端：
-
-```bash
-cd ~/quadruped_robots/quadruped_ros2_control_humble
-source /opt/ros/humble/setup.bash
-source install/setup.bash
-ros2 run keyboard_input keyboard_input
-```
-
-按键：
-
-```text
-2 -> FIXEDDOWN
-2 -> FIXEDSTAND
-3 -> RL（仿真可用，真机暂不按）
-4 -> 手动 RL_REC
-1 -> PASSIVE/卸力
-9 -> HARD STOP/卸力急停
-```
-
----
-
-## 真机快速入口
-
-真机测试前必须把 `ros2_control.xacro` 切到：
-
-```xml
-<param name="domain">0</param>
-<param name="network_interface">enp7s0</param>
-```
-
-并重新编译：
+机身转换离线检查（不初始化 ROS／DDS，不连接设备）：
 
 ```bash
-cd ~/quadruped_robots/quadruped_ros2_control_humble
-source /opt/ros/humble/setup.bash
-colcon build --packages-select go2_description --symlink-install
+PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 scripts/go2_vins/test_body_frame.py -v
 ```
 
-真机只测站立/趴下：
+## 实机控制边界
 
-```bash
-sudo ip addr add 192.168.123.100/24 dev enp7s0  # File exists 可忽略
-ping -c 3 192.168.123.161
+原生 `SportClient.Move/StopMove` 与 ABS `LowCmd` 是两条不同控制链。当前不提供一键启动 ABS 实机的快捷命令：硬件激活会涉及原生模式释放和 LowCmd；释放后原生位置／速度停更，退出恢复 ai 曾触发起立。
 
-cd ~/quadruped_robots/quadruped_ros2_control_humble
-source /opt/ros/humble/setup.bash
-source install/setup.bash
-export LD_LIBRARY_PATH=/home/lidio/Libraries/unitree_sdk2/lib:/home/lidio/Libraries/libtorch-cpu-2.0.1/lib:$LD_LIBRARY_PATH
-ros2 launch rl_quadruped_controller mujoco.launch.py
-```
+- 终端按键 9／PASSIVE 表示卸力，不保证稳定站立、制动或独立急停。
+- StopMove 返回成功、进程退出和机器人实际停稳要分别确认；电脑失联时清理回调不保证执行。
+- 低层控制期间不能把原生遥控视为已经验证的独立停止手段。
+- 首次通信使用独立只读入口；运动与低层接管按具体现场方案进行，不能照搬历史部署手册。
 
-日志必须出现：
-
-```text
-network_interface: enp7s0, domain: 0
-Motion service 'sport_mode' is active; releasing before LowCmd control
-Motion service is already deactivated
-[MOTOR-MAP] controller[0] FR_hip_joint -> Unitree motor[0]
-[VERIFY] joint interface order: FR_hip_joint FR_thigh_joint FR_calf_joint ... RL_calf_joint
-```
-
-然后开键盘，只按 `2` 测 FIXEDDOWN；异常按 `9` 或 Ctrl+C。  
-**真机不要按 `3` 进入 RL，直到真实 ray2d 感知接入。**
-
----
-
-## 构建
-
-```bash
-cd ~/quadruped_robots/quadruped_ros2_control_humble
-source /opt/ros/humble/setup.bash
-colcon build --packages-select hardware_unitree_mujoco rl_quadruped_controller keyboard_input go2_description --symlink-install \
-  --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-  -DTorch_DIR=/home/lidio/Libraries/libtorch-cpu-2.0.1/share/cmake/Torch
-```
-
-配置文件只改 Go2 描述时：
-
-```bash
-colcon build --packages-select go2_description --symlink-install
-```
-
----
-
-## 关键约定
-
-- 控制器关节顺序：`FR, FL, RR, RL`，每条腿 `hip, thigh, calf`
-- 策略导出顺序为 ROS1/FL-first，通过 `policy_joint_order: ros1_fl_fr_rl_rr` remap
-- 真机 DDS motor mapping 当前假设：`FR,FL,RR,RL -> motor[0..11]`
-- 仿真 ray2d 使用 MuJoCo 几何射线；真机 ABS 需要真实相机/LiDAR ray2d
-- `1` 和 `9` 当前都是卸力急停到 PASSIVE，不是锁死刹车
+研究以安全完成、碰撞、到达、超时、推进和耗时评价。切换次数／Recovery 占比解释行为；切换更少不单独代表更安全。S7、T1／T2、R1 各批次与负面结果保留原归属和原口径。

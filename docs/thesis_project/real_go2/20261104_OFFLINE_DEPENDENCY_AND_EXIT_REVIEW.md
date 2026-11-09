@@ -6,6 +6,8 @@
 
 退出也不是“恢复 ai 即交还”。本次 ai 恢复后出现起立，故任何项目控制测试均保持NO-GO。离线代码已具备正常生命周期退出顺序（stop sentinel、关闭LowCmd发布器、恢复之前记录的原生模式并查询）；这仍不能保证末帧送达、原生恢复无动作、电脑崩溃时清理执行或机器人保持支撑。
 
+> 2026-11-09 语义更正：RA 的 19 维输入包含机身线速度（`AbsObservationContract.cpp::ra()`），之前“RA 模型观测不含线速度”的表述错误，已在下表更正。Recovery 来源选择和 D435i/VINS 的后续进展见[实机入口](README.md)；本文其余阶段性结论按原日期理解。
+
 ## 实际观测依赖
 
 代码位置均相对仓库根目录。Agile模型配置为61维；Recovery为49维。RA共享Agile观测构造，RA不是独立的传感器来源。当前Go2真实launch将`runtime_mode=hardware`传给控制器。
@@ -13,7 +15,7 @@
 | 数据 | 实际用途及约定 | 来源/单位/更新 | 原生服务释放后的证据与状态 |
 |---|---|---|---|
 | 世界位置 x/y | StateRL用于起点、目标方向/路径跟踪、到达与导航指标，不进入Agile或Recovery策略张量；RA也不直接用位置。`StateRL.cpp`导航段读取里程计接口[StateRL.cpp](../../../quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp:2236)。 | 硬件插件取SportModeState.position[0:3]映射到6项里程计接口；预期米，但坐标系/原点语义由SDK服务定义，项目没有独立校准。[HardwareUnitree.cpp](../../../quadruped_ros2_control_humble/hardwares/hardware_unitree_mujoco/src/HardwareUnitree.cpp:313) | 实测SportModeState停更；恢复后位置归零，不能跨恢复相减。当前缺少释放期间可用且验证的世界定位。导航不可用。 |
-| 机身线速度 | Agile张量本身不含线速度；StateRL用它将目标变换到机身坐标并用于运行记录/诊断。RA继承同一状态路径但模型观测不含线速度。Recovery的49维观测含机身坐标线速度。[StateRL.cpp](../../../quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp:2220)、[Recovery组装](../../../quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRLRec.cpp:433)。 | 优先取SportModeState.velocity的三分量，再用IMU四元数旋转到机身坐标；代码未注明SDK速度字段单位/坐标约定，需接口确认。替代路径为`Estimator::getVelocity()`，其输出经相同旋转按世界速度处理。 | SportModeState实测停更。StateRL在缺接口且估计器关闭时会保留初始化零速度；不能将其当真实观测。实机launch没有提供定位来源证明。Recovery闭环因此不准入。 |
+| 机身线速度 | Agile的61维张量本身不含线速度；RA的19维输入和Recovery的49维输入均含机身线速度。StateRL读取同一状态路径并用于RA、Recovery优化及运行记录；目标相对位置按位姿计算，不能把速度缺口只归给Recovery。[StateRL.cpp](../../../quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp#L2220)、[Recovery组装](../../../quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRLRec.cpp#L433)。 | 优先取SportModeState.velocity的三分量，再用IMU四元数旋转到机身坐标；代码未注明SDK速度字段单位/坐标约定，需接口确认。替代路径为`Estimator::getVelocity()`，其输出经相同旋转按世界速度处理。 | SportModeState实测停更。StateRL在缺接口且估计器关闭时会保留初始化零速度；不能将其当真实观测。实机launch没有提供定位来源证明。Recovery闭环因此不准入。 |
 | 角速度 | Agile/RA/Recovery策略观测均使用三轴陀螺仪；StateRL按配置原序读取。Agile配置scale=1，训练/SDK单位兼容性尚需接口文件或实测确认。[StateRL.cpp](../../../quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp:2217)、[abs config](../../../quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml:9) | LowState IMU gyroscope[0:3]；硬件接口保留DDS分量顺序。通常按rad/s使用，但插件本身没有转换。 | 实机确认LowState释放期间持续更新；本次静态接口检查已读取。字段可用，训练语义/频率须在未来受支撑只读阶段补核。 |
 | 姿态 | Agile/Recovery由IMU四元数生成重力方向观测；导航从其算yaw。不同framework分支决定接口四元数重排。[StateRL.cpp](../../../quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp:2122) | LowState IMU四元数；`isaacgym`分支将接口wxyz重排为策略xyzw，`isaacsim`保持接口顺序。归一化/坐标语义由设备SDK提供。 | LowState实测持续更新；字段可读，IMU与模型姿态约定仍须正式接口核对。 |
 | 关节位置/速度 | Agile、RA、Recovery策略输入；12维。插件按配置中的joint遍历映射电机index，控制器顺序FR,FL,RR,RL；策略配置声明训练顺序`ros1_fl_fr_rl_rr`，观测适配器重排。位置、速度尺度分别1、0.2。[StateRL.cpp](../../../quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp:2139)、[观测契约](../../../quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/AbsObservationContract.cpp:1) | LowState motor q/dq；插件无单位换算；Go2接口通常为rad和rad/s，但需以SDK定义与当前硬件读取确认。 | LowState实测持续更新。本次无项目控制器或模型运行，因此只证实消息持续，不代表控制使用时的周期与训练接口匹配。 |

@@ -2,7 +2,13 @@
 
 更新：2026-11-09。为电脑原生 A→B 和后续 ABS 实机提供独立位置／速度来源。当前已完成部分实机只读采集；定位准确性、机身在线转换与控制接入均未通过。
 
+2026-11-11相机接收修复：Orin本机Depth+双IR+IMU的480×270@15联合流，在提高UDP接收缓存上限至8MiB后持续交付；20/40秒检查深度约15Hz且无新增UDP缓存溢出。Orin已安装[单参数配置](config/60-go2-camera-dds.conf)，相机profile和订阅QoS未改，电脑跨机深度接收尚未在本次修复后核对。安装、回退与实际数据见[修复报告](../../docs/thesis_project/real_go2/20261111_D435I_DEPTH_RECEIVE_BUFFER_FIX.md)。该项不改变VINS模型或定位精度结论。
+
 ## 当前链路
+
+常规相机测试按用户要求默认只保存频率、时间戳、质量统计和必要日志，不连续保存图像、不全量录包。确实需要检查画面时只留少量样本；完整录包仅在该次任务明确需要且时长有界时使用。
+
+2026-11-11[联合流测速](../../docs/thesis_project/real_go2/20261111_D435I_MAX_RATE_CHECK.md)：当前USB2链路480×270深度＋左右IR有线实收约59.9Hz，IMU约200Hz。下图15Hz是既有VINS配置，并非USB2实测速率上限；本轮未验证或切换60Hz下的VINS／射线推理。
 
 ```text
 D435i（固定在 Go2，USB2）
@@ -13,13 +19,14 @@ D435i（固定在 Go2，USB2）
   → [待测安装变换、待只读验证] Go2 base 位姿／速度
 ```
 
-电脑 VINS 不是 Go2 原生运动服务。此目录没有 SportClient／LowCmd 运动发送入口；相机、定位和转换程序也不能停止机器人。原生运动入口在 [go2_native_motion](../go2_native_motion/README.md)，尚未接本目录输出。
+电脑 VINS 不是 Go2 原生运动服务。此目录没有 SportClient／LowCmd 运动发送入口；相机、定位和转换程序也不能停止机器人。原生运动入口在 [go2_native_motion](../go2_native_motion/README.md)，尚未接本目录输出。ABS 侧已有一个**默认关闭**的显式接入（`navigation_state_source`，候选配置未被 launch 引用），见 [ABS 状态接入](../../docs/thesis_project/real_go2/20261109_ABS_VINS_STATE_INTEGRATION.md)。
 
 ## 文件与记录
 
 | 入口 | 内容／状态 |
 |---|---|
 | [BODY_FRAME.md](BODY_FRAME.md) | 当前下一项：base 原点、安装测量、转换约定与只读核对 |
+| [ABS 状态接入](../../docs/thesis_project/real_go2/20261109_ABS_VINS_STATE_INTEGRATION.md) | `/go2/vins/base_odometry` 已可由 ABS 显式选择（`navigation_state_source: vins_body`，默认 odom 不启用）；安装未测，实机未验证 |
 | [body_frame.py](body_frame.py) | 不依赖 ROS 的刚体位姿／速度转换，包含转动杠杆臂项 |
 | [go2_body_odometry.py](go2_body_odometry.py) | 传播 odom＋同时间 IMU → `/go2/vins/base_odometry`；在线未验证 |
 | [未测量配置](config/go2_mount.unmeasured.json) | 偏移／旋转为 null，初始化 DDS 前拒绝运行 |

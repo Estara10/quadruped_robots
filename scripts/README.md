@@ -12,6 +12,7 @@
 | 终端原生运动／只读服务查询 | [go2_native_motion/README.md](go2_native_motion/README.md)／[现场命令](go2_native_motion/FIELD_COMMANDS.md) | Move／StopMove 与 LowCmd 分开；goto 仍用原生位置 |
 | D435i／VINS 数据链 | [go2_vins/README.md](go2_vins/README.md)／[跨机说明](go2_vins/CYCLONE_FIELD_CHECK.md) | USB2 480×270 双 IR＋相机 IMU；固定版本与补丁另行构建 |
 | 相机 IMU→Go2 base | [go2_vins/BODY_FRAME.md](go2_vins/BODY_FRAME.md)／[转换程序](go2_vins/go2_body_odometry.py) | 7 项离线检查通过；真实安装未测、在线未验证、不发运动命令 |
+| D435i 深度→ABS 11束离线适配 | [realsense_depth_to_abs_rays.py](realsense_depth_to_abs_rays.py) | 单张 `.npy`；显式单位/scale/模型；不访问相机、DDS或共享内存；缺测像素拒绝预测 |
 | 实机实际进展 | [实机文档](../docs/thesis_project/real_go2/README.md) | 当前下一项与历史现场记录 |
 
 原生 A→B 使用宇树运动服务；完整 ABS 则运行自己的策略与 LowCmd。现有 VINS／转换程序尚未接入两者；不因看到脚本就启动实机控制。A1 工程独立规划，当前库不覆盖其文件。
@@ -62,6 +63,7 @@ rtk proxy /usr/bin/python3 scripts/abs_live_hud.py --interval 0.2
 | 场景和实时数据读取 | [abs_scene.py](abs_scene.py)、[abs_rt_frame.py](abs_rt_frame.py) |
 | 物理事件与任务安全分类 | [abs_collision.py](abs_collision.py)、[abs_base_bounds.py](abs_base_bounds.py)、[safety_task_completion.py](safety_task_completion.py) |
 | 预测射线 | [ray_predictor.py](ray_predictor.py)、[compare_ray_pred.py](compare_ray_pred.py) |
+| 实机深度单帧离线转换 | [realsense_depth_to_abs_rays.py](realsense_depth_to_abs_rays.py) | 只读文件输入；旧 [realsense_ray_predictor.py](realsense_ray_predictor.py) 会启动相机并写裸共享内存，不用于当前协议 |
 | 已完成12项射线批次入口 | [manual_r1_ray_pred_12.py](manual_r1_ray_pred_12.py)，保留复核用途，不作为日常演示入口 |
 | 实机首次只读连接 | [go2_readonly_state/](go2_readonly_state/README.md)，不发送电机命令；首次通信已验证，接管待验证 |
 | 实机状态曲线与前置相机 | [go2_live_view.py](go2_live_view.py)，只读窗口；运行说明见[观察器文档](go2_readonly_state/README.md#曲线与前置相机窗口) |

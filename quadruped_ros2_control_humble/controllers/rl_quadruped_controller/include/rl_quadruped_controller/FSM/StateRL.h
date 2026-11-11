@@ -244,6 +244,9 @@ private:
     double runtime_clock_time_s_ = 0.0;
     bool runtime_clock_valid_ = false;
     uint64_t runtime_clock_segment_ = 0;
+    // Navigation frame captured at RL entry for the independent source. Reset on
+    // every enter(): a previous session's origin is never reused.
+    abs_navigation_state::Origin navigation_origin_;
     std::shared_ptr<Estimator>& estimator_;
 
     // Parameters
@@ -386,6 +389,11 @@ private:
     // World-frame goal position (from YAML config, matches paper GOAL_XYZ)
     double goal_x_ = 7.0;
     double goal_y_ = 0.0;
+    // Goal exactly as configured. A vins_body session re-anchors its navigation
+    // frame on entry, so a goal expressed in a previous session's frame must not
+    // be carried into the new one.
+    double configured_goal_x_ = 7.0;
+    double configured_goal_y_ = 0.0;
     bool resample_goal_on_arrival_ = false;
 
     // Recovery-aware straight-line tracking: constrain normal agile to the

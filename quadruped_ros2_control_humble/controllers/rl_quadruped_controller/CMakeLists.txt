@@ -27,6 +27,7 @@ set(dependencies
         controller_interface
         realtime_tools
         control_input_msgs
+        nav_msgs
         kdl_parser
         ament_index_cpp
         controller_common
@@ -151,6 +152,8 @@ if (BUILD_TESTING)
     add_executable(p1_09f_stoppable_thread test/p1_09f_stoppable_thread.cpp)
     target_include_directories(p1_09f_stoppable_thread PRIVATE include)
     target_link_libraries(p1_09f_stoppable_thread PRIVATE Threads::Threads)
+    add_executable(navigation_state_source test/navigation_state_source.cpp)
+    target_link_libraries(navigation_state_source PRIVATE ${PROJECT_NAME})
     find_package(ament_lint_auto REQUIRED)
     # the following line skips the linter which checks for copyrights
     # comment the line when a copyright and license is added to all source files

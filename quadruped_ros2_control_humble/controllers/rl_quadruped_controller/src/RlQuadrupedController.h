@@ -5,6 +5,7 @@
 #ifndef LEGGEDGYMCONTROLLER_H
 #define LEGGEDGYMCONTROLLER_H
 #include <controller_interface/controller_interface.hpp>
+#include <nav_msgs/msg/odometry.hpp>
 #include <rl_quadruped_controller/FSM/StateRL.h>
 #include <rl_quadruped_controller/FSM/StateRLRec.h>
 #include <std_msgs/msg/string.hpp>
@@ -130,6 +131,17 @@ namespace rl_quadruped_controller
 
         rclcpp::Subscription<control_input_msgs::msg::Inputs>::SharedPtr control_input_subscription_;
         rclcpp::Subscription<std_msgs::msg::String>::SharedPtr robot_description_subscription_;
+
+        // Independent navigation state (candidate, not enabled by default).
+        // Created only when navigation_state_source == "vins_body".
+        std::string navigation_state_source_name_ = "odom";
+        std::string external_state_topic_ = "/go2/vins/base_odometry";
+        std::string external_state_world_frame_ = "vins_world";
+        std::string external_state_body_frame_ = "base";
+        int64_t external_state_timeout_ms_ = 300;
+        rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr external_state_subscription_;
+        std::shared_ptr<abs_navigation_state::Mailbox> external_body_state_;
+        void onExternalBodyState(const nav_msgs::msg::Odometry& msg);
 
         FSMMode mode_ = FSMMode::NORMAL;
         std::string state_name_;

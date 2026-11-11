@@ -274,3 +274,26 @@ ros2 topic list
 ```text
 [VERIFY] joint interface order: FR_hip_joint FR_thigh_joint FR_calf_joint ... RL_calf_joint
 ```
+
+---
+
+## 12. 独立状态来源（候选，默认关闭）
+
+原生运动服务释放后 `SportModeState` 停更，odometer 接口会变成 NaN。ABS 支持把导航/速度来源显式切到独立的 D435i/VINS 机身里程计：
+
+```yaml
+rl_quadruped_controller:
+  ros__parameters:
+    navigation_state_source: "vins_body"   # 默认 "odom"
+    external_state_topic: "/go2/vins/base_odometry"
+    external_state_world_frame: "vins_world"
+    external_state_body_frame: "base"
+    external_state_timeout_ms: 300          # 暂定值，未实机验证
+```
+
+- 候选文件：`config/real_go2_vins_state.candidate.yaml`，**未被任何 launch 引用**，需手动作为额外参数文件传入。
+- 该来源的 twist 已经是 base 机体系，代码不再做 world→body 旋转；导航位置与航向来自同一位姿，进入 RL 时捕获一次导航原点。
+- 样本缺失/非有限/超出超时/帧不符时 fail-closed（`safetyVeto → PASSIVE`），**不回退** SportModeState 或 Estimator，也不补零。PASSIVE 只是 Unitree 停止哨兵（卸力请求），不保证制动、停稳或保持站立。
+- 时间戳回退会被**锁存**：100→90→91 这类序列即使中间回调落在两个控制周期之间，控制器读到的仍然不可用；后续正常消息也不能自动恢复。恢复只能重新进入 RL（新的导航会话），届时清除锁存、重置导航原点并把目标恢复为配置值。重复时间戳只被丢弃，不刷新时龄，也不会触发锁存。
+- 该来源没有实测机身高度，因此诊断用正常收尾确认保持不可用。
+- 前置条件：安装变换必须先测量（`scripts/go2_vins/BODY_FRAME.md`），转换节点先只读核对。核对 `frame_id`、时间戳单调性和频率时**不要直接启动本 launch**（它会创建 LowCmd 发布器并释放原生模式），应先只启动相机/VINS/转换节点并用独立只读订阅检查。低层停止/交接链仍未闭环，实机运动继续 NO-GO。

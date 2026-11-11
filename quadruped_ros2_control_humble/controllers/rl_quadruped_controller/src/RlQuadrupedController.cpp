@@ -227,10 +227,12 @@ namespace rl_quadruped_controller
             if (next_state_name_ != current_state_->state_name)
             {
                 if (next_state_name_ == FSMStateName::RL_REC &&
-                    !state_list_.rlRec->hasSelectedLinearVelocityWorld())
+                    !state_list_.rlRec->hasSelectedLinearVelocity())
                 {
                     RCLCPP_ERROR_THROTTLE(get_node()->get_logger(), *get_node()->get_clock(), 1000,
-                        "Recovery entry blocked: selected velocity source '%s' is unavailable or non-finite",
+                        "Recovery entry blocked: selected velocity source is unavailable or non-finite "
+                        "(navigation_state_source=%s, recovery_velocity_source=%s)",
+                        navigation_state_source_name_.c_str(),
                         recoveryVelocitySourceName(recovery_velocity_source_));
                     next_state_name_ = current_state_->state_name;
                     updateNormalShutdown();
@@ -282,12 +284,22 @@ namespace rl_quadruped_controller
             ctrl_interfaces_.odom_state_interface_.size() >= 6;
         if (!valid) return feedback;
 
+        // The independent source provides no measured base height (its world Z is
+        // an unvalidated VINS height, not ground clearance). The diagnostic
+        // closeout therefore stays unavailable instead of reusing odometer values.
+        if (ctrl_component_.navigation_state_source_ == abs_navigation_state::Source::VINS_BODY)
+        {
+            RCLCPP_WARN_THROTTLE(get_node()->get_logger(), *get_node()->get_clock(), 5000,
+                "[NAV-STATE] source=vins_body: odometer height/speed are not used; "
+                "normal closeout confirmation stays unavailable");
+            return feedback;
+        }
+
         const double vx = ctrl_interfaces_.odom_state_interface_[3].get().get_value();
         const double vy = ctrl_interfaces_.odom_state_interface_[4].get().get_value();
         const double vz = ctrl_interfaces_.odom_state_interface_[5].get().get_value();
         feedback.horizontal_speed_mps = std::hypot(vx, vy);
-        feedback.base_height_m = ctrl_interfaces_.odom_state_interface_[2].get().get_value();
-        const double w = ctrl_interfaces_.imu_state_interface_[0].get().get_value();
+        feedback.base_height_m = ctrl_interfaces_.odom_state_interface_[2].get().get_value();        const double w = ctrl_interfaces_.imu_state_interface_[0].get().get_value();
         const double x = ctrl_interfaces_.imu_state_interface_[1].get().get_value();
         const double y = ctrl_interfaces_.imu_state_interface_[2].get().get_value();
         const double z = ctrl_interfaces_.imu_state_interface_[3].get().get_value();
@@ -478,6 +490,46 @@ namespace rl_quadruped_controller
                 "recovery_velocity_source", "odom");
             recovery_velocity_source_ = parseRecoveryVelocitySource(recovery_velocity_source);
 
+            // Explicit navigation/velocity state source. Default keeps the
+            // existing odometer behaviour; "vins_body" is a candidate that must
+            // be selected deliberately and never falls back silently.
+            navigation_state_source_name_ = auto_declare<std::string>(
+                "navigation_state_source", navigation_state_source_name_);
+            external_state_topic_ = auto_declare<std::string>(
+                "external_state_topic", external_state_topic_);
+            external_state_world_frame_ = auto_declare<std::string>(
+                "external_state_world_frame", external_state_world_frame_);
+            external_state_body_frame_ = auto_declare<std::string>(
+                "external_state_body_frame", external_state_body_frame_);
+            external_state_timeout_ms_ = auto_declare<int64_t>(
+                "external_state_timeout_ms", external_state_timeout_ms_);
+            ctrl_component_.navigation_state_source_ =
+                abs_navigation_state::parseSource(navigation_state_source_name_);
+            if (ctrl_component_.navigation_state_source_ == abs_navigation_state::Source::VINS_BODY)
+            {
+                if (external_state_timeout_ms_ <= 0)
+                {
+                    throw std::invalid_argument("external_state_timeout_ms must be positive");
+                }
+                // Provisional value: not validated on hardware. It only turns a
+                // missing/stale sample into a fail-closed stop; it is not a
+                // claim about the source's real latency or accuracy.
+                ctrl_component_.external_state_timeout_ns_ =
+                    static_cast<uint64_t>(external_state_timeout_ms_) * 1'000'000ULL;
+                ctrl_component_.external_body_state_ =
+                    std::make_shared<abs_navigation_state::Mailbox>();
+                external_body_state_ = ctrl_component_.external_body_state_;
+                RCLCPP_WARN(get_node()->get_logger(),
+                    "[NAV-STATE] source=vins_body topic=%s world_frame=%s body_frame=%s timeout_ms=%ld "
+                    "(provisional, not field-validated); odometer is NOT used as fallback",
+                    external_state_topic_.c_str(), external_state_world_frame_.c_str(),
+                    external_state_body_frame_.c_str(), static_cast<long>(external_state_timeout_ms_));
+            }
+            else
+            {
+                RCLCPP_INFO(get_node()->get_logger(), "[NAV-STATE] source=odom (default)");
+            }
+
             get_node()->get_parameter("update_rate", ctrl_interfaces_.frequency_);
             RCLCPP_INFO(get_node()->get_logger(), "Controller Update Rate: %d Hz", ctrl_interfaces_.frequency_);
 
@@ -524,7 +576,64 @@ namespace rl_quadruped_controller
                 ctrl_interfaces_.control_inputs_.ry = msg->ry;
             });
 
+        // Read-only independent navigation state. Created only when that source
+        // was explicitly selected; otherwise no topic is subscribed at all.
+        if (external_body_state_)
+        {
+            external_state_subscription_ = get_node()->create_subscription<nav_msgs::msg::Odometry>(
+                external_state_topic_, rclcpp::QoS(rclcpp::KeepLast(10)),
+                [this](const nav_msgs::msg::Odometry::SharedPtr msg)
+                {
+                    onExternalBodyState(*msg);
+                });
+        }
+
         return CallbackReturn::SUCCESS;
+    }
+
+    void LeggedGymController::onExternalBodyState(const nav_msgs::msg::Odometry& msg)
+    {
+        if (msg.header.frame_id != external_state_world_frame_ ||
+            msg.child_frame_id != external_state_body_frame_)
+        {
+            RCLCPP_ERROR_THROTTLE(get_node()->get_logger(), *get_node()->get_clock(), 2000,
+                "[NAV-STATE] frame mismatch: got '%s'/'%s', expected '%s'/'%s'; sample rejected",
+                msg.header.frame_id.c_str(), msg.child_frame_id.c_str(),
+                external_state_world_frame_.c_str(), external_state_body_frame_.c_str());
+            external_body_state_->invalidate();
+            return;
+        }
+
+        const auto& pose = msg.pose.pose;
+        const auto& twist = msg.twist.twist;
+        abs_navigation_state::Sample sample;
+        sample.stamp_ns = static_cast<int64_t>(msg.header.stamp.sec) * 1'000'000'000LL +
+                          static_cast<int64_t>(msg.header.stamp.nanosec);
+        sample.arrival_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+        sample.position = {pose.position.x, pose.position.y, pose.position.z};
+        sample.quaternion = {pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w};
+        sample.linear_velocity = {twist.linear.x, twist.linear.y, twist.linear.z};
+        sample.angular_velocity = {twist.angular.x, twist.angular.y, twist.angular.z};
+
+        if (!abs_navigation_state::finite(sample))
+        {
+            RCLCPP_ERROR_THROTTLE(get_node()->get_logger(), *get_node()->get_clock(), 2000,
+                "[NAV-STATE] non-finite or missing stamp; sample rejected");
+            external_body_state_->invalidate();
+            return;
+        }
+        // The twist is the base-frame velocity published by go2_body_odometry.
+        // It is stored and consumed as-is; no world->body rotation is applied.
+        external_body_state_->store(sample);
+        if (external_body_state_->tripped())
+        {
+            RCLCPP_ERROR_THROTTLE(get_node()->get_logger(), *get_node()->get_clock(), 2000,
+                "[NAV-STATE] source time regression latched; messages stay rejected until a new "
+                "RL session (regressions=%lu rejected_after_trip=%lu)",
+                static_cast<unsigned long>(external_body_state_->stampRejections()),
+                static_cast<unsigned long>(external_body_state_->rejectedAfterTrip()));
+        }
     }
 
     controller_interface::CallbackReturn LeggedGymController::on_activate(

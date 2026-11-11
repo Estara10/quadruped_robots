@@ -10,6 +10,7 @@
 #include <torch/script.h>
 
 #include <atomic>
+#include <array>
 #include <thread>
 
 #include "rl_quadruped_controller/common/StoppableThread.h"
@@ -140,7 +141,7 @@ public:
     void run(const rclcpp::Time& time, const rclcpp::Duration& period) override;
     void exit() override;
     FSMStateName checkChange() override;
-    bool hasSelectedLinearVelocityWorld() const;
+    bool hasSelectedLinearVelocity() const;
 
 private:
     torch::Tensor computeObservation();
@@ -150,7 +151,14 @@ private:
     torch::Tensor forward();
     void getState();
     void runModel();
-    bool selectedLinearVelocityWorld(std::array<double, 3>& velocity) const;
+    // A selected linear velocity plus the frame it was reported in. The
+    // independent source already reports base-frame twist.
+    struct SelectedVelocity
+    {
+        std::array<double, 3> value{};
+        bool sampled_body_frame = false;
+    };
+    bool selectedLinearVelocity(SelectedVelocity& selected) const;
     void setCommand() const;
     void startRlThread();
     void stopRlThread();

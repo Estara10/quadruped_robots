@@ -347,6 +347,21 @@ void StateRL::enter()
     s6_startup_trace_enabled_ = envEnabled("ABS_S6_STARTUP_GAIN_TRACE") ||
                                 envEnabled("ABS_S6_04_STARTUP_TRACE");
     normal_shutdown_initial_command_ = {0.0, 0.0, 0.0};
+    // A new RL session must not inherit the previous navigation origin.
+    navigation_origin_ = abs_navigation_state::Origin{};
+    // RL entry is the explicit navigation session boundary for the independent
+    // source: it is the only place that clears a latched time regression. A new
+    // session also re-anchors the frame, so a goal resampled inside the previous
+    // session's frame must not be carried over.
+    if (ctrl_component_.external_body_state_)
+    {
+        ctrl_component_.external_body_state_->beginSession();
+    }
+    if (ctrl_component_.navigation_state_source_ == abs_navigation_state::Source::VINS_BODY)
+    {
+        goal_x_ = configured_goal_x_;
+        goal_y_ = configured_goal_y_;
+    }
     // Init observations
     obs_.lin_vel = torch::tensor({{0.0, 0.0, 0.0}});
     obs_.ang_vel = torch::tensor({{0.0, 0.0, 0.0}});
@@ -671,11 +686,13 @@ void StateRL::run(const rclcpp::Time&/*time*/, const rclcpp::Duration& period)
     getState();
     if (runtime_mode_ == "hardware")
     {
+        const bool vins_state_source =
+            ctrl_component_.navigation_state_source_ == abs_navigation_state::Source::VINS_BODY;
         bool fresh = ctrl_interfaces_.joint_position_state_interface_.size() >= 12 &&
                      ctrl_interfaces_.joint_velocity_state_interface_.size() >= 12 &&
                      ctrl_interfaces_.imu_state_interface_.size() >= 10 &&
                      ctrl_interfaces_.foot_force_state_interface_.size() >= 4 &&
-                     ctrl_interfaces_.odom_state_interface_.size() >= 6;
+                     (vins_state_source || ctrl_interfaces_.odom_state_interface_.size() >= 6);
         for (const auto& interface : ctrl_interfaces_.joint_position_state_interface_)
             fresh = fresh && std::isfinite(interface.get().get_value());
         for (const auto& interface : ctrl_interfaces_.joint_velocity_state_interface_)
@@ -684,8 +701,22 @@ void StateRL::run(const rclcpp::Time&/*time*/, const rclcpp::Duration& period)
             fresh = fresh && std::isfinite(interface.get().get_value());
         for (const auto& interface : ctrl_interfaces_.foot_force_state_interface_)
             fresh = fresh && std::isfinite(interface.get().get_value());
-        for (const auto& interface : ctrl_interfaces_.odom_state_interface_)
-            fresh = fresh && std::isfinite(interface.get().get_value());
+        if (vins_state_source)
+        {
+            // The odometer interfaces are NOT consulted for this source. The
+            // independent sample must be present, finite and recent; there is no
+            // fallback to SportModeState when it is not.
+            abs_navigation_state::Sample sample;
+            fresh = fresh && abs_navigation_state::selectSample(
+                ctrl_component_.navigation_state_source_,
+                ctrl_component_.external_body_state_.get(),
+                monotonicNowNs(), ctrl_component_.external_state_timeout_ns_, sample);
+        }
+        else
+        {
+            for (const auto& interface : ctrl_interfaces_.odom_state_interface_)
+                fresh = fresh && std::isfinite(interface.get().get_value());
+        }
         if (!fresh) safetyVeto("hardware state missing or stale");
     }
     const double period_s = period.seconds();
@@ -1768,12 +1799,26 @@ FSMStateName StateRL::checkChange()
         const uint64_t now_ns = monotonicNowNs();
         if (normal_shutdown_request_ns_ == 0) normal_shutdown_request_ns_ = now_ns;
         abs_normal_shutdown::Feedback feedback{};
-        const double vx = ctrl_interfaces_.odom_state_interface_.size() >= 6
-            ? ctrl_interfaces_.odom_state_interface_[3].get().get_value()
-            : std::numeric_limits<double>::quiet_NaN();
-        const double vy = ctrl_interfaces_.odom_state_interface_.size() >= 6
-            ? ctrl_interfaces_.odom_state_interface_[4].get().get_value()
-            : std::numeric_limits<double>::quiet_NaN();
+        double vx = std::numeric_limits<double>::quiet_NaN();
+        double vy = std::numeric_limits<double>::quiet_NaN();
+        if (ctrl_component_.navigation_state_source_ == abs_navigation_state::Source::VINS_BODY)
+        {
+            // Body-frame speed from the selected source; the odometer is not read.
+            abs_navigation_state::Sample sample;
+            if (abs_navigation_state::selectSample(
+                    ctrl_component_.navigation_state_source_,
+                    ctrl_component_.external_body_state_.get(),
+                    now_ns, ctrl_component_.external_state_timeout_ns_, sample))
+            {
+                vx = sample.linear_velocity[0];
+                vy = sample.linear_velocity[1];
+            }
+        }
+        else if (ctrl_interfaces_.odom_state_interface_.size() >= 6)
+        {
+            vx = ctrl_interfaces_.odom_state_interface_[3].get().get_value();
+            vy = ctrl_interfaces_.odom_state_interface_[4].get().get_value();
+        }
         feedback.horizontal_speed_mps = std::hypot(vx, vy);
         feedback.angular_speed_radps = std::hypot(
             std::hypot(robot_state_.imu.gyroscope[0], robot_state_.imu.gyroscope[1]),
@@ -2049,6 +2094,8 @@ void StateRL::loadYaml(const std::string& config_path)
         if (abs_node["recovery_steps"]) params_.recovery_steps = abs_node["recovery_steps"].as<int>();
         if (abs_node["goal_x"]) goal_x_ = abs_node["goal_x"].as<double>();
         if (abs_node["goal_y"]) goal_y_ = abs_node["goal_y"].as<double>();
+        configured_goal_x_ = goal_x_;
+        configured_goal_y_ = goal_y_;
         if (abs_node["resample_goal_on_arrival"])
             resample_goal_on_arrival_ = abs_node["resample_goal_on_arrival"].as<bool>();
         if (abs_node["eval_telemetry_enabled"])
@@ -2217,21 +2264,54 @@ void StateRL::runModel()
     obs_.ang_vel = torch::tensor(robot_state_.imu.gyroscope).unsqueeze(0);
     obs_.base_quat = torch::tensor(robot_state_.imu.quaternion).unsqueeze(0);
 
-    torch::Tensor lin_vel_world = torch::zeros({1, 3});
-    if (ctrl_interfaces_.odom_state_interface_.size() >= 6)
+    // Navigation/velocity state source selection. "odom" keeps the previous
+    // behaviour exactly; "vins_body" must have been selected explicitly and has
+    // no fallback to the odometer or the estimator.
+    const bool vins_state_source =
+        ctrl_component_.navigation_state_source_ == abs_navigation_state::Source::VINS_BODY;
+    abs_navigation_state::Sample external_state;
+    if (vins_state_source)
     {
-        lin_vel_world = torch::tensor({{
-            ctrl_interfaces_.odom_state_interface_[3].get().get_value(),
-            ctrl_interfaces_.odom_state_interface_[4].get().get_value(),
-            ctrl_interfaces_.odom_state_interface_[5].get().get_value()
-        }});
+        const bool available = abs_navigation_state::selectSample(
+            ctrl_component_.navigation_state_source_,
+            ctrl_component_.external_body_state_.get(),
+            monotonicNowNs(), ctrl_component_.external_state_timeout_ns_, external_state);
+        if (!available)
+        {
+            safetyVeto("independent navigation state missing/stale/non-finite/latched");
+            return;
+        }
     }
-    else if (enable_estimator_)
+
+    if (vins_state_source)
     {
-        lin_vel_world = torch::from_blob(estimator_->getVelocity().data(), {3}, torch::kDouble).clone().
-            to(torch::kFloat).unsqueeze(0);
+        // The independent source reports twist in the base body frame already.
+        // Applying quatRotateInverse here would rotate a body-frame velocity a
+        // second time.
+        obs_.lin_vel = torch::tensor({{
+            external_state.linear_velocity[0],
+            external_state.linear_velocity[1],
+            external_state.linear_velocity[2]
+        }}).to(torch::kFloat);
     }
-    obs_.lin_vel = quatRotateInverse(obs_.base_quat, lin_vel_world, params_.framework);
+    else
+    {
+        torch::Tensor lin_vel_world = torch::zeros({1, 3});
+        if (ctrl_interfaces_.odom_state_interface_.size() >= 6)
+        {
+            lin_vel_world = torch::tensor({{
+                ctrl_interfaces_.odom_state_interface_[3].get().get_value(),
+                ctrl_interfaces_.odom_state_interface_[4].get().get_value(),
+                ctrl_interfaces_.odom_state_interface_[5].get().get_value()
+            }});
+        }
+        else if (enable_estimator_)
+        {
+            lin_vel_world = torch::from_blob(estimator_->getVelocity().data(), {3}, torch::kDouble).clone().
+                to(torch::kFloat).unsqueeze(0);
+        }
+        obs_.lin_vel = quatRotateInverse(obs_.base_quat, lin_vel_world, params_.framework);
+    }
 
     // === Goal-directed navigation with world-frame position ===
     // Matches paper: GOAL_XYZ in world frame, odometry from ZED/mocap → body-frame target.
@@ -2252,6 +2332,32 @@ void StateRL::runModel()
     double qz = robot_state_.imu.quaternion[2];
     double qw = robot_state_.imu.quaternion[3];
     double robot_yaw = std::atan2(2.0 * (qw * qz + qx * qy), 1.0 - 2.0 * (qy * qy + qz * qz));
+
+    // Navigation position and heading must come from one reference frame. The
+    // LowState IMU quaternion stays in the policy observations (gravity, body
+    // quaternion); it is not used as the navigation heading for this source.
+    if (vins_state_source)
+    {
+        if (!navigation_origin_.captured)
+        {
+            abs_navigation_state::captureOrigin(external_state, navigation_origin_);
+            RCLCPP_INFO(rclcpp::get_logger("StateRL"),
+                "[NAV-STATE] navigation origin captured: source_pos=(%.3f,%.3f) source_yaw=%.3f",
+                navigation_origin_.position[0], navigation_origin_.position[1],
+                navigation_origin_.yaw);
+        }
+        std::array<double, 2> nav_position{};
+        double nav_yaw = 0.0;
+        if (!abs_navigation_state::toNavigationFrame(external_state, navigation_origin_,
+                                                    nav_position, nav_yaw))
+        {
+            safetyVeto("independent navigation state frame conversion");
+            return;
+        }
+        robot_wx = nav_position[0];
+        robot_wy = nav_position[1];
+        robot_yaw = nav_yaw;
+    }
 
     // Joystick offsets for manual goal adjustment (lx=lat, ly=long)
     const double joystick_x = std::clamp(control_.x, -1.0, 1.0) * 2.0;  // ±2m fwd/bwd trim

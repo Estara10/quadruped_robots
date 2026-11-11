@@ -8,6 +8,8 @@
 #include <rclcpp/logging.hpp>
 #include <yaml-cpp/yaml.h>
 
+#include <chrono>
+
 template <typename T>
 std::vector<T> ReadVectorFromYamlRec(const YAML::Node& node)
 {
@@ -58,8 +60,9 @@ StateRLRec::StateRLRec(CtrlInterfaces& ctrl_interfaces,
                 params_.rl_kp[0][0].item<double>(), params_.rl_kd[0][0].item<double>());
     RCLCPP_INFO(node_->get_logger(), "[REC-VERIFY] action_scale=%.2f dof_vel_scale=%.2f contact_thr=%.1fN",
                 params_.action_scale, params_.dof_vel_scale, params_.contact_threshold);
-    RCLCPP_INFO(node_->get_logger(), "[REC-VERIFY] recovery_velocity_source=%s",
-                recoveryVelocitySourceName(velocity_source_));
+    RCLCPP_INFO(node_->get_logger(), "[REC-VERIFY] recovery_velocity_source=%s navigation_state_source=%s",
+                recoveryVelocitySourceName(velocity_source_),
+                abs_navigation_state::sourceName(ctrl_component_.navigation_state_source_));
 
 }
 
@@ -435,15 +438,21 @@ void StateRLRec::runModel()
     obs_.base_quat = torch::tensor(robot_state_.imu.quaternion).unsqueeze(0);
 
     std::array<double, 3> selected_velocity{};
-    if (!selectedLinearVelocityWorld(selected_velocity))
+    SelectedVelocity selected{};
+    if (!selectedLinearVelocity(selected))
     {
         safetyVeto("selected Recovery linear velocity source unavailable or non-finite");
         return;
     }
-    const torch::Tensor lin_vel_world = torch::tensor({{
+    selected_velocity = selected.value;
+    const torch::Tensor lin_vel_tensor = torch::tensor({{
         selected_velocity[0], selected_velocity[1], selected_velocity[2]
     }}).to(torch::kFloat);
-    obs_.lin_vel = quatRotateInverse(obs_.base_quat, lin_vel_world, params_.framework);
+    // The independent source already reports base-frame twist; rotating it by the
+    // body quaternion would apply the world->body transform twice.
+    obs_.lin_vel = selected.sampled_body_frame
+        ? lin_vel_tensor
+        : quatRotateInverse(obs_.base_quat, lin_vel_tensor, params_.framework);
 
     // Recovery policy uses twist commands from ROS1 gradient descent optimization
     // First step: use optimized twist. Subsequent steps: keep twist constant.
@@ -504,8 +513,28 @@ void StateRLRec::runModel()
     rl_step_count_++;
 }
 
-bool StateRLRec::selectedLinearVelocityWorld(std::array<double, 3>& velocity) const
+bool StateRLRec::selectedLinearVelocity(SelectedVelocity& selected) const
 {
+    // Explicit independent source: the sample's twist is already base-frame.
+    // No odometer value and no estimator value may stand in for it.
+    if (ctrl_component_.navigation_state_source_ == abs_navigation_state::Source::VINS_BODY)
+    {
+        if (!ctrl_component_.external_body_state_) return false;
+        abs_navigation_state::Sample sample;
+        const uint64_t now_ns = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        if (!abs_navigation_state::selectSample(
+                ctrl_component_.navigation_state_source_, ctrl_component_.external_body_state_.get(),
+                now_ns, ctrl_component_.external_state_timeout_ns_, sample))
+        {
+            return false;
+        }
+        selected.value = sample.linear_velocity;
+        selected.sampled_body_frame =
+            !abs_navigation_state::requiresWorldToBodyRotation(ctrl_component_.navigation_state_source_);
+        return true;
+    }
+
     std::array<double, 3> odom_velocity{};
     const std::size_t odom_interface_count = ctrl_interfaces_.odom_state_interface_.size();
     if (velocity_source_ == RecoveryVelocitySource::ODOM && odom_interface_count >= 6)
@@ -526,18 +555,19 @@ bool StateRLRec::selectedLinearVelocityWorld(std::array<double, 3>& velocity) co
         estimator_velocity = {estimate[0], estimate[1], estimate[2]};
     }
 
-    const auto selected = selectRecoveryVelocityWorld(
+    const auto chosen = selectRecoveryVelocityWorld(
         velocity_source_, odom_interface_count, odom_velocity,
         estimator_available, estimator_velocity);
-    if (!selected) return false;
-    velocity = *selected;
+    if (!chosen) return false;
+    selected.value = *chosen;
+    selected.sampled_body_frame = false;
     return true;
 }
 
-bool StateRLRec::hasSelectedLinearVelocityWorld() const
+bool StateRLRec::hasSelectedLinearVelocity() const
 {
-    std::array<double, 3> velocity{};
-    return selectedLinearVelocityWorld(velocity);
+    SelectedVelocity selected{};
+    return selectedLinearVelocity(selected);
 }
 
 void StateRLRec::safetyVeto(const char* stage)

@@ -1,0 +1,41 @@
+# CANDIDATE ONLY — not referenced by any launch file.
+#
+# Explicitly selects the independent D435i/VINS body state (published by
+# scripts/go2_vins/go2_body_odometry.py as /go2/vins/base_odometry) instead of the
+# SportModeState odometer, which stops updating once the native motion service is
+# released.
+#
+# How to use, when and only when the site is ready:
+#   ros2 launch rl_quadruped_controller real_go2.launch.py network_interface:=<if> domain:=<id>
+# and pass this file as an extra controller parameter file. Do not edit
+# robot_control.yaml to enable it, so the default simulation and hardware paths
+# keep their verified behaviour.
+#
+# Preconditions that are NOT satisfied yet:
+#   - the camera-to-base mount transform must be measured (scripts/go2_vins/BODY_FRAME.md);
+#   - the conversion node must be running and publishing the documented frames;
+#   - VINS jump behaviour, twist accuracy and covariance are unvalidated.
+#
+# Safety semantics with this file:
+#   - a missing, stale, non-finite or frame-mismatched sample stops the RL state
+#     (safetyVeto -> PASSIVE) instead of reusing SportModeState or the estimator;
+#     PASSIVE is the Unitree stop sentinel (a de-energising request), not a
+#     guarantee that the robot brakes, stops or keeps standing;
+#   - a source time regression is latched: later messages cannot re-enable it,
+#     even when the regression and the next message both arrive between two
+#     control cycles. Only a new RL session (StateRL::enter) clears the latch,
+#     resets the navigation origin and restores the configured goal;
+#   - a duplicate timestamp is dropped and does NOT refresh the arrival time;
+#   - the navigation origin is captured once per RL session, so position and
+#     heading always belong to the same frame;
+#   - the diagnostic normal closeout stays unavailable because this source has no
+#     measured base height.
+rl_quadruped_controller:
+  ros__parameters:
+    navigation_state_source: "vins_body"
+    external_state_topic: "/go2/vins/base_odometry"
+    external_state_world_frame: "vins_world"
+    external_state_body_frame: "base"
+    # Provisional. Not validated on hardware; it only decides when an absent or
+    # stale sample turns into a fail-closed stop.
+    external_state_timeout_ms: 300

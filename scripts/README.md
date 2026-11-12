@@ -13,6 +13,7 @@
 | D435i／VINS 数据链 | [go2_vins/README.md](go2_vins/README.md)／[跨机说明](go2_vins/CYCLONE_FIELD_CHECK.md) | USB2 480×270 双 IR＋相机 IMU；固定版本与补丁另行构建 |
 | 相机 IMU→Go2 base | [go2_vins/BODY_FRAME.md](go2_vins/BODY_FRAME.md)／[转换程序](go2_vins/go2_body_odometry.py) | 7 项离线检查通过；真实安装未测、在线未验证、不发运动命令 |
 | D435i 深度→ABS 11束离线适配 | [realsense_depth_to_abs_rays.py](realsense_depth_to_abs_rays.py) | 单张 `.npy`；显式单位/scale/模型；不访问相机、DDS或共享内存；缺测像素拒绝预测 |
+| D435i 60Hz深度→ABS射线只读观察 | [go2_depth_ray/README.md](go2_depth_ray/README.md)／[观察器](go2_depth_ray_observer.py) | 最新待处理帧槽；有限运行；记录频率、覆盖、时序、未知比例与11束诊断输出；不写协议或控制数据 |
 | 实机实际进展 | [实机文档](../docs/thesis_project/real_go2/README.md) | 当前下一项与历史现场记录 |
 
 原生 A→B 使用宇树运动服务；完整 ABS 则运行自己的策略与 LowCmd。现有 VINS／转换程序尚未接入两者；不因看到脚本就启动实机控制。A1 工程独立规划，当前库不覆盖其文件。

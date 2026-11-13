@@ -74,7 +74,7 @@ def librealsense_2584_mode1_source(depth_u16: np.ndarray) -> np.ndarray:
     return out.reshape(h, w)
 
 
-def analyze_saved_native_fill(model, capture_dir: Path, output_dir: Path) -> int:
+def analyze_saved_native_fill(model, capture_dir: Path, output_dir: Path, model_path: Path) -> int:
     """Compare saved Orin SDK raw/filled pairs; does not run any filter."""
     metadata = {}
     for line in (capture_dir / "metadata.txt").read_text(encoding="utf-8").splitlines():
@@ -230,7 +230,7 @@ def analyze_saved_native_fill(model, capture_dir: Path, output_dir: Path) -> int
             "pairing": "frames.csv rows marked saved=1; saved SDK output is consumed directly; no filter is rerun",
         },
         "model": {
-            "path": str(MODEL.relative_to(ROOT)),
+            "path": str(model_path.resolve()),
             "input": "160x90 center sample; clip 0.1-6m; log2(m); repeat into 3 channels",
             "ray_labels_deg": RAY_ANGLES_DEG,
             "view_contract": "training virtual camera 102 deg HFOV; D435i approximately 88.9 deg; output labels remain -45 to +45 deg; no inference remapping",
@@ -307,13 +307,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUT,
                         help="new output directory; existing directories are not overwritten")
+    parser.add_argument("--model", type=Path, default=MODEL,
+                        help="explicit TorchScript model path; defaults to the current soft-safety weight")
     parser.add_argument("--native-fill-capture", type=Path,
                         help="analyze saved raw/SDK-filled frame pairs directly; no filtering is run")
     args = parser.parse_args()
-    if not MODEL.is_file():
-        raise FileNotFoundError(MODEL)
+    model_path = args.model if args.model.is_absolute() else ROOT / args.model
+    if not model_path.is_file():
+        raise FileNotFoundError(model_path)
     torch.set_num_threads(1)
-    model = torch.jit.load(str(MODEL), map_location="cpu")
+    model = torch.jit.load(str(model_path), map_location="cpu")
     model.eval()
     output_dir = args.output_dir if args.output_dir.is_absolute() else ROOT / args.output_dir
     output_dir.mkdir(parents=True, exist_ok=False)
@@ -321,7 +324,7 @@ def main() -> int:
         capture_dir = args.native_fill_capture
         if not capture_dir.is_absolute():
             capture_dir = ROOT / capture_dir
-        return analyze_saved_native_fill(model, capture_dir, output_dir)
+        return analyze_saved_native_fill(model, capture_dir, output_dir, model_path)
     rows = []
     summaries = {}
     all_frames = []
@@ -569,7 +572,7 @@ def main() -> int:
         "python": sys.version,
         "torch": torch.__version__,
         "device": "cpu",
-        "model": str(MODEL.relative_to(ROOT)),
+        "model": str(model_path.resolve()),
         "model_input": {
             "shape_nchw": [1, 3, MODEL_H, MODEL_W],
             "source_to_model": "center sample from 480x270, clip 0.1-6m, log2(m), repeat to 3 channels",

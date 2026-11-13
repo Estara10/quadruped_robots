@@ -65,6 +65,38 @@ class PoseSample:
     qpos: Optional[np.ndarray] = None
 
 
+@dataclass(frozen=True)
+class CameraRenderConfig:
+    """Optional camera geometry for a dataset-rendering candidate.
+
+    The legacy global camera constants remain the default. The explicit path
+    renders the native depth resolution; the generator sets an off-axis
+    frustum from the supplied principal point after updating the scene.
+    """
+
+    position_body_m: Tuple[float, float, float]
+    pitch_down_deg: float
+    width: int
+    height: int
+    fx: float
+    fy: float
+    ppx: float
+    ppy: float
+
+    def validate(self) -> None:
+        vals = (*self.position_body_m, self.pitch_down_deg, self.fx, self.fy, self.ppx, self.ppy)
+        if not all(math.isfinite(float(v)) for v in vals):
+            raise ValueError("camera parameters must be finite")
+        if self.width <= 0 or self.height <= 0 or self.fx <= 0 or self.fy <= 0:
+            raise ValueError("camera resolution and focal lengths must be positive")
+        if self.width * CAM_H != self.height * CAM_W:
+            raise ValueError("source camera aspect ratio must match the existing 160x90 model input")
+        if abs(self.fx - self.fy) > max(self.fx, self.fy) * 1e-3:
+            raise ValueError("MuJoCo renderer uses square pixels; this path requires fx≈fy")
+        if not 0.0 <= self.ppx < self.width or not 0.0 <= self.ppy < self.height:
+            raise ValueError("principal point must lie within the source image")
+
+
 @dataclass
 class RayResult:
     sample: PoseSample
@@ -343,20 +375,39 @@ def mujoco_fovy_from_hfov(hfov_deg: float, width: int = CAM_W, height: int = CAM
     return math.degrees(vfov)
 
 
-def make_depth_renderer(mujoco, model):
-    model.vis.global_.fovy = mujoco_fovy_from_hfov(CAMERA_HFOV_DEG)
-    renderer = mujoco.Renderer(model, CAM_H, CAM_W)
+def make_depth_renderer(mujoco, model, camera_config: Optional[CameraRenderConfig] = None):
+    if camera_config is None:
+        height, width = CAM_H, CAM_W
+        fovy_deg = mujoco_fovy_from_hfov(CAMERA_HFOV_DEG)
+    else:
+        camera_config.validate()
+        height, width = camera_config.height, camera_config.width
+        fovy_deg = math.degrees(2.0 * math.atan(height / (2.0 * camera_config.fy)))
+    model.vis.global_.fovy = fovy_deg
+    renderer = mujoco.Renderer(model, height, width)
     renderer.enable_depth_rendering()
     return renderer
 
 
-def camera_from_body(mujoco, data, body_id: int):
+def camera_from_body(mujoco, data, body_id: int,
+                     camera_config: Optional[CameraRenderConfig] = None):
     cam = mujoco.MjvCamera()
     cam.type = mujoco.mjtCamera.mjCAMERA_FREE
     body_xpos = data.xpos[body_id]
     body_xmat = data.xmat[body_id].reshape(3, 3)
-    cam_world = body_xpos + body_xmat @ CAMERA_LOCAL_POS
-    look_world = body_xpos + body_xmat @ np.array([CAMERA_LOOKAHEAD_M, 0.0, 0.0])
+    if camera_config is None:
+        cam_world = body_xpos + body_xmat @ CAMERA_LOCAL_POS
+        look_world = body_xpos + body_xmat @ np.array([CAMERA_LOOKAHEAD_M, 0.0, 0.0])
+    else:
+        camera_config.validate()
+        cam_local = np.asarray(camera_config.position_body_m, dtype=np.float64)
+        cam_world = body_xpos + body_xmat @ cam_local
+        # Body convention: +x forward, +y left, +z up. The camera's optical
+        # axis is pitched down from +x; ppx/ppy are represented by an
+        # off-axis frustum in render_depth, not by changing this orientation.
+        pitch = math.radians(camera_config.pitch_down_deg)
+        optical_axis = np.array([math.cos(pitch), 0.0, -math.sin(pitch)])
+        look_world = cam_world + body_xmat @ (optical_axis * CAMERA_LOOKAHEAD_M)
     diff = look_world - cam_world
     distance = float(np.linalg.norm(diff))
     cam.lookat[:] = look_world

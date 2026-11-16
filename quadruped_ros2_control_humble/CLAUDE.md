@@ -59,7 +59,8 @@ Joint limits: hip ±1.0472, thigh [-1.5708, 3.4907], calf [-2.7227, -0.83776].
 
 ## Runtime Conventions
 
-- Agile policy observation does not include linear velocity, but RA and recovery do.
+- Agile and Recovery policy observations do not include linear velocity. Recovery's 49-dim observation in this repo is contact, ang_vel, gravity, twist commands, dof_pos, dof_vel and actions; RA and navigation are the consumers that need linear velocity.
+- Navigation/velocity source is explicit: `navigation_state_source: odom` (default, untouched) or `vins_body` (`/go2/vins/base_odometry`, twist already body-frame, fail-closed, no fallback). See `config/real_go2_vins_state.candidate.yaml` and the 2026-11-09 integration note.
 - RA/recovery `lin_vel` must be body-frame velocity, matching training `quat_rotate_inverse(base_quat, root_states[:, 7:10])` and ROS1 `zed_linvelo`.
 - MuJoCo runtime should use odometer `velocity.x/y/z` rotated into body frame; estimator velocity is only fallback.
 - Contact is read in controller order FR,FL,RR,RL, then remapped to policy order FL,FR,RL,RR in observation construction.

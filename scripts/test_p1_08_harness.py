@@ -77,7 +77,7 @@ def make_frame(magic=FRAME_MAGIC, version=FRAME_VERSION, seq=2, mono=0,
     vals += [source, 1, 1, rl_active, 0, 0, 1, 1, 0, 0,
              0, 1, 1, 0, 0, 2, 0, 1, 1, 0]  # 20I
     floats = [-0.05, -0.08, ra_value] + [0.0] * 80
-    return _FRAME_STRUCT.pack(*(vals + [0.01] + floats))
+    return _FRAME_STRUCT.pack(*(vals + [0.01] + floats + [0, 0, 0.0, 0.0, 0.0, 12_000_000]))
 
 
 # ---------------------------------------------------------------------------

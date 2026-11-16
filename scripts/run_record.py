@@ -151,7 +151,7 @@ _INT_FIELDS = (
     "switching_mode", "action_source", "sim_clock_status",
     "source", "controller_active", "rl_entered", "rl_active", "safety_faulted",
     "policy_state", "ray_origin", "ray_valid", "collision_origin",
-    "torque_saturated_computed",
+    "torque_saturated_computed", "policy_cycle_duration_ns",
 )
 _BOOL_DOMAINS = frozenset(
     {"controller_active", "rl_entered", "rl_active", "safety_faulted",
@@ -241,6 +241,7 @@ def frame_payload(frame: RuntimeFrame) -> Dict[str, Any]:
             if frame.version >= 3 and frame.hold_enabled else None,
         "hold_elapsed_sim_s": float(frame.hold_elapsed_sim_s)
             if frame.version >= 3 and frame.hold_enabled and frame.hold_status in (2, 3) else None,
+        "policy_cycle_duration_ns": frame.policy_cycle_duration_ns,
         "source": frame.source,
         "controller_active": frame.controller_active,
         "rl_entered": frame.rl_entered,
@@ -306,6 +307,7 @@ def frame_availability(frame: RuntimeFrame) -> Dict[str, bool]:
         "recovery_min_hold_s": frame.version >= 3,
         "hold_enter_sim_time_s": frame.version >= 3 and frame.hold_enabled,
         "hold_elapsed_sim_s": frame.version >= 3 and frame.hold_enabled,
+        "policy_cycle_duration_ns": frame.version >= 4,
         "ra_value": True,
         "lin_vel": True,
         "command": True,
@@ -1133,11 +1135,17 @@ def _validate_live_payload(payload: Any) -> List[str]:
 
     for key in _INT_FIELDS:
         if key not in payload:
+            if key == "policy_cycle_duration_ns" and payload.get("runtime_frame_version", 2) < 4:
+                continue
             reasons.append(f"missing_field:{key}")
             continue
         value = payload[key]
+        if key == "policy_cycle_duration_ns" and payload.get("runtime_frame_version", 2) < 4 and value is None:
+            continue
         if isinstance(value, bool) or not isinstance(value, int):
             reasons.append(f"field_not_int:{key}")
+        elif key == "policy_cycle_duration_ns" and value < 0:
+            reasons.append("policy_cycle_duration_negative")
     for key in _BOOL_DOMAINS:
         if payload.get(key) not in (0, 1):
             reasons.append(f"boolean_field_out_of_domain:{key}")
@@ -1797,6 +1805,7 @@ def summarize_record(path: str) -> Dict[str, Any]:
         "recovery_usage": {},
         "ra_statistics": {},
         "safety_faults": {},
+        "policy_cycle_cost": {},
         "simulation_time_s": None,
     }
 
@@ -1898,6 +1907,24 @@ def summarize_record(path: str) -> Dict[str, Any]:
         "transitions": _transition_count(live_payloads),
     }
 
+    timed_recovery_cycles = [p for p in live_payloads
+                             if p["policy_state"] == 1 and
+                             isinstance(p.get("policy_cycle_duration_ns"), int) and
+                             not isinstance(p.get("policy_cycle_duration_ns"), bool)]
+    overrun_recovery_cycles = [p for p in timed_recovery_cycles
+                               if p["policy_cycle_duration_ns"] > 20_000_000]
+    recovery_payloads = [p for p in live_payloads if p["policy_state"] == 1]
+    summary["policy_cycle_cost"] = {
+        "scope": "LIVE RECOVERY policy frames with v4 duration; wall time from runModel entry through frame publication start",
+        "nominal_period_ns": 20_000_000,
+        "timed_recovery_cycles": len(timed_recovery_cycles),
+        "untimed_recovery_cycles": len(recovery_payloads) - len(timed_recovery_cycles),
+        "overrun_recovery_cycles": len(overrun_recovery_cycles),
+        "overrun_fraction": (len(overrun_recovery_cycles) / len(timed_recovery_cycles))
+            if timed_recovery_cycles else None,
+        "duration_ns": [p["policy_cycle_duration_ns"] for p in timed_recovery_cycles],
+    }
+
     summary["ra_statistics"] = {
         **_stats(ra_values),
         "samples": len(ra_values),
@@ -1973,6 +2000,7 @@ def report_record(path: str) -> None:
     print(f"  attitude yaw        : {summary['attitude_yaw']['yaw_deg']}")
     print(f"  collision           : {summary['collision']}")
     print(f"  recovery usage      : {summary['recovery_usage']}")
+    print(f"  policy cycle cost   : {summary['policy_cycle_cost']}")
     print(f"  RA statistics       : {summary['ra_statistics']}")
     print(f"  safety faults       : {summary['safety_faults']}")
 

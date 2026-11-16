@@ -1,0 +1,68 @@
+{
+  "duration_s": 35.00049529199896,
+  "motion_instruction": "stationary camera; no robot operation",
+  "streams": {
+    "left": {
+      "count": 510,
+      "frame_id": "camera_infra1_optical_frame",
+      "all_values_finite": true,
+      "arrival_hz": 14.998580012384082,
+      "max_arrival_gap_ms": 70.57122300102492,
+      "non_increasing_header_count": 0
+    },
+    "right": {
+      "count": 510,
+      "frame_id": "camera_infra2_optical_frame",
+      "all_values_finite": true,
+      "arrival_hz": 15.000288239526526,
+      "max_arrival_gap_ms": 69.22769500306458,
+      "non_increasing_header_count": 0
+    },
+    "imu": {
+      "count": 6795,
+      "frame_id": "camera_imu_optical_frame",
+      "all_values_finite": true,
+      "arrival_hz": 199.98052808967236,
+      "max_arrival_gap_ms": 11.36672799839289,
+      "non_increasing_header_count": 0
+    },
+    "track": {
+      "count": 398,
+      "frame_id": "vins_world",
+      "all_values_finite": true,
+      "arrival_hz": 11.70677781633467,
+      "max_arrival_gap_ms": 486.2129040011496,
+      "non_increasing_header_count": 0
+    },
+    "odom": {
+      "count": 240,
+      "frame_id": "vins_world",
+      "all_values_finite": true,
+      "arrival_hz": 7.426591917754272,
+      "max_arrival_gap_ms": 495.02623899752507,
+      "non_increasing_header_count": 0,
+      "child_frame_id": "camera_imu_optical_frame",
+      "max_speed_m_s": 0.015072970395836,
+      "last_position": [
+        -0.00021478161195147115,
+        -0.0005299770175574754,
+        0.0010829598800353602
+      ]
+    },
+    "propagate": {
+      "count": 6464,
+      "frame_id": "vins_world",
+      "all_values_finite": true,
+      "arrival_hz": 199.92771298163774,
+      "max_arrival_gap_ms": 11.186835999978939,
+      "non_increasing_header_count": 0,
+      "child_frame_id": "camera_imu_optical_frame",
+      "max_speed_m_s": 0.026754158745913012,
+      "last_position": [
+        -0.000535125604273004,
+        -0.0006129454597673396,
+        0.0010718211426176902
+      ]
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "current_repository_head": "e0c322b0e488b12ded2829c393b4891dc864d9ee",
+  "controller_file": "quadruped_ros2_control_humble/controllers/rl_quadruped_controller/src/FSM/StateRL.cpp",
+  "controller_uncommitted_diff": false,
+  "references": [
+    {
+      "path": "ABS/deployment/src/abs_src/depth_obstacle_depth_goal_ros.py",
+      "official_commit": "9b95329ffb823c15dead02be620ff96938e4d0a3",
+      "local_equal_commit": true,
+      "other_local_equal_commit": true,
+      "official_url": "https://github.com/LeCAR-Lab/ABS/blob/9b95329ffb823c15dead02be620ff96938e4d0a3/deployment/src/abs_src/depth_obstacle_depth_goal_ros.py"
+    },
+    {
+      "path": "ABS/training/legged_gym/legged_gym/scripts/testbed.py",
+      "official_commit": "9b95329ffb823c15dead02be620ff96938e4d0a3",
+      "local_equal_commit": true,
+      "other_local_equal_commit": false,
+      "official_url": "https://github.com/LeCAR-Lab/ABS/blob/9b95329ffb823c15dead02be620ff96938e4d0a3/training/legged_gym/legged_gym/scripts/testbed.py"
+    }
+  ]
+}

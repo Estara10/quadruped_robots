@@ -1,0 +1,92 @@
+{
+  "base_model": "logs/ray_pred_finetune/mujoco_finetune_medium_20260611/ray_pred_mujoco_finetuned_best.pt",
+  "datasets": [
+    "ABS/training/legged_gym/legged_gym/depth_data/mujoco_ray_pred/mujoco_ray_pred_medium_20260611",
+    "ABS/training/legged_gym/legged_gym/depth_data/mujoco_ray_pred/mujoco_ray_pred_near_20260611"
+  ],
+  "sample_count": 16633,
+  "train_size": 14970,
+  "val_size": 1663,
+  "device": "cuda",
+  "epochs": 6,
+  "batch_size": 160,
+  "lr": 1e-05,
+  "near_weight": 5.0,
+  "false_safe_weight": 10.0,
+  "false_safe_score_penalty": 1.0,
+  "mae_score_weight": 20.0,
+  "best_model": "/home/lidio/quadruped_robots/logs/ray_pred_finetune/mujoco_finetune_soft_safety_20260611/ray_pred_mujoco_finetuned_best.pt",
+  "last_model": "/home/lidio/quadruped_robots/logs/ray_pred_finetune/mujoco_finetune_soft_safety_20260611/ray_pred_mujoco_finetuned_last.pt",
+  "best_metrics": {
+    "mae_m": 0.5426332950592041,
+    "rmse_m": 1.054383397102356,
+    "max_abs_m": 5.769951820373535,
+    "false_safe": 158,
+    "false_danger": 4387,
+    "epoch": 6,
+    "train_loss": 1.0080077890703019,
+    "score": 168.85266590118408
+  },
+  "history": [
+    {
+      "mae_m": 0.8141685724258423,
+      "rmse_m": 1.3329029083251953,
+      "max_abs_m": 5.676371097564697,
+      "false_safe": 259,
+      "false_danger": 7094,
+      "epoch": 1,
+      "train_loss": 2.155999735948887,
+      "score": 275.28337144851685
+    },
+    {
+      "mae_m": 0.6330039501190186,
+      "rmse_m": 1.2096707820892334,
+      "max_abs_m": 5.769951820373535,
+      "false_safe": 218,
+      "false_danger": 5107,
+      "epoch": 2,
+      "train_loss": 1.4222749363868794,
+      "score": 230.66007900238037
+    },
+    {
+      "mae_m": 0.6778615117073059,
+      "rmse_m": 1.2548980712890625,
+      "max_abs_m": 5.6535797119140625,
+      "false_safe": 194,
+      "false_danger": 5204,
+      "epoch": 3,
+      "train_loss": 1.247897430620295,
+      "score": 207.55723023414612
+    },
+    {
+      "mae_m": 0.7458377480506897,
+      "rmse_m": 1.2472047805786133,
+      "max_abs_m": 5.520534038543701,
+      "false_safe": 163,
+      "false_danger": 6322,
+      "epoch": 4,
+      "train_loss": 1.112236735351542,
+      "score": 177.9167549610138
+    },
+    {
+      "mae_m": 1.0271716117858887,
+      "rmse_m": 1.5373611450195312,
+      "max_abs_m": 5.547628879547119,
+      "false_safe": 154,
+      "false_danger": 9117,
+      "epoch": 5,
+      "train_loss": 1.0731771661246077,
+      "score": 174.54343223571777
+    },
+    {
+      "mae_m": 0.5426332950592041,
+      "rmse_m": 1.054383397102356,
+      "max_abs_m": 5.769951820373535,
+      "false_safe": 158,
+      "false_danger": 4387,
+      "epoch": 6,
+      "train_loss": 1.0080077890703019,
+      "score": 168.85266590118408
+    }
+  ]
+}

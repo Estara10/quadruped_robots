@@ -1,30 +1,30 @@
 # M2：easy / middle / difficult 开发地图集
 
 2026-10-18用户确认按难度重命名，当前版本m2-selected-development/2.1。
-当前文件为 **e01–e03.xml、m01–m06.xml、d01–d09.xml**，共18张。XML位于`unitree_mujoco/unitree_robots/go2/`。
+当前文件为 **M2_20–M2_22.xml、M2_23–M2_28.xml、M2_29–M2_37.xml**，共18张。旧e/m/d文件名仍兼容。XML位于`unitree_mujoco/unitree_robots/go2/`。
 
-[18图总览](overview_18.png) · [逐图清单](MAP_INDEX.md) · [CSV索引](scene_index.csv) · [布局](layouts.json)
+[18图总览](overview_18.png) · [逐图清单](MAP_INDEX.md) · [CSV索引](scene_index.csv) · [布局](layouts.json) · [旧名对照](../../MAP_FILENAME_CROSSWALK.md)
 
-| 当前文件 | 之前M2名称 | 源地图 | 难度 |
+| 当前文件 | 重命名前文件名 | 源地图 | 难度 |
 |---|---|---|---|
-| [e01.xml](e01.png) | m2dev17.xml | M1 dev01.xml | easy |
-| [e02.xml](e02.png) | m2dev18.xml | M1 dev12.xml | easy |
-| [e03.xml](e03.png) | m2dev19.xml | M1 dev22.xml | easy |
-| [m01.xml](m01.png) | m2dev04.xml | M2 m2dev04.xml | middle |
-| [m02.xml](m02.png) | m2dev06.xml | M2 m2dev06.xml | middle |
-| [m03.xml](m03.png) | m2dev13.xml | M1 dev13.xml | middle |
-| [m04.xml](m04.png) | m2dev14.xml | M1 dev17.xml | middle |
-| [m05.xml](m05.png) | m2dev15.xml | M1 dev26.xml | middle |
-| [m06.xml](m06.png) | m2dev16.xml | M1 dev29.xml | middle |
-| [d01.xml](d01.png) | m2dev03.xml | M2 m2dev03.xml | difficult |
-| [d02.xml](d02.png) | m2dev05.xml | M2 m2dev05.xml | difficult |
-| [d03.xml](d03.png) | m2dev02.xml | M2 m2dev02.xml | difficult |
-| [d04.xml](d04.png) | m2dev07.xml | M1 dev03.xml | difficult |
-| [d05.xml](d05.png) | m2dev08.xml | M1 dev04.xml | difficult |
-| [d06.xml](d06.png) | m2dev09.xml | M1 dev08.xml | difficult |
-| [d07.xml](d07.png) | m2dev10.xml | M1 dev11.xml | difficult |
-| [d08.xml](d08.png) | m2dev11.xml | M1 dev19.xml | difficult |
-| [d09.xml](d09.png) | m2dev12.xml | M1 dev24.xml | difficult |
+| [M2_20.xml](e01.png) | e01.xml | M1 M1_01.xml | easy |
+| [M2_21.xml](e02.png) | e02.xml | M1 M1_12.xml | easy |
+| [M2_22.xml](e03.png) | e03.xml | M1 M1_22.xml | easy |
+| [M2_23.xml](m01.png) | m01.xml | M2 M2_04.xml | middle |
+| [M2_24.xml](m02.png) | m02.xml | M2 M2_06.xml | middle |
+| [M2_25.xml](m03.png) | m03.xml | M1 M1_13.xml | middle |
+| [M2_26.xml](m04.png) | m04.xml | M1 M1_17.xml | middle |
+| [M2_27.xml](m05.png) | m05.xml | M1 M1_26.xml | middle |
+| [M2_28.xml](m06.png) | m06.xml | M1 M1_29.xml | middle |
+| [M2_29.xml](d01.png) | d01.xml | M2 M2_03.xml | difficult |
+| [M2_30.xml](d02.png) | d02.xml | M2 M2_05.xml | difficult |
+| [M2_31.xml](d03.png) | d03.xml | M2 M2_02.xml | difficult |
+| [M2_32.xml](d04.png) | d04.xml | M1 M1_03.xml | difficult |
+| [M2_33.xml](d05.png) | d05.xml | M1 M1_04.xml | difficult |
+| [M2_34.xml](d06.png) | d06.xml | M1 M1_08.xml | difficult |
+| [M2_35.xml](d07.png) | d07.xml | M1 M1_11.xml | difficult |
+| [M2_36.xml](d08.png) | d08.xml | M1 M1_19.xml | difficult |
+| [M2_37.xml](d09.png) | d09.xml | M1 M1_24.xml | difficult |
 
 ## 分类与使用边界
 
@@ -46,7 +46,7 @@
 
 ```bash
 rtk proxy /usr/bin/python3 -u scripts/manual_ab_compare.py \
-  --groups B --repeats 1 --scene d01.xml \
+  --groups B --repeats 1 --scene M2_29.xml \
   --entry-threshold -0.05 --exit-threshold -0.07 --goal-x 7.5 \
   --sim-limit-s 20 --wall-cap-s 120 \
   --plot-python /home/lidio/anaconda3/bin/python3 \

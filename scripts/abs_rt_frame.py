@@ -31,7 +31,8 @@ from typing import Dict, Optional, Tuple
 # ---------------------------------------------------------------- frame layout
 # These MUST stay byte-identical to common/abs_rt_frame_contract.h.
 FRAME_MAGIC = 0x414253525446524D  # mnemonic "ABSRTFRM"
-FRAME_VERSION = 3
+FRAME_VERSION = 4
+FRAME_VERSION_V3 = 3
 FRAME_VERSION_LEGACY = 2
 JOINT_COUNT = 12
 RAY_COUNT = 11
@@ -41,11 +42,13 @@ SHM_PATH = "/dev/shm/mujoco_rt_frame"
 # Field order mirrors common/abs_rt_frame_contract.h: 14 Q, 20 I, one double,
 # 83 floats, and four explicit ABI pad bytes.
 _FRAME_V2_STRUCT = struct.Struct("<14Q20Id83f4x")
-_FRAME_STRUCT = struct.Struct("<14Q20Id83f4xII3d")
-FRAME_SIZE = _FRAME_STRUCT.size  # 568
+_FRAME_V3_STRUCT = struct.Struct("<14Q20Id83f4xII3d")
+_FRAME_STRUCT = struct.Struct("<14Q20Id83f4xII3dQ")
+FRAME_SIZE = _FRAME_STRUCT.size  # 576
+FRAME_V3_SIZE = _FRAME_V3_STRUCT.size  # 568
 FRAME_V2_SIZE = _FRAME_V2_STRUCT.size  # 536
 HISTORY_MAGIC = 0x4142535254484953
-HISTORY_VERSION = 1
+HISTORY_VERSION = 2
 HISTORY_CAPACITY = 2048
 HISTORY_SHM_PATH = "/dev/shm/mujoco_rt_frame_history"
 _HISTORY_HEADER = struct.Struct("<6Q")
@@ -169,15 +172,18 @@ class RuntimeFrame:
     recovery_min_hold_s: float = 0.0
     hold_enter_sim_time_s: float = 0.0
     hold_elapsed_sim_s: float = 0.0
+    policy_cycle_duration_ns: Optional[int] = None
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "RuntimeFrame":
-        if len(data) not in (FRAME_SIZE, FRAME_V2_SIZE):
+        if len(data) not in (FRAME_SIZE, FRAME_V3_SIZE, FRAME_V2_SIZE):
             raise ValueError(f"unsupported frame size {len(data)}")
-        frame_struct = _FRAME_STRUCT if len(data) == FRAME_SIZE else _FRAME_V2_STRUCT
+        frame_struct = (_FRAME_STRUCT if len(data) == FRAME_SIZE else
+                        _FRAME_V3_STRUCT if len(data) == FRAME_V3_SIZE else _FRAME_V2_STRUCT)
         values = frame_struct.unpack(data)
-        extension = values[-5:] if len(data) == FRAME_SIZE else None
-        base_values = values[:-5] if extension is not None else values
+        extension_size = 6 if len(data) == FRAME_SIZE else 5 if len(data) == FRAME_V3_SIZE else 0
+        extension = values[-extension_size:] if extension_size else None
+        base_values = values[:-extension_size] if extension_size else values
         (
             magic, version, sequence, monotonic_ns,
             session_id, rl_step, ray_age_ns, sim_clock_sequence,
@@ -235,6 +241,7 @@ class RuntimeFrame:
             recovery_min_hold_s=extension[2] if extension is not None else 0.0,
             hold_enter_sim_time_s=extension[3] if extension is not None else 0.0,
             hold_elapsed_sim_s=extension[4] if extension is not None else 0.0,
+            policy_cycle_duration_ns=extension[5] if len(data) == FRAME_SIZE else None,
         )
 
 
@@ -280,6 +287,7 @@ def classify_frame(
 
     if frame.magic != FRAME_MAGIC or not (
         (frame.version == FRAME_VERSION and len(data) == FRAME_SIZE) or
+        (frame.version == FRAME_VERSION_V3 and len(data) == FRAME_V3_SIZE) or
         (frame.version == FRAME_VERSION_LEGACY and len(data) == FRAME_V2_SIZE)
     ):
         return FrameStatus.INVALID, None
@@ -336,7 +344,7 @@ def classify_frame(
         return FrameStatus.INVALID, None
     if frame.sim_clock_valid and frame.sim_clock_status not in (SIM_CLOCK_FRESH, SIM_CLOCK_STATIONARY):
         return FrameStatus.INVALID, None
-    if frame.version >= FRAME_VERSION:
+    if frame.version >= FRAME_VERSION_V3:
         if frame.hold_enabled not in (0, 1) or frame.hold_status not in (
             HOLD_DISABLED, HOLD_NOT_IN_RECOVERY, HOLD_ACTIVE, HOLD_EXPIRED, HOLD_CLOCK_INVALID
         ):
@@ -405,7 +413,7 @@ def read_shm_frame(
         return b""
     try:
         size = os.fstat(fd).st_size
-        if size not in (FRAME_SIZE, FRAME_V2_SIZE):
+        if size not in (FRAME_SIZE, FRAME_V3_SIZE, FRAME_V2_SIZE):
             return b""
         buf = mmap.mmap(fd, size, access=mmap.ACCESS_READ)
         try:

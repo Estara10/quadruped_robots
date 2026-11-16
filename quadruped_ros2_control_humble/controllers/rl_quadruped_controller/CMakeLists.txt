@@ -19,6 +19,7 @@ find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 find_package(Python3 COMPONENTS NumPy)
 
 find_package(yaml-cpp REQUIRED)
+option(BUILD_GO2_READONLY_ESTIMATOR_OBSERVER "Build the opt-in, LowState-only Go2 estimator observer" OFF)
 
 set(dependencies
         pluginlib
@@ -26,6 +27,7 @@ set(dependencies
         controller_interface
         realtime_tools
         control_input_msgs
+        nav_msgs
         kdl_parser
         ament_index_cpp
         controller_common
@@ -87,6 +89,44 @@ install(
         RUNTIME DESTINATION bin
 )
 
+# Offline-built, read-only Go2 estimator observer. It requires the explicit
+# BUILD_GO2_READONLY_ESTIMATOR_OBSERVER=ON option and Unitree SDK2; the target
+# is separate from the controller runtime and uses the same model/Estimator sources.
+if (BUILD_GO2_READONLY_ESTIMATOR_OBSERVER)
+    find_package(unitree_sdk2 CONFIG REQUIRED)
+    add_executable(go2_readonly_estimator
+            src/go2_readonly_estimator.cpp
+            src/control/Estimator.cpp
+            src/robot/QuadrupedRobot.cpp
+            src/robot/RobotLeg.cpp)
+    target_include_directories(go2_readonly_estimator PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../../common
+            ${TORCH_INCLUDE_DIRS})
+    ament_target_dependencies(go2_readonly_estimator
+            kdl_parser controller_common hardware_interface)
+    target_link_libraries(go2_readonly_estimator unitree_sdk2)
+    install(TARGETS go2_readonly_estimator
+            RUNTIME DESTINATION lib/${PROJECT_NAME})
+
+    add_executable(go2_estimator_replay
+            src/go2_estimator_replay.cpp
+            src/control/Estimator.cpp
+            src/robot/QuadrupedRobot.cpp
+            src/robot/RobotLeg.cpp)
+    target_include_directories(go2_estimator_replay PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../../common
+            ${TORCH_INCLUDE_DIRS})
+    ament_target_dependencies(go2_estimator_replay
+            kdl_parser controller_common hardware_interface)
+    target_link_libraries(go2_estimator_replay ${TORCH_LIBRARIES})
+    install(TARGETS go2_estimator_replay
+            RUNTIME DESTINATION lib/${PROJECT_NAME})
+endif ()
+
 install(
         DIRECTORY launch
         DESTINATION share/${PROJECT_NAME}/
@@ -100,6 +140,8 @@ if (BUILD_TESTING)
     target_link_libraries(p1_01_abs_observation_adapter PRIVATE ${PROJECT_NAME})
     add_executable(p1_07_switching test/p1_07_switching.cpp)
     target_include_directories(p1_07_switching PRIVATE include)
+    add_executable(periodic_twist_schedule test/periodic_twist_schedule.cpp)
+    target_include_directories(periodic_twist_schedule PRIVATE include)
     add_executable(s2_01_switch_config test/s2_01_switch_config.cpp)
     target_include_directories(s2_01_switch_config PRIVATE include ${YAML_CPP_INCLUDE_DIR})
     target_link_libraries(s2_01_switch_config PRIVATE yaml-cpp)
@@ -110,6 +152,8 @@ if (BUILD_TESTING)
     add_executable(p1_09f_stoppable_thread test/p1_09f_stoppable_thread.cpp)
     target_include_directories(p1_09f_stoppable_thread PRIVATE include)
     target_link_libraries(p1_09f_stoppable_thread PRIVATE Threads::Threads)
+    add_executable(navigation_state_source test/navigation_state_source.cpp)
+    target_link_libraries(navigation_state_source PRIVATE ${PROJECT_NAME})
     find_package(ament_lint_auto REQUIRED)
     # the following line skips the linter which checks for copyrights
     # comment the line when a copyright and license is added to all source files

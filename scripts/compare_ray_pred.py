@@ -17,6 +17,10 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
+try:
+    from scripts.abs_scene import canonical_scene_filename
+except ModuleNotFoundError:
+    from abs_scene import canonical_scene_filename
 
 ROOT = Path.home() / "quadruped_robots"
 MUJOCO_DIR = ROOT / "unitree_mujoco"
@@ -61,6 +65,38 @@ class PoseSample:
     qpos: Optional[np.ndarray] = None
 
 
+@dataclass(frozen=True)
+class CameraRenderConfig:
+    """Optional camera geometry for a dataset-rendering candidate.
+
+    The legacy global camera constants remain the default. The explicit path
+    renders the native depth resolution; the generator sets an off-axis
+    frustum from the supplied principal point after updating the scene.
+    """
+
+    position_body_m: Tuple[float, float, float]
+    pitch_down_deg: float
+    width: int
+    height: int
+    fx: float
+    fy: float
+    ppx: float
+    ppy: float
+
+    def validate(self) -> None:
+        vals = (*self.position_body_m, self.pitch_down_deg, self.fx, self.fy, self.ppx, self.ppy)
+        if not all(math.isfinite(float(v)) for v in vals):
+            raise ValueError("camera parameters must be finite")
+        if self.width <= 0 or self.height <= 0 or self.fx <= 0 or self.fy <= 0:
+            raise ValueError("camera resolution and focal lengths must be positive")
+        if self.width * CAM_H != self.height * CAM_W:
+            raise ValueError("source camera aspect ratio must match the existing 160x90 model input")
+        if abs(self.fx - self.fy) > max(self.fx, self.fy) * 1e-3:
+            raise ValueError("MuJoCo renderer uses square pixels; this path requires fx≈fy")
+        if not 0.0 <= self.ppx < self.width or not 0.0 <= self.ppy < self.height:
+            raise ValueError("principal point must lie within the source image")
+
+
 @dataclass
 class RayResult:
     sample: PoseSample
@@ -96,8 +132,11 @@ def parse_float_list(value: str) -> List[float]:
 def resolve_scene(scene: str) -> Path:
     path = Path(scene).expanduser()
     if path.is_absolute():
+        alias = canonical_scene_filename(path.name)
+        if alias != path.name:
+            path = path.with_name(alias)
         return path
-    return SCENE_DIR / scene
+    return SCENE_DIR / canonical_scene_filename(path.name)
 
 
 def find_body_id(mujoco, model) -> int:
@@ -179,7 +218,28 @@ def qpos_shm_samples(args: argparse.Namespace) -> List[PoseSample]:
     return samples
 
 
-def obstacle_geom_ids(mujoco, model) -> Iterable[int]:
+def obstacle_geom_ids(mujoco, model, scene_filename: str) -> Iterable[int]:
+    # Match abs_scene::selectObstacleGeoms used by the controller's geometry writer.
+    if scene_filename == "scene_flat.xml":
+        return
+    if canonical_scene_filename(scene_filename) == "M3_27.xml":
+        selected = []
+        for geom_id in range(model.ngeom):
+            name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_GEOM, geom_id)
+            static_collision = (int(model.geom_bodyid[geom_id]) == 0 and
+                                (int(model.geom_contype[geom_id]) != 0 or
+                                 int(model.geom_conaffinity[geom_id]) != 0))
+            eligible_shape = int(model.geom_type[geom_id]) not in {
+                int(mujoco.mjtGeom.mjGEOM_PLANE), int(mujoco.mjtGeom.mjGEOM_HFIELD),
+                int(mujoco.mjtGeom.mjGEOM_MESH)}
+            if static_collision and eligible_shape:
+                if name is None or not name.startswith("ppt_obstacle_"):
+                    raise RuntimeError(f"unrecognized static collision geometry for {scene_filename}: {name}")
+                selected.append(geom_id)
+        if len(selected) != 7:
+            raise RuntimeError(f"{scene_filename} catalog expects 7 named obstacles, found {len(selected)}")
+        yield from selected
+        return
     blocked_types = {
         int(mujoco.mjtGeom.mjGEOM_PLANE),
         int(mujoco.mjtGeom.mjGEOM_HFIELD),
@@ -273,7 +333,8 @@ def ray_round_distance(
     return ray_distance
 
 
-def compute_geometric_ray_log(mujoco, model, data, body_id: int) -> np.ndarray:
+def compute_geometric_ray_log(mujoco, model, data, body_id: int,
+                              scene_filename: str) -> np.ndarray:
     body_xpos = data.xpos[body_id]
     body_xmat = data.xmat[body_id]
     body_yaw = math.atan2(float(body_xmat[3]), float(body_xmat[0]))
@@ -282,7 +343,7 @@ def compute_geometric_ray_log(mujoco, model, data, body_id: int) -> np.ndarray:
     origin = np.array([ray_x0, ray_y0], dtype=np.float64)
 
     rays = np.full(RAY2D_COUNT, math.log2(RAY2D_MAX_DIST), dtype=np.float32)
-    geom_ids = list(obstacle_geom_ids(mujoco, model))
+    geom_ids = list(obstacle_geom_ids(mujoco, model, scene_filename))
     for ray_index in range(RAY2D_COUNT):
         theta = RAY2D_THETA_START + ray_index * RAY2D_THETA_STEP
         world_theta = theta + body_yaw
@@ -314,20 +375,39 @@ def mujoco_fovy_from_hfov(hfov_deg: float, width: int = CAM_W, height: int = CAM
     return math.degrees(vfov)
 
 
-def make_depth_renderer(mujoco, model):
-    model.vis.global_.fovy = mujoco_fovy_from_hfov(CAMERA_HFOV_DEG)
-    renderer = mujoco.Renderer(model, CAM_H, CAM_W)
+def make_depth_renderer(mujoco, model, camera_config: Optional[CameraRenderConfig] = None):
+    if camera_config is None:
+        height, width = CAM_H, CAM_W
+        fovy_deg = mujoco_fovy_from_hfov(CAMERA_HFOV_DEG)
+    else:
+        camera_config.validate()
+        height, width = camera_config.height, camera_config.width
+        fovy_deg = math.degrees(2.0 * math.atan(height / (2.0 * camera_config.fy)))
+    model.vis.global_.fovy = fovy_deg
+    renderer = mujoco.Renderer(model, height, width)
     renderer.enable_depth_rendering()
     return renderer
 
 
-def camera_from_body(mujoco, data, body_id: int):
+def camera_from_body(mujoco, data, body_id: int,
+                     camera_config: Optional[CameraRenderConfig] = None):
     cam = mujoco.MjvCamera()
     cam.type = mujoco.mjtCamera.mjCAMERA_FREE
     body_xpos = data.xpos[body_id]
     body_xmat = data.xmat[body_id].reshape(3, 3)
-    cam_world = body_xpos + body_xmat @ CAMERA_LOCAL_POS
-    look_world = body_xpos + body_xmat @ np.array([CAMERA_LOOKAHEAD_M, 0.0, 0.0])
+    if camera_config is None:
+        cam_world = body_xpos + body_xmat @ CAMERA_LOCAL_POS
+        look_world = body_xpos + body_xmat @ np.array([CAMERA_LOOKAHEAD_M, 0.0, 0.0])
+    else:
+        camera_config.validate()
+        cam_local = np.asarray(camera_config.position_body_m, dtype=np.float64)
+        cam_world = body_xpos + body_xmat @ cam_local
+        # Body convention: +x forward, +y left, +z up. The camera's optical
+        # axis is pitched down from +x; ppx/ppy are represented by an
+        # off-axis frustum in render_depth, not by changing this orientation.
+        pitch = math.radians(camera_config.pitch_down_deg)
+        optical_axis = np.array([math.cos(pitch), 0.0, -math.sin(pitch)])
+        look_world = cam_world + body_xmat @ (optical_axis * CAMERA_LOOKAHEAD_M)
     diff = look_world - cam_world
     distance = float(np.linalg.norm(diff))
     cam.lookat[:] = look_world
@@ -396,7 +476,8 @@ def evaluate_sample(
     args: argparse.Namespace,
 ) -> RayResult:
     apply_sample(mujoco, model, data, sample)
-    target_log = compute_geometric_ray_log(mujoco, model, data, body_id)
+    target_log = compute_geometric_ray_log(mujoco, model, data, body_id,
+                                           Path(args.scene_path).name)
     pred_log, depth_m, render_ms, inference_ms = predict_ray_log(
         torch, resnet, renderer, data, body_id, args.device, args.save_worst > 0
     )
@@ -619,7 +700,7 @@ def write_manifest(summary: Dict[str, object], args: argparse.Namespace, output_
         "scene": str(args.scene_path),
         "model": str(args.model),
         "source": args.source,
-        "samples": args.samples,
+        "samples": summary["samples"],
         "device": args.device,
         "camera_size": [CAM_W, CAM_H],
         "camera_hfov_deg": CAMERA_HFOV_DEG,
@@ -671,8 +752,8 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
-    import mujoco
     import torch
+    import mujoco
 
     if not args.scene_path.exists():
         raise FileNotFoundError(args.scene_path)
@@ -701,23 +782,25 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     output_dir = args.output_root / args.session_name
     output_dir.mkdir(parents=True, exist_ok=True)
     results: List[RayResult] = []
-    try:
-        for sample in samples:
-            result = evaluate_sample(mujoco, torch, model, data, renderer, resnet, body_id, sample, args)
-            if float(np.min(result.target_m)) < args.min_target_clearance:
-                print(
-                    f"[RayCompare] sample={sample.index:03d} skipped: "
-                    f"min_target={float(np.min(result.target_m)):.3f}m < {args.min_target_clearance:.3f}m"
-                )
-                continue
-            results.append(result)
+    for sample in samples:
+        result = evaluate_sample(mujoco, torch, model, data, renderer, resnet, body_id, sample, args)
+        if float(np.min(result.target_m)) < args.min_target_clearance:
             print(
-                f"[RayCompare] sample={sample.index:03d} "
-                f"mae={result.mean_abs_m:.3f}m max={result.max_abs_m:.3f}m "
-                f"false_safe={result.false_safe_count} false_danger={result.false_danger_count}"
+                f"[RayCompare] sample={sample.index:03d} skipped: "
+                f"min_target={float(np.min(result.target_m)):.3f}m < {args.min_target_clearance:.3f}m"
             )
-    finally:
-        renderer.close()
+            continue
+        results.append(result)
+        print(
+            f"[RayCompare] sample={sample.index:03d} "
+            f"mae={result.mean_abs_m:.3f}m max={result.max_abs_m:.3f}m "
+            f"false_safe={result.false_safe_count} false_danger={result.false_danger_count}"
+        )
+
+    # MuJoCo's Python renderer finalizer otherwise frees an already-freed EGL
+    # context on some packaged builds after explicit close.
+    renderer.close()
+    renderer._mjr_context = None
 
     if not results:
         raise RuntimeError("No samples left after min-target-clearance filtering")

@@ -54,7 +54,7 @@ def launch_setup(context, *args, **kwargs):
     controller_manager = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[robot_controllers],
+        parameters=[robot_controllers, {'rl_quadruped_controller.runtime_mode': 'mujoco'}],
         remappings=[
             ("~/robot_description", "/robot_description"),
         ],

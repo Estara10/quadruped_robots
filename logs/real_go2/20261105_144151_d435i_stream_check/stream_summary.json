@@ -1,0 +1,281 @@
+{
+  "duration_s": 20.00282118099858,
+  "streams": {
+    "infra1": {
+      "count": 298,
+      "frame_id": "camera_infra1_optical_frame",
+      "arrival_hz": 14.887842285996726,
+      "header_hz": 14.888945935378269,
+      "max_arrival_gap_ms": 134.53186499828007,
+      "non_increasing_header_count": 0,
+      "width": 640,
+      "height": 480,
+      "encoding": "mono8",
+      "step": 640
+    },
+    "infra2": {
+      "count": 295,
+      "frame_id": "camera_infra2_optical_frame",
+      "arrival_hz": 14.788341506809136,
+      "header_hz": 14.788010136276187,
+      "max_arrival_gap_ms": 199.1900880020694,
+      "non_increasing_header_count": 0,
+      "width": 640,
+      "height": 480,
+      "encoding": "mono8",
+      "step": 640
+    },
+    "depth": {
+      "count": 271,
+      "frame_id": "camera_depth_optical_frame",
+      "arrival_hz": 13.581316751471078,
+      "header_hz": 13.580825635355682,
+      "max_arrival_gap_ms": 265.5184190007276,
+      "non_increasing_header_count": 0,
+      "width": 640,
+      "height": 480,
+      "encoding": "16UC1",
+      "step": 1280,
+      "nonzero_fraction": 0.19070638020833333,
+      "raw_positive_median": 317.0
+    },
+    "color": {
+      "count": 274,
+      "frame_id": "camera_color_optical_frame",
+      "arrival_hz": 13.73465344586713,
+      "header_hz": 13.731724850695546,
+      "max_arrival_gap_ms": 200.77876400318928,
+      "non_increasing_header_count": 0,
+      "width": 640,
+      "height": 480,
+      "encoding": "rgb8",
+      "step": 1920
+    },
+    "gyro": {
+      "count": 4000,
+      "frame_id": "camera_gyro_optical_frame",
+      "arrival_hz": 199.94150067674352,
+      "header_hz": 199.9420891786339,
+      "max_arrival_gap_ms": 8.72954800070147,
+      "non_increasing_header_count": 0,
+      "last_xyz": [
+        0.001745329238474369,
+        0.006981316953897476,
+        -0.003490658476948738
+      ],
+      "last_xyz_finite": true
+    },
+    "accel": {
+      "count": 2023,
+      "frame_id": "camera_accel_optical_frame",
+      "arrival_hz": 101.12089177343108,
+      "header_hz": 101.12731131598787,
+      "max_arrival_gap_ms": 13.474953000695677,
+      "non_increasing_header_count": 0,
+      "last_xyz": [
+        0.5687856674194336,
+        -1.8534568548202515,
+        9.355544090270996
+      ],
+      "last_xyz_finite": true
+    }
+  },
+  "camera_info": {
+    "color": {
+      "width": 640,
+      "height": 480,
+      "distortion_model": "plumb_bob",
+      "d": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "k": [
+        606.538818359375,
+        0.0,
+        318.6663513183594,
+        0.0,
+        606.239501953125,
+        251.18557739257812,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "r": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "p": [
+        606.538818359375,
+        0.0,
+        318.6663513183594,
+        0.0,
+        0.0,
+        606.239501953125,
+        251.18557739257812,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      "frame_id": "camera_color_optical_frame"
+    },
+    "infra1": {
+      "width": 640,
+      "height": 480,
+      "distortion_model": "plumb_bob",
+      "d": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "k": [
+        390.56683349609375,
+        0.0,
+        320.8228759765625,
+        0.0,
+        390.56683349609375,
+        236.2220916748047,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "r": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "p": [
+        390.56683349609375,
+        0.0,
+        320.8228759765625,
+        0.0,
+        0.0,
+        390.56683349609375,
+        236.2220916748047,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      "frame_id": "camera_infra1_optical_frame"
+    },
+    "depth": {
+      "width": 640,
+      "height": 480,
+      "distortion_model": "plumb_bob",
+      "d": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "k": [
+        390.56683349609375,
+        0.0,
+        320.8228759765625,
+        0.0,
+        390.56683349609375,
+        236.2220916748047,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "r": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "p": [
+        390.56683349609375,
+        0.0,
+        320.8228759765625,
+        0.0,
+        0.0,
+        390.56683349609375,
+        236.2220916748047,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      "frame_id": "camera_depth_optical_frame"
+    },
+    "infra2": {
+      "width": 640,
+      "height": 480,
+      "distortion_model": "plumb_bob",
+      "d": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "k": [
+        390.56683349609375,
+        0.0,
+        320.8228759765625,
+        0.0,
+        390.56683349609375,
+        236.2220916748047,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "r": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "p": [
+        390.56683349609375,
+        0.0,
+        320.8228759765625,
+        -19.538089752197266,
+        0.0,
+        390.56683349609375,
+        236.2220916748047,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      "frame_id": "camera_infra1_optical_frame"
+    }
+  }
+}

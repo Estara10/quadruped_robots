@@ -1,0 +1,2638 @@
+{
+  "challenge08.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 1.585348,
+      "y": -0.439769,
+      "half_x": 0.253289,
+      "half_y": 0.326302,
+      "yaw_rad": -0.085735
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 3.75061,
+      "y": 0.263326,
+      "radius": 0.279633,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 6.094912,
+      "y": -0.31258,
+      "half_x": 0.336108,
+      "half_y": 0.185443,
+      "yaw_rad": 0.328017
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 6.656197,
+      "y": -1.8877,
+      "half_x": 0.254503,
+      "half_y": 0.297783,
+      "yaw_rad": -0.055897
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 3.649587,
+      "y": -2.57572,
+      "radius": 0.213967,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 0.706906,
+      "y": 2.524243,
+      "half_x": 0.205122,
+      "half_y": 0.166508,
+      "yaw_rad": 0.245408
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "cylinder",
+      "x": 5.093816,
+      "y": -2.20612,
+      "radius": 0.267121,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "cylinder",
+      "x": 6.673236,
+      "y": 2.163571,
+      "radius": 0.263581,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "box",
+      "x": 2.161839,
+      "y": 2.621013,
+      "half_x": 0.275762,
+      "half_y": 0.300421,
+      "yaw_rad": -0.168254
+    }
+  ],
+  "challenge23.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 2.790164,
+      "y": -0.37524,
+      "half_x": 0.395048,
+      "half_y": 0.154084,
+      "yaw_rad": 0.159071
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 5.640667,
+      "y": -0.141229,
+      "radius": 0.236701,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 3.18897,
+      "y": -1.713794,
+      "half_x": 0.376842,
+      "half_y": 0.1703,
+      "yaw_rad": 0.274243
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 3.014896,
+      "y": 2.693983,
+      "half_x": 0.257775,
+      "half_y": 0.177138,
+      "yaw_rad": 0.417144
+    }
+  ],
+  "challenge20.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 1.949685,
+      "y": -0.053917,
+      "half_x": 0.215201,
+      "half_y": 0.282762,
+      "yaw_rad": 0.403809
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 5.58522,
+      "y": 0.017179,
+      "radius": 0.248633,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 4.936203,
+      "y": 1.764088,
+      "half_x": 0.382606,
+      "half_y": 0.171889,
+      "yaw_rad": -0.043124
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 7.051948,
+      "y": 2.131114,
+      "radius": 0.263793,
+      "yaw_rad": 0.0
+    }
+  ],
+  "challenge01.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 2.346724,
+      "y": 0.463157,
+      "half_x": 0.261902,
+      "half_y": 0.22759,
+      "yaw_rad": 0.244769
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 3.758163,
+      "y": -0.063204,
+      "radius": 0.22403,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 5.876417,
+      "y": 0.212846,
+      "half_x": 0.281628,
+      "half_y": 0.199632,
+      "yaw_rad": 0.269769
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 2.951752,
+      "y": 1.577412,
+      "radius": 0.256005,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 5.851447,
+      "y": 1.256874,
+      "radius": 0.228306,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 1.254735,
+      "y": 2.480458,
+      "half_x": 0.258977,
+      "half_y": 0.182891,
+      "yaw_rad": 0.004739
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "cylinder",
+      "x": 4.313337,
+      "y": 0.954754,
+      "radius": 0.246293,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "box",
+      "x": 1.430005,
+      "y": 1.479419,
+      "half_x": 0.281459,
+      "half_y": 0.195532,
+      "yaw_rad": -0.153712
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "cylinder",
+      "x": 1.380772,
+      "y": -2.34105,
+      "radius": 0.269771,
+      "yaw_rad": 0.0
+    }
+  ],
+  "challenge09.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 1.825668,
+      "y": -0.577902,
+      "half_x": 0.316219,
+      "half_y": 0.154135,
+      "yaw_rad": 0.081572
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 3.819623,
+      "y": 0.126695,
+      "radius": 0.232754,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 5.993905,
+      "y": -0.292094,
+      "half_x": 0.250109,
+      "half_y": 0.245244,
+      "yaw_rad": 0.476945
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 5.556805,
+      "y": -1.70341,
+      "half_x": 0.264937,
+      "half_y": 0.179083,
+      "yaw_rad": -0.166827
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 6.795471,
+      "y": 2.155628,
+      "radius": 0.225341,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "cylinder",
+      "x": 3.36577,
+      "y": 2.256693,
+      "radius": 0.22011,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 2.27956,
+      "y": -1.969891,
+      "half_x": 0.396625,
+      "half_y": 0.159788,
+      "yaw_rad": -0.518044
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "cylinder",
+      "x": 4.746778,
+      "y": 2.6699,
+      "radius": 0.231608,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "cylinder",
+      "x": 0.8578,
+      "y": 2.574272,
+      "radius": 0.236843,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_10",
+      "shape": "box",
+      "x": 3.94352,
+      "y": -2.601168,
+      "half_x": 0.304281,
+      "half_y": 0.334554,
+      "yaw_rad": 0.061994
+    },
+    {
+      "name": "ppt_obstacle_11",
+      "shape": "cylinder",
+      "x": 0.991515,
+      "y": -1.766029,
+      "radius": 0.230527,
+      "yaw_rad": 0.0
+    }
+  ],
+  "challenge19.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 1.888929,
+      "y": -0.172154,
+      "half_x": 0.330467,
+      "half_y": 0.154827,
+      "yaw_rad": -0.473778
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 5.407874,
+      "y": 0.000986,
+      "half_x": 0.366296,
+      "half_y": 0.20212,
+      "yaw_rad": -0.222256
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 5.378612,
+      "y": 1.666946,
+      "half_x": 0.252853,
+      "half_y": 0.208881,
+      "yaw_rad": 0.377641
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 3.53633,
+      "y": 1.850975,
+      "radius": 0.257273,
+      "yaw_rad": 0.0
+    }
+  ],
+  "challenge11.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 1.82654,
+      "y": 0.545514,
+      "half_x": 0.273327,
+      "half_y": 0.287995,
+      "yaw_rad": 0.308308
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 4.538674,
+      "y": -0.563607,
+      "radius": 0.219013,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 5.582041,
+      "y": 0.197946,
+      "radius": 0.258727,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 6.188026,
+      "y": -0.642577,
+      "half_x": 0.195864,
+      "half_y": 0.241312,
+      "yaw_rad": 0.457629
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "box",
+      "x": 2.837559,
+      "y": -1.803098,
+      "half_x": 0.259709,
+      "half_y": 0.25956,
+      "yaw_rad": -0.034179
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "cylinder",
+      "x": 2.715388,
+      "y": 1.375591,
+      "radius": 0.254341,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "cylinder",
+      "x": 6.747214,
+      "y": -1.834707,
+      "radius": 0.247967,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "box",
+      "x": 7.279672,
+      "y": 2.245579,
+      "half_x": 0.22122,
+      "half_y": 0.250653,
+      "yaw_rad": -0.192305
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "box",
+      "x": 0.654295,
+      "y": 2.381889,
+      "half_x": 0.255732,
+      "half_y": 0.348157,
+      "yaw_rad": 0.053577
+    },
+    {
+      "name": "ppt_obstacle_10",
+      "shape": "cylinder",
+      "x": 3.543336,
+      "y": 2.410721,
+      "radius": 0.286927,
+      "yaw_rad": 0.0
+    }
+  ],
+  "challenge22.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 1.86081,
+      "y": -0.397277,
+      "radius": 0.267609,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 3.807633,
+      "y": 0.4354,
+      "radius": 0.234139,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 5.759582,
+      "y": -0.246241,
+      "radius": 0.213567,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 2.449564,
+      "y": 2.668444,
+      "half_x": 0.326989,
+      "half_y": 0.201651,
+      "yaw_rad": -0.209088
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 6.870231,
+      "y": 1.828262,
+      "radius": 0.234978,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 3.776785,
+      "y": -1.258972,
+      "half_x": 0.382731,
+      "half_y": 0.177786,
+      "yaw_rad": -0.170782
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 0.824396,
+      "y": 2.387859,
+      "half_x": 0.380748,
+      "half_y": 0.189107,
+      "yaw_rad": 0.228856
+    }
+  ],
+  "challenge05.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 1.917369,
+      "y": -0.135568,
+      "radius": 0.29523,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 5.410601,
+      "y": -0.046353,
+      "half_x": 0.317367,
+      "half_y": 0.161825,
+      "yaw_rad": 0.166285
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 2.398998,
+      "y": -2.042696,
+      "half_x": 0.377845,
+      "half_y": 0.272377,
+      "yaw_rad": 0.070367
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 6.414819,
+      "y": 1.686004,
+      "half_x": 0.31725,
+      "half_y": 0.139322,
+      "yaw_rad": 0.052885
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 0.895478,
+      "y": 2.103063,
+      "radius": 0.252577,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 3.089913,
+      "y": 1.90211,
+      "half_x": 0.345445,
+      "half_y": 0.201724,
+      "yaw_rad": -0.407798
+    }
+  ],
+  "challenge16.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 2.003291,
+      "y": -0.341764,
+      "radius": 0.216556,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 3.52044,
+      "y": 0.382145,
+      "half_x": 0.201789,
+      "half_y": 0.20407,
+      "yaw_rad": -0.157687
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 5.804542,
+      "y": -0.399313,
+      "half_x": 0.229319,
+      "half_y": 0.213412,
+      "yaw_rad": 0.442808
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 1.234588,
+      "y": 2.650369,
+      "half_x": 0.313184,
+      "half_y": 0.239402,
+      "yaw_rad": 0.130636
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "box",
+      "x": 6.927188,
+      "y": 2.337385,
+      "half_x": 0.288723,
+      "half_y": 0.168171,
+      "yaw_rad": 0.077319
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 3.590272,
+      "y": -1.279826,
+      "half_x": 0.318946,
+      "half_y": 0.316811,
+      "yaw_rad": -0.070412
+    }
+  ],
+  "challenge18.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 2.465424,
+      "y": 0.100615,
+      "half_x": 0.203693,
+      "half_y": 0.194249,
+      "yaw_rad": -0.113626
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 5.852331,
+      "y": -0.047717,
+      "radius": 0.22545,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 1.957453,
+      "y": -1.934961,
+      "radius": 0.21304,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 6.790391,
+      "y": 1.875518,
+      "half_x": 0.235969,
+      "half_y": 0.200759,
+      "yaw_rad": -0.399759
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "box",
+      "x": 3.743726,
+      "y": -2.683396,
+      "half_x": 0.343944,
+      "half_y": 0.172959,
+      "yaw_rad": -0.309609
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 0.830612,
+      "y": 1.480462,
+      "half_x": 0.29269,
+      "half_y": 0.256351,
+      "yaw_rad": 0.174089
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "cylinder",
+      "x": 3.73256,
+      "y": 1.272898,
+      "radius": 0.251261,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "box",
+      "x": 1.989945,
+      "y": 1.816318,
+      "half_x": 0.321163,
+      "half_y": 0.264428,
+      "yaw_rad": 0.245721
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "box",
+      "x": 5.258137,
+      "y": -2.135618,
+      "half_x": 0.3049,
+      "half_y": 0.293458,
+      "yaw_rad": -0.129748
+    },
+    {
+      "name": "ppt_obstacle_10",
+      "shape": "box",
+      "x": 5.443243,
+      "y": 2.208259,
+      "half_x": 0.330089,
+      "half_y": 0.239451,
+      "yaw_rad": 0.320141
+    }
+  ],
+  "challenge17.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 2.156053,
+      "y": -0.193663,
+      "half_x": 0.245612,
+      "half_y": 0.196869,
+      "yaw_rad": 0.057232
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 3.741708,
+      "y": -1.429421,
+      "radius": 0.249461,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 5.627775,
+      "y": 0.011955,
+      "half_x": 0.241533,
+      "half_y": 0.189162,
+      "yaw_rad": -0.088809
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 6.353416,
+      "y": 1.117441,
+      "half_x": 0.285739,
+      "half_y": 0.218938,
+      "yaw_rad": 0.133305
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 3.303003,
+      "y": -2.360182,
+      "radius": 0.259292,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 4.800893,
+      "y": 1.953926,
+      "half_x": 0.28008,
+      "half_y": 0.209833,
+      "yaw_rad": 0.067353
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 1.469716,
+      "y": -1.863174,
+      "half_x": 0.250681,
+      "half_y": 0.198193,
+      "yaw_rad": 0.013024
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "cylinder",
+      "x": 6.453736,
+      "y": -2.243267,
+      "radius": 0.260399,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "box",
+      "x": 3.719602,
+      "y": 2.052132,
+      "half_x": 0.254227,
+      "half_y": 0.177292,
+      "yaw_rad": 0.126427
+    }
+  ],
+  "challenge04.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 2.8,
+      "y": -1.45,
+      "half_x": 0.32405,
+      "half_y": 0.142863,
+      "yaw_rad": -0.089794
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 2.8,
+      "y": 1.45,
+      "half_x": 0.207065,
+      "half_y": 0.150878,
+      "yaw_rad": -0.215963
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 4.7,
+      "y": 0.0,
+      "half_x": 0.317982,
+      "half_y": 0.147633,
+      "yaw_rad": -0.280522
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 6.0,
+      "y": -1.3,
+      "half_x": 0.212566,
+      "half_y": 0.145788,
+      "yaw_rad": -0.391676
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 1.317484,
+      "y": -2.13249,
+      "radius": 0.239256,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 1.47201,
+      "y": 2.402714,
+      "half_x": 0.339448,
+      "half_y": 0.297164,
+      "yaw_rad": 0.252519
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 6.220674,
+      "y": -2.482114,
+      "half_x": 0.349091,
+      "half_y": 0.256655,
+      "yaw_rad": -0.177839
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "box",
+      "x": 4.1,
+      "y": 2.6,
+      "half_x": 0.343217,
+      "half_y": 0.224437,
+      "yaw_rad": 0.330859
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "cylinder",
+      "x": 6.7,
+      "y": 2.5,
+      "radius": 0.241557,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_10",
+      "shape": "cylinder",
+      "x": 4.697571,
+      "y": -2.460789,
+      "radius": 0.243613,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_11",
+      "shape": "cylinder",
+      "x": 5.8,
+      "y": 0.3,
+      "radius": 0.2,
+      "yaw_rad": 0.0
+    }
+  ],
+  "challenge29.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 1.525069,
+      "y": 0.002513,
+      "half_x": 0.388443,
+      "half_y": 0.151284,
+      "yaw_rad": 0.437547
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 5.609798,
+      "y": -0.001753,
+      "radius": 0.224344,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 6.24097,
+      "y": 1.986118,
+      "radius": 0.247339,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 4.170531,
+      "y": 1.979021,
+      "radius": 0.25049,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "box",
+      "x": 2.378355,
+      "y": 2.658351,
+      "half_x": 0.318496,
+      "half_y": 0.159648,
+      "yaw_rad": -0.036524
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "cylinder",
+      "x": 3.212455,
+      "y": -1.700089,
+      "radius": 0.241295,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 2.100181,
+      "y": -2.565058,
+      "half_x": 0.269189,
+      "half_y": 0.228581,
+      "yaw_rad": 0.201824
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "box",
+      "x": 6.53669,
+      "y": -2.585197,
+      "half_x": 0.24898,
+      "half_y": 0.278105,
+      "yaw_rad": 0.025752
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "box",
+      "x": 0.824398,
+      "y": -2.603824,
+      "half_x": 0.22973,
+      "half_y": 0.236971,
+      "yaw_rad": -0.14106
+    },
+    {
+      "name": "ppt_obstacle_10",
+      "shape": "cylinder",
+      "x": 5.218037,
+      "y": 1.21249,
+      "radius": 0.302084,
+      "yaw_rad": 0.0
+    }
+  ],
+  "challenge02.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 2.8,
+      "y": -1.4,
+      "radius": 0.244859,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 2.8,
+      "y": 1.4,
+      "half_x": 0.285436,
+      "half_y": 0.280584,
+      "yaw_rad": 0.244214
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 5.1,
+      "y": 0.0,
+      "radius": 0.255183,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 5.7,
+      "y": 1.75,
+      "radius": 0.224726,
+      "yaw_rad": 0.0
+    }
+  ],
+  "challenge15.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 3.081568,
+      "y": -0.037558,
+      "radius": 0.25231,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 4.771748,
+      "y": -0.071283,
+      "half_x": 0.295975,
+      "half_y": 0.205553,
+      "yaw_rad": -0.095362
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 6.162843,
+      "y": 0.305638,
+      "radius": 0.237561,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 5.802164,
+      "y": 1.677283,
+      "radius": 0.278959,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 2.627481,
+      "y": -2.326528,
+      "radius": 0.274306,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 2.006776,
+      "y": 1.585521,
+      "half_x": 0.267507,
+      "half_y": 0.223762,
+      "yaw_rad": 0.138824
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 6.024492,
+      "y": -2.29389,
+      "half_x": 0.273605,
+      "half_y": 0.210099,
+      "yaw_rad": 0.090485
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "box",
+      "x": 4.075718,
+      "y": -2.248528,
+      "half_x": 0.265645,
+      "half_y": 0.228846,
+      "yaw_rad": 0.015317
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "cylinder",
+      "x": 3.609313,
+      "y": 1.288041,
+      "radius": 0.279223,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_10",
+      "shape": "box",
+      "x": 5.051167,
+      "y": 2.560482,
+      "half_x": 0.283789,
+      "half_y": 0.193852,
+      "yaw_rad": -0.257993
+    }
+  ],
+  "challenge07.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 2.717403,
+      "y": 0.129662,
+      "half_x": 0.348822,
+      "half_y": 0.223772,
+      "yaw_rad": 0.440224
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 5.255578,
+      "y": -0.043107,
+      "radius": 0.263478,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 2.447267,
+      "y": 2.078792,
+      "half_x": 0.315476,
+      "half_y": 0.220683,
+      "yaw_rad": 0.404358
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 4.397423,
+      "y": 2.477954,
+      "radius": 0.299296,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "box",
+      "x": 6.184989,
+      "y": 1.690511,
+      "half_x": 0.322865,
+      "half_y": 0.179064,
+      "yaw_rad": -0.169575
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 5.290308,
+      "y": -2.487143,
+      "half_x": 0.349277,
+      "half_y": 0.235111,
+      "yaw_rad": 0.099088
+    }
+  ],
+  "challenge14.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 2.276094,
+      "y": -0.063429,
+      "half_x": 0.351378,
+      "half_y": 0.160389,
+      "yaw_rad": -0.124819
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 5.732799,
+      "y": 0.093011,
+      "radius": 0.239387,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 5.290607,
+      "y": 2.478565,
+      "radius": 0.22177,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 0.91444,
+      "y": 2.34529,
+      "radius": 0.28933,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 7.302731,
+      "y": 1.494484,
+      "radius": 0.244862,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 5.006752,
+      "y": -2.01963,
+      "half_x": 0.267001,
+      "half_y": 0.239835,
+      "yaw_rad": 0.212186
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "cylinder",
+      "x": 2.015216,
+      "y": -2.14334,
+      "radius": 0.239993,
+      "yaw_rad": 0.0
+    }
+  ],
+  "challenge25.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 2.344695,
+      "y": 0.129439,
+      "radius": 0.252794,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 4.659672,
+      "y": 0.156328,
+      "half_x": 0.252389,
+      "half_y": 0.171607,
+      "yaw_rad": 0.050317
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 5.01024,
+      "y": -2.520034,
+      "half_x": 0.309555,
+      "half_y": 0.165006,
+      "yaw_rad": -0.407593
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 6.62405,
+      "y": 1.496785,
+      "half_x": 0.274189,
+      "half_y": 0.174811,
+      "yaw_rad": 0.161547
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 1.716511,
+      "y": -2.536183,
+      "radius": 0.211969,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 7.279217,
+      "y": -1.820658,
+      "half_x": 0.29688,
+      "half_y": 0.184564,
+      "yaw_rad": 0.182594
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 2.346436,
+      "y": 1.350516,
+      "half_x": 0.211472,
+      "half_y": 0.257076,
+      "yaw_rad": 0.013426
+    }
+  ],
+  "challenge13.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 1.892855,
+      "y": -0.175363,
+      "half_x": 0.270006,
+      "half_y": 0.20175,
+      "yaw_rad": -0.085501
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 2.113586,
+      "y": 2.156025,
+      "radius": 0.257338,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 5.601326,
+      "y": 0.125047,
+      "half_x": 0.309096,
+      "half_y": 0.258895,
+      "yaw_rad": 0.179014
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 5.545158,
+      "y": -2.154758,
+      "radius": 0.252324,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 4.257745,
+      "y": 1.241353,
+      "radius": 0.258596,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "cylinder",
+      "x": 4.149681,
+      "y": -2.550916,
+      "radius": 0.303367,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "cylinder",
+      "x": 4.338896,
+      "y": 2.462785,
+      "radius": 0.2752,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "box",
+      "x": 5.946206,
+      "y": 2.289145,
+      "half_x": 0.296399,
+      "half_y": 0.178507,
+      "yaw_rad": 0.1319
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "cylinder",
+      "x": 1.294399,
+      "y": -2.090056,
+      "radius": 0.260714,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_10",
+      "shape": "cylinder",
+      "x": 3.003354,
+      "y": -1.986948,
+      "radius": 0.276741,
+      "yaw_rad": 0.0
+    }
+  ],
+  "challenge06.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 2.9,
+      "y": 1.45,
+      "half_x": 0.346502,
+      "half_y": 0.177629,
+      "yaw_rad": 0.223142
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 2.9,
+      "y": -1.45,
+      "half_x": 0.217329,
+      "half_y": 0.145294,
+      "yaw_rad": -0.096071
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 4.9,
+      "y": 0.0,
+      "half_x": 0.253189,
+      "half_y": 0.243699,
+      "yaw_rad": 0.01131
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 6.0,
+      "y": 1.25,
+      "half_x": 0.269393,
+      "half_y": 0.159815,
+      "yaw_rad": -0.219853
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "box",
+      "x": 1.353346,
+      "y": -2.545572,
+      "half_x": 0.377556,
+      "half_y": 0.267551,
+      "yaw_rad": 0.160338
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "cylinder",
+      "x": 6.925429,
+      "y": -1.73648,
+      "radius": 0.280571,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 4.1,
+      "y": 2.4,
+      "half_x": 0.383725,
+      "half_y": 0.173191,
+      "yaw_rad": 0.087181
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "cylinder",
+      "x": 6.8,
+      "y": 2.4,
+      "radius": 0.262657,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "box",
+      "x": 5.4,
+      "y": 2.5,
+      "half_x": 0.279789,
+      "half_y": 0.197148,
+      "yaw_rad": 0.444343
+    }
+  ],
+  "challenge03.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 1.995423,
+      "y": 0.163427,
+      "radius": 0.278166,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 3.805065,
+      "y": 1.853033,
+      "half_x": 0.274555,
+      "half_y": 0.239711,
+      "yaw_rad": 0.302088
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 5.647772,
+      "y": -0.134552,
+      "half_x": 0.244068,
+      "half_y": 0.168645,
+      "yaw_rad": -0.081434
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 1.183221,
+      "y": -2.329654,
+      "half_x": 0.262314,
+      "half_y": 0.185295,
+      "yaw_rad": -0.01228
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "box",
+      "x": 6.247514,
+      "y": 2.440487,
+      "half_x": 0.268776,
+      "half_y": 0.235214,
+      "yaw_rad": -0.009766
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "cylinder",
+      "x": 2.886825,
+      "y": 1.000758,
+      "radius": 0.252888,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 5.460865,
+      "y": -1.854657,
+      "half_x": 0.237505,
+      "half_y": 0.256942,
+      "yaw_rad": 0.214644
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "cylinder",
+      "x": 1.636802,
+      "y": 1.257132,
+      "radius": 0.247479,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "cylinder",
+      "x": 5.157643,
+      "y": 2.565735,
+      "radius": 0.292649,
+      "yaw_rad": 0.0
+    }
+  ],
+  "challenge26.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 1.621684,
+      "y": -0.535876,
+      "half_x": 0.373147,
+      "half_y": 0.285176,
+      "yaw_rad": 0.016686
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 3.676498,
+      "y": 0.327295,
+      "half_x": 0.387933,
+      "half_y": 0.242309,
+      "yaw_rad": 0.1058
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 5.887583,
+      "y": -0.455433,
+      "radius": 0.246161,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 3.829693,
+      "y": 2.671929,
+      "half_x": 0.337226,
+      "half_y": 0.272569,
+      "yaw_rad": -0.154113
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "box",
+      "x": 4.441546,
+      "y": -2.138634,
+      "half_x": 0.266762,
+      "half_y": 0.267918,
+      "yaw_rad": 0.001146
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 0.989032,
+      "y": 2.543952,
+      "half_x": 0.231858,
+      "half_y": 0.17225,
+      "yaw_rad": 0.241231
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "cylinder",
+      "x": 6.582565,
+      "y": -1.439269,
+      "radius": 0.255435,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "box",
+      "x": 2.667733,
+      "y": -1.459072,
+      "half_x": 0.309678,
+      "half_y": 0.164524,
+      "yaw_rad": 0.394209
+    }
+  ],
+  "challenge21.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 1.861389,
+      "y": -0.001344,
+      "radius": 0.255873,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 5.700562,
+      "y": 0.160551,
+      "half_x": 0.241172,
+      "half_y": 0.199272,
+      "yaw_rad": -0.13687
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 2.136836,
+      "y": -1.779374,
+      "half_x": 0.329514,
+      "half_y": 0.163513,
+      "yaw_rad": 0.381137
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 4.221741,
+      "y": 1.781132,
+      "half_x": 0.209495,
+      "half_y": 0.270028,
+      "yaw_rad": 0.218936
+    }
+  ],
+  "challenge30.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 2.029307,
+      "y": -0.064053,
+      "radius": 0.283226,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 5.6726,
+      "y": -0.020605,
+      "radius": 0.266103,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 1.951624,
+      "y": -2.630703,
+      "half_x": 0.359017,
+      "half_y": 0.179144,
+      "yaw_rad": -0.135605
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 6.218501,
+      "y": -2.407123,
+      "half_x": 0.223475,
+      "half_y": 0.170847,
+      "yaw_rad": -0.265022
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "box",
+      "x": 3.447119,
+      "y": 2.341932,
+      "half_x": 0.346053,
+      "half_y": 0.198567,
+      "yaw_rad": 0.063295
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "cylinder",
+      "x": 4.759479,
+      "y": 2.599916,
+      "radius": 0.22138,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 6.011476,
+      "y": 1.432156,
+      "half_x": 0.207528,
+      "half_y": 0.293157,
+      "yaw_rad": 0.39938
+    }
+  ],
+  "challenge28.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 2.197115,
+      "y": -0.13729,
+      "radius": 0.216998,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 5.390751,
+      "y": -0.195633,
+      "half_x": 0.283712,
+      "half_y": 0.206179,
+      "yaw_rad": -0.417542
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 6.641776,
+      "y": -1.739067,
+      "half_x": 0.301462,
+      "half_y": 0.256595,
+      "yaw_rad": 0.338465
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 0.734841,
+      "y": -2.663478,
+      "half_x": 0.323237,
+      "half_y": 0.147915,
+      "yaw_rad": -0.024744
+    }
+  ],
+  "challenge27.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 3.500778,
+      "y": 0.358768,
+      "radius": 0.203639,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 4.573912,
+      "y": -0.222956,
+      "half_x": 0.219477,
+      "half_y": 0.295013,
+      "yaw_rad": 0.318788
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 6.284041,
+      "y": -0.688584,
+      "half_x": 0.217467,
+      "half_y": 0.310223,
+      "yaw_rad": 0.165998
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 4.06238,
+      "y": 2.425212,
+      "half_x": 0.357458,
+      "half_y": 0.201302,
+      "yaw_rad": -0.178179
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "box",
+      "x": 5.599306,
+      "y": -2.037215,
+      "half_x": 0.340568,
+      "half_y": 0.155053,
+      "yaw_rad": 0.466836
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "cylinder",
+      "x": 5.70607,
+      "y": 2.543844,
+      "radius": 0.217242,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "cylinder",
+      "x": 3.139859,
+      "y": -2.680418,
+      "radius": 0.225563,
+      "yaw_rad": 0.0
+    }
+  ],
+  "challenge12.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 2.316425,
+      "y": 0.045699,
+      "radius": 0.283053,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 5.078222,
+      "y": 0.048843,
+      "half_x": 0.351962,
+      "half_y": 0.231604,
+      "yaw_rad": 0.415202
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 7.232286,
+      "y": -2.004639,
+      "half_x": 0.313506,
+      "half_y": 0.1745,
+      "yaw_rad": -0.395382
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 1.282408,
+      "y": 2.313335,
+      "half_x": 0.377873,
+      "half_y": 0.156279,
+      "yaw_rad": 0.026256
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 6.045533,
+      "y": -2.140617,
+      "radius": 0.269881,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "cylinder",
+      "x": 5.49611,
+      "y": 1.404993,
+      "radius": 0.203603,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "cylinder",
+      "x": 2.066907,
+      "y": -2.095528,
+      "radius": 0.225259,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "cylinder",
+      "x": 4.362861,
+      "y": -2.500868,
+      "radius": 0.288435,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "box",
+      "x": 4.322544,
+      "y": 2.014083,
+      "half_x": 0.252899,
+      "half_y": 0.273793,
+      "yaw_rad": -0.276391
+    },
+    {
+      "name": "ppt_obstacle_10",
+      "shape": "box",
+      "x": 7.037497,
+      "y": 1.472612,
+      "half_x": 0.237331,
+      "half_y": 0.291095,
+      "yaw_rad": -0.24629
+    }
+  ],
+  "challenge24.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "box",
+      "x": 2.304328,
+      "y": 0.097659,
+      "half_x": 0.287489,
+      "half_y": 0.228806,
+      "yaw_rad": 0.403521
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "cylinder",
+      "x": 5.500221,
+      "y": -0.094606,
+      "radius": 0.203855,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 3.790876,
+      "y": 1.274549,
+      "radius": 0.248147,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 2.131367,
+      "y": 2.065464,
+      "half_x": 0.354798,
+      "half_y": 0.173509,
+      "yaw_rad": -0.337557
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 1.417007,
+      "y": -1.894238,
+      "radius": 0.229908,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 7.302968,
+      "y": -1.520717,
+      "half_x": 0.248227,
+      "half_y": 0.270697,
+      "yaw_rad": -0.0215
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "cylinder",
+      "x": 5.686819,
+      "y": -2.591543,
+      "radius": 0.240591,
+      "yaw_rad": 0.0
+    }
+  ],
+  "challenge10.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 2.018328,
+      "y": -0.294824,
+      "radius": 0.256633,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 3.505228,
+      "y": 0.299447,
+      "half_x": 0.238124,
+      "half_y": 0.254287,
+      "yaw_rad": -0.356796
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 5.94455,
+      "y": -0.309693,
+      "radius": 0.205243,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 2.916444,
+      "y": -2.190784,
+      "half_x": 0.316236,
+      "half_y": 0.252345,
+      "yaw_rad": -0.121074
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "box",
+      "x": 4.74217,
+      "y": 2.174328,
+      "half_x": 0.373153,
+      "half_y": 0.146338,
+      "yaw_rad": -0.212484
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "cylinder",
+      "x": 1.900929,
+      "y": -1.492544,
+      "radius": 0.28844,
+      "yaw_rad": 0.0
+    }
+  ],
+  "r1_m02_space_middle_v2.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 1.874978,
+      "y": 0.1012,
+      "radius": 0.297424,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 3.793414,
+      "y": 1.888057,
+      "half_x": 0.286411,
+      "half_y": 0.240869,
+      "yaw_rad": 0.337323
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "box",
+      "x": 5.630977,
+      "y": 0.6,
+      "half_x": 0.249396,
+      "half_y": 0.181744,
+      "yaw_rad": 0.018855
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "box",
+      "x": 1.1965,
+      "y": -2.311893,
+      "half_x": 0.248559,
+      "half_y": 0.198315,
+      "yaw_rad": -0.033956
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "box",
+      "x": 6.364131,
+      "y": 2.290798,
+      "half_x": 0.284337,
+      "half_y": 0.22925,
+      "yaw_rad": -0.021597
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "cylinder",
+      "x": 2.9556,
+      "y": 0.913935,
+      "radius": 0.272007,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 5.307735,
+      "y": -1.712166,
+      "half_x": 0.250069,
+      "half_y": 0.239492,
+      "yaw_rad": 0.155141
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "cylinder",
+      "x": 1.468269,
+      "y": 1.199806,
+      "radius": 0.258316,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "cylinder",
+      "x": 4.979332,
+      "y": 2.386852,
+      "radius": 0.289419,
+      "yaw_rad": 0.0
+    }
+  ],
+  "r1_ch15_left_x06_v2.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 3.081568,
+      "y": -0.037558,
+      "radius": 0.25231,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 4.771748,
+      "y": -0.071283,
+      "half_x": 0.295975,
+      "half_y": 0.205553,
+      "yaw_rad": -0.095362
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 6.462843,
+      "y": 0.305638,
+      "radius": 0.237561,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 5.802164,
+      "y": 1.677283,
+      "radius": 0.278959,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 2.627481,
+      "y": -2.326528,
+      "radius": 0.274306,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 2.006776,
+      "y": 1.585521,
+      "half_x": 0.267507,
+      "half_y": 0.223762,
+      "yaw_rad": 0.138824
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 6.024492,
+      "y": -2.29389,
+      "half_x": 0.273605,
+      "half_y": 0.210099,
+      "yaw_rad": 0.090485
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "box",
+      "x": 4.075718,
+      "y": -2.248528,
+      "half_x": 0.265645,
+      "half_y": 0.228846,
+      "yaw_rad": 0.015317
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "cylinder",
+      "x": 3.68329,
+      "y": 1.473857,
+      "radius": 0.279223,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_10",
+      "shape": "box",
+      "x": 5.051167,
+      "y": 2.560482,
+      "half_x": 0.283789,
+      "half_y": 0.193852,
+      "yaw_rad": -0.257993
+    },
+    {
+      "name": "ppt_obstacle_11",
+      "shape": "cylinder",
+      "x": 2.854525,
+      "y": -1.182043,
+      "radius": 0.35,
+      "yaw_rad": 0.0
+    }
+  ],
+  "r1_ch15_left_x02_v2.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 3.081568,
+      "y": -0.037558,
+      "radius": 0.25231,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 4.771748,
+      "y": -0.071283,
+      "half_x": 0.295975,
+      "half_y": 0.205553,
+      "yaw_rad": -0.095362
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 5.962843,
+      "y": 0.305638,
+      "radius": 0.237561,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 5.802164,
+      "y": 1.677283,
+      "radius": 0.278959,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 2.627481,
+      "y": -2.326528,
+      "radius": 0.274306,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 2.006776,
+      "y": 1.585521,
+      "half_x": 0.267507,
+      "half_y": 0.223762,
+      "yaw_rad": 0.138824
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 6.024492,
+      "y": -2.29389,
+      "half_x": 0.273605,
+      "half_y": 0.210099,
+      "yaw_rad": 0.090485
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "box",
+      "x": 4.075718,
+      "y": -2.248528,
+      "half_x": 0.265645,
+      "half_y": 0.228846,
+      "yaw_rad": 0.015317
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "cylinder",
+      "x": 3.68329,
+      "y": 1.473857,
+      "radius": 0.279223,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_10",
+      "shape": "box",
+      "x": 5.051167,
+      "y": 2.560482,
+      "half_x": 0.283789,
+      "half_y": 0.193852,
+      "yaw_rad": -0.257993
+    },
+    {
+      "name": "ppt_obstacle_11",
+      "shape": "cylinder",
+      "x": 2.854525,
+      "y": -1.182043,
+      "radius": 0.35,
+      "yaw_rad": 0.0
+    }
+  ],
+  "r1_ch15_left_x05_v2.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 3.081568,
+      "y": -0.037558,
+      "radius": 0.25231,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 4.771748,
+      "y": -0.071283,
+      "half_x": 0.295975,
+      "half_y": 0.205553,
+      "yaw_rad": -0.095362
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 6.362843,
+      "y": 0.305638,
+      "radius": 0.237561,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 5.802164,
+      "y": 1.677283,
+      "radius": 0.278959,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 2.627481,
+      "y": -2.326528,
+      "radius": 0.274306,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 2.006776,
+      "y": 1.585521,
+      "half_x": 0.267507,
+      "half_y": 0.223762,
+      "yaw_rad": 0.138824
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 6.024492,
+      "y": -2.29389,
+      "half_x": 0.273605,
+      "half_y": 0.210099,
+      "yaw_rad": 0.090485
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "box",
+      "x": 4.075718,
+      "y": -2.248528,
+      "half_x": 0.265645,
+      "half_y": 0.228846,
+      "yaw_rad": 0.015317
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "cylinder",
+      "x": 3.68329,
+      "y": 1.473857,
+      "radius": 0.279223,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_10",
+      "shape": "box",
+      "x": 5.051167,
+      "y": 2.560482,
+      "half_x": 0.283789,
+      "half_y": 0.193852,
+      "yaw_rad": -0.257993
+    },
+    {
+      "name": "ppt_obstacle_11",
+      "shape": "cylinder",
+      "x": 2.854525,
+      "y": -1.182043,
+      "radius": 0.35,
+      "yaw_rad": 0.0
+    }
+  ],
+  "r1_ch15_left_x04_v2.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 3.081568,
+      "y": -0.037558,
+      "radius": 0.25231,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 4.771748,
+      "y": -0.071283,
+      "half_x": 0.295975,
+      "half_y": 0.205553,
+      "yaw_rad": -0.095362
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 6.262843,
+      "y": 0.305638,
+      "radius": 0.237561,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 5.802164,
+      "y": 1.677283,
+      "radius": 0.278959,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 2.627481,
+      "y": -2.326528,
+      "radius": 0.274306,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 2.006776,
+      "y": 1.585521,
+      "half_x": 0.267507,
+      "half_y": 0.223762,
+      "yaw_rad": 0.138824
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 6.024492,
+      "y": -2.29389,
+      "half_x": 0.273605,
+      "half_y": 0.210099,
+      "yaw_rad": 0.090485
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "box",
+      "x": 4.075718,
+      "y": -2.248528,
+      "half_x": 0.265645,
+      "half_y": 0.228846,
+      "yaw_rad": 0.015317
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "cylinder",
+      "x": 3.68329,
+      "y": 1.473857,
+      "radius": 0.279223,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_10",
+      "shape": "box",
+      "x": 5.051167,
+      "y": 2.560482,
+      "half_x": 0.283789,
+      "half_y": 0.193852,
+      "yaw_rad": -0.257993
+    },
+    {
+      "name": "ppt_obstacle_11",
+      "shape": "cylinder",
+      "x": 2.854525,
+      "y": -1.182043,
+      "radius": 0.35,
+      "yaw_rad": 0.0
+    }
+  ],
+  "r1_ch15_left_x01_v2.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 3.081568,
+      "y": -0.037558,
+      "radius": 0.25231,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 4.771748,
+      "y": -0.071283,
+      "half_x": 0.295975,
+      "half_y": 0.205553,
+      "yaw_rad": -0.095362
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 5.862843,
+      "y": 0.305638,
+      "radius": 0.237561,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 5.802164,
+      "y": 1.677283,
+      "radius": 0.278959,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 2.627481,
+      "y": -2.326528,
+      "radius": 0.274306,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 2.006776,
+      "y": 1.585521,
+      "half_x": 0.267507,
+      "half_y": 0.223762,
+      "yaw_rad": 0.138824
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 6.024492,
+      "y": -2.29389,
+      "half_x": 0.273605,
+      "half_y": 0.210099,
+      "yaw_rad": 0.090485
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "box",
+      "x": 4.075718,
+      "y": -2.248528,
+      "half_x": 0.265645,
+      "half_y": 0.228846,
+      "yaw_rad": 0.015317
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "cylinder",
+      "x": 3.68329,
+      "y": 1.473857,
+      "radius": 0.279223,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_10",
+      "shape": "box",
+      "x": 5.051167,
+      "y": 2.560482,
+      "half_x": 0.283789,
+      "half_y": 0.193852,
+      "yaw_rad": -0.257993
+    },
+    {
+      "name": "ppt_obstacle_11",
+      "shape": "cylinder",
+      "x": 2.854525,
+      "y": -1.182043,
+      "radius": 0.35,
+      "yaw_rad": 0.0
+    }
+  ],
+  "r1_ch15_left_x03_v2.xml": [
+    {
+      "name": "ppt_obstacle_01",
+      "shape": "cylinder",
+      "x": 3.081568,
+      "y": -0.037558,
+      "radius": 0.25231,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_02",
+      "shape": "box",
+      "x": 4.771748,
+      "y": -0.071283,
+      "half_x": 0.295975,
+      "half_y": 0.205553,
+      "yaw_rad": -0.095362
+    },
+    {
+      "name": "ppt_obstacle_03",
+      "shape": "cylinder",
+      "x": 6.062843,
+      "y": 0.305638,
+      "radius": 0.237561,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_04",
+      "shape": "cylinder",
+      "x": 5.802164,
+      "y": 1.677283,
+      "radius": 0.278959,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_05",
+      "shape": "cylinder",
+      "x": 2.627481,
+      "y": -2.326528,
+      "radius": 0.274306,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_06",
+      "shape": "box",
+      "x": 2.006776,
+      "y": 1.585521,
+      "half_x": 0.267507,
+      "half_y": 0.223762,
+      "yaw_rad": 0.138824
+    },
+    {
+      "name": "ppt_obstacle_07",
+      "shape": "box",
+      "x": 6.024492,
+      "y": -2.29389,
+      "half_x": 0.273605,
+      "half_y": 0.210099,
+      "yaw_rad": 0.090485
+    },
+    {
+      "name": "ppt_obstacle_08",
+      "shape": "box",
+      "x": 4.075718,
+      "y": -2.248528,
+      "half_x": 0.265645,
+      "half_y": 0.228846,
+      "yaw_rad": 0.015317
+    },
+    {
+      "name": "ppt_obstacle_09",
+      "shape": "cylinder",
+      "x": 3.68329,
+      "y": 1.473857,
+      "radius": 0.279223,
+      "yaw_rad": 0.0
+    },
+    {
+      "name": "ppt_obstacle_10",
+      "shape": "box",
+      "x": 5.051167,
+      "y": 2.560482,
+      "half_x": 0.283789,
+      "half_y": 0.193852,
+      "yaw_rad": -0.257993
+    },
+    {
+      "name": "ppt_obstacle_11",
+      "shape": "cylinder",
+      "x": 2.854525,
+      "y": -1.182043,
+      "radius": 0.35,
+      "yaw_rad": 0.0
+    }
+  ]
+}

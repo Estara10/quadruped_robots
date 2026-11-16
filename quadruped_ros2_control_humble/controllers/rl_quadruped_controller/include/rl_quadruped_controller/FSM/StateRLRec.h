@@ -10,9 +10,11 @@
 #include <torch/script.h>
 
 #include <atomic>
+#include <array>
 #include <thread>
 
 #include "rl_quadruped_controller/common/StoppableThread.h"
+#include "rl_quadruped_controller/FSM/RecoveryVelocitySource.h"
 #include "controller_common/FSM/FSMState.h"
 
 struct CtrlComponent;
@@ -131,13 +133,15 @@ class StateRLRec final : public FSMState
 public:
     explicit StateRLRec(CtrlInterfaces& ctrl_interfaces,
                         CtrlComponent& ctrl_component,
-                        const std::vector<double>& target_pos);
+                        const std::vector<double>& target_pos,
+                        RecoveryVelocitySource velocity_source);
     ~StateRLRec() override;
 
     void enter() override;
     void run(const rclcpp::Time& time, const rclcpp::Duration& period) override;
     void exit() override;
     FSMStateName checkChange() override;
+    bool hasSelectedLinearVelocity() const;
 
 private:
     torch::Tensor computeObservation();
@@ -147,6 +151,14 @@ private:
     torch::Tensor forward();
     void getState();
     void runModel();
+    // A selected linear velocity plus the frame it was reported in. The
+    // independent source already reports base-frame twist.
+    struct SelectedVelocity
+    {
+        std::array<double, 3> value{};
+        bool sampled_body_frame = false;
+    };
+    bool selectedLinearVelocity(SelectedVelocity& selected) const;
     void setCommand() const;
     void startRlThread();
     void stopRlThread();
@@ -158,6 +170,7 @@ private:
 
     bool enable_estimator_;
     std::shared_ptr<Estimator>& estimator_;
+    RecoveryVelocitySource velocity_source_;
 
     ModelParamsRec params_;
     ObservationsRec obs_;

@@ -9,6 +9,7 @@
 #include <rl_quadruped_controller/control/CtrlComponent.h>
 #include <rl_quadruped_controller/FSM/RASwitchingLogic.hpp>
 #include <rl_quadruped_controller/FSM/StartupGainTransition.hpp>
+#include <rl_quadruped_controller/FSM/PeriodicTwistSchedule.hpp>
 #include <torch/script.h>
 
 #include <array>
@@ -197,6 +198,9 @@ private:
     void runRAModel();
     // ROS1: gradient descent twist optimization + recovery action (lines 498-538)
     void computeRecoveryTwist();
+    bool optimizeRecoveryTwist(const char* update_type,
+                               const std::array<double, 3>& before,
+                               double elapsed_sim_s);
     torch::Tensor computeRecoveryObservation(const torch::Tensor& twist);  // 49-dim for recovery policy
     void logEvalTelemetry(double robot_wx, double robot_wy, double robot_yaw,
                           double goal_wx, double goal_wy, double dist_to_goal,
@@ -236,6 +240,13 @@ private:
     std::string model_folder_ = "legged_gym";
 
     bool enable_estimator_;
+    std::string runtime_mode_ = "mujoco";
+    double runtime_clock_time_s_ = 0.0;
+    bool runtime_clock_valid_ = false;
+    uint64_t runtime_clock_segment_ = 0;
+    // Navigation frame captured at RL entry for the independent source. Reset on
+    // every enter(): a previous session's origin is never reused.
+    abs_navigation_state::Origin navigation_origin_;
     std::shared_ptr<Estimator>& estimator_;
 
     // Parameters
@@ -326,6 +337,7 @@ private:
         uint32_t hold_status = 0;
         uint32_t hold_enabled = 0;
         double sim_time_s = 0.0;
+        uint64_t cycle_start_monotonic_ns = 0;
         uint64_t sim_clock_sequence = 0;
         uint64_t sim_clock_monotonic_ns = 0;
         uint64_t sim_clock_segment_id = 0;
@@ -377,6 +389,11 @@ private:
     // World-frame goal position (from YAML config, matches paper GOAL_XYZ)
     double goal_x_ = 7.0;
     double goal_y_ = 0.0;
+    // Goal exactly as configured. A vins_body session re-anchors its navigation
+    // frame on entry, so a goal expressed in a previous session's frame must not
+    // be carried into the new one.
+    double configured_goal_x_ = 7.0;
+    double configured_goal_y_ = 0.0;
     bool resample_goal_on_arrival_ = false;
 
     // Recovery-aware straight-line tracking: constrain normal agile to the
@@ -386,12 +403,14 @@ private:
     double path_start_y_ = 0.0;
     bool in_recovery_ = false;
     int rec_hold_left_ = 0;
-    double recovery_enter_sim_time_s_ = 0.0;
+    double recovery_enter_time_s_ = 0.0;
     uint64_t recovery_clock_segment_ = 0;
     bool recovery_enter_time_valid_ = false;
     double cached_rec_vx_ = 0.0;
     double cached_rec_vy_ = 0.0;
     double cached_rec_wz_ = 0.0;
+    bool periodic_twist_updates_ = false;
+    abs_twist_update::PeriodicSchedule periodic_twist_schedule_;
 
     // One session-local controller-time blend from the last written FIXEDSTAND
     // gains to the policy targets. Shared by Agile and Recovery.

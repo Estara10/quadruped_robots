@@ -9,12 +9,22 @@
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <torch/script.h>
 
+#include "rl_quadruped_controller/FSM/NavigationStateSource.hpp"
+
 struct CtrlComponent {
 
     bool enable_estimator_ = false;
     std::shared_ptr<QuadrupedRobot> robot_model_;
     std::shared_ptr<Estimator> estimator_;
     std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_;
+
+    // Explicit navigation/velocity state source. "odom" (default) keeps the
+    // existing MuJoCo/SportModeState path; "vins_body" must be selected
+    // deliberately and is never a silent fallback.
+    abs_navigation_state::Source navigation_state_source_ = abs_navigation_state::Source::ODOM;
+    // Non-null only when navigation_state_source_ == VINS_BODY.
+    std::shared_ptr<abs_navigation_state::Mailbox> external_body_state_;
+    uint64_t external_state_timeout_ns_ = 0;
 
     // Shared RA model for recovery twist optimization + safe-return check
     torch::jit::script::Module* ra_model = nullptr;

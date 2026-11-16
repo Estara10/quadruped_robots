@@ -149,6 +149,7 @@ ocs2_quadruped_controller:
 
 rl_quadruped_controller:
   ros__parameters:
+    runtime_mode: "mujoco"  # real_go2.launch.py overrides this explicitly to hardware
     update_rate: 200  # Hz
     robot_pkg: "go2_description"
     use_rl_thread: false

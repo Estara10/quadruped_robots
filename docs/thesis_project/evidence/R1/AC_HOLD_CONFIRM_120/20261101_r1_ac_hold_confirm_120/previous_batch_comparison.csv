@@ -1,0 +1,13 @@
+map,level,previous_planned,previous_valid_records,previous_arrived,previous_arrival_rate,previous_collision_terminations,previous_sim_timeouts,previous_wall_clock_guard,current_planned,current_valid_records,current_arrived,current_arrival_rate,current_collision_terminations,current_sim_timeouts,current_wall_clock_guard,previous_C_minus_A_pp,current_C_minus_A_pp
+challenge15.xml,A,8,8,2,0.25,6,0,0,10,10,3,0.3,7,0,0,,
+challenge15.xml,C_H0.02,8,8,5,0.625,3,0,0,10,10,5,0.5,5,0,0,37.5,20.0
+challenge15.xml,C_H0.10,8,8,2,0.25,6,0,0,10,10,5,0.5,5,0,0,0.0,20.0
+challenge15.xml,C_H0.12,8,8,6,0.75,1,1,0,10,10,5,0.5,4,1,0,50.0,20.0
+challenge27.xml,A,8,8,1,0.125,1,6,0,10,10,1,0.1,1,8,0,,
+challenge27.xml,C_H0.02,8,8,1,0.125,4,3,0,10,10,3,0.3,1,5,1,0.0,20.0
+challenge27.xml,C_H0.10,8,8,3,0.375,0,5,0,10,10,1,0.1,2,7,0,25.0,0.0
+challenge27.xml,C_H0.12,8,8,1,0.125,0,7,0,10,10,1,0.1,1,8,0,0.0,0.0
+r1_m02_space_middle_v2.xml,A,8,8,1,0.125,7,0,0,10,10,2,0.2,8,0,0,,
+r1_m02_space_middle_v2.xml,C_H0.02,8,8,2,0.25,6,0,0,10,10,2,0.2,8,0,0,12.5,0.0
+r1_m02_space_middle_v2.xml,C_H0.10,8,8,4,0.5,4,0,0,10,10,2,0.2,8,0,0,37.5,0.0
+r1_m02_space_middle_v2.xml,C_H0.12,8,8,4,0.5,4,0,0,10,10,2,0.2,8,0,0,37.5,0.0

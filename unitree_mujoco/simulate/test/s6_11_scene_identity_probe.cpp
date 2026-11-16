@@ -65,6 +65,32 @@ int fingerprintMode(int argc, char** argv) {
   return 0;
 }
 
+int unregisteredFingerprintMode(int argc, char** argv) {
+  if (argc < 5) {
+    std::cerr << "usage: s6_11_scene_identity_probe --fingerprints-unregistered <scene-dir> <obstacle-count> <xml>...\n";
+    return 2;
+  }
+  const std::string scene_dir = argv[2];
+  const int obstacle_count = std::atoi(argv[3]);
+  if (obstacle_count <= 0) return 2;
+  for (int i = 4; i < argc; ++i) {
+    const std::string filename = argv[i];
+    const abs_scene::SceneSpec spec{filename.c_str(), "unregistered", obstacle_count,
+        abs_scene::ObstacleKind::kNamedPptObstacles, "", "", ""};
+    mjModel* model = nullptr;
+    std::string fingerprint, error;
+    if (!loadScene(scene_dir, &spec, &model, &fingerprint, &error)) {
+      std::cerr << "FAILED filename=" << filename << " error=" << error << "\n";
+      return 3;
+    }
+    std::cout << "SCENE filename=" << filename << " obstacle_count=" << obstacle_count
+              << " fingerprint=" << fingerprint
+              << " mujoco_version=" << mj_versionString() << "\n";
+    mj_deleteModel(model);
+  }
+  return 0;
+}
+
 int publishMode(int argc, char** argv) {
   if (argc != 5) {
     std::cerr << "usage: s6_11_scene_identity_probe --publish <scene-dir> <xml> <shm-name>\n";
@@ -109,6 +135,7 @@ int publishMode(int argc, char** argv) {
 
 int main(int argc, char** argv) {
   if (argc >= 2 && std::strcmp(argv[1], "--fingerprints") == 0) return fingerprintMode(argc, argv);
+  if (argc >= 2 && std::strcmp(argv[1], "--fingerprints-unregistered") == 0) return unregisteredFingerprintMode(argc, argv);
   if (argc >= 2 && std::strcmp(argv[1], "--publish") == 0) return publishMode(argc, argv);
   std::cerr << "expected --fingerprints or --publish\n";
   return 2;

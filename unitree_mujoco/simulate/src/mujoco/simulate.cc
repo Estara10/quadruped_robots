@@ -2727,15 +2727,6 @@ void Simulate::Render() {
   if (standing_prompt_active) {
     abs_panel_text = "ARRIVED - HOLDING STAND\n" + abs_panel_text;
   }
-  if (!this->help) {
-    mjrRect abs_panel_rect = rect;
-    // Leave room for the realtime multiplier label above the panel.
-    abs_panel_rect.height = std::max(1, abs_panel_rect.height - 40);
-    mjr_overlay(mjFONT_NORMAL, mjGRID_TOPLEFT, abs_panel_rect,
-                abs_panel_text.c_str(), nullptr,
-                &this->platform_ui->mjr_context());
-  }
-
   // show ui 0
   if (this->ui0_enable) {
     mjui_render(&this->ui0, &this->uistate, &this->platform_ui->mjr_context());
@@ -2858,6 +2849,12 @@ void Simulate::Render() {
   for (auto& [viewport, image] : this->user_images_) {
     ShowImage(this, viewport, image);
   }
+
+  // Keep the authoritative live status visible above the regular viewer UI
+  // and help overlays. The top-right scene corner avoids the realtime label
+  // and the standard left-side controls.
+  mjr_overlay(mjFONT_NORMAL, mjGRID_TOPRIGHT, rect, abs_panel_text.c_str(),
+              nullptr, &this->platform_ui->mjr_context());
 
   // finalize
   this->platform_ui->SwapBuffers();

@@ -65,7 +65,8 @@ def pack_frame(frame: RuntimeFrame) -> bytes:
     return _FRAME_STRUCT.pack(*ints, *flags, frame.sim_time_s, *floats,
                               frame.hold_status, frame.hold_enabled,
                               frame.recovery_min_hold_s, frame.hold_enter_sim_time_s,
-                              frame.hold_elapsed_sim_s)
+                              frame.hold_elapsed_sim_s,
+                              frame.policy_cycle_duration_ns or 0)
 
 
 def fixture(
@@ -81,6 +82,7 @@ def fixture(
     ra_value=0.1,
     lin_vel=(0.3, 0.4, 0.0),
     torque_saturated_computed=0,
+    policy_cycle_duration_ns=12_000_000,
 ):
     return RuntimeFrame(
         magic=FRAME_MAGIC, version=FRAME_VERSION, sequence=sequence,
@@ -106,6 +108,7 @@ def fixture(
         joint_target_rad=tuple(float(i + 2) for i in range(12)),
         torque_nm=tuple(float(i + 3) for i in range(12)),
         torque_saturated=tuple(0.0 for _ in range(12)),
+        policy_cycle_duration_ns=policy_cycle_duration_ns,
     )
 
 
@@ -297,6 +300,23 @@ def test_summary_statistics_from_live_frames():
         assert summary["collision"]["available"] is False
         assert summary["collision"]["event_count"] is None
         assert summary["outcome"] == "UNKNOWN"
+
+
+def test_recovery_policy_cycle_overrun_uses_strict_20ms_threshold():
+    samples = [
+        _fresh(fixture(sequence=2, rl_step=1, monotonic_ns=100, policy_state=1,
+                       policy_cycle_duration_ns=20_000_000)),
+        _fresh(fixture(sequence=4, rl_step=2, monotonic_ns=110, policy_state=1,
+                       policy_cycle_duration_ns=20_000_001)),
+    ]
+    with tempfile.TemporaryDirectory() as tmp:
+        path = str(Path(tmp) / "run.jsonl")
+        _record(path, samples)
+        cost = summarize_record(path)["policy_cycle_cost"]
+        assert cost["timed_recovery_cycles"] == 2
+        assert cost["untimed_recovery_cycles"] == 0
+        assert cost["overrun_recovery_cycles"] == 1
+        assert cost["overrun_fraction"] == 0.5
 
 
 # ----------------------------------------------------------------- fail-closed record

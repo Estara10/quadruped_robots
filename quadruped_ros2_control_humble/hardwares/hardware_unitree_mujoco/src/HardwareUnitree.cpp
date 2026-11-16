@@ -8,6 +8,9 @@
 #include <rclcpp/logging.hpp>
 
 #include <cmath>
+#include <algorithm>
+#include <chrono>
+#include <limits>
 #include <unistd.h>
 
 #include "crc32.h"
@@ -21,6 +24,12 @@ namespace
 constexpr float PosStopF = 2.146E+9f;
 constexpr float VelStopF = 16000.0f;
 constexpr double CommandEps = 1e-9;
+
+uint64_t monotonicNowNs()
+{
+    return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+}
 }
 
 using namespace unitree::robot;
@@ -72,14 +81,16 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn Hardwa
     {
         show_foot_force_ = show_foot_force_param->second == "true";
     }
+    if (const auto freshness_param = info.hardware_parameters.find("state_freshness_timeout_ms");
+        freshness_param != info.hardware_parameters.end())
+    {
+        const long timeout_ms = std::stol(freshness_param->second);
+        if (timeout_ms <= 0) return CallbackReturn::ERROR;
+        state_freshness_timeout_ns_ = static_cast<uint64_t>(timeout_ms) * 1'000'000ULL;
+    }
 
     RCLCPP_INFO(rclcpp::get_logger("unitree_hardware"), " network_interface: %s, domain: %d", network_interface_.c_str(), domain_);
     ChannelFactory::Instance()->Init(domain_, network_interface_);
-
-    low_cmd_publisher_ =
-        std::make_shared<ChannelPublisher<unitree_go::msg::dds_::LowCmd_>>(
-            TOPIC_LOWCMD);
-    low_cmd_publisher_->InitChannel();
 
     lows_tate_subscriber_ =
         std::make_shared<ChannelSubscriber<unitree_go::msg::dds_::LowState_>>(
@@ -103,31 +114,64 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn Hardwa
         },
         1);
 
-    if (network_interface_ != "lo")
-    {
-        releaseMotionMode();
-    }
-
-
-    return SystemInterface::on_init(info);
+    return CallbackReturn::SUCCESS;
 }
 
 HardwareUnitree::~HardwareUnitree()
 {
-    if (network_interface_ != "lo" && motion_switcher_)
+    // Destruction must not let a transport exception terminate the process.
+    try
     {
-        restoreMotionMode();
+        stopAndRestoreMotionMode();
     }
+    catch (const std::exception& error)
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("unitree_hardware"),
+                     "Shutdown failed: %s; native control takeover is NOT confirmed", error.what());
+    }
+}
+
+HardwareUnitree::CallbackReturn HardwareUnitree::on_activate(const rclcpp_lifecycle::State&)
+{
+    std::lock_guard<std::mutex> lock(command_mutex_);
+    if (network_interface_ != "lo")
+    {
+        if (restore_required_ || !releaseMotionMode())
+        {
+            restoreMotionMode();
+            return CallbackReturn::ERROR;
+        }
+    }
+    std::fill(joint_kp_command_.begin(), joint_kp_command_.end(), 0.0);
+    std::fill(joint_kd_command_.begin(), joint_kd_command_.end(), 0.0);
+    std::fill(joint_torque_command_.begin(), joint_torque_command_.end(), 0.0);
+    initLowCmd();
+    low_cmd_publisher_ = std::make_shared<ChannelPublisher<unitree_go::msg::dds_::LowCmd_>>(TOPIC_LOWCMD);
+    try
+    {
+        low_cmd_publisher_->InitChannel();
+    }
+    catch (const std::exception& error)
+    {
+        low_cmd_publisher_->CloseChannel();
+        low_cmd_publisher_.reset();
+        RCLCPP_ERROR(rclcpp::get_logger("unitree_hardware"),
+                     "LowCmd publisher activation failed: %s", error.what());
+        restoreMotionMode();
+        return CallbackReturn::ERROR;
+    }
+    return CallbackReturn::SUCCESS;
+}
+
+HardwareUnitree::CallbackReturn HardwareUnitree::on_deactivate(const rclcpp_lifecycle::State&)
+{
+    return stopAndRestoreMotionMode() ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn HardwareUnitree::on_shutdown(
     const rclcpp_lifecycle::State& /* previous_state */)
 {
-    if (network_interface_ != "lo" && motion_switcher_)
-    {
-        restoreMotionMode();
-    }
-    return CallbackReturn::SUCCESS;
+    return stopAndRestoreMotionMode() ? CallbackReturn::SUCCESS : CallbackReturn::ERROR;
 }
 
 std::vector<hardware_interface::StateInterface> HardwareUnitree::export_state_interfaces()
@@ -214,32 +258,50 @@ std::vector<hardware_interface::CommandInterface> HardwareUnitree::export_comman
 
 return_type HardwareUnitree::read(const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/)
 {
+    unitree_go::msg::dds_::LowState_ low_state;
+    unitree_go::msg::dds_::SportModeState_ high_state;
+    uint64_t low_received_ns = 0;
+    uint64_t sport_received_ns = 0;
+    {
+        std::lock_guard<std::mutex> lock(state_mutex_);
+        low_state = low_state_;
+        high_state = high_state_;
+        low_received_ns = low_state_received_ns_;
+        sport_received_ns = sport_state_received_ns_;
+    }
+    const uint64_t now_ns = monotonicNowNs();
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const bool low_fresh = low_received_ns != 0 && now_ns >= low_received_ns &&
+                           now_ns - low_received_ns <= state_freshness_timeout_ns_;
+    const bool sport_fresh = sport_received_ns != 0 && now_ns >= sport_received_ns &&
+                             now_ns - sport_received_ns <= state_freshness_timeout_ns_;
+
     // joint states
     for (int i(0); i < 12; ++i)
     {
         const int motor_idx = motor_index_map_[i];
-        joint_position_[i] = low_state_.motor_state()[motor_idx].q();
-        joint_velocities_[i] = low_state_.motor_state()[motor_idx].dq();
-        joint_effort_[i] = low_state_.motor_state()[motor_idx].tau_est();
+        joint_position_[i] = low_fresh ? low_state.motor_state()[motor_idx].q() : nan;
+        joint_velocities_[i] = low_fresh ? low_state.motor_state()[motor_idx].dq() : nan;
+        joint_effort_[i] = low_fresh ? low_state.motor_state()[motor_idx].tau_est() : nan;
     }
 
     // imu states
-    imu_states_[0] = low_state_.imu_state().quaternion()[0]; // w
-    imu_states_[1] = low_state_.imu_state().quaternion()[1]; // x
-    imu_states_[2] = low_state_.imu_state().quaternion()[2]; // y
-    imu_states_[3] = low_state_.imu_state().quaternion()[3]; // z
-    imu_states_[4] = low_state_.imu_state().gyroscope()[0];
-    imu_states_[5] = low_state_.imu_state().gyroscope()[1];
-    imu_states_[6] = low_state_.imu_state().gyroscope()[2];
-    imu_states_[7] = low_state_.imu_state().accelerometer()[0];
-    imu_states_[8] = low_state_.imu_state().accelerometer()[1];
-    imu_states_[9] = low_state_.imu_state().accelerometer()[2];
+    imu_states_[0] = low_fresh ? low_state.imu_state().quaternion()[0] : nan; // w
+    imu_states_[1] = low_fresh ? low_state.imu_state().quaternion()[1] : nan; // x
+    imu_states_[2] = low_fresh ? low_state.imu_state().quaternion()[2] : nan; // y
+    imu_states_[3] = low_fresh ? low_state.imu_state().quaternion()[3] : nan; // z
+    imu_states_[4] = low_fresh ? low_state.imu_state().gyroscope()[0] : nan;
+    imu_states_[5] = low_fresh ? low_state.imu_state().gyroscope()[1] : nan;
+    imu_states_[6] = low_fresh ? low_state.imu_state().gyroscope()[2] : nan;
+    imu_states_[7] = low_fresh ? low_state.imu_state().accelerometer()[0] : nan;
+    imu_states_[8] = low_fresh ? low_state.imu_state().accelerometer()[1] : nan;
+    imu_states_[9] = low_fresh ? low_state.imu_state().accelerometer()[2] : nan;
 
     // contact states
-    foot_force_[0] = low_state_.foot_force()[0];
-    foot_force_[1] = low_state_.foot_force()[1];
-    foot_force_[2] = low_state_.foot_force()[2];
-    foot_force_[3] = low_state_.foot_force()[3];
+    foot_force_[0] = low_fresh ? low_state.foot_force()[0] : nan;
+    foot_force_[1] = low_fresh ? low_state.foot_force()[1] : nan;
+    foot_force_[2] = low_fresh ? low_state.foot_force()[2] : nan;
+    foot_force_[3] = low_fresh ? low_state.foot_force()[3] : nan;
 
     if (show_foot_force_)
     {
@@ -248,12 +310,12 @@ return_type HardwareUnitree::read(const rclcpp::Time& /*time*/, const rclcpp::Du
     }
 
     // high states
-    high_states_[0] = high_state_.position()[0];
-    high_states_[1] = high_state_.position()[1];
-    high_states_[2] = high_state_.position()[2];
-    high_states_[3] = high_state_.velocity()[0];
-    high_states_[4] = high_state_.velocity()[1];
-    high_states_[5] = high_state_.velocity()[2];
+    high_states_[0] = sport_fresh ? high_state.position()[0] : nan;
+    high_states_[1] = sport_fresh ? high_state.position()[1] : nan;
+    high_states_[2] = sport_fresh ? high_state.position()[2] : nan;
+    high_states_[3] = sport_fresh ? high_state.velocity()[0] : nan;
+    high_states_[4] = sport_fresh ? high_state.velocity()[1] : nan;
+    high_states_[5] = sport_fresh ? high_state.velocity()[2] : nan;
 
     // RCLCPP_INFO(get_logger(), "high state: %f %f %f %f %f %f", high_states_[0], high_states_[1], high_states_[2],
     //             high_states_[3], high_states_[4], high_states_[5]);
@@ -263,6 +325,8 @@ return_type HardwareUnitree::read(const rclcpp::Time& /*time*/, const rclcpp::Du
 
 return_type HardwareUnitree::write(const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/)
 {
+    std::lock_guard<std::mutex> lock(command_mutex_);
+    if (!low_cmd_publisher_) return return_type::OK;
     // Always start from the Unitree stop sentinel for all 20 motor slots.
     // This matches Unitree Go2 low-level examples and prevents stale commands
     // on unused motor slots from carrying over between control modes.
@@ -342,127 +406,116 @@ void HardwareUnitree::stopMotorCmd(unitree_go::msg::dds_::MotorCmd_& motor_cmd) 
     motor_cmd.tau() = 0;
 }
 
-void HardwareUnitree::releaseMotionMode()
+bool HardwareUnitree::releaseMotionMode()
 {
     motion_switcher_ = std::make_unique<unitree::robot::b2::MotionSwitcherClient>();
     motion_switcher_->SetTimeout(10.0f);
     motion_switcher_->Init();
-
-    for (int attempt = 0; attempt < 5; ++attempt)
-    {
-        std::string service_name;
-        const int motion_status = queryMotionStatus(service_name);
-        if (motion_status == 0)
-        {
-            RCLCPP_INFO(rclcpp::get_logger("unitree_hardware"),
-                        "Motion service is already deactivated");
-            return;
-        }
-        if (motion_status < 0)
-        {
-            RCLCPP_WARN(rclcpp::get_logger("unitree_hardware"),
-                        "Could not query motion service status; continuing with LowCmd setup");
-            return;
-        }
-
-        RCLCPP_WARN(rclcpp::get_logger("unitree_hardware"),
-                    "Motion service '%s' is active; releasing before LowCmd control (attempt %d/5)",
-                    service_name.c_str(), attempt + 1);
-        const int32_t ret = motion_switcher_->ReleaseMode();
-        if (ret != 0)
-        {
-            RCLCPP_WARN(rclcpp::get_logger("unitree_hardware"),
-                        "ReleaseMode failed with code %d", ret);
-        }
-        sleep(1);
-    }
-
-    std::string service_name;
-    if (queryMotionStatus(service_name) > 0)
+    if (motion_switcher_->CheckMode(original_form_, original_mode_) != 0)
     {
         RCLCPP_ERROR(rclcpp::get_logger("unitree_hardware"),
-                     "Motion service '%s' is still active after ReleaseMode attempts; LowCmd may fight sport_mode",
-                     service_name.c_str());
+                     "Cannot query native motion mode; refusing LowCmd activation");
+        return false;
     }
+    if (original_mode_.empty())
+    {
+        RCLCPP_WARN(rclcpp::get_logger("unitree_hardware"),
+                    "No native motion mode was active; shutdown will not select a replacement mode");
+        return true;
+    }
+
+    // A request may succeed even if its response is lost. Keep the original
+    // mode until restoration has been confirmed, including activation failure.
+    restore_required_ = true;
+    for (int attempt = 0; attempt < 5; ++attempt)
+    {
+        const int32_t ret = motion_switcher_->ReleaseMode();
+        std::string form, mode;
+        sleep(1);
+        const int32_t checked = motion_switcher_->CheckMode(form, mode);
+        if (checked == 0 && mode.empty())
+        {
+            RCLCPP_INFO(rclcpp::get_logger("unitree_hardware"),
+                        "Native mode '%s' released and confirmed", original_mode_.c_str());
+            return true;
+        }
+        RCLCPP_WARN(rclcpp::get_logger("unitree_hardware"),
+                    "Release not confirmed (%d/5): request=%d query=%d mode='%s'",
+                    attempt + 1, ret, checked, mode.c_str());
+    }
+    RCLCPP_ERROR(rclcpp::get_logger("unitree_hardware"),
+                 "Native mode release NOT confirmed; refusing LowCmd activation");
+    return false;
 }
 
-void HardwareUnitree::restoreMotionMode()
+bool HardwareUnitree::restoreMotionMode()
 {
-    if (!motion_switcher_)
+    if (!restore_required_) return true;
+    std::string form, mode;
+    int32_t checked = motion_switcher_->CheckMode(form, mode);
+    if (checked != 0 || form != original_form_ || mode != original_mode_)
     {
-        return;
+        const int32_t ret = motion_switcher_->SelectMode(original_mode_);
+        // Check actual mode even if the request response reported an error.
+        checked = motion_switcher_->CheckMode(form, mode);
+        if (checked != 0 || form != original_form_ || mode != original_mode_)
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("unitree_hardware"),
+                         "Native mode '%s' restoration NOT confirmed: request=%d query=%d mode='%s'. "
+                         "LowCmd publication is stopped; keep robot supported and use the site manual recovery procedure",
+                         original_mode_.c_str(), ret, checked, mode.c_str());
+            return false;
+        }
     }
-
-    // Re-enable sport_mode so the remote controller can take over after our
-    // LowCmd control is stopped.
+    restore_required_ = false;
     RCLCPP_INFO(rclcpp::get_logger("unitree_hardware"),
-                "Restoring native sport_mode for remote-controller takeover");
-    const int32_t ret = motion_switcher_->SelectMode("normal");
-    if (ret != 0)
-    {
-        RCLCPP_WARN(rclcpp::get_logger("unitree_hardware"),
-                    "SelectMode(\"normal\") failed with code %d; the remote controller may not work until the robot is restarted",
-                    ret);
-    }
+                "Native mode '%s' restored and queried; physical remote takeover still requires onsite confirmation",
+                original_mode_.c_str());
+    return true;
 }
 
-int HardwareUnitree::queryMotionStatus(std::string& service_name)
+bool HardwareUnitree::stopAndRestoreMotionMode()
 {
-    if (!motion_switcher_)
+    // Serialize with write(): no LowCmd can follow the native mode selection.
+    std::lock_guard<std::mutex> lock(command_mutex_);
+    bool sent = true;
+    if (low_cmd_publisher_)
     {
-        RCLCPP_WARN(rclcpp::get_logger("unitree_hardware"),
-                    "Motion switcher is not initialized");
-        return -1;
+        initLowCmd();
+        low_cmd_.crc() = crc32_core(reinterpret_cast<uint32_t*>(&low_cmd_),
+                                    (sizeof(unitree_go::msg::dds_::LowCmd_) >> 2) - 1);
+        try
+        {
+            sent = low_cmd_publisher_->Write(low_cmd_);
+        }
+        catch (const std::exception& error)
+        {
+            sent = false;
+            RCLCPP_ERROR(rclcpp::get_logger("unitree_hardware"),
+                         "Final stop sentinel transport failed: %s", error.what());
+        }
+        low_cmd_publisher_->CloseChannel();
+        low_cmd_publisher_.reset();
+        if (!sent)
+            RCLCPP_ERROR(rclcpp::get_logger("unitree_hardware"),
+                         "Final stop sentinel send failed; publication closed, motor receipt NOT confirmed");
     }
-
-    std::string robot_form;
-    std::string motion_name;
-    const int32_t ret = motion_switcher_->CheckMode(robot_form, motion_name);
-    if (ret != 0)
-    {
-        RCLCPP_WARN(rclcpp::get_logger("unitree_hardware"),
-                    "CheckMode failed with code %d", ret);
-        return -1;
-    }
-
-    if (motion_name.empty())
-    {
-        service_name.clear();
-        return 0;
-    }
-
-    service_name = queryServiceName(robot_form, motion_name);
-    if (service_name.empty())
-    {
-        service_name = robot_form + ":" + motion_name;
-    }
-    return 1;
-}
-
-std::string HardwareUnitree::queryServiceName(const std::string& form, const std::string& name) const
-{
-    if (form == "0")
-    {
-        if (name == "normal") return "sport_mode";
-        if (name == "ai") return "ai_sport";
-        if (name == "advanced") return "advanced_sport";
-    }
-    else
-    {
-        if (name == "ai-w") return "wheeled_sport(go2W)";
-        if (name == "normal-w") return "wheeled_sport(b2W)";
-    }
-    return "";
+    const bool restored = restoreMotionMode();
+    return sent && restored;
 }
 
 void HardwareUnitree::lowStateMessageHandle(const void* messages)
 {
+    std::lock_guard<std::mutex> lock(state_mutex_);
     low_state_ = *static_cast<const unitree_go::msg::dds_::LowState_*>(messages);
+    low_state_received_ns_ = monotonicNowNs();
 }
 
 void HardwareUnitree::highStateMessageHandle(const void* messages)
 {
+    std::lock_guard<std::mutex> lock(state_mutex_);
     high_state_ = *static_cast<const unitree_go::msg::dds_::SportModeState_*>(messages);
+    sport_state_received_ns_ = monotonicNowNs();
 }
 
 #include "pluginlib/class_list_macros.hpp"

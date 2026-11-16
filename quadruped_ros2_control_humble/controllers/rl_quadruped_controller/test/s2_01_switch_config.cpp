@@ -41,16 +41,37 @@ int main()
     using abs_switching::SwitchMode;
     using abs_switching::SwitchState;
     const auto config = parse("abs:\n  switching:\n    group: A\n    entry_threshold: -0.05\n");
+    const auto default_twist = abs_switching::parseTwistUpdateConfig(
+        YAML::Load("abs:\n  switching:\n    group: A\n") ["abs"]);
+    check(default_twist.mode == abs_switching::TwistUpdateMode::frozen,
+          "omitted twist update mode defaults to Frozen");
+    const auto frozen_twist = abs_switching::parseTwistUpdateConfig(
+        YAML::Load("abs:\n  twist_update:\n    mode: Frozen\n") ["abs"]);
+    const auto periodic_twist = abs_switching::parseTwistUpdateConfig(
+        YAML::Load("abs:\n  twist_update:\n    mode: Periodic\n") ["abs"]);
+    check(frozen_twist.mode == abs_switching::TwistUpdateMode::frozen &&
+          periodic_twist.mode == abs_switching::TwistUpdateMode::periodic,
+          "explicit Frozen and Periodic modes parse");
+    bool bad_twist_mode_rejected = false;
+    try {
+        (void)abs_switching::parseTwistUpdateConfig(
+            YAML::Load("abs:\n  twist_update:\n    mode: adaptive\n") ["abs"]);
+    } catch (const std::exception&) { bad_twist_mode_rejected = true; }
+    check(bad_twist_mode_rejected, "unknown twist update mode is rejected");
     check(std::abs(config.entry_threshold + 0.05) < 1e-12, "legal A entry threshold");
     check(config.exit_threshold == config.entry_threshold, "A exit derived from entry");
     check(!config.hysteresis_enabled && !config.hold_enabled, "A hysteresis and hold disabled");
 
     const auto deployed = abs_switching::parseSwitchConfig(YAML::LoadFile(
         "quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml")["abs"]);
+    const auto deployed_twist = abs_switching::parseTwistUpdateConfig(YAML::LoadFile(
+        "quadruped_ros2_control_humble/descriptions/unitree/go2_description/config/abs/config.yaml")["abs"]);
     check(std::abs(deployed.entry_threshold + 0.05) < 1e-12 &&
           deployed.exit_threshold == deployed.entry_threshold &&
           !deployed.hysteresis_enabled && !deployed.hold_enabled,
           "actual deployed YAML is consumed as A with derived exit and no hold");
+    check(deployed_twist.mode == abs_switching::TwistUpdateMode::frozen,
+          "actual deployed YAML remains Frozen by default");
 
     check(rejects("abs: {}\n"), "missing switching rejected");
     check(rejects("abs:\n  switching:\n    group: A\n"), "missing entry rejected");
@@ -143,7 +164,7 @@ int main()
           "C does not enter when RA is high but sim clock is invalid");
     c = abs_switching::stepSwitching(SwitchMode::minimum_hold_switch,
         SwitchState{}, ce, ce, ce, 0, 1.0, true, 7, ch);
-    check(c.state.in_recovery && c.enter_edge && c.state.recovery_enter_sim_time_s == 1.0 &&
+    check(c.state.in_recovery && c.enter_edge && c.state.recovery_enter_time_s == 1.0 &&
           c.state.recovery_clock_segment == 7 && c.hold_status == abs_switching::kHoldActive,
           "C enters at RA == E on a valid clock and starts H in that decision cycle");
     auto c_before = abs_switching::stepSwitching(SwitchMode::minimum_hold_switch,
@@ -157,7 +178,7 @@ int main()
           "C permits low-risk exit exactly at elapsed == H");
     auto c_high_due = abs_switching::stepSwitching(SwitchMode::minimum_hold_switch,
         c.state, ce, ce, ce, 0, 1.3, true, 7, ch);
-    check(c_high_due.state.in_recovery && c_high_due.state.recovery_enter_sim_time_s == 1.0 &&
+    check(c_high_due.state.in_recovery && c_high_due.state.recovery_enter_time_s == 1.0 &&
           c_high_due.hold_status == abs_switching::kHoldExpired,
           "C remains Recovery after expiry when RA >= E and does not restart H");
     auto c_late_exit = abs_switching::stepSwitching(SwitchMode::minimum_hold_switch,
@@ -170,7 +191,7 @@ int main()
           "C blocks conversion on invalid clock without losing entry time");
     auto c_segment_reset = abs_switching::stepSwitching(SwitchMode::minimum_hold_switch,
         c.state, ce - 0.01, ce, ce, 0, 2.0, true, 8, ch);
-    check(c_segment_reset.state.in_recovery && c_segment_reset.state.recovery_enter_sim_time_s == 1.0 &&
+    check(c_segment_reset.state.in_recovery && c_segment_reset.state.recovery_enter_time_s == 1.0 &&
           c_segment_reset.hold_status == abs_switching::kHoldClockInvalid,
           "C does not reset or extend t_enter across a clock segment change");
 
@@ -191,7 +212,7 @@ int main()
     const double dh = d_config.recovery_min_hold_s;
     auto d_hold = abs_switching::stepSwitching(SwitchMode::combined_switch,
         SwitchState{}, de, de, dx, 0, 1.0, true, 11, dh);
-    check(d_hold.state.in_recovery && d_hold.enter_edge && d_hold.state.recovery_enter_sim_time_s == 1.0,
+    check(d_hold.state.in_recovery && d_hold.enter_edge && d_hold.state.recovery_enter_time_s == 1.0,
           "D enters at RA == E and starts hold on the decision cycle");
     auto d_before = abs_switching::stepSwitching(SwitchMode::combined_switch,
         d_hold.state, dx - 0.001, de, dx, 0, 1.299, true, 11, dh);
@@ -203,12 +224,12 @@ int main()
           "D retains Recovery at RA == X when H expires");
     auto d_band_due = abs_switching::stepSwitching(SwitchMode::combined_switch,
         d_hold.state, middle, de, dx, 0, 1.3, true, 11, dh);
-    check(d_band_due.state.in_recovery && d_band_due.state.recovery_enter_sim_time_s == 1.0 &&
+    check(d_band_due.state.in_recovery && d_band_due.state.recovery_enter_time_s == 1.0 &&
           d_band_due.hold_status == abs_switching::kHoldExpired,
           "D combines hysteresis and hold; X <= RA < E after expiry stays without restarting H");
     auto d_reenter_risk = abs_switching::stepSwitching(SwitchMode::combined_switch,
         d_band_due.state, de + 0.01, de, dx, 0, 1.35, true, 11, dh);
-    check(d_reenter_risk.state.in_recovery && d_reenter_risk.state.recovery_enter_sim_time_s == 1.0,
+    check(d_reenter_risk.state.in_recovery && d_reenter_risk.state.recovery_enter_time_s == 1.0,
           "renewed risk in Recovery does not restart D hold");
     auto d_exit = abs_switching::stepSwitching(SwitchMode::combined_switch,
         d_reenter_risk.state, dx - 0.001, de, dx, 0, 1.36, true, 11, dh);

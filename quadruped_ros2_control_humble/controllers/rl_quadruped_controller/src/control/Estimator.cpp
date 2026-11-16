@@ -9,10 +9,12 @@
 
 #include "rl_quadruped_controller/control/CtrlComponent.h"
 
-Estimator::Estimator(CtrlInterfaces& ctrl_interfaces, CtrlComponent& ctrl_component, int feet_force_threshold) :
+Estimator::Estimator(CtrlInterfaces& ctrl_interfaces, CtrlComponent& ctrl_component, int feet_force_threshold,
+                     FootMeasurementMode foot_measurement_mode) :
     ctrl_interfaces_(ctrl_interfaces),
     robot_model_(ctrl_component.robot_model_),
-    feet_force_threshold_(feet_force_threshold)
+    feet_force_threshold_(feet_force_threshold),
+    foot_measurement_mode_(foot_measurement_mode)
 {
     g_ << 0, 0, -9.81;
     dt_ = 1.0 / ctrl_interfaces_.frequency_;
@@ -147,6 +149,17 @@ Estimator::Estimator(CtrlInterfaces& ctrl_interfaces, CtrlComponent& ctrl_compon
     // low_pass_filters_[2] = std::make_shared<LowPassFilter>(dt_, 3.0);
 }
 
+Estimator::WorldFootMeasurement Estimator::footMeasurementToWorld(const Vec3& p_body, const Vec3& j_qd_body,
+                                                                   const Vec3& gyro_body, const RotMat& body_to_world,
+                                                                   bool include_gyro_term)
+{
+    WorldFootMeasurement result;
+    result.position = body_to_world * p_body;
+    result.velocity = body_to_world * (j_qd_body +
+        (include_gyro_term ? gyro_body.cross(p_body) : Vec3::Zero()));
+    return result;
+}
+
 double Estimator::getYaw() const
 {
     return rotMatToRPY(rotation_)(2);
@@ -204,6 +217,27 @@ void Estimator::update()
     acceleration_ << ctrl_interfaces_.imu_state_interface_[7].get().get_value(),
         ctrl_interfaces_.imu_state_interface_[8].get().get_value(),
         ctrl_interfaces_.imu_state_interface_[9].get().get_value();
+
+    if (foot_measurement_mode_ != FootMeasurementMode::LegacyBodyAsWorld)
+    {
+        Eigen::Matrix<double, 28, 28> measurement_rotation = Eigen::Matrix<double, 28, 28>::Identity();
+        for (int i = 0; i < 4; ++i)
+        {
+            const Vec3 p_body = feet_pos_body_.segment<3>(3 * i);
+            const Vec3 j_qd_body = feet_vel_body_.segment<3>(3 * i);
+            // For a stance foot: v_base_world + R*(omega_body x p_body + J(q)dq) = 0.
+            const auto measurement = footMeasurementToWorld(p_body, j_qd_body, gyro_, rotation_,
+                foot_measurement_mode_ == FootMeasurementMode::RotateToWorldWithGyro);
+            feet_pos_body_.segment<3>(3 * i) = measurement.position;
+            feet_vel_body_.segment<3>(3 * i) = measurement.velocity;
+            measurement_rotation.block<3, 3>(3 * i, 3 * i) = rotation_;
+            measurement_rotation.block<3, 3>(12 + 3 * i, 12 + 3 * i) = rotation_;
+        }
+        // RInit_ is expressed in the same body-axis basis as the KDL measurements.
+        // Rotate its full covariance with the measurement vectors; this is a frame
+        // conversion, not a noise-parameter change.
+        R = measurement_rotation * R * measurement_rotation.transpose();
+    }
 
     u_ = rotation_ * acceleration_ + g_;
     x_hat_ = A * x_hat_ + B * u_;

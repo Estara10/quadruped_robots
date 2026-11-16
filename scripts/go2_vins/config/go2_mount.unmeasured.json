@@ -1,0 +1,9 @@
+{
+  "mount_measured": false,
+  "world_frame": "vins_world",
+  "imu_frame": "camera_imu_optical_frame",
+  "base_frame": "base",
+  "translation_base_imu_m": null,
+  "quaternion_base_imu_xyzw": null,
+  "measurement_note": "待测量：T_base_imu 将相机 IMU 坐标转换到 Go2 URDF base。不是机器人自带 imu_link，也不是机身质心。"
+}

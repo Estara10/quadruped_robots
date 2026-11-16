@@ -1,0 +1,22 @@
+{
+  "window_s": [
+    25,
+    40
+  ],
+  "heading_reference_s": [
+    24,
+    25
+  ],
+  "initial_forward_unit_xy": [
+    -0.980235558800173,
+    -0.1978338931116521
+  ],
+  "estimator_world_delta_xy_m": [
+    -0.2618471132214443,
+    0.16498913316866853
+  ],
+  "horizontal_net_m": 0.30949204313867673,
+  "forward_projection_m": 0.22403140881296013,
+  "left_projection_m": -0.21353044895619183,
+  "note": "Exploratory estimator displacement projected onto pre-window IMU horizontal heading. Not a measurement of actual motion; no heading-change correction or bias subtraction."
+}

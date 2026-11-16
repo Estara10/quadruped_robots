@@ -69,7 +69,7 @@
 
 ## 修改文件和当前限制
 
-新增批次包装工具 [`manual_t1_two_thresholds_36.py`](../../../../../scripts/manual_t1_two_thresholds_36.py)、冻结方法说明 [`FROZEN_MATRIX_AND_METHOD.md`](FROZEN_MATRIX_AND_METHOD.md)；计划和运行数据均为独立批次，不改既有运行、地图、模型或阈值。
+新增批次包装工具 [`manual_t1_two_thresholds_36.py`](../../../../../archive/scripts/20261103_cleanup/historical_batches/manual_t1_two_thresholds_36.py)、冻结方法说明 [`FROZEN_MATRIX_AND_METHOD.md`](FROZEN_MATRIX_AND_METHOD.md)；计划和运行数据均为独立批次，不改既有运行、地图、模型或阈值。
 
 当前只有两张 M1 开发图各一次重复的四条有效运行；M2 没有开始。本批不足以生成 36 图双阈值比较、M1/M2 汇总结论或可解释的阈值权衡。碰撞/跌倒 False 只适用于这四个完整任务窗口；部分第 5 项安全结论 UNKNOWN。命令写出/控制器记录不证明 MuJoCo 对命令的实际消费。批次没有 A 参考，不比较 B 相对 A；不推成功率、性能排名或最优参数。
 

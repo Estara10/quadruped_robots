@@ -1,10 +1,16 @@
 # 项目文档导航
 
-更新：2026-10-31。当前唯一Active Task为R1，R1-5的120项、R1-6的72项、R1-7的m02补测18项及R1-8宽度0.04比较54项均已完成，等待R1-8结果审阅。详见[当前状态](CURRENT_STATE.md)与[R1-8报告](evidence/R1/R1_m02_width04_54/分析报告.md)。
+更新：2026-11-09。R1 仍为唯一 ACTIVE 研究任务。仿真当前结果以 Periodic A/B 45 项为准；实机优先完成 ABS 在 Go2 的实现，近期工作为相机 IMU→固定机身转换及后续原生 A→B 基础验证。安装参数尚未测量，完整 ABS 实机控制未通过。
 
 ## 当前先读
 
-- [当前状态](CURRENT_STATE.md)：最新结果、限制和待决策事项。
+- [当前状态](CURRENT_STATE.md)：最新结果、限制和下一项具体工作。
+- [实机入口](real_go2/README.md)：Go2 EDU、原生运动、D435i/VINS 与控制边界。
+- [机身转换与测量](../../scripts/go2_vins/BODY_FRAME.md)：base 原点、安装测量、状态接口及离线检查。
+- [第二／三组分段审阅](real_go2/20261109_ROUND23_SEGMENTED_REVIEW.md)：净位移与停后变化；原方案保留备用。
+- [在线外参 A/B 回放](real_go2/20261109_EXTRINSIC_AB_REPLAY.md)：稳定性改善不等于精度通过，现场根因仍未知。
+- [最新仿真 45 项报告](evidence/R1/PERIODIC_AB_45/ANALYSIS_REPORT.md)：43 项有效、2 项启动故障，未证实跨图普遍收益。
+- [A1 需求记录](real_go2/A1_PROJECT_REQUIREMENTS.md)：独立导航工程的原始需求；后续计划在该工程维护。
 - [R1任务](tasks/R1.md)：已完成阶段、当前范围及完成条件。
 - [R1项目](designs/R1/README.md)、[研究计划](designs/R1/PLAN.md)：已有产物、ABS阈值依据和下一步候选方案。
 - [90项开发确认报告](evidence/R1/M2_ABC_repeat_90/分析报告.md)：d01/d03/m01的A/B/C各10次，安全完成分别A 25/30、B 23/30、C 25/30。

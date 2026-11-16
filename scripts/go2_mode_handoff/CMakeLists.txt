@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.16)
+project(go2_mode_handoff LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+find_package(unitree_sdk2 CONFIG REQUIRED)
+add_executable(go2_mode_handoff main.cpp)
+target_link_libraries(go2_mode_handoff PRIVATE unitree_sdk2)

@@ -53,6 +53,27 @@ def scene_catalog() -> dict[str, SceneSpec]:
 
 
 SCENES = scene_catalog()
+SCENE_ALIASES = {
+    **{f"dev{i:02d}.xml": f"M1_{i:02d}.xml" for i in range(1, 31)},
+    **{f"holdout{i:02d}.xml": f"M1_{i + 30:02d}.xml" for i in range(1, 31)},
+    **{f"m2dev{i:02d}.xml": f"M2_{i:02d}.xml" for i in range(1, 20)},
+    **{f"e{i:02d}.xml": f"M2_{i + 19:02d}.xml" for i in range(1, 4)},
+    **{f"m{i:02d}.xml": f"M2_{i + 22:02d}.xml" for i in range(1, 7)},
+    **{f"d{i:02d}.xml": f"M2_{i + 28:02d}.xml" for i in range(1, 10)},
+    **{f"challenge{i:02d}.xml": f"M3_{i:02d}.xml" for i in range(1, 31)},
+}
+for start, names in ((1, ("r1_d09_gap_wide.xml", "r1_d09_gap_middle.xml", "r1_d09_gap_narrow.xml",
+                          "r1_m02_space_wide.xml", "r1_m02_space_middle.xml", "r1_m02_space_narrow.xml")),
+                     (7, ("r1_d09_gap_wide_v2.xml", "r1_d09_gap_middle_v2.xml", "r1_d09_gap_narrow_v2.xml",
+                          "r1_m02_space_wide_v2.xml", "r1_m02_space_middle_v2.xml", "r1_m02_space_narrow_v2.xml"))):
+    SCENE_ALIASES.update({name: f"R1_{index:02d}.xml" for index, name in enumerate(names, start)})
+
+
+def canonical_scene_filename(filename: str) -> str:
+    """Resolve a retired map filename to the single current scene file."""
+    return SCENE_ALIASES.get(filename, filename)
+
+
 DEFAULT_SCENE = "scene_obstacle.xml"
 LEGACY_BINDING = {
     **SCENES[DEFAULT_SCENE].binding(),
@@ -99,6 +120,7 @@ def _closure_sha256(root_xml: Path) -> str:
 
 
 def resolve_scene(filename: str) -> SceneSpec:
+    filename = canonical_scene_filename(filename)
     if filename not in SCENES:
         raise ValueError(f"unsupported scene {filename!r}; choose one of {', '.join(SCENES)}")
     spec = SCENES[filename]

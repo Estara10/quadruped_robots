@@ -1,0 +1,13 @@
+sample,scene,x_m,y_m,base_z_m,yaw_deg,joint_pose,purpose
+SF0,scene_flat.xml,2.0,0.0,0.445,0,MjData default joints,open scene baseline
+SF1,scene_flat.xml,6.0,0.0,0.445,0,MjData default joints,open scene translated baseline
+SF2,scene_flat.xml,2.0,0.0,0.445,90,MjData default joints,heading follow
+SF3,scene_flat.xml,6.0,0.0,0.445,90,MjData default joints,heading follow translated
+SF4,scene_flat.xml,2.0,0.0,0.445,180,MjData default joints,heading follow
+SF5,scene_flat.xml,6.0,0.0,0.445,180,MjData default joints,heading follow translated
+C27-0,challenge27.xml,2.5,-0.22,0.445,0,MjData default joints,obstacle02 ahead
+C27-1,challenge27.xml,3.8,-0.22,0.445,0,MjData default joints,near obstacle02
+C27-2,challenge27.xml,2.5,-0.22,0.445,30,MjData default joints,obstacle lateral to view
+C27-3,challenge27.xml,3.8,-0.22,0.445,30,MjData default joints,near obstacle and rotated
+C27-4,challenge27.xml,2.5,-0.22,0.445,90,MjData default joints,heading follow
+C27-5,challenge27.xml,3.8,-0.22,0.445,90,MjData default joints,heading follow near obstacle

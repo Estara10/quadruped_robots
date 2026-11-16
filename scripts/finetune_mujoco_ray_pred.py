@@ -8,6 +8,7 @@ import copy
 import csv
 import json
 import pickle
+import random
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
@@ -30,6 +31,24 @@ DEFAULT_BASE_MODEL = (
 DEFAULT_OUTPUT_ROOT = ROOT / "logs" / "ray_pred_finetune"
 RAY_MIN = 0.1
 RAY_MAX = 6.0
+
+
+def seed_training_rng(seed: int) -> torch.Generator:
+    """Seed training randomness and return the generator used for loader shuffling."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    loader_generator = torch.Generator()
+    loader_generator.manual_seed(seed)
+    return loader_generator
+
+
+def seed_data_loader_worker(worker_id: int) -> None:
+    worker_seed = torch.initial_seed() % (2**32)
+    random.seed(worker_seed)
+    np.random.seed(worker_seed)
 
 
 class RayDataset(Dataset):
@@ -190,6 +209,9 @@ def eval_visibility_groups(model, dataset: RayDataset, device: torch.device, vis
 
 
 def train(args: argparse.Namespace) -> Path:
+    if args.selection_priority == "visible_near" and not (args.validation_datasets and args.validation_visibility_csv):
+        raise ValueError("visible_near selection requires explicit validation data and visibility CSV")
+    loader_generator = seed_training_rng(args.seed)
     device = torch.device(args.device if args.device else ("cuda" if torch.cuda.is_available() else "cpu"))
     dataset_dirs = [Path(p).expanduser() for p in args.datasets]
     dataset = RayDataset(dataset_dirs)
@@ -204,8 +226,21 @@ def train(args: argparse.Namespace) -> Path:
         generator = torch.Generator().manual_seed(args.seed)
         train_dataset, val_dataset = random_split(dataset, [train_size, val_size], generator=generator)
         split_mode = "legacy_random_split"
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
-    val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=args.num_workers,
+        generator=loader_generator,
+        worker_init_fn=seed_data_loader_worker,
+    )
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
+        worker_init_fn=seed_data_loader_worker,
+    )
 
     model = torch.jit.load(str(args.base_model), map_location=device)
     if args.trainable == "layer4_fc":
@@ -276,6 +311,16 @@ def train(args: argparse.Namespace) -> Path:
             )
             metrics["score"] = None
             selection_key = (metrics["mae_m"], metrics["near_overestimate_p95_m"] or 0.0)
+            if args.selection_priority == "visible_near":
+                visible = metrics["visibility_groups"]["in_frame"]
+                baseline_visible = baseline_visibility["in_frame"]
+                if not visible.get("near_target_le_1p5_count"):
+                    raise ValueError("visible_near selection requires in-frame near targets")
+                metrics["eligible_for_selection"] = metrics["eligible_for_selection"] and (
+                    visible["false_safe"] <= baseline_visible["false_safe"]
+                    and visible["near_overestimate_p95_m"] <= baseline_visible["near_overestimate_p95_m"]
+                )
+                selection_key = (visible["false_safe"], visible["near_overestimate_p95_m"], metrics["mae_m"])
         else:
             metrics["eligible_for_selection"] = True
             metrics["score"] = model_score(
@@ -337,6 +382,9 @@ def train(args: argparse.Namespace) -> Path:
         "val_size": val_size,
         "split_mode": split_mode,
         "device": str(device),
+        "seed": args.seed,
+        "seeded_rngs": ["python", "numpy", "torch_cpu", "torch_cuda_when_available", "train_dataloader_shuffle", "worker_python_numpy"],
+        "bitwise_reproducibility_guaranteed": False,
         "trainable": args.trainable,
         "epochs": args.epochs,
         "batch_size": args.batch_size,
@@ -353,11 +401,19 @@ def train(args: argparse.Namespace) -> Path:
         "baseline_validation_metrics": baseline_metrics,
         "baseline_validation_visibility_groups": baseline_visibility,
         "selected_epoch": selected_epoch,
+        "selection_priority": args.selection_priority,
         "selection_status": "selected" if selected_epoch is not None else "no_epoch_passed_nonregression_gate",
         "selection_rule": ("explicit validation: require false-safe count, false-danger count, and near overestimate P95 all no worse than base; among eligible epochs minimize overall MAE, tie-break by near overestimate P95" if args.validation_datasets else "legacy weighted score"),
         "heldout_test_metrics": test_result,
         "history": history,
     }
+    if args.selection_priority == "visible_near":
+        manifest["selection_rule"] = (
+            "Require overall false-safe count, false-danger count, near overestimate P95 and "
+            "in-frame near false-safe count/P95 all no worse than base validation; among eligible "
+            "epochs minimize in-frame near false-safe count, then in-frame near overestimate P95, "
+            "then overall MAE. Test is not used for selection."
+        )
     with (output_dir / "manifest.json").open("w") as f:
         json.dump(manifest, f, indent=2)
     return best_path if best_path.is_file() else last_path
@@ -394,6 +450,8 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--device", default="", help="Torch device override, e.g. cpu or cuda")
     parser.add_argument("--trainable", choices=("all", "layer4_fc"), default="all",
                         help="Parameters to update; layer4_fc matches the bounded pilot training scope")
+    parser.add_argument("--selection-priority", choices=("overall_mae", "visible_near"), default="overall_mae",
+                        help="Explicit validation selection priority; default preserves prior runs")
     return parser.parse_args(argv)
 
 

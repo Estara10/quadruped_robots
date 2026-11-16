@@ -91,9 +91,9 @@ def random_obstacles(seed: int, wall_x: float | None) -> list[str]:
     return parts
 
 
-def build_layouts() -> list[dict]:
+def build_layouts(test_layout_set: str = "legacy") -> list[dict]:
     """Whole layouts own a split; quota = fraction of near/mid/far pose classes."""
-    return [
+    layouts = [
         {"split": "train", "name": "train_near_center", "count": 105, "quota": (.55, .30, .15), "parts": [
             wall("backdrop", 5.2), box("near_center", .95, .10, .18, .25),
             box("left_near", 1.35, .75, .15, .20), box("right_mid", 2.6, -.9, .25, .30),
@@ -138,6 +138,25 @@ def build_layouts() -> list[dict]:
             wall("backdrop", 5.9), box("a", 2.8, .8, .20, .25), box("b", 3.9, -.9, .25, .30),
             cyl("c", 4.8, .2, .30), box("d", 4.4, -.3, .20, .20)]},
     ]
+    if test_layout_set == "current_mount_v2":
+        layouts = [layout for layout in layouts if layout["split"] != "test"]
+        layouts.extend([
+            {"split": "test", "name": "test_current_mount_offset_occlusion_a", "count": 90,
+             "quota": (.45, .35, .20), "parts": [
+                 wall("backdrop", 5.7), box("front_left", 1.05, .58, .16, .22),
+                 box("front_right", 1.35, -.48, .18, .24), box("center_behind", 2.3, .12, .22, .28),
+                 cyl("left_far", 3.8, 1.35, .30), box("right_far", 4.4, -1.25, .28, .32)]},
+            {"split": "test", "name": "test_current_mount_cross_lane_b", "count": 90,
+             "quota": (.30, .35, .35), "parts": [
+                 '<geom name="side_left" type="box" pos="2.8 2.35 1" size="2.6 .06 1" rgba=".5 .5 .5 1"/>',
+                 '<geom name="side_right" type="box" pos="2.5 -2.45 1" size="2.4 .06 1" rgba=".5 .5 .5 1"/>',
+                 '<geom name="end_wall" type="box" pos="5.5 0 1" size=".06 3.4 1" rgba=".5 .5 .5 1"/>',
+                 box("center_mid", 2.0, -.18, .20, .26), cyl("left_mid", 2.7, .85, .27),
+                 box("right_far", 4.0, -.65, .30, .30), cyl("left_far", 4.5, 1.0, .28)]},
+        ])
+    elif test_layout_set != "legacy":
+        raise ValueError(f"unknown test layout set: {test_layout_set}")
+    return layouts
 
 
 DIAGNOSTIC_TARGETS = [0.25, 0.35]
@@ -318,6 +337,7 @@ def save_pair(destination: Path, key: str, split: str, masks, mask_counter: dict
               native, label_m, labels: dict, records: dict, pose, scene_name):
     raw = np.rint(native * 1000.).clip(0, 65535).astype("<u2")
     clean, _ = downsample_depth_centers(raw.astype(np.float32) * .001, np.ones(raw.shape, dtype=bool))
+    clean = np.clip(clean, compare.RAY2D_MIN_DIST, compare.RAY2D_MAX_DIST).astype(np.float32)
     group = masks[split]
     mask_path, raw_valid = group[mask_counter[split] % len(group)]
     mask_counter[split] += 1
@@ -329,6 +349,7 @@ def save_pair(destination: Path, key: str, split: str, masks, mask_counter: dict
     prepared = filled.astype(np.float32) * .001
     prepared[remaining] = 6.
     masked, _ = downsample_depth_centers(prepared, np.ones(prepared.shape, dtype=bool))
+    masked = np.clip(masked, compare.RAY2D_MIN_DIST, compare.RAY2D_MAX_DIST).astype(np.float32)
     sampled_unknown, _ = downsample_depth_centers(remaining.astype(np.float32), np.ones(prepared.shape, dtype=bool))
     for kind, image in (("clean", clean), ("masked", masked)):
         name = f"{key}_{kind}"
@@ -387,8 +408,9 @@ def run_layout(mujoco_module, compare_module, generation_module, layout, output,
             compare_module.apply_sample(mujoco_module, model, data, pose)
             if inside_obstacle(model, data, body_id, scene_path.name):
                 continue
-            label_m = np.exp2(compare_module.compute_geometric_ray_log(
-                mujoco_module, model, data, body_id, scene_path.name)).astype(np.float32)
+            label_m = np.clip(np.exp2(compare_module.compute_geometric_ray_log(
+                mujoco_module, model, data, body_id, scene_path.name)),
+                compare_module.RAY2D_MIN_DIST, compare_module.RAY2D_MAX_DIST).astype(np.float32)
             if float(label_m.min()) < MIN_CLEARANCE_M:
                 continue
             cls = classify(label_m)
@@ -432,9 +454,10 @@ def run_diagnostics(output):
         model = mujoco.MjModel.from_xml_path(str(scene_path))
         data = mujoco.MjData(model)
         body_id = compare.find_body_id(mujoco, model)
-        pose = compare.PoseSample(0, "diagnostic", 0., 0., .36, 0.)
+        diagnostic_base_z = float(BASE_Z_RANGE_M[1])
+        pose = compare.PoseSample(0, "diagnostic", 0., 0., diagnostic_base_z, 0.)
         compare.apply_sample(mujoco, model, data, pose)
-        config = replace(CAMERA, pitch_down_deg=4.)
+        config = replace(CAMERA, pitch_down_deg=float(sum(PITCH_RANGE_DEG) / 2.0))
         renderer = compare.make_depth_renderer(mujoco, model, config)
         detail_renderer = mujoco.Renderer(model, height=270, width=480)
         detail_renderer.enable_segmentation_rendering()
@@ -480,9 +503,10 @@ def run_geometry_checks(output):
         model = mujoco.MjModel.from_xml_path(str(scene_path))
         data = mujoco.MjData(model)
         body_id = compare.find_body_id(mujoco, model)
-        pose = compare.PoseSample(0, "geometry_check", 0., 0., .36, 0.)
+        geometry_base_z = float(BASE_Z_RANGE_M[1])
+        pose = compare.PoseSample(0, "geometry_check", 0., 0., geometry_base_z, 0.)
         compare.apply_sample(mujoco, model, data, pose)
-        config = replace(CAMERA, pitch_down_deg=4.)
+        config = replace(CAMERA, pitch_down_deg=float(sum(PITCH_RANGE_DEG) / 2.0))
         renderer = compare.make_depth_renderer(mujoco, model, config)
         detail_renderer = mujoco.Renderer(model, height=270, width=480)
         detail_renderer.enable_segmentation_rendering()
@@ -508,9 +532,10 @@ def run_geometry_checks(output):
                 "hit_geom": row["hit_geom"],
                 "hit_u_px": row["label_hit_u_px"], "hit_v_px": row["label_hit_v_px"],
                 "hitpoint_in_image": row["label_hitpoint_in_image"],
+                # A body-forward ray need not project to ppx when the camera is laterally offset.
                 "u_side_consistent": bool((angle_deg > 0 and row["label_hit_u_px"] < CAMERA.ppx) or
                                           (angle_deg < 0 and row["label_hit_u_px"] > CAMERA.ppx) or
-                                          (angle_deg == 0 and abs(row["label_hit_u_px"] - CAMERA.ppx) < 2.)),
+                                          angle_deg == 0),
                 "model_input_depth_at_hitpoint_m": row["model_input_depth_at_hitpoint_m"],
                 "projected_hit_optical_z_m": row["projected_hit_optical_z_m"],
             }
@@ -523,15 +548,86 @@ def run_geometry_checks(output):
             detail_renderer.close()
             detail_renderer._mjr_context = None
     (check_dir / "geometry_checks.json").write_text(json.dumps({
-        "camera": {"housing_proxy_base_m": list(CAMERA.position_body_m), "pitch_down_deg": 4.,
-                   "base_z_m": .36,
+        "camera": {"housing_proxy_base_m": list(CAMERA.position_body_m),
+                   "pitch_down_deg": float(sum(PITCH_RANGE_DEG) / 2.0),
+                   "base_z_m": float(BASE_Z_RANGE_M[1]),
                    "intrinsics": [CAMERA.width, CAMERA.height, CAMERA.fx, CAMERA.fy, CAMERA.ppx, CAMERA.ppy]},
         "rays_deg": RAY_ANGLES, "entries": entries,
         "note": "one synthetic target per scene; checks label distance, beam index/sign and projection, not real-camera accuracy",
     }, indent=2))
 
 
-def summarize(output, all_rows, records, layout_stats, masks, elapsed_s, bytes_saved):
+def audit_generated_data(output, records, layouts, args):
+    splits = ("train", "validation", "test")
+    by_split = {split: [key for key, rec in records.items() if rec["split"] == split]
+                for split in splits}
+    layouts_by_split = {split: {rec["layout"] for rec in records.values() if rec["split"] == split}
+                        for split in splits}
+    if any(layouts_by_split[a] & layouts_by_split[b]
+           for i, a in enumerate(splits) for b in splits[i + 1:]):
+        raise RuntimeError("layout appears in more than one split")
+    expected_counts = {
+        split: sum((args.poses_per_layout or layout["count"])
+                   for layout in layouts if layout["split"] == split)
+        for split in splits
+    }
+    if {s: len(by_split[s]) for s in splits} != expected_counts:
+        raise RuntimeError(f"pose counts differ from layout plan: {by_split} vs {expected_counts}")
+    if args.test_layout_set == "current_mount_v2":
+        new_test_names = {layout["name"] for layout in layouts if layout["split"] == "test"}
+        if not new_test_names or new_test_names & {"test_mixed", "test_open"}:
+            raise RuntimeError("current-mount test layouts must be distinct from adaptation_v1 layouts")
+
+    split_audit = {}
+    for split in splits:
+        data_dir = output / "data" / split
+        with (data_dir / "label.pkl").open("rb") as f:
+            labels = pickle.load(f)
+        expected_image_names = {f"{key}_{kind}" for key in by_split[split]
+                                for kind in ("clean", "masked")}
+        found_image_names = {path.stem for path in data_dir.glob("*.npy")}
+        if found_image_names != expected_image_names:
+            raise RuntimeError(f"{split}: clean/masked image keys differ")
+        expected_label_names = {f"{key}_{kind}" for key in by_split[split]
+                                for kind in ("clean", "masked")}
+        if set(labels) != expected_label_names:
+            raise RuntimeError(f"{split}: label keys differ from paired images")
+        empty_frames = 0
+        for key in by_split[split]:
+            clean = np.load(data_dir / f"{key}_clean.npy").astype(np.float32)
+            masked = np.load(data_dir / f"{key}_masked.npy").astype(np.float32)
+            if clean.shape != (90, 160) or masked.shape != clean.shape:
+                raise RuntimeError(f"{key}: wrong model input shape")
+            if not np.isfinite(clean).all() or not np.isfinite(masked).all():
+                raise RuntimeError(f"{key}: non-finite model input")
+            if clean.min() < .1 or clean.max() > 6. or masked.min() < .1 or masked.max() > 6.:
+                raise RuntimeError(f"{key}: model input outside [0.1,6] m")
+            if np.all(clean <= .1005) or np.all(masked <= .1005):
+                empty_frames += int(np.all(clean <= .1005)) + int(np.all(masked <= .1005))
+                raise RuntimeError(f"{key}: empty clipped-depth frame")
+            clean_label = np.asarray(labels[f"{key}_clean"], dtype=np.float32)
+            masked_label = np.asarray(labels[f"{key}_masked"], dtype=np.float32)
+            if clean_label.shape != (11,) or masked_label.shape != (11,):
+                raise RuntimeError(f"{key}: expected 11 ray labels")
+            if not np.isfinite(clean_label).all() or not np.array_equal(clean_label, masked_label):
+                raise RuntimeError(f"{key}: invalid or mismatched paired labels")
+            if clean_label.min() < compare.RAY2D_MIN_DIST or clean_label.max() > compare.RAY2D_MAX_DIST:
+                raise RuntimeError(f"{key}: labels outside ABS range")
+        split_audit[split] = {
+            "poses": len(by_split[split]),
+            "paired_images": 2 * len(by_split[split]),
+            "layouts": sorted(layouts_by_split[split]),
+            "empty_input_frames": empty_frames,
+            "all_inputs_finite_shape_range_ok": True,
+            "paired_labels_equal_11d_meters": True,
+        }
+    return {"passed": True, "expected_pose_counts": expected_counts,
+            "split_audit": split_audit,
+            "test_layout_set": args.test_layout_set,
+            "test_layouts_new_relative_to_adaptation_v1": args.test_layout_set == "current_mount_v2"}
+
+
+def summarize(output, all_rows, records, layout_stats, masks, elapsed_s, bytes_saved, args, layouts, audit):
     splits = ("train", "validation", "test")
     bin_counts = {s: {"below_0p45": 0, "near_045_1p5": 0, "mid_1p5_3": 0,
                       "far_3_6": 0, "cap_6": 0} for s in splits}
@@ -601,6 +697,11 @@ def summarize(output, all_rows, records, layout_stats, masks, elapsed_s, bytes_s
     summary = {
         "training_performed": False,
         "dataset_kind": "offline geometry/mask adaptation candidate for a later bounded training run",
+        "seed": args.seed,
+        "test_layout_set": args.test_layout_set,
+        "split_layouts": {split: [layout["name"] for layout in layouts if layout["split"] == split]
+                           for split in splits},
+        "dataset_audit": audit,
         "elapsed_seconds": elapsed_s,
         "bytes_on_disk": bytes_saved,
         "poses_total": len(records),
@@ -620,6 +721,8 @@ def summarize(output, all_rows, records, layout_stats, masks, elapsed_s, bytes_s
         "camera": {"housing_proxy_base_m": list(CAMERA.position_body_m),
                    "pitch_range_deg": list(PITCH_RANGE_DEG),
                    "base_height_range_m": list(BASE_Z_RANGE_M),
+                   "parameter_source": "explicit command-line candidate; position is left-IR front-glass proxy, not calibrated optical center",
+                   "yaw_roll": "assumed zero; not measured",
                    "depth_intrinsics": [CAMERA.width, CAMERA.height, CAMERA.fx, CAMERA.fy,
                                         CAMERA.ppx, CAMERA.ppy]},
         "contract": {"rays_deg": RAY_ANGLES, "ray_origin_base_m": [compare.RAY2D_X0, compare.RAY2D_Y0],
@@ -633,6 +736,7 @@ def summarize(output, all_rows, records, layout_stats, masks, elapsed_s, bytes_s
         },
         "limitations": [
             "housing centre is only an optical-origin proxy; pitch and base height are candidates, not precision extrinsic calibration",
+            "camera yaw/roll and glass-to-optical-center offset are unmeasured",
             "mask transplant is an augmentation, not a sensor physics simulation; mask frames are reused across poses",
             "residual unknown filled to 6 m is a candidate numeric policy, not measured free space",
             "all labels come from scene geometry; no neural prediction is used as a label",
@@ -653,7 +757,40 @@ def main(argv=None) -> int:
     parser.add_argument("--seed", type=int, default=20261115)
     parser.add_argument("--max-attempts", type=int, default=40000)
     parser.add_argument("--skip-geometry-checks", action="store_true")
+    parser.add_argument("--camera-position-m", nargs=3, type=float, default=(.305, 0., .140),
+                        metavar=("X", "Y", "Z"),
+                        help="camera position proxy in base_link, not a calibrated optical center; default preserves adaptation_v1")
+    parser.add_argument("--camera-pitch-range-deg", nargs=2, type=float, default=(3., 5.),
+                        metavar=("MIN", "MAX"),
+                        help="downward pitch sampling range; default preserves adaptation_v1")
+    parser.add_argument("--base-height-range-m", nargs=2, type=float, default=(.35, .36),
+                        metavar=("MIN", "MAX"),
+                        help="base_link height sampling range; default preserves adaptation_v1")
+    parser.add_argument("--depth-intrinsics", nargs=6, type=float,
+                        default=(480., 270., 244.134, 244.134, 245.186, 134.22),
+                        metavar=("WIDTH", "HEIGHT", "FX", "FY", "PPX", "PPY"),
+                        help="native depth dimensions and K; default preserves adaptation_v1")
+    parser.add_argument("--test-layout-set", choices=("legacy", "current_mount_v2"), default="legacy",
+                        help="current_mount_v2 uses two new test layouts; default preserves adaptation_v1")
     args = parser.parse_args(argv)
+    global CAMERA, PITCH_RANGE_DEG, BASE_Z_RANGE_M
+    width_f, height_f, fx, fy, ppx, ppy = args.depth_intrinsics
+    if width_f != int(width_f) or height_f != int(height_f):
+        raise ValueError("depth image width/height must be integers")
+    if (int(width_f), int(height_f)) != (480, 270):
+        raise ValueError("current mask augmentation is defined only for 480x270 depth frames")
+    if args.camera_pitch_range_deg[0] > args.camera_pitch_range_deg[1]:
+        raise ValueError("camera pitch range minimum must not exceed maximum")
+    if args.base_height_range_m[0] > args.base_height_range_m[1]:
+        raise ValueError("base height range minimum must not exceed maximum")
+    PITCH_RANGE_DEG = tuple(float(v) for v in args.camera_pitch_range_deg)
+    BASE_Z_RANGE_M = tuple(float(v) for v in args.base_height_range_m)
+    CAMERA = compare.CameraRenderConfig(
+        position_body_m=tuple(float(v) for v in args.camera_position_m),
+        pitch_down_deg=float(sum(PITCH_RANGE_DEG) / 2.),
+        width=int(width_f), height=int(height_f), fx=fx, fy=fy, ppx=ppx, ppy=ppy,
+    )
+    CAMERA.validate()
     out = args.output_root.expanduser().resolve()
     if out.exists():
         raise FileExistsError(out)
@@ -675,7 +812,8 @@ def main(argv=None) -> int:
     all_rows, records, layout_stats = [], {}, []
     import time
     t0 = time.time()
-    for layout in build_layouts():
+    layouts = build_layouts(args.test_layout_set)
+    for layout in layouts:
         stats = run_layout(mujoco, compare, generation, layout, out, masks, mask_counter,
                            rng, args.max_attempts, args.poses_per_layout, all_rows, records)
         layout_stats.append(stats)
@@ -689,7 +827,9 @@ def main(argv=None) -> int:
         writer.writerows(all_rows)
     (out / "data_records.json").write_text(json.dumps(records, indent=2))
     bytes_saved = sum(p.stat().st_size for p in out.rglob("*") if p.is_file())
-    summary = summarize(out, all_rows, records, layout_stats, masks, elapsed, bytes_saved)
+    audit = audit_generated_data(out, records, layouts, args)
+    summary = summarize(out, all_rows, records, layout_stats, masks, elapsed, bytes_saved,
+                        args, layouts, audit)
     print(json.dumps({k: summary[k] for k in ("poses_total", "images_total", "poses_by_split",
                                               "label_bin_fraction", "cap_fraction", "near_fraction",
                                               "hitpoint_visibility", "elapsed_seconds", "bytes_on_disk")},

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="590" viewBox="0 0 1100 590">
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#263238"/>
+    </marker>
+    <style>
+      .title{font:700 22px sans-serif;fill:#17252a}.head{font:700 16px sans-serif;fill:#263238}
+      .label{font:14px sans-serif;fill:#263238}.small{font:12px sans-serif;fill:#455a64}
+      .ray{stroke:#547fa5;stroke-width:2;opacity:.75}.axis{stroke:#263238;stroke-width:2;marker-end:url(#arrow)}
+      .dash{stroke-dasharray:7 5}.wall{stroke:#8e4c55;stroke-width:10}.base{fill:#dfe8ec;stroke:#546e7a;stroke-width:2}
+    </style>
+  </defs>
+  <rect width="1100" height="590" fill="#fff"/>
+  <text x="30" y="38" class="title">相机测距参考与ABS机身射线参考（估算示意，非标定图）</text>
+
+  <text x="34" y="76" class="head">俯视：x向前、y向左</text>
+  <rect x="74" y="145" width="200" height="170" rx="24" class="base"/>
+  <text x="118" y="235" class="label">Go2 base_link</text>
+  <line x1="167" y1="230" x2="250" y2="230" class="axis"/>
+  <text x="205" y="218" class="small">+x</text>
+  <line x1="167" y1="230" x2="167" y2="170" class="axis"/>
+  <text x="175" y="178" class="small">+y 左</text>
+  <circle cx="142" cy="230" r="7" fill="#c43d35"/>
+  <text x="35" y="342" class="small">ABS Oᵣ = (−0.05, 0, 0) m</text>
+  <circle cx="220" cy="220" r="7" fill="#e4a12b"/>
+  <text x="89" y="126" class="small">当前左IR前玻璃参考≈(+0.300,+0.020) m</text>
+  <line x1="142" y1="230" x2="540" y2="230" stroke="#bf4b43" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="295" y="219" class="label">机身0°水平束</text>
+  <line x1="142" y1="230" x2="510" y2="88" class="ray"/>
+  <line x1="142" y1="230" x2="510" y2="124" class="ray"/>
+  <line x1="142" y1="230" x2="510" y2="160" class="ray"/>
+  <line x1="142" y1="230" x2="510" y2="195" class="ray"/>
+  <line x1="142" y1="230" x2="510" y2="230" class="ray"/>
+  <line x1="142" y1="230" x2="510" y2="265" class="ray"/>
+  <line x1="142" y1="230" x2="510" y2="300" class="ray"/>
+  <line x1="142" y1="230" x2="510" y2="336" class="ray"/>
+  <line x1="142" y1="230" x2="510" y2="372" class="ray"/>
+  <line x1="142" y1="230" x2="510" y2="408" class="ray"/>
+  <line x1="142" y1="230" x2="510" y2="444" class="ray"/>
+  <line x1="540" y1="74" x2="540" y2="480" class="wall"/>
+  <text x="555" y="99" class="label">柜面假设竖直且近似</text>
+  <text x="555" y="119" class="label">垂直于机身前向</text>
+  <text x="555" y="235" class="small">0°：≈2.30 m</text>
+  <text x="555" y="365" class="small">±36°：≈2.84 m，横向±1.67 m</text>
+  <text x="555" y="445" class="small">±45°：≈3.25 m，横向±2.30 m</text>
+
+  <line x1="720" y1="78" x2="720" y2="488" stroke="#c6cfd3" stroke-width="2"/>
+  <text x="750" y="76" class="head">侧视：z向上，base_link射线高度z=0</text>
+  <line x1="752" y1="430" x2="1055" y2="430" stroke="#8d6e63" stroke-width="3"/>
+  <text x="755" y="455" class="small">地面；base_link高度约0.35–0.36 m</text>
+  <rect x="770" y="275" width="130" height="130" rx="20" class="base"/>
+  <text x="805" y="345" class="label">机身</text>
+  <circle cx="795" cy="340" r="7" fill="#c43d35"/>
+  <line x1="795" y1="340" x2="1035" y2="340" stroke="#bf4b43" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="804" y="326" class="small">Oᵣ，水平</text>
+  <circle cx="815" cy="286" r="7" fill="#e4a12b"/>
+  <line x1="815" y1="286" x2="1015" y2="296" stroke="#b17b20" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+  <text x="821" y="266" class="small">镜头附近参考z≈0.132 m，下俯约3°</text>
+  <line x1="1040" y1="246" x2="1040" y2="430" class="wall"/>
+  <text x="941" y="220" class="small">同柜面水平距离≈1.95cos3°</text>
+  <text x="944" y="242" class="small">机身0°束再加前后基准差≈0.35m</text>
+
+  <rect x="32" y="510" width="1034" height="54" rx="10" fill="#f1f5f6" stroke="#c7d1d5"/>
+  <text x="50" y="533" class="small">数值按近似正对的无限平面推算。光学中心、玻璃到光学中心偏移、柜面方向和起点定位都未精测。</text>
+  <text x="50" y="552" class="small">图片只是基准关系说明；不表示柜面覆盖所有射线交点，也不表示任何模型输出已通过测距验证。</text>
+</svg>

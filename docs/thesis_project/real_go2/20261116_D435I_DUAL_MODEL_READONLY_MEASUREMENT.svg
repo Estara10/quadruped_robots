@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="650" viewBox="0 0 1100 650">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#263238"/>
+    </marker>
+    <marker id="dim" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto-start-reverse">
+      <path d="M0,0 L8,4 L0,8 z" fill="#263238"/>
+    </marker>
+    <style>
+      .title{font:700 22px sans-serif;fill:#17252a}.label{font:16px sans-serif;fill:#263238}
+      .small{font:13px sans-serif;fill:#455a64}.ray{stroke:#4677a8;stroke-width:2;opacity:.78}
+      .body{fill:#dce6eb;stroke:#455a64;stroke-width:2}.camera{fill:#f6bd60;stroke:#9b6d13;stroke-width:2}
+      .wall{stroke:#7a3e48;stroke-width:12}.dimline{stroke:#263238;stroke-width:1.5;marker-start:url(#dim);marker-end:url(#dim)}
+    </style>
+  </defs>
+  <rect width="1100" height="650" fill="#ffffff"/>
+  <text x="34" y="42" class="title">ABS 11束测量参考（示意图，非安装标定）</text>
+
+  <text x="36" y="82" class="label">俯视：机身水平面（x向前、y向左）</text>
+  <rect x="92" y="130" width="260" height="170" rx="34" class="body"/>
+  <text x="154" y="228" class="label">Go2 base_link</text>
+  <line x1="185" y1="215" x2="310" y2="215" stroke="#263238" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="266" y="203" class="small">+x 前向</text>
+  <line x1="185" y1="215" x2="185" y2="158" stroke="#263238" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="194" y="165" class="small">+y 左向</text>
+
+  <circle cx="145" cy="215" r="8" fill="#c44536"/>
+  <text x="42" y="326" class="small">射线起点 Oᵣ = (−0.05, 0, 0) m（base_link系）</text>
+  <line x1="145" y1="215" x2="350" y2="72" class="ray"/>
+  <line x1="145" y1="215" x2="350" y2="100" class="ray"/>
+  <line x1="145" y1="215" x2="350" y2="128" class="ray"/>
+  <line x1="145" y1="215" x2="350" y2="157" class="ray"/>
+  <line x1="145" y1="215" x2="350" y2="186" class="ray"/>
+  <line x1="145" y1="215" x2="350" y2="215" class="ray"/>
+  <line x1="145" y1="215" x2="350" y2="244" class="ray"/>
+  <line x1="145" y1="215" x2="350" y2="273" class="ray"/>
+  <line x1="145" y1="215" x2="350" y2="302" class="ray"/>
+  <line x1="145" y1="215" x2="350" y2="330" class="ray"/>
+  <line x1="145" y1="215" x2="350" y2="358" class="ray"/>
+  <text x="355" y="105" class="small">+45°（左外侧）</text>
+  <text x="355" y="219" class="small">0°（前向）</text>
+  <text x="355" y="363" class="small">−45°（右外侧）</text>
+  <text x="355" y="244" class="small">共11束，每9°一束；距离沿射线从 Oᵣ 计</text>
+
+  <circle cx="316" cy="193" r="9" class="camera"/>
+  <text x="300" y="173" class="small">相机壳体中心候选 x≈+0.305m</text>
+  <text x="300" y="191" class="small">光学中心偏移未测</text>
+
+  <line x1="620" y1="116" x2="620" y2="390" class="wall"/>
+  <text x="641" y="146" class="label">平整竖直目标面</text>
+  <circle cx="620" cy="215" r="6" fill="#c44536"/>
+  <line x1="145" y1="215" x2="615" y2="215" stroke="#263238" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="145" y1="392" x2="620" y2="392" class="dimline"/>
+  <text x="258" y="420" class="label">卷尺水平投影：从 Oᵣ 的地面垂足量到目标面交点</text>
+  <text x="127" y="445" class="small">不要从镜头/红十字起量来代替 base_link 射线距离。</text>
+
+  <line x1="760" y1="104" x2="760" y2="440" stroke="#b0bec5" stroke-width="2"/>
+  <text x="786" y="82" class="label">侧视：射线高度</text>
+  <line x1="780" y1="420" x2="1050" y2="420" stroke="#8d6e63" stroke-width="3"/>
+  <text x="788" y="447" class="small">地面；base_link到地面高度随站姿，需现场测</text>
+  <rect x="812" y="270" width="168" height="110" rx="20" class="body"/>
+  <text x="832" y="330" class="small">机身</text>
+  <circle cx="846" cy="300" r="7" fill="#c44536"/>
+  <line x1="846" y1="300" x2="1040" y2="300" stroke="#c44536" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="850" y="286" class="small">ray z = 0，相对 base_link 原点；水平</text>
+  <circle cx="952" cy="232" r="9" class="camera"/>
+  <line x1="952" y1="232" x2="946" y2="247" stroke="#9b6d13" stroke-width="2"/>
+  <text x="814" y="210" class="small">壳体中心候选 z≈+0.140m、俯角约3–5°</text>
+  <text x="814" y="228" class="small">光学中心/精确姿态待测</text>
+  <rect x="1015" y="215" width="26" height="205" fill="#ead9d5" stroke="#7a3e48" stroke-width="2"/>
+  <text x="986" y="188" class="small">目标需覆盖射线平面高度</text>
+
+  <rect x="35" y="500" width="1030" height="112" rx="12" fill="#f3f6f8" stroke="#c5d0d5"/>
+  <text x="58" y="535" class="label">使用边界</text>
+  <text x="58" y="563" class="small">射线起点、角度、距离来自ABS代码；相机位置只是已有安装近似。相机拆下时的深度帧不能验证此机身几何。</text>
+  <text x="58" y="587" class="small">外参未复测前，目标位置只做方向/响应对照；不要用相机中心测距宣称11束精度。</text>
+</svg>

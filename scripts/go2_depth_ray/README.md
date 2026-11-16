@@ -1,5 +1,7 @@
 # Go2 D435i 深度→ABS射线只读观察
 
+> 2026-11-16新增同帧双模型只读模式：相机当前已从机器人拆下。下文旧跨机示例是历史网络观察命令，不能照搬其IP/domain到下一次本机相机观察。新模式与测量方法见[双模型准备报告](../../docs/thesis_project/real_go2/20261116_D435I_DUAL_MODEL_READONLY_OBSERVER.md)。
+
 入口 [`../go2_depth_ray_observer.py`](../go2_depth_ray_observer.py) 只订阅已有ROS深度话题，不打开SDK pipeline。默认观察30秒；现场60Hz检查可显式设42秒，以覆盖约36秒相机运行和末尾停收。它只写逐帧CSV与汇总JSON，不保存图像、不发布射线协议、不访问共享内存或控制器。
 
 ## 处理语义
@@ -29,6 +31,71 @@ PYTHONNOUSERSITE=1 MPLCONFIGDIR=/tmp/abs-depth-ray-selfcheck-mpl /usr/bin/python
 自检把向量化中心样本和`realsense_depth_to_abs_rays.py`逐格比较，并用合成慢处理线程检查只留最新帧、覆盖计数及不重复处理。占位推理仅输出终端JSON。
 
 ## 现场只读检查
+
+### 本机连接相机：medium / epoch3同帧对照（本轮准备，现场未运行）
+
+使用时先核对D435i已装回、相机和ROS环境及本机进程占用。为相机和observer选择一个当前未占用的本机ROS domain，并使用`ROS_LOCALHOST_ONLY=1`；不要复用历史跨机网卡、IP或domain。只启动一个RealSense pipeline，observer不访问SDK、不创建第二个pipeline。
+
+用同一块平整目标面依次摆在0°、左右±27°、较外侧±36°，每个摆位单独执行下方一次有限观察；换位时Go2保持站立静止、相机不动。记录目标面实测位置。若不能确定base_link射线起点地面垂足，只作定性方向比较，不报告精确距离。
+
+电脑单终端命令（相机与observer自动重叠，40秒相机、30秒观察，先留时间读回设置）：
+
+```bash
+cd /home/lidio/quadruped_robots
+set -euo pipefail
+source /opt/ros/humble/setup.bash
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+export ROS_LOCALHOST_ONLY=1
+read -r -p '输入已只读核对为未占用的本机ROS domain整数: ' ROS_DOMAIN_ID
+[[ "$ROS_DOMAIN_ID" =~ ^[0-9]+$ ]] || { echo 'ROS_DOMAIN_ID必须是整数' >&2; exit 2; }
+export ROS_DOMAIN_ID
+RUN_DIR="logs/real_go2/$(date +%Y%m%d_%H%M%S)_dual_ray_readonly"
+mkdir "$RUN_DIR"
+printf 'RUN_DIR=%s\n' "$RUN_DIR"
+
+timeout --signal=INT --kill-after=4s 40s ros2 launch realsense2_camera rs_launch.py \
+  camera_namespace:=camera camera_name:=camera device_type:=d435i \
+  enable_depth:=true enable_color:=false enable_infra1:=true enable_infra2:=true \
+  depth_module.depth_profile:=480,270,60 depth_module.infra_profile:=480,270,60 enable_sync:=true \
+  hole_filling_filter.enable:=true \
+  >"$RUN_DIR/camera.log" 2>&1 &
+CAMERA_PID=$!
+cleanup_camera() { kill -INT "$CAMERA_PID" 2>/dev/null || true; wait "$CAMERA_PID" 2>/dev/null || true; }
+trap cleanup_camera EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+sleep 3
+ros2 param set /camera/camera hole_filling_filter.holes_fill 1 | tee "$RUN_DIR/filter_mode.txt"
+ros2 param set /camera/camera depth_module.emitter_enabled 1 | tee "$RUN_DIR/emitter.txt"
+ros2 param get /camera/camera hole_filling_filter.enable | tee -a "$RUN_DIR/filter_mode.txt"
+ros2 param get /camera/camera hole_filling_filter.holes_fill | tee -a "$RUN_DIR/filter_mode.txt"
+ros2 param get /camera/camera depth_module.emitter_enabled | tee -a "$RUN_DIR/emitter.txt"
+
+set +e
+timeout --signal=INT --kill-after=4s 34s /usr/bin/python3 scripts/go2_depth_ray_observer.py \
+  --model archive/ray_pred_finetune/mujoco_finetune_medium_20260611/ray_pred_mujoco_finetuned_best.pt \
+  --compare-model logs/real_go2/20261115_d435i_ray_adaptation_data/training_runs/d435i_medium_layer4fc_20261115/ray_pred_mujoco_finetuned_best.pt \
+  --depth-topic /camera/camera/depth/image_rect_raw \
+  --camera-info-topic /camera/camera/depth/camera_info \
+  --input-depth-stage sdk-hole-filled --unknown-fill-m 6.0 \
+  --duration-s 30 --output-dir "$RUN_DIR/observer" \
+  > >(tee "$RUN_DIR/observer.log") 2>&1
+OBSERVER_RC=$?
+if [ "$OBSERVER_RC" -ne 0 ]; then kill -INT "$CAMERA_PID" 2>/dev/null || true; fi
+set +e
+wait "$CAMERA_PID"
+CAMERA_RC=$?
+set -e
+trap - EXIT INT TERM
+printf 'observer=%s\ncamera_timeout=%s\n' "$OBSERVER_RC" "$CAMERA_RC" >"$RUN_DIR/exits.txt"
+cat "$RUN_DIR/exits.txt"
+```
+
+过滤器enable由ROS launch参数设置；mode和投射器在节点启动后设置并读回。期望值分别为`true`、`1`、`1`。任一设置或读回失败时应停止观察、保留日志并退出，不把输入标成SDK mode1补洞；observer不执行第二次补洞。相机40秒超时通常返回124，此值本身不等于传感器关闭失败；核对`camera.log`、summary和本机进程已退出。若observer报错会向camera发送SIGINT；Ctrl+C时也需核对两个进程均退出。
+
+第一组`ray_00_m..ray_10_m`对应`--model` medium，第二组`compare_ray_00_m..compare_ray_10_m`对应`--compare-model` epoch3。共同的header stamp与receive index表示同帧，耗时字段分开记录；接收到两模型完成的处理时龄计到第二模型结束。输入全图/中央ROI零值比例指**收到的图像**；若它已过SDK filter，单一话题无法还原补洞前的未知掩码，JSON会留空而不猜测。
+
+相机装回后保持机器人静止。ABS束起点为base_link水平面`(-0.05,0,0)m`，−角在右、+角在左，每9°一束。卷尺从该起点的地面垂足沿束方向量到障碍交点，不能从镜头或红十字代替。当前相机安装仍只是近似外参；首次对照只作定性响应判断，详见[机身束测量示意与准备报告](../../docs/thesis_project/real_go2/20261116_D435I_DUAL_MODEL_READONLY_OBSERVER.md)。
 
 历史网络参数（运行前由主助手只读确认）：PC `enp7s0 / 192.168.123.99`，Orin `eth0 / 192.168.123.18`，CycloneDDS、ROS domain 42。不要为此改网络或系统时钟。先确认profile、两端地址/RMW、Orin无其他相机节点占用，并保证有线链路仍连接。
 

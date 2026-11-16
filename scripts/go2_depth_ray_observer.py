@@ -33,12 +33,17 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Finite, read-only depth to ABS ray diagnostics")
     parser.add_argument("--model", type=Path, required=True,
                         help="explicit TorchScript Ray-Pred model; no fallback is used")
+    parser.add_argument("--compare-model", type=Path,
+                        help="optional second explicit TorchScript model; both models use the same prepared frame")
     parser.add_argument("--output-dir", type=Path,
                         help="new output directory (required in live mode; existing paths are rejected)")
     parser.add_argument("--duration-s", type=float, default=30.0,
                         help="finite live observation duration, default 30 seconds")
     parser.add_argument("--depth-topic", default=DEFAULT_DEPTH_TOPIC)
     parser.add_argument("--camera-info-topic", default=DEFAULT_INFO_TOPIC)
+    parser.add_argument("--input-depth-stage", choices=("unspecified", "raw", "sdk-hole-filled"),
+                        default="unspecified",
+                        help="document whether the subscribed depth has already passed SDK hole filling")
     parser.add_argument("--unknown-fill-m", type=float,
                         help="explicit diagnostic-only placeholder for unknown sampled cells; no default")
     parser.add_argument("--offline-self-check", action="store_true",
@@ -50,6 +55,8 @@ def parse_args():
 def validate_args(args):
     if not args.model.is_file():
         raise FileNotFoundError("explicit model does not exist: {}".format(args.model))
+    if args.compare_model is not None and not args.compare_model.is_file():
+        raise FileNotFoundError("explicit comparison model does not exist: {}".format(args.compare_model))
     if args.unknown_fill_m is not None and (
             not math.isfinite(args.unknown_fill_m) or
             not RAY_MIN_M <= args.unknown_fill_m <= RAY_MAX_M):
@@ -130,6 +137,15 @@ def infer_log_depth(model, depth_log):
         raise RuntimeError("model returned non-finite ray values")
     rays_m = np.exp2(np.clip(rays_log2, np.log2(RAY_MIN_M), np.log2(RAY_MAX_M)))
     return rays_m.astype(np.float32), (ended_ns - started_ns) / 1e6
+
+
+def infer_models(primary_model, compare_model, depth_log):
+    """Run both explicitly selected weights on this unchanged prepared image."""
+    primary_rays, primary_ms = infer_log_depth(primary_model, depth_log)
+    if compare_model is None:
+        return primary_rays, primary_ms, None, None
+    compare_rays, compare_ms = infer_log_depth(compare_model, depth_log)
+    return primary_rays, primary_ms, compare_rays, compare_ms
 
 
 class LatestFrameSlot:
@@ -218,6 +234,10 @@ def offline_self_check(args):
     from realsense_depth_to_abs_rays import downsample_depth_centers
 
     model, warmup_ms = load_model(args.model)
+    compare_model = None
+    compare_warmup_ms = None
+    if args.compare_model is not None:
+        compare_model, compare_warmup_ms = load_model(args.compare_model)
     filenames = ["depth_000030_ros_mm.npy", "depth_000090_ros_mm.npy",
                  "depth_000150_ros_mm.npy", "depth_last_ros_mm.npy"]
     checks = []
@@ -238,28 +258,37 @@ def offline_self_check(args):
             status = "skipped_unknown_no_fill_selected"
             rays = None
             inference_ms = None
+            compare_rays = None
+            compare_inference_ms = None
         else:
             model_input, _, candidate_mask = prepare_input(depth_m, valid, args.unknown_fill_m)
-            rays, inference_ms = infer_log_depth(model, model_input)
+            rays, inference_ms, compare_rays, compare_inference_ms = infer_models(
+                model, compare_model, model_input)
             status = "diagnostic_prediction_invalid_for_control"
         checks.append({
             "file": filename,
             "center_samples_identical_to_existing_adapter": True,
             "strict_mask_identical_to_existing_adapter": True,
-            "raw_zero_fraction": float((~valid).mean()),
-            "center_40x40_zero_fraction": float((~center_roi_valid).mean()),
+            "input_zero_fraction": float((~valid).mean()),
+            "center_40x40_input_zero_fraction": float((~center_roi_valid).mean()),
+            "input_depth_stage": "raw_ros_mm",
             "strict_unknown_fraction": float((~old_strict_mask).mean()),
             "candidate_center_unknown_fraction": float((~candidate_mask).mean()),
             "candidate_fill_m": args.unknown_fill_m,
             "status": status,
             "inference_ms": inference_ms,
             "rays_m": None if rays is None else [float(value) for value in rays],
+            "compare_inference_ms": compare_inference_ms,
+            "compare_rays_m": None if compare_rays is None else [float(value) for value in compare_rays],
+            "both_models_used_same_prepared_input": compare_model is not None and rays is not None,
             "prediction_valid_for_control": False,
         })
     result = {
         "mode": "offline_self_check_no_ros_no_dds",
         "model_path": str(args.model.resolve()),
         "torch_warmup_ms": warmup_ms,
+        "compare_model_path": str(args.compare_model.resolve()) if args.compare_model else None,
+        "compare_torch_warmup_ms": compare_warmup_ms,
         "source_directory": str(args.self_check_input_dir.resolve()),
         "frames": checks,
         "latest_slot_check": _queue_self_check(),
@@ -298,6 +327,10 @@ def live_observe(args):
     from sensor_msgs.msg import CameraInfo, Image
 
     model, warmup_ms = load_model(args.model)
+    compare_model = None
+    compare_warmup_ms = None
+    if args.compare_model is not None:
+        compare_model, compare_warmup_ms = load_model(args.compare_model)
     args.output_dir.mkdir(parents=True, exist_ok=False)
     slot = LatestFrameSlot()
     rows = []
@@ -336,12 +369,15 @@ def live_observe(args):
                 "capture_to_pc_age_ms": None,
                 "strict_unknown_fraction": None,
                 "candidate_unknown_fraction": None,
-                "raw_zero_fraction": None,
-                "center_40x40_zero_fraction": None,
+                "input_zero_fraction": None,
+                "center_40x40_input_zero_fraction": None,
                 "unknown_fill_m_diagnostic_only": args.unknown_fill_m,
+                "input_depth_stage": args.input_depth_stage,
                 "status": None,
                 "error": "",
             }
+            if args.compare_model is not None:
+                row["compare_inference_ms"] = None
             with receive_lock:
                 processing_state["in_flight"] = True
             try:
@@ -355,8 +391,8 @@ def live_observe(args):
                 raw = np.frombuffer(msg.data, dtype=dtype).reshape(msg.height, msg.width)
                 depth_m = raw.astype(np.float32) * np.float32(0.001)
                 source_valid = (raw != 0) & np.isfinite(depth_m)
-                row["raw_zero_fraction"] = float((~source_valid).mean())
-                row["center_40x40_zero_fraction"] = float((~source_valid[CENTER_ROI_YX]).mean())
+                row["input_zero_fraction"] = float((~source_valid).mean())
+                row["center_40x40_input_zero_fraction"] = float((~source_valid[CENTER_ROI_YX]).mean())
                 depth_log, strict_valid, candidate_valid = prepare_input(
                     depth_m, source_valid, args.unknown_fill_m)
                 prep_end_ns = time.monotonic_ns()
@@ -366,10 +402,15 @@ def live_observe(args):
                 if depth_log is None:
                     row["status"] = "skipped_unknown_no_placeholder_selected"
                 else:
-                    rays, infer_ms = infer_log_depth(model, depth_log)
+                    rays, infer_ms, compare_rays, compare_infer_ms = infer_models(
+                        model, compare_model, depth_log)
                     row["inference_ms"] = infer_ms
                     row.update({"ray_{:02d}_m".format(index): float(value)
                                 for index, value in enumerate(rays)})
+                    if compare_model is not None:
+                        row["compare_inference_ms"] = compare_infer_ms
+                        row.update({"compare_ray_{:02d}_m".format(index): float(value)
+                                    for index, value in enumerate(compare_rays)})
                     row["status"] = "diagnostic_prediction_invalid_for_control"
             except Exception as exc:
                 row["status"] = "processing_error"
@@ -456,22 +497,28 @@ def live_observe(args):
         _write_live_outputs(args, rows, receive_times_ns, header_stamps_ns,
                             receive_count, camera_info_count, camera_info_snapshot,
                             slot.overwritten_count, errors, warmup_ms,
-                            observation_start_ns, observation_end_ns, observation_status, interrupted)
+                            compare_warmup_ms, observation_start_ns, observation_end_ns,
+                            observation_status, interrupted)
     return 1 if errors else 0
 
 
 def _write_live_outputs(args, rows, receive_times_ns, header_stamps_ns,
                         receive_count, camera_info_count, camera_info_snapshot,
                         overwritten_count, errors, warmup_ms,
-                        start_ns, end_ns, status, interrupted):
+                        compare_warmup_ms, start_ns, end_ns, status, interrupted):
     ray_fields = ["ray_{:02d}_m".format(index) for index in range(RAY_COUNT)]
+    compare_ray_fields = (["compare_ray_{:02d}_m".format(index) for index in range(RAY_COUNT)]
+                          if args.compare_model is not None else [])
     fields = ["receive_index", "header_sec", "header_nanosec", "header_stamp_ns",
               "image_width", "image_height", "image_encoding", "frame_id",
               "receive_monotonic_ns", "process_start_monotonic_ns", "process_end_monotonic_ns",
               "queue_wait_ms", "preprocess_ms", "inference_ms", "receive_to_completion_ms",
-              "capture_to_pc_age_ms", "raw_zero_fraction", "center_40x40_zero_fraction",
+              "capture_to_pc_age_ms", "input_zero_fraction", "center_40x40_input_zero_fraction",
               "strict_unknown_fraction", "candidate_unknown_fraction",
-              "unknown_fill_m_diagnostic_only", "status", "error"] + ray_fields
+              "unknown_fill_m_diagnostic_only", "input_depth_stage", "status", "error"] + ray_fields
+    if args.compare_model is not None:
+        fields.insert(fields.index("status"), "compare_inference_ms")
+        fields += compare_ray_fields
     csv_path = args.output_dir / "per_frame.csv"
     with csv_path.open("w", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(stream, fieldnames=fields)
@@ -484,12 +531,14 @@ def _write_live_outputs(args, rows, receive_times_ns, header_stamps_ns,
                          if row["candidate_unknown_fraction"] is not None]
     strict_unknown = [row["strict_unknown_fraction"] for row in rows
                       if row["strict_unknown_fraction"] is not None]
-    raw_zero = [row["raw_zero_fraction"] for row in rows if row["raw_zero_fraction"] is not None]
-    center_40x40_zero = [row["center_40x40_zero_fraction"] for row in rows
-                         if row["center_40x40_zero_fraction"] is not None]
+    input_zero = [row["input_zero_fraction"] for row in rows if row["input_zero_fraction"] is not None]
+    center_40x40_zero = [row["center_40x40_input_zero_fraction"] for row in rows
+                         if row["center_40x40_input_zero_fraction"] is not None]
     complete_ms = [row["receive_to_completion_ms"] for row in rows]
     preprocess_ms = [row["preprocess_ms"] for row in rows if row["preprocess_ms"] is not None]
     inference_ms = [row["inference_ms"] for row in rows if row["inference_ms"] is not None]
+    compare_inference_ms = [row["compare_inference_ms"] for row in rows
+                            if row.get("compare_inference_ms") is not None]
     queue_wait_ms = [row["queue_wait_ms"] for row in rows]
     stamp_diffs = np.diff(np.asarray(header_stamps_ns, dtype=np.int64)) if len(header_stamps_ns) > 1 else []
     camera_info = camera_info_snapshot["message"]
@@ -501,6 +550,9 @@ def _write_live_outputs(args, rows, receive_times_ns, header_stamps_ns,
         "prediction_valid_for_control": False,
         "model_path": str(args.model.resolve()),
         "torch_warmup_ms": warmup_ms,
+        "compare_model_path": str(args.compare_model.resolve()) if args.compare_model else None,
+        "compare_torch_warmup_ms": compare_warmup_ms,
+        "models_share_each_prepared_input": args.compare_model is not None,
         "expected_input": {"encoding": "16UC1", "width": 480, "height": 270,
                            "unit": "millimeters", "meters_per_unit": 0.001},
         "model_input": {"shape_nchw": [1, 3, CAM_H, CAM_W],
@@ -509,6 +561,7 @@ def _write_live_outputs(args, rows, receive_times_ns, header_stamps_ns,
         "ray_angles_deg_increasing": RAY_ANGLES_DEG,
         "ray_output_unit": "meter, clipped [0.1,6]",
         "depth_topic": args.depth_topic,
+        "input_depth_stage": args.input_depth_stage,
         "camera_info_topic": args.camera_info_topic,
         "duration_requested_s": args.duration_s,
         "observation_start_monotonic_ns": start_ns,
@@ -535,11 +588,16 @@ def _write_live_outputs(args, rows, receive_times_ns, header_stamps_ns,
         "receive_to_completion_ms": _percentiles(complete_ms),
         "preprocess_ms": _percentiles(preprocess_ms),
         "inference_ms": _percentiles(inference_ms),
+        "compare_inference_ms": _percentiles(compare_inference_ms),
         "queue_wait_ms": _percentiles(queue_wait_ms),
         "candidate_unknown_fraction": _percentiles(candidate_unknown),
         "strict_3x3_unknown_fraction": _percentiles(strict_unknown),
-        "raw_depth_zero_fraction_processed_frames": _percentiles(raw_zero),
-        "center_40x40_zero_fraction_processed_frames": _percentiles(center_40x40_zero),
+        "input_depth_zero_fraction_processed_frames": _percentiles(input_zero),
+        "center_40x40_input_zero_fraction_processed_frames": _percentiles(center_40x40_zero),
+        "pre_filter_raw_unknown_fraction": None,
+        "pre_filter_raw_unknown_note": (
+            "not observable from a single post-filter ROS image topic; input_zero_fraction is for the received image"
+            if args.input_depth_stage == "sdk-hole-filled" else None),
         "unknown_fill_m_diagnostic_only": args.unknown_fill_m,
         "source_capture_to_pc_age_ms": None,
         "source_capture_to_pc_age_note": "Orin and PC clock alignment is unverified; no subtraction of header and PC monotonic time",

@@ -9,9 +9,10 @@ import csv
 import json
 import pickle
 import random
+import time
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import torch
@@ -143,17 +144,29 @@ def model_score(metrics: dict, false_safe_penalty: float, false_danger_penalty: 
     )
 
 
-def eval_visibility_groups(model, dataset: RayDataset, device: torch.device, visibility_csv: Path,
+def eval_visibility_groups(model, dataset: RayDataset, device: torch.device,
+                          visibility_csvs: Union[Path, Sequence[Path]],
                           batch_size: int) -> dict:
-    """Report metrics separately for in-frame and out-of-frame ray hitpoints."""
+    """Report in-frame, partly visible out-of-frame, and fully invisible targets."""
+    if isinstance(visibility_csvs, Path):
+        visibility_csvs = [visibility_csvs]
     visibility = {}
-    with visibility_csv.open(newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            sample = row["sample"]
-            visibility.setdefault(sample, np.zeros(11, dtype=bool))
-            visibility[sample][int(row["ray_index"])] = row["label_hitpoint_in_image"].lower() == "true"
+    for visibility_csv in visibility_csvs:
+        with visibility_csv.open(newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                sample = row["sample"]
+                visibility.setdefault(sample, np.zeros(11, dtype=np.int8))
+                if row["hit_geom"] == "range_cap":
+                    state = 3
+                else:
+                    in_frame = row["label_hitpoint_in_image"].lower() == "true"
+                    surface_visible = row["obstacle_has_visible_pixels_in_render"].lower() == "true"
+                    state = 2 if in_frame else (1 if surface_visible else 0)
+                visibility[sample][int(row["ray_index"])] = state
 
-    grouped_rows = {"in_frame": [], "out_of_frame": []}
+    grouped_rows = {"visible_target": [], "in_frame": [],
+                    "out_of_frame_surface_visible": [], "fully_invisible": [],
+                    "no_hit_within_range": []}
     model.eval()
     with torch.no_grad():
         for start in range(0, len(dataset), batch_size):
@@ -164,7 +177,7 @@ def eval_visibility_groups(model, dataset: RayDataset, device: torch.device, vis
                 stem = image_path.stem
                 sample = stem.rsplit("_", 1)[0] if stem.endswith(("_clean", "_masked")) else stem
                 if sample not in visibility:
-                    raise KeyError(f"No visibility row for sample {sample} in {visibility_csv}")
+                    raise KeyError(f"No visibility row for sample {sample} in {visibility_csvs}")
                 depth_log, target_log = dataset[index]
                 samples.append(visibility[sample])
                 depths.append(depth_log)
@@ -177,10 +190,19 @@ def eval_visibility_groups(model, dataset: RayDataset, device: torch.device, vis
             error_batch = (pred_batch - target_batch).cpu().numpy()
             target_np = target_batch.cpu().numpy()
             for row_index, visible_mask in enumerate(samples):
-                for ray_index, is_visible in enumerate(visible_mask):
-                    grouped_rows["in_frame" if is_visible else "out_of_frame"].append(
-                        (ray_index, float(target_np[row_index, ray_index]), float(error_batch[row_index, ray_index]))
-                    )
+                for ray_index, visibility_state in enumerate(visible_mask):
+                    value = (ray_index, float(target_np[row_index, ray_index]),
+                             float(error_batch[row_index, ray_index]))
+                    if visibility_state == 2:
+                        grouped_rows["in_frame"].append(value)
+                        grouped_rows["visible_target"].append(value)
+                    elif visibility_state == 1:
+                        grouped_rows["out_of_frame_surface_visible"].append(value)
+                        grouped_rows["visible_target"].append(value)
+                    elif visibility_state == 3:
+                        grouped_rows["no_hit_within_range"].append(value)
+                    else:
+                        grouped_rows["fully_invisible"].append(value)
 
     result = {}
     for name, rows in grouped_rows.items():
@@ -205,6 +227,11 @@ def eval_visibility_groups(model, dataset: RayDataset, device: torch.device, vis
             "per_ray_mae_m": [float(np.mean(np.abs(x))) if x else None for x in by_ray],
             "per_ray_bias_m": [float(np.mean(x)) if x else None for x in by_ray],
         }
+    result["visibility_definition"] = (
+        "visible_target combines in-frame ray hitpoints and out-of-frame hitpoints whose hit geometry "
+        "has rendered pixels; fully_invisible has a ray-hit geometry but no rendered pixels for it; "
+        "no_hit_within_range is a 6 m cap"
+    )
     return result
 
 
@@ -213,6 +240,10 @@ def train(args: argparse.Namespace) -> Path:
         raise ValueError("visible_near selection requires explicit validation data and visibility CSV")
     loader_generator = seed_training_rng(args.seed)
     device = torch.device(args.device if args.device else ("cuda" if torch.cuda.is_available() else "cpu"))
+    run_started = time.perf_counter()
+    if device.type == "cuda":
+        torch.cuda.set_device(device)
+        torch.cuda.reset_peak_memory_stats(device)
     dataset_dirs = [Path(p).expanduser() for p in args.datasets]
     dataset = RayDataset(dataset_dirs)
     if args.validation_datasets:
@@ -275,6 +306,7 @@ def train(args: argparse.Namespace) -> Path:
     )
 
     for epoch in range(1, args.epochs + 1):
+        epoch_started = time.perf_counter()
         model.train() if args.trainable == "all" else model.eval()
         losses = []
         for depth_log, target_log in train_loader:
@@ -302,6 +334,7 @@ def train(args: argparse.Namespace) -> Path:
             )
         metrics["epoch"] = epoch
         metrics["train_loss"] = float(np.mean(losses)) if losses else float("nan")
+        metrics["epoch_train_validation_seconds"] = time.perf_counter() - epoch_started
         if args.validation_datasets:
             metrics["eligible_for_selection"] = (
                 metrics["false_safe"] <= baseline_metrics["false_safe"]
@@ -312,13 +345,18 @@ def train(args: argparse.Namespace) -> Path:
             metrics["score"] = None
             selection_key = (metrics["mae_m"], metrics["near_overestimate_p95_m"] or 0.0)
             if args.selection_priority == "visible_near":
-                visible = metrics["visibility_groups"]["in_frame"]
-                baseline_visible = baseline_visibility["in_frame"]
-                if not visible.get("near_target_le_1p5_count"):
-                    raise ValueError("visible_near selection requires in-frame near targets")
-                metrics["eligible_for_selection"] = metrics["eligible_for_selection"] and (
-                    visible["false_safe"] <= baseline_visible["false_safe"]
+                visible = metrics["visibility_groups"]["visible_target"]
+                baseline_visible = baseline_visibility["visible_target"]
+                in_frame = metrics["visibility_groups"]["in_frame"]
+                baseline_in_frame = baseline_visibility["in_frame"]
+                if not visible.get("near_target_le_1p5_count") or not in_frame.get("near_target_le_1p5_count"):
+                    raise ValueError("visible_near selection requires visible and in-frame near targets")
+                metrics["eligible_for_selection"] = (
+                    metrics["false_danger"] <= baseline_metrics["false_danger"]
+                    and visible["false_safe"] <= baseline_visible["false_safe"]
                     and visible["near_overestimate_p95_m"] <= baseline_visible["near_overestimate_p95_m"]
+                    and in_frame["false_safe"] <= baseline_in_frame["false_safe"]
+                    and in_frame["near_overestimate_p95_m"] <= baseline_in_frame["near_overestimate_p95_m"]
                 )
                 selection_key = (visible["false_safe"], visible["near_overestimate_p95_m"], metrics["mae_m"])
         else:
@@ -337,6 +375,7 @@ def train(args: argparse.Namespace) -> Path:
             f"false_danger={metrics['false_danger']} eligible={metrics['eligible_for_selection']} "
             f"score={metrics['score']}"
         )
+        print(f"[Timing] epoch={epoch} train_validation_s={metrics['epoch_train_validation_seconds']:.3f}", flush=True)
         model_cpu = copy.deepcopy(model).to("cpu")
         torch.jit.save(model_cpu, str(last_path))
         if metrics["eligible_for_selection"] and (best_selection_key is None or selection_key < best_selection_key):
@@ -375,13 +414,17 @@ def train(args: argparse.Namespace) -> Path:
         "datasets": [str(p) for p in dataset_dirs],
         "validation_datasets": [str(Path(p).expanduser()) for p in args.validation_datasets],
         "test_datasets": [str(Path(p).expanduser()) for p in args.test_datasets],
-        "validation_visibility_csv": str(args.validation_visibility_csv) if args.validation_visibility_csv else None,
+        "validation_visibility_csv": [str(p) for p in args.validation_visibility_csv]
+        if args.validation_visibility_csv else None,
         "test_visibility_csv": str(args.test_visibility_csv) if args.test_visibility_csv else None,
         "sample_count": len(dataset),
         "train_size": train_size,
         "val_size": val_size,
         "split_mode": split_mode,
         "device": str(device),
+        "elapsed_seconds": time.perf_counter() - run_started,
+        "peak_cuda_allocated_mib": torch.cuda.max_memory_allocated(device) / 1024**2 if device.type == "cuda" else None,
+        "peak_cuda_reserved_mib": torch.cuda.max_memory_reserved(device) / 1024**2 if device.type == "cuda" else None,
         "seed": args.seed,
         "seeded_rngs": ["python", "numpy", "torch_cpu", "torch_cuda_when_available", "train_dataloader_shuffle", "worker_python_numpy"],
         "bitwise_reproducibility_guaranteed": False,
@@ -389,6 +432,7 @@ def train(args: argparse.Namespace) -> Path:
         "epochs": args.epochs,
         "batch_size": args.batch_size,
         "lr": args.lr,
+        "weight_decay": args.weight_decay,
         "near_weight": args.near_weight,
         "false_safe_weight": args.false_safe_weight,
         "false_danger_weight": args.false_danger_weight,
@@ -409,10 +453,12 @@ def train(args: argparse.Namespace) -> Path:
     }
     if args.selection_priority == "visible_near":
         manifest["selection_rule"] = (
-            "Require overall false-safe count, false-danger count, near overestimate P95 and "
-            "in-frame near false-safe count/P95 all no worse than base validation; among eligible "
-            "epochs minimize in-frame near false-safe count, then in-frame near overestimate P95, "
-            "then overall MAE. Test is not used for selection."
+            "Require visible-target near false-safe count/P95, in-frame near false-safe count/P95, "
+            "and far false-danger count all no worse than the medium validation baseline; visible-target "
+            "combines in-frame and out-of-frame hit geometries with rendered pixels. Fully invisible "
+            "targets are reported separately and do not gate selection. Among eligible epochs minimize "
+            "visible-target near false-safe count, then its overestimate P95, then overall MAE. "
+            "Test is not used for selection."
         )
     with (output_dir / "manifest.json").open("w") as f:
         json.dump(manifest, f, indent=2)
@@ -426,10 +472,10 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
                         help="Optional disjoint validation directories; when set, --datasets are training-only")
     parser.add_argument("--test-datasets", nargs="*", default=[],
                         help="Optional held-out directories evaluated after checkpoint selection")
-    parser.add_argument("--validation-visibility-csv", type=Path, default=None,
-                        help="Optional ray_projection_visibility.csv for in-frame/out-of-frame validation metrics")
+    parser.add_argument("--validation-visibility-csv", nargs="+", type=Path, default=None,
+                        help="Optional ray_projection_visibility.csv for target-visibility validation metrics")
     parser.add_argument("--test-visibility-csv", type=Path, default=None,
-                        help="Optional ray_projection_visibility.csv for held-out visibility metrics")
+                        help="Optional ray_projection_visibility.csv for held-out target-visibility metrics")
     parser.add_argument("--base-model", type=Path, default=DEFAULT_BASE_MODEL)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--run-name", default="mujoco_finetune_" + datetime.now().strftime("%Y%m%d_%H%M%S"))

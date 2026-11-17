@@ -14,6 +14,9 @@
 | 相机 IMU→Go2 base | [go2_vins/BODY_FRAME.md](go2_vins/BODY_FRAME.md)／[转换程序](go2_vins/go2_body_odometry.py) | 7 项离线检查通过；真实安装未测、在线未验证、不发运动命令 |
 | D435i 深度→ABS 11束离线适配 | [realsense_depth_to_abs_rays.py](realsense_depth_to_abs_rays.py) | 单张 `.npy`；显式单位/scale/模型；不访问相机、DDS或共享内存；缺测像素拒绝预测 |
 | D435i 60Hz深度→ABS射线只读观察 | [go2_depth_ray/README.md](go2_depth_ray/README.md)／[观察器](go2_depth_ray_observer.py) | 最新待处理帧槽；有限运行；记录频率、覆盖、时序、未知比例与11束诊断输出；不写协议或控制数据 |
+| D435i近障补充布局生成 | [prepare_d435i_ray_adaptation_data.py](prepare_d435i_ray_adaptation_data.py) | 显式`--coverage-supplement-v1`；当前安装候选，独立train/validation布局；数据见2026-11-17实机报告 |
+| D435i近障全网60轮训练 | [run_d435i_near_coverage_fullnet_20261117.sh](run_d435i_near_coverage_fullnet_20261117.sh) | 固定实验已完成；medium起点、全网、60轮；只用train/validation，未运行最终留出集 |
+| D435i近障三模型验证集对照 | [analyze_d435i_near_coverage_validation.py](analyze_d435i_near_coverage_validation.py) | 固定比较medium、旧epoch13和新epoch3；仅读v2与近障补充validation；输出逐样本逐束CSV/JSON/图表，不接控制 |
 | 实机实际进展 | [实机文档](../docs/thesis_project/real_go2/README.md) | 当前下一项与历史现场记录 |
 
 原生 A→B 使用宇树运动服务；完整 ABS 则运行自己的策略与 LowCmd。现有 VINS／转换程序尚未接入两者；不因看到脚本就启动实机控制。A1 工程独立规划，当前库不覆盖其文件。

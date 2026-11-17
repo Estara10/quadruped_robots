@@ -154,9 +154,77 @@ def build_layouts(test_layout_set: str = "legacy") -> list[dict]:
                  box("center_mid", 2.0, -.18, .20, .26), cyl("left_mid", 2.7, .85, .27),
                  box("right_far", 4.0, -.65, .30, .30), cyl("left_far", 4.5, 1.0, .28)]},
         ])
+    elif test_layout_set == "final_holdout_v1":
+        # Only final-test layouts: never regenerate training/validation here.
+        layouts = [
+            {"split": "test", "name": "final_wide_wall_offset", "count": 90,
+             "quota": (.45, .35, .20), "parts": [
+                 wall("backdrop", 6.15), box("near_right", 1.18, -.72, .23, .17),
+                 cyl("left_front", 1.85, .42, .21), box("left_mid", 3.15, 1.18, .32, .19),
+                 box("right_mid", 3.45, -.63, .17, .36), cyl("center_far", 4.85, .18, .34)]},
+            {"split": "test", "name": "final_staggered_occlusion", "count": 90,
+             "quota": (.45, .35, .20), "parts": [
+                 '<geom name="left_wall" type="box" pos="2.1 2.05 1" size="2.9 .07 1" rgba=".5 .5 .5 1"/>',
+                 '<geom name="right_wall" type="box" pos="2.8 -2.15 1" size="2.2 .07 1" rgba=".5 .5 .5 1"/>',
+                 wall("backdrop", 6.3), cyl("right_front", 1.42, -.32, .23),
+                 box("left_front", 2.15, .66, .19, .29), box("right_behind", 2.65, -.32, .35, .18),
+                 cyl("left_behind", 3.35, .66, .31), box("far_center", 4.75, -.10, .28, .31)]},
+        ]
     elif test_layout_set != "legacy":
         raise ValueError(f"unknown test layout set: {test_layout_set}")
     return layouts
+
+
+def build_coverage_supplement_probe_layouts() -> list[dict]:
+    """A few new whole layouts to probe size, lateral placement and occlusion coverage."""
+    return [
+        {"split": "train", "name": "supp_near_size_mix", "count": 60,
+         "quota": (.65, .25, .10), "parts": [
+             wall("backdrop", 5.7), box("wide_near", 1.18, .05, .30, .27),
+             cyl("narrow_left", 1.42, .78, .13), box("small_right", 1.72, -.78, .12, .18),
+             cyl("mid_left", 2.8, 1.15, .28), box("mid_right", 3.3, -.9, .24, .31)]},
+        {"split": "train", "name": "supp_near_partial_left", "count": 60,
+         "quota": (.65, .25, .10), "parts": [
+             wall("backdrop", 5.8), box("front_left", 1.08, .64, .17, .24),
+             box("rear_left", 1.55, .83, .34, .36), cyl("near_center", 1.25, -.12, .16),
+             box("right_mid", 2.4, -.85, .22, .29), cyl("far_right", 4.1, -.55, .31)]},
+        {"split": "train", "name": "supp_near_partial_right", "count": 60,
+         "quota": (.65, .25, .10), "parts": [
+             wall("backdrop", 5.9), box("front_right", 1.14, -.61, .14, .20),
+             cyl("rear_right", 1.62, -.86, .29), box("near_center", 1.38, .18, .18, .30),
+             cyl("left_mid", 2.55, .9, .24), box("far_left", 4.25, .48, .33, .27)]},
+        {"split": "validation", "name": "supp_validation_staggered_sizes", "count": 90,
+         "quota": (.55, .30, .15), "parts": [
+             wall("backdrop", 5.6), cyl("near_left", 1.22, .58, .19),
+             box("behind_left", 1.82, .79, .28, .31), box("near_right", 1.35, -.42, .23, .16),
+             cyl("mid_right", 2.7, -1.05, .32), box("far_center", 4.2, .1, .35, .30)]},
+    ]
+
+
+def build_independent_eval_layouts() -> list[dict]:
+    """New whole layouts for one-shot independent checkpoint comparison.
+
+    All layouts are evaluation-only: no train or test split is generated, and none
+    of the names or obstacle placements below appear in adaptation_v1, the
+    current-mount test sets, final_holdout_v1 or coverage_supplement_v1.
+    """
+    return [
+        {"split": "validation", "name": "indep_eval_offset_pair_a", "count": 60,
+         "quota": (.60, .25, .15), "parts": [
+             wall("backdrop", 5.75), box("near_left_wide", 1.12, .68, .26, .21),
+             cyl("near_right_narrow", 1.46, -.52, .12), box("behind_left", 1.95, .92, .33, .26),
+             cyl("mid_right", 2.9, -.95, .30), box("far_left", 4.35, .45, .32, .29)]},
+        {"split": "validation", "name": "indep_eval_offset_pair_b", "count": 60,
+         "quota": (.55, .30, .15), "parts": [
+             wall("backdrop", 6.05), cyl("near_right", 1.04, -.61, .18),
+             box("rear_right_wide", 1.68, -.88, .37, .24), box("near_left_small", 1.31, .38, .13, .19),
+             box("mid_center", 2.6, .12, .29, .33), cyl("far_right", 4.5, -.72, .27)]},
+        {"split": "validation", "name": "indep_eval_open_mix_c", "count": 60,
+         "quota": (.35, .35, .30), "parts": [
+             wall("backdrop", 6.25), cyl("near_center_small", 1.52, .16, .15),
+             box("mid_left", 2.35, .86, .24, .30), cyl("mid_right", 3.05, -.82, .26),
+             box("far_center", 4.6, -.06, .30, .27), box("far_left", 5.25, .95, .22, .24)]},
+    ]
 
 
 DIAGNOSTIC_TARGETS = [0.25, 0.35]
@@ -558,7 +626,7 @@ def run_geometry_checks(output):
 
 
 def audit_generated_data(output, records, layouts, args):
-    splits = ("train", "validation", "test")
+    splits = tuple(s for s in ("train", "validation", "test") if any(l["split"] == s for l in layouts))
     by_split = {split: [key for key, rec in records.items() if rec["split"] == split]
                 for split in splits}
     layouts_by_split = {split: {rec["layout"] for rec in records.values() if rec["split"] == split}
@@ -573,7 +641,10 @@ def audit_generated_data(output, records, layouts, args):
     }
     if {s: len(by_split[s]) for s in splits} != expected_counts:
         raise RuntimeError(f"pose counts differ from layout plan: {by_split} vs {expected_counts}")
-    if args.test_layout_set == "current_mount_v2":
+    if args.coverage_supplement_probe:
+        if any(split == "test" for split in splits):
+            raise RuntimeError("coverage supplement probe must not generate a test split")
+    if args.test_layout_set == "current_mount_v2" and not args.coverage_supplement_probe:
         new_test_names = {layout["name"] for layout in layouts if layout["split"] == "test"}
         if not new_test_names or new_test_names & {"test_mixed", "test_open"}:
             raise RuntimeError("current-mount test layouts must be distinct from adaptation_v1 layouts")
@@ -623,12 +694,15 @@ def audit_generated_data(output, records, layouts, args):
         }
     return {"passed": True, "expected_pose_counts": expected_counts,
             "split_audit": split_audit,
-            "test_layout_set": args.test_layout_set,
-            "test_layouts_new_relative_to_adaptation_v1": args.test_layout_set == "current_mount_v2"}
+            "test_layout_set": None if args.coverage_supplement_probe else args.test_layout_set,
+            "test_split_generated": any(layout["split"] == "test" for layout in layouts),
+            "test_layouts_new_relative_to_adaptation_v1": (
+                False if args.coverage_supplement_probe
+                else args.test_layout_set in ("current_mount_v2", "final_holdout_v1"))}
 
 
 def summarize(output, all_rows, records, layout_stats, masks, elapsed_s, bytes_saved, args, layouts, audit):
-    splits = ("train", "validation", "test")
+    splits = tuple(s for s in ("train", "validation", "test") if any(l["split"] == s for l in layouts))
     bin_counts = {s: {"below_0p45": 0, "near_045_1p5": 0, "mid_1p5_3": 0,
                       "far_3_6": 0, "cap_6": 0} for s in splits}
     pose_classes = {s: {"near": 0, "mid": 0, "far": 0} for s in splits}
@@ -698,6 +772,9 @@ def summarize(output, all_rows, records, layout_stats, masks, elapsed_s, bytes_s
         "training_performed": False,
         "dataset_kind": "offline geometry/mask adaptation candidate for a later bounded training run",
         "seed": args.seed,
+        "layout_selection": ("independent_eval_v1" if args.independent_eval else
+                             "coverage_supplement_probe_v1" if args.coverage_supplement_probe
+                             else args.test_layout_set),
         "test_layout_set": args.test_layout_set,
         "split_layouts": {split: [layout["name"] for layout in layouts if layout["split"] == split]
                            for split in splits},
@@ -770,9 +847,16 @@ def main(argv=None) -> int:
                         default=(480., 270., 244.134, 244.134, 245.186, 134.22),
                         metavar=("WIDTH", "HEIGHT", "FX", "FY", "PPX", "PPY"),
                         help="native depth dimensions and K; default preserves adaptation_v1")
-    parser.add_argument("--test-layout-set", choices=("legacy", "current_mount_v2"), default="legacy",
-                        help="current_mount_v2 uses two new test layouts; default preserves adaptation_v1")
+    parser.add_argument("--test-layout-set", choices=("legacy", "current_mount_v2", "final_holdout_v1"), default="legacy",
+                        help="final_holdout_v1 generates final-test only; default preserves adaptation_v1")
+    parser.add_argument("--coverage-supplement-v1", "--coverage-supplement-probe",
+                        dest="coverage_supplement_probe", action="store_true",
+                        help="generate the new whole-layout near-coverage supplement; no test split")
+    parser.add_argument("--independent-eval-v1", dest="independent_eval", action="store_true",
+                        help="generate new eval-only whole layouts for one-shot checkpoint comparison; no train/test split")
     args = parser.parse_args(argv)
+    if args.independent_eval and args.coverage_supplement_probe:
+        raise ValueError("choose exactly one new-layout mode")
     global CAMERA, PITCH_RANGE_DEG, BASE_Z_RANGE_M
     width_f, height_f, fx, fy, ppx, ppy = args.depth_intrinsics
     if width_f != int(width_f) or height_f != int(height_f):
@@ -812,7 +896,9 @@ def main(argv=None) -> int:
     all_rows, records, layout_stats = [], {}, []
     import time
     t0 = time.time()
-    layouts = build_layouts(args.test_layout_set)
+    layouts = (build_independent_eval_layouts() if args.independent_eval
+               else build_coverage_supplement_probe_layouts() if args.coverage_supplement_probe
+               else build_layouts(args.test_layout_set))
     for layout in layouts:
         stats = run_layout(mujoco, compare, generation, layout, out, masks, mask_counter,
                            rng, args.max_attempts, args.poses_per_layout, all_rows, records)

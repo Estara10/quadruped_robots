@@ -1,0 +1,54 @@
+{
+  "frames": 205,
+  "motion_window_s": [
+    23.23562425599812,
+    29.52851532799832
+  ],
+  "first": {
+    "frame": 1269,
+    "time_s": 21.282674655998562,
+    "camera_center_m": 3.253000259399414,
+    "network_0_m": 2.841324806213379,
+    "hybrid_0_m": 3.6238447999088064,
+    "geometry_0_m": 3.6238447999088064,
+    "geometry_valid_rays": 9,
+    "network_ra": -0.8012766242027283,
+    "hybrid_ra": -0.6972856521606445
+  },
+  "last": {
+    "frame": 1881,
+    "time_s": 31.498156480000034,
+    "camera_center_m": 0.2750000059604645,
+    "network_0_m": 0.8400518298149109,
+    "hybrid_0_m": 0.5968575099056902,
+    "geometry_0_m": 0.5968575099056902,
+    "geometry_valid_rays": 6,
+    "network_ra": -0.5614129900932312,
+    "hybrid_ra": -0.3826802372932434
+  },
+  "crossings": {
+    "network": {
+      "above": 7,
+      "first_three_consecutive": {
+        "frame": 1701,
+        "time_s": 28.49365449600009,
+        "camera_center_m": 0.5720000267028809,
+        "network_0_m": 0.7010881304740906,
+        "hybrid_0_m": 0.9396936924875392,
+        "geometry_0_m": 0.9396936924875392,
+        "geometry_valid_rays": 6,
+        "network_ra": -0.04620371386408806,
+        "hybrid_ra": -0.37108173966407776
+      },
+      "peak": 0.013604040257632732
+    },
+    "hybrid": {
+      "above": 0,
+      "first_three_consecutive": null,
+      "peak": -0.2961803674697876
+    }
+  },
+  "goal": "hypothetical fixed world goal 3.5 m forward from initial replay pose",
+  "state": "host-time aligned, XY velocity from position differences rotated by LowState yaw, raw Z velocity and gyro",
+  "note": "Static threshold evaluation of recorded frames, not closed-loop behavior."
+}

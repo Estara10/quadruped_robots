@@ -1,0 +1,53 @@
+{
+  "frames": 615,
+  "per_capture": {
+    "bucket_wall_static": {
+      "frames": 12,
+      "model_fallback_by_angle": {
+        "-45": 12,
+        "-27": 3,
+        "36": 12,
+        "45": 12
+      },
+      "median_absolute_change_m": 0.22728340075112374,
+      "maximum_absolute_change_m": 1.3975580194654849
+    },
+    "current_mount": {
+      "frames": 600,
+      "model_fallback_by_angle": {
+        "-45": 600,
+        "36": 600,
+        "45": 600
+      },
+      "median_absolute_change_m": 0.24372555623040532,
+      "maximum_absolute_change_m": 1.2090266944305497
+    },
+    "standing_board119": {
+      "frames": 3,
+      "model_fallback_by_angle": {
+        "-45": 3,
+        "36": 3,
+        "45": 3
+      },
+      "median_absolute_change_m": 0.1636515836515524,
+      "maximum_absolute_change_m": 2.2752273168888224
+    }
+  },
+  "reference_rays": {
+    "-18": {
+      "reference_m": 1.251240046843538,
+      "hybrid_m": 1.2440726947950842,
+      "network_m": 0.8499758243560791
+    },
+    "0": {
+      "reference_m": 1.19,
+      "hybrid_m": 1.204151371129319,
+      "network_m": 1.0387073755264282
+    },
+    "18": {
+      "reference_m": 1.251240046843538,
+      "hybrid_m": 1.2676414377585428,
+      "network_m": 1.329312801361084
+    }
+  }
+}

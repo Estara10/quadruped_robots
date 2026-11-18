@@ -1,0 +1,44 @@
+{
+  "frames": 234,
+  "motion_window_s": [
+    32.532770335998066,
+    40.227927455998724
+  ],
+  "first": {
+    "frame": 1830,
+    "time_s": 30.546552960000554,
+    "camera_center_m": 2.9800002574920654,
+    "network_0_m": 2.1351609230041504,
+    "hybrid_0_m": 3.2779701688332836,
+    "geometry_0_m": 3.2779701688332836,
+    "geometry_valid_rays": 9,
+    "network_ra": -0.2905917465686798,
+    "hybrid_ra": -0.7778574824333191
+  },
+  "last": {
+    "frame": 2529,
+    "time_s": 42.214186495999456,
+    "camera_center_m": 0.2770000100135803,
+    "network_0_m": 0.6704338192939758,
+    "hybrid_0_m": 0.6226388613827346,
+    "geometry_0_m": 0.6226388613827346,
+    "geometry_valid_rays": 5,
+    "network_ra": -0.5597385168075562,
+    "hybrid_ra": -0.4680964946746826
+  },
+  "crossings": {
+    "network": {
+      "above": 0,
+      "first_three_consecutive": null,
+      "peak": -0.22199779748916626
+    },
+    "hybrid": {
+      "above": 0,
+      "first_three_consecutive": null,
+      "peak": -0.21455132961273193
+    }
+  },
+  "goal": "hypothetical fixed world goal 3.5 m forward from initial replay pose",
+  "state": "host-time aligned, XY velocity from position differences rotated by LowState yaw, raw Z velocity and gyro",
+  "note": "Static threshold evaluation of recorded frames, not closed-loop behavior."
+}

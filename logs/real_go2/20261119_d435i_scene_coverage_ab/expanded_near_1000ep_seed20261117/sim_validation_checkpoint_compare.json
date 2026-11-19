@@ -1,0 +1,722 @@
+{
+  "validation_frames": 680,
+  "original_gate_maxima": {
+    "far_under_ge_0p5": 2336,
+    "visible_near_over_ge_0p5": 291,
+    "visible_near_over_p95_m": 1.2902831852436067,
+    "in_frame_near_over_ge_0p5": 261,
+    "in_frame_near_over_p95_m": 1.2960134506225585
+  },
+  "gate_failures_over_1000_epochs": {
+    "far_under_ge_0p5": 0,
+    "visible_near_over_ge_0p5": 0,
+    "visible_near_over_p95_m": 1000,
+    "in_frame_near_over_ge_0p5": 0,
+    "in_frame_near_over_p95_m": 1000
+  },
+  "metric_contract": "Visible hitpoint or visible obstacle surface, near <= 1.5 m, overestimate >= 0.5 m. Far >= 3 m, underestimate >= 0.5 m. Console top excluded only from main near diagnostic. Positive-part P95 over all rays in group. Inference CPU, gate taken from original training logs.",
+  "models": {
+    "B1000": {
+      "checkpoint": "logs/real_go2/20261119_d435i_scene_coverage_ab/expanded_1000ep_seed20261117/ray_pred_mujoco_finetuned_last.pt",
+      "mae_m": 0.48376718163490295,
+      "visible_near_ex_console": {
+        "rays": 892,
+        "over_ge_0p5": 56,
+        "over_p95_m": 0.5742782711982715,
+        "worst_over_m": 4.396851539611816
+      },
+      "in_frame_near_ex_console": {
+        "rays": 668,
+        "over_ge_0p5": 16,
+        "over_p95_m": 0.2656118929386138,
+        "worst_over_m": 4.396851539611816
+      },
+      "visible_near_incl_console": {
+        "rays": 1102,
+        "over_ge_0p5": 246,
+        "over_p95_m": 2.6102493166923524,
+        "worst_over_m": 4.396851539611816
+      },
+      "visible_near_console": {
+        "rays": 210,
+        "over_ge_0p5": 190,
+        "over_p95_m": 2.983907973766327,
+        "worst_over_m": 3.2857308387756348
+      },
+      "far": {
+        "rays": 4178,
+        "under_ge_0p5": 1090,
+        "mae_m": 0.5324709415435791
+      },
+      "no_hit": {
+        "rays": 2538,
+        "under_ge_0p5": 636,
+        "mae_m": 0.5044019222259521
+      },
+      "logged_gate_values": {
+        "far_under_ge_0p5": 1090,
+        "visible_near_over_ge_0p5": 246,
+        "visible_near_over_p95_m": 2.6104693293571475,
+        "in_frame_near_over_ge_0p5": 206,
+        "in_frame_near_over_p95_m": 2.697456479072571
+      },
+      "original_gate_failed_metrics": [
+        "visible_near_over_p95_m",
+        "in_frame_near_over_p95_m"
+      ],
+      "visible_near_ex_console_by_angle": {
+        "-45": {
+          "rays": 20,
+          "over_ge_0p5": 7,
+          "over_p95_m": 1.670505952835083,
+          "worst_over_m": 1.702744722366333
+        },
+        "-36": {
+          "rays": 54,
+          "over_ge_0p5": 4,
+          "over_p95_m": 0.7418072521686552,
+          "worst_over_m": 2.4178287982940674
+        },
+        "-27": {
+          "rays": 96,
+          "over_ge_0p5": 5,
+          "over_p95_m": 0.5037791728973389,
+          "worst_over_m": 4.396851539611816
+        },
+        "-18": {
+          "rays": 116,
+          "over_ge_0p5": 2,
+          "over_p95_m": 0.2525213658809662,
+          "worst_over_m": 0.532243013381958
+        },
+        "-9": {
+          "rays": 128,
+          "over_ge_0p5": 4,
+          "over_p95_m": 0.23163451552391037,
+          "worst_over_m": 1.7465051412582397
+        },
+        "0": {
+          "rays": 134,
+          "over_ge_0p5": 2,
+          "over_p95_m": 0.2736202239990234,
+          "worst_over_m": 0.5841244459152222
+        },
+        "9": {
+          "rays": 120,
+          "over_ge_0p5": 2,
+          "over_p95_m": 0.26643999814987185,
+          "worst_over_m": 0.5264133214950562
+        },
+        "18": {
+          "rays": 90,
+          "over_ge_0p5": 6,
+          "over_p95_m": 0.5174292027950286,
+          "worst_over_m": 0.7290925979614258
+        },
+        "27": {
+          "rays": 74,
+          "over_ge_0p5": 6,
+          "over_p95_m": 0.7376623272895801,
+          "worst_over_m": 1.1353636980056763
+        },
+        "36": {
+          "rays": 34,
+          "over_ge_0p5": 6,
+          "over_p95_m": 1.6925302445888515,
+          "worst_over_m": 3.155846118927002
+        },
+        "45": {
+          "rays": 26,
+          "over_ge_0p5": 12,
+          "over_p95_m": 2.0544672310352325,
+          "worst_over_m": 3.037947654724121
+        }
+      }
+    },
+    "near_60": {
+      "checkpoint": "logs/real_go2/20261119_d435i_scene_coverage_ab/expanded_near_1000ep_seed20261117/ray_pred_epoch_0060.pt",
+      "mae_m": 0.6772382855415344,
+      "visible_near_ex_console": {
+        "rays": 892,
+        "over_ge_0p5": 53,
+        "over_p95_m": 0.5711773395538317,
+        "worst_over_m": 4.513426303863525
+      },
+      "in_frame_near_ex_console": {
+        "rays": 668,
+        "over_ge_0p5": 16,
+        "over_p95_m": 0.30844206511974337,
+        "worst_over_m": 1.1502798795700073
+      },
+      "visible_near_incl_console": {
+        "rays": 1102,
+        "over_ge_0p5": 227,
+        "over_p95_m": 1.9163321852684023,
+        "worst_over_m": 4.513426303863525
+      },
+      "visible_near_console": {
+        "rays": 210,
+        "over_ge_0p5": 174,
+        "over_p95_m": 2.4489595174789427,
+        "worst_over_m": 4.139704704284668
+      },
+      "far": {
+        "rays": 4178,
+        "under_ge_0p5": 1817,
+        "mae_m": 0.8927055597305298
+      },
+      "no_hit": {
+        "rays": 2538,
+        "under_ge_0p5": 1182,
+        "mae_m": 0.9646046161651611
+      },
+      "logged_gate_values": {
+        "far_under_ge_0p5": 1817,
+        "visible_near_over_ge_0p5": 227,
+        "visible_near_over_p95_m": 1.9180674195289615,
+        "in_frame_near_over_ge_0p5": 190,
+        "in_frame_near_over_p95_m": 1.9394764780998228
+      },
+      "original_gate_failed_metrics": [
+        "visible_near_over_p95_m",
+        "in_frame_near_over_p95_m"
+      ],
+      "visible_near_ex_console_by_angle": {
+        "-45": {
+          "rays": 20,
+          "over_ge_0p5": 5,
+          "over_p95_m": 2.794582569599152,
+          "worst_over_m": 3.0221712589263916
+        },
+        "-36": {
+          "rays": 54,
+          "over_ge_0p5": 10,
+          "over_p95_m": 1.4220336079597473,
+          "worst_over_m": 2.161663293838501
+        },
+        "-27": {
+          "rays": 96,
+          "over_ge_0p5": 2,
+          "over_p95_m": 0.4438658580183983,
+          "worst_over_m": 0.9780282974243164
+        },
+        "-18": {
+          "rays": 116,
+          "over_ge_0p5": 0,
+          "over_p95_m": 0.29424142837524414,
+          "worst_over_m": 0.47889444231987
+        },
+        "-9": {
+          "rays": 128,
+          "over_ge_0p5": 4,
+          "over_p95_m": 0.2559837341308593,
+          "worst_over_m": 1.313973307609558
+        },
+        "0": {
+          "rays": 134,
+          "over_ge_0p5": 4,
+          "over_p95_m": 0.3539819449186323,
+          "worst_over_m": 0.6480230093002319
+        },
+        "9": {
+          "rays": 120,
+          "over_ge_0p5": 4,
+          "over_p95_m": 0.34542863965034454,
+          "worst_over_m": 0.7247287034988403
+        },
+        "18": {
+          "rays": 90,
+          "over_ge_0p5": 2,
+          "over_p95_m": 0.3468310594558715,
+          "worst_over_m": 1.087106704711914
+        },
+        "27": {
+          "rays": 74,
+          "over_ge_0p5": 5,
+          "over_p95_m": 0.514742812514305,
+          "worst_over_m": 0.7203925251960754
+        },
+        "36": {
+          "rays": 34,
+          "over_ge_0p5": 6,
+          "over_p95_m": 2.0591974198818197,
+          "worst_over_m": 4.513426303863525
+        },
+        "45": {
+          "rays": 26,
+          "over_ge_0p5": 11,
+          "over_p95_m": 1.6705740094184875,
+          "worst_over_m": 3.941462516784668
+        }
+      }
+    },
+    "near_250": {
+      "checkpoint": "logs/real_go2/20261119_d435i_scene_coverage_ab/expanded_near_1000ep_seed20261117/ray_pred_epoch_0250.pt",
+      "mae_m": 0.5579529404640198,
+      "visible_near_ex_console": {
+        "rays": 892,
+        "over_ge_0p5": 58,
+        "over_p95_m": 0.6518865436315533,
+        "worst_over_m": 3.6863765716552734
+      },
+      "in_frame_near_ex_console": {
+        "rays": 668,
+        "over_ge_0p5": 12,
+        "over_p95_m": 0.28638938069343567,
+        "worst_over_m": 2.7965750694274902
+      },
+      "visible_near_incl_console": {
+        "rays": 1102,
+        "over_ge_0p5": 231,
+        "over_p95_m": 2.006844973564148,
+        "worst_over_m": 3.6863765716552734
+      },
+      "visible_near_console": {
+        "rays": 210,
+        "over_ge_0p5": 173,
+        "over_p95_m": 2.4718494892120355,
+        "worst_over_m": 3.6138954162597656
+      },
+      "far": {
+        "rays": 4178,
+        "under_ge_0p5": 1479,
+        "mae_m": 0.6846309900283813
+      },
+      "no_hit": {
+        "rays": 2538,
+        "under_ge_0p5": 873,
+        "mae_m": 0.6873307228088379
+      },
+      "logged_gate_values": {
+        "far_under_ge_0p5": 1479,
+        "visible_near_over_ge_0p5": 231,
+        "visible_near_over_p95_m": 2.004987418651581,
+        "in_frame_near_over_ge_0p5": 185,
+        "in_frame_near_over_p95_m": 2.009908139705658
+      },
+      "original_gate_failed_metrics": [
+        "visible_near_over_p95_m",
+        "in_frame_near_over_p95_m"
+      ],
+      "visible_near_ex_console_by_angle": {
+        "-45": {
+          "rays": 20,
+          "over_ge_0p5": 8,
+          "over_p95_m": 2.2928004503250126,
+          "worst_over_m": 2.597367763519287
+        },
+        "-36": {
+          "rays": 54,
+          "over_ge_0p5": 12,
+          "over_p95_m": 1.0774090290069576,
+          "worst_over_m": 2.3756484985351562
+        },
+        "-27": {
+          "rays": 96,
+          "over_ge_0p5": 5,
+          "over_p95_m": 0.4268566817045212,
+          "worst_over_m": 2.7965750694274902
+        },
+        "-18": {
+          "rays": 116,
+          "over_ge_0p5": 0,
+          "over_p95_m": 0.2462608516216278,
+          "worst_over_m": 0.37214693427085876
+        },
+        "-9": {
+          "rays": 128,
+          "over_ge_0p5": 4,
+          "over_p95_m": 0.2694620221853253,
+          "worst_over_m": 1.3057820796966553
+        },
+        "0": {
+          "rays": 134,
+          "over_ge_0p5": 2,
+          "over_p95_m": 0.3395049035549163,
+          "worst_over_m": 0.7705322504043579
+        },
+        "9": {
+          "rays": 120,
+          "over_ge_0p5": 1,
+          "over_p95_m": 0.2869680881500244,
+          "worst_over_m": 0.5308115482330322
+        },
+        "18": {
+          "rays": 90,
+          "over_ge_0p5": 3,
+          "over_p95_m": 0.31637057065963736,
+          "worst_over_m": 0.9195013642311096
+        },
+        "27": {
+          "rays": 74,
+          "over_ge_0p5": 5,
+          "over_p95_m": 0.5271814763545989,
+          "worst_over_m": 0.7359863519668579
+        },
+        "36": {
+          "rays": 34,
+          "over_ge_0p5": 6,
+          "over_p95_m": 2.131466174125671,
+          "worst_over_m": 3.6863765716552734
+        },
+        "45": {
+          "rays": 26,
+          "over_ge_0p5": 12,
+          "over_p95_m": 1.8110383749008179,
+          "worst_over_m": 3.492894172668457
+        }
+      }
+    },
+    "near_500": {
+      "checkpoint": "logs/real_go2/20261119_d435i_scene_coverage_ab/expanded_near_1000ep_seed20261117/ray_pred_epoch_0500.pt",
+      "mae_m": 0.5286278128623962,
+      "visible_near_ex_console": {
+        "rays": 892,
+        "over_ge_0p5": 58,
+        "over_p95_m": 0.5860980153083799,
+        "worst_over_m": 3.9440455436706543
+      },
+      "in_frame_near_ex_console": {
+        "rays": 668,
+        "over_ge_0p5": 13,
+        "over_p95_m": 0.2805701613426208,
+        "worst_over_m": 3.5342960357666016
+      },
+      "visible_near_incl_console": {
+        "rays": 1102,
+        "over_ge_0p5": 244,
+        "over_p95_m": 2.187730312347412,
+        "worst_over_m": 3.9440455436706543
+      },
+      "visible_near_console": {
+        "rays": 210,
+        "over_ge_0p5": 186,
+        "over_p95_m": 2.677218985557556,
+        "worst_over_m": 3.309363842010498
+      },
+      "far": {
+        "rays": 4178,
+        "under_ge_0p5": 1356,
+        "mae_m": 0.6234607696533203
+      },
+      "no_hit": {
+        "rays": 2538,
+        "under_ge_0p5": 858,
+        "mae_m": 0.6253008842468262
+      },
+      "logged_gate_values": {
+        "far_under_ge_0p5": 1355,
+        "visible_near_over_ge_0p5": 244,
+        "visible_near_over_p95_m": 2.1875211596488957,
+        "in_frame_near_over_ge_0p5": 199,
+        "in_frame_near_over_p95_m": 2.233467555046081
+      },
+      "original_gate_failed_metrics": [
+        "visible_near_over_p95_m",
+        "in_frame_near_over_p95_m"
+      ],
+      "visible_near_ex_console_by_angle": {
+        "-45": {
+          "rays": 20,
+          "over_ge_0p5": 7,
+          "over_p95_m": 2.201247835159302,
+          "worst_over_m": 2.4172658920288086
+        },
+        "-36": {
+          "rays": 54,
+          "over_ge_0p5": 12,
+          "over_p95_m": 1.140928840637207,
+          "worst_over_m": 1.9744420051574707
+        },
+        "-27": {
+          "rays": 96,
+          "over_ge_0p5": 5,
+          "over_p95_m": 0.3951830267906189,
+          "worst_over_m": 3.5342960357666016
+        },
+        "-18": {
+          "rays": 116,
+          "over_ge_0p5": 0,
+          "over_p95_m": 0.2580815926194191,
+          "worst_over_m": 0.3983950614929199
+        },
+        "-9": {
+          "rays": 128,
+          "over_ge_0p5": 4,
+          "over_p95_m": 0.2792098969221111,
+          "worst_over_m": 1.3144798278808594
+        },
+        "0": {
+          "rays": 134,
+          "over_ge_0p5": 3,
+          "over_p95_m": 0.2898905992507934,
+          "worst_over_m": 0.7807117700576782
+        },
+        "9": {
+          "rays": 120,
+          "over_ge_0p5": 2,
+          "over_p95_m": 0.22189159095287317,
+          "worst_over_m": 0.5517213344573975
+        },
+        "18": {
+          "rays": 90,
+          "over_ge_0p5": 4,
+          "over_p95_m": 0.36047461628913874,
+          "worst_over_m": 0.8393165469169617
+        },
+        "27": {
+          "rays": 74,
+          "over_ge_0p5": 4,
+          "over_p95_m": 0.502157226204872,
+          "worst_over_m": 0.921245813369751
+        },
+        "36": {
+          "rays": 34,
+          "over_ge_0p5": 6,
+          "over_p95_m": 2.2018481135368346,
+          "worst_over_m": 3.9440455436706543
+        },
+        "45": {
+          "rays": 26,
+          "over_ge_0p5": 11,
+          "over_p95_m": 2.0602263808250427,
+          "worst_over_m": 3.7814769744873047
+        }
+      }
+    },
+    "near_750": {
+      "checkpoint": "logs/real_go2/20261119_d435i_scene_coverage_ab/expanded_near_1000ep_seed20261117/ray_pred_epoch_0750.pt",
+      "mae_m": 0.4902662932872772,
+      "visible_near_ex_console": {
+        "rays": 892,
+        "over_ge_0p5": 57,
+        "over_p95_m": 0.6409588634967802,
+        "worst_over_m": 4.172431945800781
+      },
+      "in_frame_near_ex_console": {
+        "rays": 668,
+        "over_ge_0p5": 14,
+        "over_p95_m": 0.25830069780349724,
+        "worst_over_m": 4.172431945800781
+      },
+      "visible_near_incl_console": {
+        "rays": 1102,
+        "over_ge_0p5": 248,
+        "over_p95_m": 2.392971467971802,
+        "worst_over_m": 4.172431945800781
+      },
+      "visible_near_console": {
+        "rays": 210,
+        "over_ge_0p5": 191,
+        "over_p95_m": 2.84702980518341,
+        "worst_over_m": 3.0731797218322754
+      },
+      "far": {
+        "rays": 4178,
+        "under_ge_0p5": 1153,
+        "mae_m": 0.5391141772270203
+      },
+      "no_hit": {
+        "rays": 2538,
+        "under_ge_0p5": 716,
+        "mae_m": 0.5177953243255615
+      },
+      "logged_gate_values": {
+        "far_under_ge_0p5": 1153,
+        "visible_near_over_ge_0p5": 248,
+        "visible_near_over_p95_m": 2.39244499206543,
+        "in_frame_near_over_ge_0p5": 205,
+        "in_frame_near_over_p95_m": 2.4874770522117613
+      },
+      "original_gate_failed_metrics": [
+        "visible_near_over_p95_m",
+        "in_frame_near_over_p95_m"
+      ],
+      "visible_near_ex_console_by_angle": {
+        "-45": {
+          "rays": 20,
+          "over_ge_0p5": 6,
+          "over_p95_m": 2.1131837368011475,
+          "worst_over_m": 2.2975845336914062
+        },
+        "-36": {
+          "rays": 54,
+          "over_ge_0p5": 10,
+          "over_p95_m": 1.2083974003791809,
+          "worst_over_m": 1.8768107891082764
+        },
+        "-27": {
+          "rays": 96,
+          "over_ge_0p5": 5,
+          "over_p95_m": 0.4466170370578766,
+          "worst_over_m": 4.172431945800781
+        },
+        "-18": {
+          "rays": 116,
+          "over_ge_0p5": 0,
+          "over_p95_m": 0.23841942101716995,
+          "worst_over_m": 0.4115980863571167
+        },
+        "-9": {
+          "rays": 128,
+          "over_ge_0p5": 4,
+          "over_p95_m": 0.2577715158462522,
+          "worst_over_m": 1.3470368385314941
+        },
+        "0": {
+          "rays": 134,
+          "over_ge_0p5": 3,
+          "over_p95_m": 0.31590322256088255,
+          "worst_over_m": 0.639817476272583
+        },
+        "9": {
+          "rays": 120,
+          "over_ge_0p5": 2,
+          "over_p95_m": 0.22032834291458128,
+          "worst_over_m": 0.6442646980285645
+        },
+        "18": {
+          "rays": 90,
+          "over_ge_0p5": 4,
+          "over_p95_m": 0.3870883643627166,
+          "worst_over_m": 0.8032286763191223
+        },
+        "27": {
+          "rays": 74,
+          "over_ge_0p5": 5,
+          "over_p95_m": 0.5093992799520493,
+          "worst_over_m": 0.9854148626327515
+        },
+        "36": {
+          "rays": 34,
+          "over_ge_0p5": 6,
+          "over_p95_m": 2.1862250566482544,
+          "worst_over_m": 3.727573871612549
+        },
+        "45": {
+          "rays": 26,
+          "over_ge_0p5": 12,
+          "over_p95_m": 2.1914889216423035,
+          "worst_over_m": 3.727741241455078
+        }
+      }
+    },
+    "near_1000": {
+      "checkpoint": "logs/real_go2/20261119_d435i_scene_coverage_ab/expanded_near_1000ep_seed20261117/ray_pred_mujoco_finetuned_last.pt",
+      "mae_m": 0.48236846923828125,
+      "visible_near_ex_console": {
+        "rays": 892,
+        "over_ge_0p5": 55,
+        "over_p95_m": 0.6329633831977843,
+        "worst_over_m": 3.614990234375
+      },
+      "in_frame_near_ex_console": {
+        "rays": 668,
+        "over_ge_0p5": 13,
+        "over_p95_m": 0.26566469073295595,
+        "worst_over_m": 3.002908229827881
+      },
+      "visible_near_incl_console": {
+        "rays": 1102,
+        "over_ge_0p5": 248,
+        "over_p95_m": 2.5653868198394782,
+        "worst_over_m": 3.614990234375
+      },
+      "visible_near_console": {
+        "rays": 210,
+        "over_ge_0p5": 193,
+        "over_p95_m": 2.927451658248901,
+        "worst_over_m": 3.0751748085021973
+      },
+      "far": {
+        "rays": 4178,
+        "under_ge_0p5": 1065,
+        "mae_m": 0.5196186304092407
+      },
+      "no_hit": {
+        "rays": 2538,
+        "under_ge_0p5": 666,
+        "mae_m": 0.4983387291431427
+      },
+      "logged_gate_values": {
+        "far_under_ge_0p5": 1065,
+        "visible_near_over_ge_0p5": 248,
+        "visible_near_over_p95_m": 2.564930927753449,
+        "in_frame_near_over_ge_0p5": 206,
+        "in_frame_near_over_p95_m": 2.590729761123657
+      },
+      "original_gate_failed_metrics": [
+        "visible_near_over_p95_m",
+        "in_frame_near_over_p95_m"
+      ],
+      "visible_near_ex_console_by_angle": {
+        "-45": {
+          "rays": 20,
+          "over_ge_0p5": 6,
+          "over_p95_m": 2.1520437240600585,
+          "worst_over_m": 2.156372547149658
+        },
+        "-36": {
+          "rays": 54,
+          "over_ge_0p5": 10,
+          "over_p95_m": 1.3218679308891295,
+          "worst_over_m": 1.7855048179626465
+        },
+        "-27": {
+          "rays": 96,
+          "over_ge_0p5": 5,
+          "over_p95_m": 0.4411517381668091,
+          "worst_over_m": 3.002908229827881
+        },
+        "-18": {
+          "rays": 116,
+          "over_ge_0p5": 0,
+          "over_p95_m": 0.20966851711273193,
+          "worst_over_m": 0.3096309304237366
+        },
+        "-9": {
+          "rays": 128,
+          "over_ge_0p5": 4,
+          "over_p95_m": 0.24178278446197504,
+          "worst_over_m": 1.3042625188827515
+        },
+        "0": {
+          "rays": 134,
+          "over_ge_0p5": 3,
+          "over_p95_m": 0.31702257990837096,
+          "worst_over_m": 0.6961766481399536
+        },
+        "9": {
+          "rays": 120,
+          "over_ge_0p5": 2,
+          "over_p95_m": 0.22230809330940246,
+          "worst_over_m": 0.7276017665863037
+        },
+        "18": {
+          "rays": 90,
+          "over_ge_0p5": 4,
+          "over_p95_m": 0.4197175085544585,
+          "worst_over_m": 0.8709787726402283
+        },
+        "27": {
+          "rays": 74,
+          "over_ge_0p5": 4,
+          "over_p95_m": 0.4776525229215615,
+          "worst_over_m": 0.9158761501312256
+        },
+        "36": {
+          "rays": 34,
+          "over_ge_0p5": 6,
+          "over_p95_m": 1.968548285961151,
+          "worst_over_m": 3.614990234375
+        },
+        "45": {
+          "rays": 26,
+          "over_ge_0p5": 11,
+          "over_p95_m": 2.4213380217552185,
+          "worst_over_m": 3.3078436851501465
+        }
+      }
+    }
+  }
+}

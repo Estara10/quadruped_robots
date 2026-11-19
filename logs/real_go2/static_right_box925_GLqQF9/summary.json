@@ -1,0 +1,109 @@
+{
+  "operator_distance_m": 0.925,
+  "operator_notes": "Right-side box; tape reference origin and ray angle not specified.",
+  "captured": 600,
+  "compared": 30,
+  "center_depth_m": 2.231,
+  "geometry_note": "Nearest raw depth point projected to the approximate body ray within its angular bin and body height \u00b10.1m; does not identify the target object.",
+  "by_angle": {
+    "-45": {
+      "geometry_median_m": null,
+      "geometry_valid_frames": 0,
+      "predicted_medians_m": {
+        "B1000": 2.5495582818984985,
+        "near60": 2.3801416158676147,
+        "near250": 2.4795037508010864
+      }
+    },
+    "-36": {
+      "geometry_median_m": 2.9532948408664406,
+      "geometry_valid_frames": 30,
+      "predicted_medians_m": {
+        "B1000": 2.327994704246521,
+        "near60": 1.6907572746276855,
+        "near250": 2.289070248603821
+      }
+    },
+    "-27": {
+      "geometry_median_m": null,
+      "geometry_valid_frames": 0,
+      "predicted_medians_m": {
+        "B1000": 1.740454912185669,
+        "near60": 1.218108355998993,
+        "near250": 1.5774152278900146
+      }
+    },
+    "-18": {
+      "geometry_median_m": 1.1464003120090123,
+      "geometry_valid_frames": 30,
+      "predicted_medians_m": {
+        "B1000": 1.3554300665855408,
+        "near60": 1.2318397760391235,
+        "near250": 1.3359557390213013
+      }
+    },
+    "-9": {
+      "geometry_median_m": 1.1720050744479755,
+      "geometry_valid_frames": 30,
+      "predicted_medians_m": {
+        "B1000": 2.2262635231018066,
+        "near60": 2.1212852001190186,
+        "near250": 2.0304125547409058
+      }
+    },
+    "0": {
+      "geometry_median_m": 2.542448606293631,
+      "geometry_valid_frames": 30,
+      "predicted_medians_m": {
+        "B1000": 2.7546792030334473,
+        "near60": 2.8361483812332153,
+        "near250": 2.6508312225341797
+      }
+    },
+    "9": {
+      "geometry_median_m": 2.6113848663481245,
+      "geometry_valid_frames": 30,
+      "predicted_medians_m": {
+        "B1000": 3.0606688261032104,
+        "near60": 3.5295510292053223,
+        "near250": 2.971280336380005
+      }
+    },
+    "18": {
+      "geometry_median_m": 1.1595954229346923,
+      "geometry_valid_frames": 30,
+      "predicted_medians_m": {
+        "B1000": 1.7733862400054932,
+        "near60": 2.5290104150772095,
+        "near250": 2.171155333518982
+      }
+    },
+    "27": {
+      "geometry_median_m": 0.9466806038240764,
+      "geometry_valid_frames": 30,
+      "predicted_medians_m": {
+        "B1000": 1.257813036441803,
+        "near60": 1.3084007501602173,
+        "near250": 1.3705366253852844
+      }
+    },
+    "36": {
+      "geometry_median_m": null,
+      "geometry_valid_frames": 0,
+      "predicted_medians_m": {
+        "B1000": 1.1849952936172485,
+        "near60": 1.003017008304596,
+        "near250": 1.1428085565567017
+      }
+    },
+    "45": {
+      "geometry_median_m": null,
+      "geometry_valid_frames": 0,
+      "predicted_medians_m": {
+        "B1000": 1.5086527466773987,
+        "near60": 1.2147547006607056,
+        "near250": 1.291663408279419
+      }
+    }
+  }
+}

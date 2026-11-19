@@ -1,0 +1,39 @@
+{
+  "lens_tape_m": 0.645,
+  "body_reference_estimate_m": 0.995,
+  "reference_note": "Approximate sum for fronto-parallel target using nominal longitudinal camera-to-ray-origin offset. Not a body-origin tape measurement.",
+  "captured_frames": 600,
+  "inference_frames": 30,
+  "optical_center_depth_m": 0.6460000276565552,
+  "center_roi_depth_m": 0.6450000405311584,
+  "input_unknown_fraction": 0.056875,
+  "models": {
+    "B1000": {
+      "p10_median_p90_m": [
+        1.1292327523231507,
+        1.1298142075538635,
+        1.1336190104484558
+      ],
+      "median_error_m": 0.13481420755386353,
+      "overestimate_gt_0p5_frames": 0
+    },
+    "near60": {
+      "p10_median_p90_m": [
+        0.9972051501274108,
+        1.007223904132843,
+        1.011492943763733
+      ],
+      "median_error_m": 0.012223904132843022,
+      "overestimate_gt_0p5_frames": 0
+    },
+    "near250": {
+      "p10_median_p90_m": [
+        0.99299196600914,
+        0.9998711049556732,
+        1.0088576555252076
+      ],
+      "median_error_m": 0.004871104955673222,
+      "overestimate_gt_0p5_frames": 0
+    }
+  }
+}

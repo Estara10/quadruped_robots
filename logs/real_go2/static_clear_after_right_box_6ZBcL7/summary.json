@@ -1,0 +1,108 @@
+{
+  "scene": "after right box removal",
+  "captured": 600,
+  "compared": 30,
+  "center_depth_m": 2.218,
+  "geometry_note": "Nearest raw depth in nominal angular and body-height band; background can be in range.",
+  "by_angle": {
+    "-45": {
+      "geometry_median_m": null,
+      "geometry_valid_frames": 0,
+      "predicted_medians_m": {
+        "B1000": 2.8216861486434937,
+        "near60": 2.525454521179199,
+        "near250": 2.609368324279785
+      }
+    },
+    "-36": {
+      "geometry_median_m": 2.913151716130141,
+      "geometry_valid_frames": 30,
+      "predicted_medians_m": {
+        "B1000": 2.7871766090393066,
+        "near60": 3.258991241455078,
+        "near250": 2.8575170040130615
+      }
+    },
+    "-27": {
+      "geometry_median_m": 2.971197231571643,
+      "geometry_valid_frames": 30,
+      "predicted_medians_m": {
+        "B1000": 2.7383172512054443,
+        "near60": 2.224233031272888,
+        "near250": 2.514850616455078
+      }
+    },
+    "-18": {
+      "geometry_median_m": 2.8815000920040315,
+      "geometry_valid_frames": 30,
+      "predicted_medians_m": {
+        "B1000": 2.9096574783325195,
+        "near60": 2.3096277713775635,
+        "near250": 2.669248938560486
+      }
+    },
+    "-9": {
+      "geometry_median_m": 2.56706905258274,
+      "geometry_valid_frames": 30,
+      "predicted_medians_m": {
+        "B1000": 2.8433364629745483,
+        "near60": 2.3225607872009277,
+        "near250": 2.5679579973220825
+      }
+    },
+    "0": {
+      "geometry_median_m": 2.5135723824486953,
+      "geometry_valid_frames": 30,
+      "predicted_medians_m": {
+        "B1000": 2.5996081829071045,
+        "near60": 2.2679260969161987,
+        "near250": 2.551682949066162
+      }
+    },
+    "9": {
+      "geometry_median_m": 2.6073916446694567,
+      "geometry_valid_frames": 30,
+      "predicted_medians_m": {
+        "B1000": 2.845724940299988,
+        "near60": 2.020400881767273,
+        "near250": 2.4162588119506836
+      }
+    },
+    "18": {
+      "geometry_median_m": 1.163902747356445,
+      "geometry_valid_frames": 30,
+      "predicted_medians_m": {
+        "B1000": 1.6890000104904175,
+        "near60": 2.0321969985961914,
+        "near250": 1.8815275430679321
+      }
+    },
+    "27": {
+      "geometry_median_m": 2.078822825317756,
+      "geometry_valid_frames": 30,
+      "predicted_medians_m": {
+        "B1000": 1.3169000148773193,
+        "near60": 1.3731785416603088,
+        "near250": 1.3003739714622498
+      }
+    },
+    "36": {
+      "geometry_median_m": null,
+      "geometry_valid_frames": 0,
+      "predicted_medians_m": {
+        "B1000": 1.038138747215271,
+        "near60": 0.7050426006317139,
+        "near250": 0.838710367679596
+      }
+    },
+    "45": {
+      "geometry_median_m": null,
+      "geometry_valid_frames": 0,
+      "predicted_medians_m": {
+        "B1000": 1.154306411743164,
+        "near60": 0.8662089407444,
+        "near250": 1.0310832858085632
+      }
+    }
+  }
+}

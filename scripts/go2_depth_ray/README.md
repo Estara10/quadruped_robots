@@ -97,7 +97,7 @@ cat "$RUN_DIR/exits.txt"
 
 相机装回后保持机器人静止。ABS束起点为base_link水平面`(-0.05,0,0)m`，−角在右、+角在左，每9°一束。卷尺从该起点的地面垂足沿束方向量到障碍交点，不能从镜头或红十字代替。当前相机安装仍只是近似外参；首次对照只作定性响应判断，详见[机身束测量示意与准备报告](../../docs/thesis_project/real_go2/20261116_D435I_DUAL_MODEL_READONLY_OBSERVER.md)。
 
-历史网络参数（运行前由主助手只读确认）：PC `enp7s0 / 192.168.123.99`，Orin `eth0 / 192.168.123.18`，CycloneDDS、ROS domain 42。不要为此改网络或系统时钟。先确认profile、两端地址/RMW、Orin无其他相机节点占用，并保证有线链路仍连接。
+换盘后的有线地址为 PC `enp8s0 / 192.168.123.99` 和 Orin `eth0 / 192.168.123.18`。电脑有线口没有实验网地址时，按[换盘后的相机采集有线连接](../../docs/thesis_project/real_go2/README.md#2026-11-19-换盘后的相机采集有线连接)恢复。以下 ROS 观察沿用 CycloneDDS 和 domain 42。启动前确认相机配置、两端地址和 RMW，以及 Orin 相机没有被其他节点占用。
 
 1. PC终端：
 

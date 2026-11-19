@@ -1,0 +1,35 @@
+{
+  "operator_distance_m": 1.1,
+  "operator_origin": "unconfirmed; lens assumed for conditional comparison, as in the preceding capture",
+  "conditional_body_reference_m": 1.45,
+  "frames_captured": 600,
+  "frames_compared": 30,
+  "center_depth_m": 1.1030000448226929,
+  "center_roi_m": 1.1060000658035278,
+  "models": {
+    "B1000": {
+      "center_p10_median_p90_m": [
+        1.4966171503067016,
+        1.5046955943107605,
+        1.514101469516754
+      ],
+      "conditional_median_error_m": 0.05469565391540532
+    },
+    "near60": {
+      "center_p10_median_p90_m": [
+        1.2667814135551452,
+        1.2825819253921509,
+        1.3009860634803772
+      ],
+      "conditional_median_error_m": -0.16741807460784908
+    },
+    "near250": {
+      "center_p10_median_p90_m": [
+        1.3312190890312194,
+        1.3490564823150635,
+        1.365351176261902
+      ],
+      "conditional_median_error_m": -0.10094351768493648
+    }
+  }
+}

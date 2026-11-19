@@ -1,5 +1,9 @@
 # Go2实机准备与接口修复
 
+**D435i场景补充训练对照复核（2026-11-19，离线）：**同一组合验证集比较epoch13、A1000、B60、B1000。B1000总体MAE最低（0.484m），但可见近障高估246/1102、P95 2.610m；严重高估主要来自高架`console_top`（190/246），同时实体箱体/圆柱等仍有56/892条，包含画内失败。远墙边束无命中和侧物布局仍有远距低估，纯开阔组没有同量级问题。四者中B60/B1000未通过原非劣门槛，B1000仅作诊断。已查看的新布局测试仅作旁证，不用于本次选轮。下一步只建议固定数据和损失、改变训练时长/检查点时点并沿用原门槛；本轮未训练、未连接设备、未改部署。见[分析报告](20261119_D435I_SCENE_COVERAGE_AB_REVIEW.md)及[逐样本结果](../../../logs/real_go2/20261119_d435i_scene_coverage_ab/validation_object_ray_breakdown/)。
+
+**前置D435i射线训练场景补充v1（2026-11-19，仅数据准备）：**针对近距离正对宽墙画面覆盖不足，使用当前前置相机安装候选与现有ABS水平11束标签，生成train/validation/test按完整布局隔离的620个位姿、1240张clean/masked输入，约71.1MiB。训练集包含墙角、家具、窄障碍和开阔/无命中场景；在60个正对宽墙位姿中，32个相机墙距为0.7–1.3m，中央模型输入区域平均99.42%像素落在该深度范围。解析墙标签、左右束和空旷场景检查通过。家具标签遵循现有XY占地语义，不是高度感知标签。本轮未训练、未连接设备或改部署。见[生成报告](20261119_D435I_SCENE_COVERAGE_DATA.md)、[汇总与布局](../../../logs/real_go2/20261119_d435i_scene_coverage_v1/summary.json)和[代表输入](../../../logs/real_go2/20261119_d435i_scene_coverage_v1/examples/representative_clean_inputs.png)。
+
 **远障低估损失权重0.5单因素对照（2026-11-17）：**只把`false_danger_weight`由0改为0.5（加性增量，命中时基础权重1→1.5），其余配置、种子与选模规则冻结，另开目录训练60轮，仍选中epoch3，故为epoch3对epoch3的对照。远障过度低估由2232/3522降至1986/3522（配对口径1149/1761→1018/1761），但可见近障高估由52/916升至65/916、P95 0.530→0.602m，近中MAE变差、总体MAE 0.988→0.922m仍差于epoch13。属明确取舍，不足以替换上一轮候选，权重未部署。下一步仍建议先建全新布局隔离的独立离线评价集。见[结果报告](20261117_D435I_FAR_UNDERESTIMATE_WEIGHT_RESULT.md)及[对照产物](../../../logs/real_go2/20261117_d435i_far_underestimate_training/validation_comparison_far_danger_0p5/)。
 
 **近障补充模型的有限诊断（2026-11-17）：**新epoch3相较epoch13在近、中、远组预测都向近处移动，远组变化最大；clean/masked按位姿—射线配对后，可见近障高估由105/458降至23/458，但远处过度低估由907/1,761升至1,149/1,761。52条高估输入记录折叠为36个几何案例；中心采样未使目标消失，clean/masked没有稳定恶化关系。下一步只建议单独启用一个预先固定的远障低估损失项并按原规则评价；本轮未训练或重新推理、无需机器人。见[诊断报告](20261117_D435I_NEAR_COVERAGE_DIAGNOSIS.md)及[案例、汇总和图表](../../../logs/real_go2/20261117_d435i_near_coverage_diagnosis/)。
@@ -143,7 +147,7 @@
 
 | 项目 | 已核实情况 | 仍需说明 |
 |---|---|---|
-| Go2／控制电脑 | EDU；本台 Ubuntu 22.04／ROS 2 Humble；enp7s0、192.168.123.99/24、SDK domain 0 已实际通信 | Go2 固件版本仍待确认 |
+| Go2／控制电脑 | EDU；本台 Ubuntu 22.04／ROS 2 Humble；换盘后使用 `enp8s0`，以 `192.168.123.99/24` 连通 Orin 并完成相机采集 | SDK domain 0 的既有通信记录使用旧网口 `enp7s0`；Go2 固件版本仍待确认 |
 | 原生运动 | 用户遥控站立／趴伏；电脑 0.30 m/s 指令下正常行走，短距离 goto 和多次 StopMove 成功响应 | 原生定位实际误差；遥控／SDK 优先级、断流动作不做保证 |
 | 机载电脑 | Orin NX、Ubuntu 20.04／arm64／Foxy，192.168.123.18；RealSense 4.51.1／2.51.1 | 重启后的时钟需核对；不保存登录密码 |
 | D435i | 已固定在前部；实际 USB2 480 Mb/s；480×270 双 IR 15 Hz，gyro 200／accel 100、合并约 200 Hz | 640×480 双 IR 曾失败；默认 IMU 标定／间歇告警尚有局限 |
@@ -152,6 +156,24 @@
 | ABS 低层链 | 释放原生服务时 SportModeState 停更已实测；Recovery 可显式选 Estimator | RA 也依赖线速度；候选未通过动态精度，低层停止／交接仍未闭环 |
 
 近期顺序：机身安装测量与只读转换 → 成熟路径跟踪离线核对 → 原生 A→B 受控验证。ABS 路线继续补齐独立观测／真实障碍和低层停止／交接，再进行站立、低速 Agile、RA／Recovery 和简单障碍验证。原生与 ABS 两条控制链分别验收，不把任何站立／原生行走记录当作 ABS 已完成。
+
+### 2026-11-19 换盘后的相机采集有线连接
+
+换盘后电脑的有线网口由 `enp7s0` 变为 `enp8s0`。旧的 NetworkManager「有线连接 1」仍绑定 `enp7s0`，其静态地址 `192.168.123.99/24` 没有应用到新网口。虽然网线已有链路，电脑起初仍经 Wi-Fi 访问 `192.168.123.18`，导致 SSH 超时。
+
+现场使用以下临时配置恢复了电脑到 Orin 的直连。若同名配置还在，直接执行 `connection up` 即可。
+
+```bash
+nmcli connection add save no type ethernet ifname enp8s0 \
+  con-name go2-camera-once connection.autoconnect no \
+  ipv4.method manual ipv4.addresses 192.168.123.99/24 \
+  ipv4.never-default yes ipv6.method disabled
+nmcli --wait 8 connection up go2-camera-once
+ip route get 192.168.123.18
+ssh -o BatchMode=yes -o ConnectTimeout=5 unitree@192.168.123.18 hostname
+```
+
+预期路由显示 `dev enp8s0 src 192.168.123.99`。本次 SSH 已连通，并完成 D435i 正前挡板的只读采集。该配置存在内存中，`ipv4.never-default yes` 保留 Wi-Fi 的默认路由。采集结束后如不再需要直连，可执行 `nmcli connection delete go2-camera-once`。
 
 ## 2026-11-04 控制权与停止修复
 

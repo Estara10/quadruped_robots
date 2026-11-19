@@ -9,8 +9,10 @@ import csv
 import json
 import pickle
 import random
+import shutil
 import time
 from datetime import datetime
+from itertools import islice
 from pathlib import Path
 from typing import List, Optional, Sequence, Tuple, Union
 
@@ -146,7 +148,7 @@ def model_score(metrics: dict, false_safe_penalty: float, false_danger_penalty: 
 
 def eval_visibility_groups(model, dataset: RayDataset, device: torch.device,
                           visibility_csvs: Union[Path, Sequence[Path]],
-                          batch_size: int) -> dict:
+                          batch_size: int, separate_hit: Optional[str] = None) -> dict:
     """Report in-frame, partly visible out-of-frame, and fully invisible targets."""
     if isinstance(visibility_csvs, Path):
         visibility_csvs = [visibility_csvs]
@@ -156,7 +158,9 @@ def eval_visibility_groups(model, dataset: RayDataset, device: torch.device,
             for row in csv.DictReader(f):
                 sample = row["sample"]
                 visibility.setdefault(sample, np.zeros(11, dtype=np.int8))
-                if row["hit_geom"] == "range_cap":
+                if separate_hit is not None and row["hit_geom"] == separate_hit:
+                    state = 4
+                elif row["hit_geom"] == "range_cap":
                     state = 3
                 else:
                     in_frame = row["label_hitpoint_in_image"].lower() == "true"
@@ -167,6 +171,8 @@ def eval_visibility_groups(model, dataset: RayDataset, device: torch.device,
     grouped_rows = {"visible_target": [], "in_frame": [],
                     "out_of_frame_surface_visible": [], "fully_invisible": [],
                     "no_hit_within_range": []}
+    if separate_hit is not None:
+        grouped_rows[f"separate_hit:{separate_hit}"] = []
     model.eval()
     with torch.no_grad():
         for start in range(0, len(dataset), batch_size):
@@ -201,6 +207,8 @@ def eval_visibility_groups(model, dataset: RayDataset, device: torch.device,
                         grouped_rows["visible_target"].append(value)
                     elif visibility_state == 3:
                         grouped_rows["no_hit_within_range"].append(value)
+                    elif visibility_state == 4:
+                        grouped_rows[f"separate_hit:{separate_hit}"].append(value)
                     else:
                         grouped_rows["fully_invisible"].append(value)
 
@@ -232,12 +240,17 @@ def eval_visibility_groups(model, dataset: RayDataset, device: torch.device,
         "has rendered pixels; fully_invisible has a ray-hit geometry but no rendered pixels for it; "
         "no_hit_within_range is a 6 m cap"
     )
+    if separate_hit is not None:
+        result["visibility_definition"] += f" Hits on {separate_hit} are reported separately."
     return result
 
 
 def train(args: argparse.Namespace) -> Path:
     if args.selection_priority == "visible_near" and not (args.validation_datasets and args.validation_visibility_csv):
         raise ValueError("visible_near selection requires explicit validation data and visibility CSV")
+    checkpoint_epochs = sorted(set(args.save_epochs))
+    if any(epoch < 1 or epoch > args.epochs for epoch in checkpoint_epochs):
+        raise ValueError("save-epochs must be within the training run")
     loader_generator = seed_training_rng(args.seed)
     device = torch.device(args.device if args.device else ("cuda" if torch.cuda.is_available() else "cpu"))
     run_started = time.perf_counter()
@@ -265,6 +278,9 @@ def train(args: argparse.Namespace) -> Path:
         generator=loader_generator,
         worker_init_fn=seed_data_loader_worker,
     )
+    steps_per_epoch = len(train_loader) if args.steps_per_epoch is None else args.steps_per_epoch
+    if not 1 <= steps_per_epoch <= len(train_loader):
+        raise ValueError("steps-per-epoch must be between 1 and the total number of training batches")
     val_loader = DataLoader(
         val_dataset,
         batch_size=args.batch_size,
@@ -309,7 +325,7 @@ def train(args: argparse.Namespace) -> Path:
         epoch_started = time.perf_counter()
         model.train() if args.trainable == "all" else model.eval()
         losses = []
-        for depth_log, target_log in train_loader:
+        for depth_log, target_log in islice(train_loader, steps_per_epoch):
             depth_log = depth_log.to(device)
             target_log = target_log.to(device)
             inputs = depth_log.unsqueeze(1).repeat(1, 3, 1, 1)
@@ -378,6 +394,8 @@ def train(args: argparse.Namespace) -> Path:
         print(f"[Timing] epoch={epoch} train_validation_s={metrics['epoch_train_validation_seconds']:.3f}", flush=True)
         model_cpu = copy.deepcopy(model).to("cpu")
         torch.jit.save(model_cpu, str(last_path))
+        if epoch in checkpoint_epochs and epoch != args.epochs:
+            shutil.copyfile(last_path, output_dir / f"ray_pred_epoch_{epoch:04d}.pt")
         if metrics["eligible_for_selection"] and (best_selection_key is None or selection_key < best_selection_key):
             best_selection_key = selection_key
             selected_epoch = epoch
@@ -388,22 +406,27 @@ def train(args: argparse.Namespace) -> Path:
     test_result = None
     if args.test_datasets:
         test_dataset = RayDataset([Path(p).expanduser() for p in args.test_datasets])
-        if best_path.is_file():
-            selected_model = torch.jit.load(str(best_path), map_location=device).eval()
+        test_model_path = last_path if args.test_last else best_path
+        if test_model_path.is_file():
+            candidate_model = torch.jit.load(str(test_model_path), map_location=device).eval()
             test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False,
                                      num_workers=args.num_workers)
             baseline_model = torch.jit.load(str(args.base_model), map_location=device).eval()
             test_result = {
                 "baseline": eval_model(baseline_model, test_loader, device),
-                "candidate": eval_model(selected_model, test_loader, device),
+                "candidate": eval_model(candidate_model, test_loader, device),
+                "candidate_checkpoint": str(test_model_path),
+                "candidate_epoch": args.epochs if args.test_last else selected_epoch,
                 "used_for_selection": False,
             }
             if args.test_visibility_csv:
                 test_result["baseline_visibility_groups"] = eval_visibility_groups(
-                    baseline_model, test_dataset, device, args.test_visibility_csv, args.batch_size
+                    baseline_model, test_dataset, device, args.test_visibility_csv, args.batch_size,
+                    separate_hit=args.test_separate_hit,
                 )
                 test_result["candidate_visibility_groups"] = eval_visibility_groups(
-                    selected_model, test_dataset, device, args.test_visibility_csv, args.batch_size
+                    candidate_model, test_dataset, device, args.test_visibility_csv, args.batch_size,
+                    separate_hit=args.test_separate_hit,
                 )
         else:
             test_result = {"status": "not_run_no_epoch_passed_nonregression_gate",
@@ -430,6 +453,11 @@ def train(args: argparse.Namespace) -> Path:
         "bitwise_reproducibility_guaranteed": False,
         "trainable": args.trainable,
         "epochs": args.epochs,
+        "checkpoint_epochs": {
+            epoch: last_path.name if epoch == args.epochs else f"ray_pred_epoch_{epoch:04d}.pt"
+            for epoch in checkpoint_epochs
+        },
+        "steps_per_epoch": steps_per_epoch,
         "batch_size": args.batch_size,
         "lr": args.lr,
         "weight_decay": args.weight_decay,
@@ -454,7 +482,7 @@ def train(args: argparse.Namespace) -> Path:
     if args.selection_priority == "visible_near":
         manifest["selection_rule"] = (
             "Require visible-target near false-safe count/P95, in-frame near false-safe count/P95, "
-            "and far false-danger count all no worse than the medium validation baseline; visible-target "
+            "and far false-danger count all no worse than the initial model on validation; visible-target "
             "combines in-frame and out-of-frame hit geometries with rendered pixels. Fully invisible "
             "targets are reported separately and do not gate selection. Among eligible epochs minimize "
             "visible-target near false-safe count, then its overestimate P95, then overall MAE. "
@@ -476,11 +504,19 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
                         help="Optional ray_projection_visibility.csv for target-visibility validation metrics")
     parser.add_argument("--test-visibility-csv", type=Path, default=None,
                         help="Optional ray_projection_visibility.csv for held-out target-visibility metrics")
+    parser.add_argument("--test-last", action="store_true",
+                        help="Evaluate the final epoch on the test set instead of the selected epoch")
+    parser.add_argument("--test-separate-hit",
+                        help="Report this hit geometry separately from other test visibility groups")
     parser.add_argument("--base-model", type=Path, default=DEFAULT_BASE_MODEL)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--run-name", default="mujoco_finetune_" + datetime.now().strftime("%Y%m%d_%H%M%S"))
     parser.add_argument("--epochs", type=int, default=20)
+    parser.add_argument("--save-epochs", type=int, nargs="+", default=[],
+                        help="Keep weights at these epochs; the final epoch is already saved as last")
     parser.add_argument("--batch-size", type=int, default=128)
+    parser.add_argument("--steps-per-epoch", type=int, default=None,
+                        help="Limit the shuffled training batches per epoch for equal-update comparisons")
     parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
     parser.add_argument("--near-weight", type=float, default=4.0)

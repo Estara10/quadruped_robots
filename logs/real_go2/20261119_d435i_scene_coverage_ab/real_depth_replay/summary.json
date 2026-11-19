@@ -1,0 +1,356 @@
+{
+  "models": {
+    "epoch13": "logs/real_go2/20261117_d435i_fullnet_preparation/training_runs/d435i_fullnet_300epoch_20261117/ray_pred_mujoco_finetuned_best.pt",
+    "B1000": "logs/real_go2/20261119_d435i_scene_coverage_ab/expanded_1000ep_seed20261117/ray_pred_mujoco_finetuned_last.pt"
+  },
+  "runs": {
+    "wall_43cm": {
+      "capture": "logs/real_go2/static_wall430_FEMgc0/capture",
+      "frames": 600,
+      "focused_rays": {
+        "0": {
+          "reference_m": 0.78,
+          "epoch13": {
+            "median_m": 0.7726292610168457,
+            "p10_median_p90_m": [
+              0.7627558290958405,
+              0.7726292610168457,
+              0.7851281702518463
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": -0.0073707389831543235
+          },
+          "B1000": {
+            "median_m": 0.7507217824459076,
+            "p10_median_p90_m": [
+              0.7454067051410675,
+              0.7507217824459076,
+              0.7670282304286957
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": -0.029278217554092434
+          }
+        }
+      }
+    },
+    "wall_99p5cm": {
+      "capture": "logs/real_go2/static_wall995_aFzR2g/capture",
+      "frames": 600,
+      "focused_rays": {
+        "0": {
+          "reference_m": 1.345,
+          "epoch13": {
+            "median_m": 1.5070322751998901,
+            "p10_median_p90_m": [
+              1.491021990776062,
+              1.5070322751998901,
+              1.525219202041626
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 0.16203227519989016
+          },
+          "B1000": {
+            "median_m": 1.3394391536712646,
+            "p10_median_p90_m": [
+              1.3349893450737,
+              1.3394391536712646,
+              1.3453075766563416
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": -0.005560846328735325
+          }
+        }
+      }
+    },
+    "wall_153p5cm": {
+      "capture": "logs/real_go2/static_wall1535_BSU8y7/capture",
+      "frames": 600,
+      "focused_rays": {
+        "0": {
+          "reference_m": 1.885,
+          "epoch13": {
+            "median_m": 1.864586353302002,
+            "p10_median_p90_m": [
+              1.7913992881774903,
+              1.864586353302002,
+              1.951755905151367
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": -0.020413646697998056
+          },
+          "B1000": {
+            "median_m": 1.9431578516960144,
+            "p10_median_p90_m": [
+              1.913573181629181,
+              1.9431578516960144,
+              1.975469160079956
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 0.058157851696014395
+          }
+        }
+      }
+    },
+    "box_1": {
+      "capture": "logs/real_go2/20261118_bucket_wall_static/group1/capture",
+      "frames": 3,
+      "focused_rays": {
+        "0": {
+          "reference_m": 1.284,
+          "epoch13": {
+            "median_m": 1.3843907117843628,
+            "p10_median_p90_m": [
+              1.357089114189148,
+              1.3843907117843628,
+              1.4085062742233276
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 0.10039071178436276
+          },
+          "B1000": {
+            "median_m": 1.653064489364624,
+            "p10_median_p90_m": [
+              1.6477207660675048,
+              1.653064489364624,
+              1.6600815296173095
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 0.369064489364624
+          }
+        }
+      }
+    },
+    "box_2": {
+      "capture": "logs/real_go2/20261118_bucket_wall_static/group2/capture",
+      "frames": 3,
+      "focused_rays": {
+        "9": {
+          "reference_m": 1.303,
+          "epoch13": {
+            "median_m": 1.3095221519470215,
+            "p10_median_p90_m": [
+              1.2617085456848145,
+              1.3095221519470215,
+              1.326860523223877
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 0.006522151947021548
+          },
+          "B1000": {
+            "median_m": 1.5156925916671753,
+            "p10_median_p90_m": [
+              1.5067535161972045,
+              1.5156925916671753,
+              1.5373903036117553
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 0.21269259166717536
+          }
+        },
+        "18": {
+          "reference_m": 1.336,
+          "epoch13": {
+            "median_m": 2.417912721633911,
+            "p10_median_p90_m": [
+              2.4002050876617433,
+              2.417912721633911,
+              2.62131085395813
+            ],
+            "report_far_gt_0p5": 3,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 1.081912721633911
+          },
+          "B1000": {
+            "median_m": 1.8317484855651855,
+            "p10_median_p90_m": [
+              1.8145359992980956,
+              1.8317484855651855,
+              1.868121337890625
+            ],
+            "report_far_gt_0p5": 1,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 0.49574848556518547
+          }
+        }
+      }
+    },
+    "box_3": {
+      "capture": "logs/real_go2/20261118_bucket_wall_static/group3/capture",
+      "frames": 3,
+      "focused_rays": {
+        "-18": {
+          "reference_m": 1.245,
+          "epoch13": {
+            "median_m": 1.005690336227417,
+            "p10_median_p90_m": [
+              0.9940004348754883,
+              1.005690336227417,
+              1.0790050029754639
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": -0.23930966377258311
+          },
+          "B1000": {
+            "median_m": 1.764503002166748,
+            "p10_median_p90_m": [
+              1.7426048278808595,
+              1.764503002166748,
+              1.7719761848449707
+            ],
+            "report_far_gt_0p5": 2,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 0.5195030021667479
+          }
+        },
+        "-9": {
+          "reference_m": 1.245,
+          "epoch13": {
+            "median_m": 1.6726531982421875,
+            "p10_median_p90_m": [
+              1.5951096534729003,
+              1.6726531982421875,
+              1.740605068206787
+            ],
+            "report_far_gt_0p5": 1,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 0.4276531982421874
+          },
+          "B1000": {
+            "median_m": 2.083353042602539,
+            "p10_median_p90_m": [
+              2.07659912109375,
+              2.083353042602539,
+              2.1006038665771483
+            ],
+            "report_far_gt_0p5": 3,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 0.838353042602539
+          }
+        }
+      }
+    },
+    "box_4": {
+      "capture": "logs/real_go2/20261118_bucket_wall_static/group4/capture",
+      "frames": 3,
+      "focused_rays": {
+        "0": {
+          "reference_m": 2.105,
+          "epoch13": {
+            "median_m": 2.1363577842712402,
+            "p10_median_p90_m": [
+              2.120029163360596,
+              2.1363577842712402,
+              2.184990978240967
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 0.03135778427124025
+          },
+          "B1000": {
+            "median_m": 2.0651893615722656,
+            "p10_median_p90_m": [
+              2.0274932861328123,
+              2.0651893615722656,
+              2.079425239562988
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": -0.03981063842773436
+          }
+        }
+      }
+    },
+    "board_119cm": {
+      "capture": "logs/real_go2/20261118_standing_board119_B0bEMC/capture",
+      "frames": 3,
+      "focused_rays": {
+        "-18": {
+          "reference_m": 1.251240046843538,
+          "epoch13": {
+            "median_m": 0.8499755263328552,
+            "p10_median_p90_m": [
+              0.8207874178886414,
+              0.8499755263328552,
+              0.8538387656211853
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": -0.40126452051068284
+          },
+          "B1000": {
+            "median_m": 2.382761001586914,
+            "p10_median_p90_m": [
+              2.372641181945801,
+              2.382761001586914,
+              2.455463981628418
+            ],
+            "report_far_gt_0p5": 3,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 1.131520954743376
+          }
+        },
+        "0": {
+          "reference_m": 1.19,
+          "epoch13": {
+            "median_m": 1.0387078523635864,
+            "p10_median_p90_m": [
+              1.007403016090393,
+              1.0387078523635864,
+              1.0433948755264282
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": -0.15129214763641352
+          },
+          "B1000": {
+            "median_m": 2.0868279933929443,
+            "p10_median_p90_m": [
+              2.0794116497039794,
+              2.0868279933929443,
+              2.1004714488983156
+            ],
+            "report_far_gt_0p5": 3,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 0.8968279933929444
+          }
+        },
+        "18": {
+          "reference_m": 1.251240046843538,
+          "epoch13": {
+            "median_m": 1.3293135166168213,
+            "p10_median_p90_m": [
+              1.2777914524078369,
+              1.3293135166168213,
+              1.3728097438812257
+            ],
+            "report_far_gt_0p5": 0,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 0.07807346977328322
+          },
+          "B1000": {
+            "median_m": 1.928821325302124,
+            "p10_median_p90_m": [
+              1.9175675868988038,
+              1.928821325302124,
+              1.9774104595184325
+            ],
+            "report_far_gt_0p5": 3,
+            "report_near_gt_0p5": 0,
+            "median_error_m": 0.677581278458586
+          }
+        }
+      }
+    }
+  }
+}

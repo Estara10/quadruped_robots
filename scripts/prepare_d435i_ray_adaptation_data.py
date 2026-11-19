@@ -227,6 +227,121 @@ def build_independent_eval_layouts() -> list[dict]:
     ]
 
 
+def build_scene_coverage_v1_layouts() -> list[dict]:
+    """Bounded, distinct layouts for the front-mounted D435i scene supplement."""
+    layouts = [
+        {"split": "train", "category": "wide_wall", "name": "scv1_train_wall_front",
+         "count": 60, "quota": (.82, .18, 0.),
+         "pose_ranges": {"x": (-.45, .85), "y": (-.30, .30), "yaw_rad": (-.05, .05)},
+         "parts": [wall("wide_front_wall", 1.65, 4.0)]},
+        {"split": "train", "category": "wall_corner", "name": "scv1_train_wall_oblique_corner",
+         "count": 50, "quota": (.70, .30, 0.),
+         "pose_ranges": {"x": (-.30, .45), "y": (-.40, .40), "yaw_rad": (-.12, .12)},
+         "parts": [
+             '<geom name="oblique_wall" type="box" pos="1.78 0 1" euler="0 0 0.122173" size=".05 4 1" rgba=".5 .5 .5 1"/>',
+             '<geom name="corner_return" type="box" pos="3.2 2.05 1" euler="0 0 1.570796" size=".05 1.4 1" rgba=".5 .5 .5 1"/>',
+             wall("backdrop", 5.8)]},
+        {"split": "train", "category": "furniture", "name": "scv1_train_furniture_cabinet_sofa_table",
+         "count": 60, "quota": (.68, .32, 0.),
+         "pose_ranges": {"x": (-.25, .40), "y": (-.50, .50), "yaw_rad": (-.20, .20)},
+         "parts": [
+             wall("backdrop", 5.8),
+             box("cabinet_facade", 1.72, 0.0, .16, .62, .72, .72),
+             box("sofa_seat", 2.15, .95, .42, .68, .40, .20),
+             box("sofa_back", 2.48, .95, .10, .68, .77, .38),
+             box("table_top", 2.38, -.92, .48, .58, .62, .07),
+             cyl("table_leg_fl", 1.98, -1.34, .045, .31), cyl("table_leg_fr", 1.98, -.50, .045, .31),
+             cyl("table_leg_rl", 2.78, -1.34, .045, .31), cyl("table_leg_rr", 2.78, -.50, .045, .31)]},
+        {"split": "train", "category": "narrow_obstacle", "name": "scv1_train_posts_chairlegs_doorway",
+         "count": 50, "quota": (.65, .35, 0.),
+         "pose_ranges": {"x": (-.20, .35), "y": (-.25, .25), "yaw_rad": (-.12, .12)},
+         "parts": [
+             '<geom name="corridor_left" type="box" pos="2.7 1.35 1" size="2.3 .05 1" rgba=".5 .5 .5 1"/>',
+             '<geom name="corridor_right" type="box" pos="2.7 -1.35 1" size="2.3 .05 1" rgba=".5 .5 .5 1"/>',
+             wall("corridor_end", 5.0, 1.7),
+             box("door_jamb_left", 1.72, .56, .10, .08, .95, .95),
+             box("door_jamb_right", 1.72, -.56, .10, .08, .95, .95),
+             box("narrow_box", 1.38, .88, .13, .14, .46, .46),
+             cyl("pole", 2.0, -.82, .075),
+             cyl("chair_leg_a", 2.55, .58, .045), cyl("chair_leg_b", 2.55, -.58, .045),
+             cyl("chair_leg_c", 3.12, .58, .045), cyl("chair_leg_d", 3.12, -.58, .045)]},
+        {"split": "train", "category": "open_side_far", "name": "scv1_train_open_side_far_wall",
+         "count": 50, "quota": (0., .26, .74),
+         "pose_ranges": {"x": (-.25, .55), "y": (-.20, .20), "yaw_rad": (-.10, .10)},
+         "parts": [wall("far_wall", 6.3), box("left_side_item", 2.35, 1.55, .18, .24),
+                   cyl("right_side_pole", 2.7, -1.55, .10), box("left_far_box", 4.0, 1.75, .25, .28)]},
+        {"split": "train", "category": "open", "name": "scv1_train_clear_no_hit",
+         "count": 20, "acceptance": "no_hit", "parts": []},
+        {"split": "train", "category": "open_side_only", "name": "scv1_train_forward_clear_side_items",
+         "count": 20, "acceptance": "forward_clear",
+         "pose_ranges": {"x": (-.12, .22), "y": (-.06, .06), "yaw_rad": (-.03, .03)},
+         "parts": [box("train_left_side", 1.55, 1.45, .24, .25), cyl("train_right_side", 1.55, -1.45, .14)]},
+        {"split": "validation", "category": "wide_wall_corridor", "name": "scv1_val_wall_corridor",
+         "count": 40, "quota": (.72, .28, 0.),
+         "pose_ranges": {"x": (.10, .78), "y": (-.25, .25), "yaw_rad": (-.10, .10)},
+         "parts": [
+             '<geom name="val_wall" type="box" pos="2.02 0 1" euler="0 0 -0.069813" size=".06 4.2 1" rgba=".5 .5 .5 1"/>',
+             '<geom name="val_corridor_left" type="box" pos="2.8 1.65 1" size="2.1 .05 1" rgba=".5 .5 .5 1"/>',
+             '<geom name="val_corridor_right" type="box" pos="2.8 -1.65 1" size="2.1 .05 1" rgba=".5 .5 .5 1"/>']},
+        {"split": "validation", "category": "far_wall", "name": "scv1_val_far_wall_unseen",
+         "count": 20, "quota": (0., 0., 1.),
+         "pose_ranges": {"x": (-.15, .15), "y": (-.20, .20), "yaw_rad": (-.05, .05)},
+         "parts": [wall("val_far_wall", 5.0, 6.0)]},
+        {"split": "validation", "category": "furniture", "name": "scv1_val_furniture_console_table",
+         "count": 40, "quota": (.65, .35, 0.),
+         "pose_ranges": {"x": (.02, .55), "y": (-.45, .45), "yaw_rad": (-.20, .20)},
+         "parts": [
+             wall("backdrop", 5.9), box("console_side_left", 1.92, .75, .12, .10, .55, .55),
+             box("console_side_right", 1.92, -.75, .12, .10, .55, .55),
+             box("console_top", 1.92, 0, .12, .84, 1.08, .08),
+             box("sofa_base", 2.35, 1.05, .38, .60, .38, .18),
+             box("sofa_back", 2.66, 1.05, .10, .60, .72, .34),
+             box("table_top", 2.55, -.98, .38, .50, .58, .06),
+             cyl("table_leg1", 2.18, -1.38, .04, .29), cyl("table_leg2", 2.18, -.58, .04, .29),
+             cyl("table_leg3", 2.92, -1.38, .04, .29), cyl("table_leg4", 2.92, -.58, .04, .29)]},
+        {"split": "validation", "category": "open", "name": "scv1_val_clear_no_hit",
+         "count": 30, "acceptance": "no_hit", "parts": []},
+        {"split": "validation", "category": "open_side_only", "name": "scv1_val_forward_clear_side_items",
+         "count": 30, "acceptance": "forward_clear",
+         "pose_ranges": {"x": (-.15, .25), "y": (-.08, .08), "yaw_rad": (-.035, .035)},
+         "parts": [box("left_side_only", 1.55, 1.45, .24, .25),
+                   cyl("right_side_only", 1.55, -1.45, .14)]},
+        {"split": "test", "category": "wide_wall_corner", "name": "scv1_test_wall_corner_unseen",
+         "count": 40, "quota": (.70, .30, 0.),
+         "pose_ranges": {"x": (.22, .88), "y": (-.30, .30), "yaw_rad": (-.12, .12)},
+         "parts": [wall("test_wide_wall", 2.18, 4.5),
+                   '<geom name="test_corner_return" type="box" pos="3.5 2.35 1" euler="0 0 1.570796" size=".06 1.5 1" rgba=".5 .5 .5 1"/>']},
+        {"split": "test", "category": "far_wall", "name": "scv1_test_far_wall_unseen",
+         "count": 20, "quota": (0., 0., 1.),
+         "pose_ranges": {"x": (-.12, .18), "y": (-.18, .18), "yaw_rad": (-.05, .05)},
+         "parts": [wall("test_far_wall", 5.15, 6.0)]},
+        {"split": "test", "category": "furniture", "name": "scv1_test_furniture_staggered",
+         "count": 40, "quota": (.63, .37, 0.),
+         "pose_ranges": {"x": (.10, .65), "y": (-.40, .40), "yaw_rad": (-.22, .22)},
+         "parts": [wall("backdrop", 5.7),
+                   box("test_cabinet", 1.95, -.10, .20, .52, .78, .78),
+                   box("test_sofa_seat", 2.25, 1.05, .43, .62, .39, .17),
+                   box("test_sofa_back", 2.58, 1.05, .11, .62, .75, .36),
+                   box("test_table_top", 2.56, -.95, .43, .54, .60, .06),
+                   cyl("test_table_leg1", 2.11, -1.38, .045, .30),
+                   cyl("test_table_leg2", 2.11, -.52, .045, .30),
+                   cyl("test_table_leg3", 3.01, -1.38, .045, .30),
+                   cyl("test_table_leg4", 3.01, -.52, .045, .30)]},
+        {"split": "test", "category": "open", "name": "scv1_test_open_no_hit",
+         "count": 25, "acceptance": "no_hit", "parts": []},
+        {"split": "test", "category": "open_side_only", "name": "scv1_test_forward_clear_side_items",
+         "count": 25, "acceptance": "forward_clear",
+         "pose_ranges": {"x": (-.10, .20), "y": (-.06, .06), "yaw_rad": (-.03, .03)},
+         "parts": [box("test_left_side", 1.55, 1.45, .24, .25), cyl("test_right_pole", 1.55, -1.45, .14)]},
+    ]
+    for layout in layouts:
+        category = layout["category"]
+        layout["family"] = ("wall" if "wall" in category or "corridor" in category else
+                            "furniture" if category == "furniture" else
+                            "open" if category.startswith("open") else "narrow_obstacle")
+    return layouts
+
+
 DIAGNOSTIC_TARGETS = [0.25, 0.35]
 CHECK_TARGETS = [(0., 1.0), (18., 1.2), (-18., 1.4), (45., 2.0), (-45., 2.2)]
 
@@ -355,16 +470,35 @@ def visibility_rows(model, data, body_id, scene_name, key, split, pose, config,
     for ray_index, angle_deg in enumerate(RAY_ANGLES):
         angle = math.radians(angle_deg)
         direction = body_rot @ np.asarray([math.cos(angle), math.sin(angle), 0.])
-        gid = np.asarray([-1], dtype=np.int32)
-        hit_distance = float(mujoco.mj_ray(model, data, origin, direction, None, 1, body_id, gid))
-        if hit_distance < 0 or hit_distance > 6.:
-            target_m, hit_name, u, v, zcam = 6., "range_cap", math.nan, math.nan, math.nan
+        # ABS labels are 2-D XY footprints (see compute_geometric_ray_log),
+        # independent of geom height. Keep a separate 3-D ray at base height
+        # as a diagnostic; furniture/table tops can intentionally differ.
+        world_theta = math.atan2(float(direction[1]), float(direction[0]))
+        ctheta, stheta = math.cos(world_theta), math.sin(world_theta)
+        best_distance, label_geom_id = 6.0, -1
+        for candidate_id in obs_ids:
+            geom_type = int(model.geom_type[candidate_id])
+            center = data.geom_xpos[candidate_id]
+            size = model.geom_size[candidate_id]
+            if geom_type == int(mujoco.mjtGeom.mjGEOM_BOX):
+                candidate_distance = compare.ray_box_distance(
+                    origin[:2], direction[:2], center, data.geom_xmat[candidate_id], size)
+            else:
+                candidate_distance = compare.ray_round_distance(
+                    mujoco, model, candidate_id, float(origin[0]), float(origin[1]),
+                    ctheta, stheta, center, size)
+            if math.isfinite(candidate_distance):
+                candidate_distance = max(candidate_distance, compare.RAY2D_MIN_DIST)
+                if candidate_distance < best_distance:
+                    best_distance, label_geom_id = float(candidate_distance), candidate_id
+        target_m = best_distance
+        if label_geom_id < 0:
+            hit_name, u, v, zcam = "range_cap", math.nan, math.nan, math.nan
             inside, sampled_depth, sample_u, sample_v = False, math.nan, -1, -1
             object_visible, visible_pixel_count, seg_at_hit = False, 0, -1
         else:
-            target_m = max(.1, hit_distance)
-            geom_id = int(gid[0])
-            hit = origin + direction * hit_distance
+            geom_id = label_geom_id
+            hit = origin + direction * target_m
             u, v, zcam = projected_pixel(hit, body_pos, body_rot, config)
             inside = bool(zcam > 0 and -.5 <= u < config.width - .5 and -.5 <= v < config.height - .5)
             hit_name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_GEOM, geom_id) or f"geom{geom_id}"
@@ -382,12 +516,20 @@ def visibility_rows(model, data, body_id, scene_name, key, split, pose, config,
         if abs(target_m - float(label_m[ray_index])) > 1e-4:
             raise RuntimeError(f"label mismatch {scene_name} {key} ray {angle_deg}: "
                                f"{target_m} vs {label_m[ray_index]}")
+        height_gid = np.asarray([-1], dtype=np.int32)
+        height_distance = float(mujoco.mj_ray(model, data, origin, direction, None, 1, body_id, height_gid))
+        height_distance = height_distance if 0. <= height_distance <= 6. else 6.0
         rows.append({
             "split": split, "scene": scene_name, "sample": key,
             "pose_x_m": pose.x, "pose_y_m": pose.y, "pose_z_m": pose.z, "pose_yaw_deg": math.degrees(pose.yaw),
             "pitch_down_deg": config.pitch_down_deg,
             "ray_index": ray_index, "ray_angle_deg": angle_deg,
             "label_m": float(label_m[ray_index]), "hit_geom": hit_name,
+            "base_height_3d_raycast_m": height_distance,
+            "base_height_3d_raycast_geom": (mujoco.mj_id2name(
+                model, mujoco.mjtObj.mjOBJ_GEOM, int(height_gid[0])) or f"geom{int(height_gid[0])}"
+                if int(height_gid[0]) >= 0 else "range_cap"),
+            "label_is_height_independent_xy_footprint": True,
             "label_hit_u_px": float(u), "label_hit_v_px": float(v),
             "label_hitpoint_in_image": inside,
             "obstacle_has_visible_pixels_in_render": object_visible,
@@ -460,16 +602,18 @@ def run_layout(mujoco_module, compare_module, generation_module, layout, output,
         with label_path.open("rb") as f:
             labels = pickle.load(f)
     total = poses_override or layout["count"]
-    quota = quota_counts(total, layout["quota"])
-    accepted = {"near": 0, "mid": 0, "far": 0}
+    quota = ( {"open": total} if layout.get("acceptance") else
+              quota_counts(total, layout["quota"]) )
+    accepted = {name: 0 for name in quota}
     accepted_total = 0
     attempts = 0
     try:
         while any(accepted[c] < quota[c] for c in accepted) and attempts < max_attempts:
             attempts += 1
-            x = float(rng.uniform(*POSE_X_RANGE))
-            y = float(rng.uniform(*POSE_Y_RANGE))
-            yaw = float(rng.uniform(*POSE_YAW_RANGE))
+            pose_ranges = layout.get("pose_ranges", {})
+            x = float(rng.uniform(*pose_ranges.get("x", POSE_X_RANGE)))
+            y = float(rng.uniform(*pose_ranges.get("y", POSE_Y_RANGE)))
+            yaw = float(rng.uniform(*pose_ranges.get("yaw_rad", POSE_YAW_RANGE)))
             z = float(rng.uniform(*BASE_Z_RANGE_M))
             pitch = float(rng.uniform(*PITCH_RANGE_DEG))
             pose = compare_module.PoseSample(attempts, "d435i_ray_adaptation", x, y, z, yaw)
@@ -481,7 +625,18 @@ def run_layout(mujoco_module, compare_module, generation_module, layout, output,
                 compare_module.RAY2D_MIN_DIST, compare_module.RAY2D_MAX_DIST).astype(np.float32)
             if float(label_m.min()) < MIN_CLEARANCE_M:
                 continue
-            cls = classify(label_m)
+            acceptance = layout.get("acceptance")
+            if acceptance == "no_hit":
+                cls = "open" if np.all(label_m >= 5.999) else None
+            elif acceptance == "forward_clear":
+                # Central five rays (−18°…+18°) must remain clear; at least one
+                # outer ray must hit a side object so this is not another empty scene.
+                cls = ("open" if np.all(label_m[3:8] >= 5.999) and
+                       np.any(label_m[[0, 1, 2, 8, 9, 10]] < 5.999) else None)
+            elif acceptance:
+                raise ValueError(f"unknown layout acceptance: {acceptance}")
+            else:
+                cls = classify(label_m)
             if cls is None or accepted[cls] >= quota[cls]:
                 continue
             pose_config = replace(config, pitch_down_deg=pitch)
@@ -491,6 +646,7 @@ def run_layout(mujoco_module, compare_module, generation_module, layout, output,
                                        native, label_m, labels, records, pose, layout["name"])
             records[key]["pose"]["pitch_down_deg"] = pitch
             records[key]["pose_class"] = cls
+            records[key]["category"] = layout.get("category", "unspecified")
             rows = visibility_rows(model, data, body_id, scene_path.name, key, split,
                                    pose, pose_config, label_m, clean, seg_renderer)
             all_rows.extend(rows)
@@ -505,7 +661,8 @@ def run_layout(mujoco_module, compare_module, generation_module, layout, output,
         raise RuntimeError(f"{layout['name']}: unmet quota {accepted} vs {quota} after {attempts} attempts")
     with label_path.open("wb") as f:
         pickle.dump(labels, f)
-    return {"scene": layout["name"], "split": split, "attempts": attempts,
+    return {"scene": layout["name"], "split": split,
+            "category": layout.get("category", "unspecified"), "attempts": attempts,
             "accepted": accepted, "images": 2 * sum(accepted.values())}
 
 
@@ -615,6 +772,57 @@ def run_geometry_checks(output):
             renderer.close()
             detail_renderer.close()
             detail_renderer._mjr_context = None
+    # Broad-wall check: front face x=1.60 m, ABS origin x=-0.05 m.
+    # Thus the 0-degree label must be 1.65 m while camera-center Z is ~1.30 m.
+    wall_path = check_dir / "check_wide_wall_analytic.xml"
+    wall_path.write_text(scene_xml([wall("analytic_wide_wall", 1.65, 4.0)]))
+    wall_model = mujoco.MjModel.from_xml_path(str(wall_path))
+    wall_data = mujoco.MjData(wall_model)
+    wall_body_id = compare.find_body_id(mujoco, wall_model)
+    wall_pose = compare.PoseSample(0, "wide_wall_check", 0., 0., float(BASE_Z_RANGE_M[0]), 0.)
+    compare.apply_sample(mujoco, wall_model, wall_data, wall_pose)
+    wall_labels = np.clip(np.exp2(compare.compute_geometric_ray_log(
+        mujoco, wall_model, wall_data, wall_body_id, wall_path.name)),
+        compare.RAY2D_MIN_DIST, compare.RAY2D_MAX_DIST)
+    if abs(float(wall_labels[5]) - 1.65) > 1e-5:
+        raise RuntimeError(f"wide wall analytic 0-degree label mismatch: {wall_labels[5]}")
+    # Empty world except floor: every beam must be an ABS 6 m range-cap label.
+    open_path = check_dir / "check_open_no_hit.xml"
+    open_path.write_text(scene_xml([]))
+    open_model = mujoco.MjModel.from_xml_path(str(open_path))
+    open_data = mujoco.MjData(open_model)
+    open_body_id = compare.find_body_id(mujoco, open_model)
+    compare.apply_sample(mujoco, open_model, open_data,
+                         compare.PoseSample(0, "open_check", 0., 0., float(BASE_Z_RANGE_M[0]), 0.))
+    open_labels = np.clip(np.exp2(compare.compute_geometric_ray_log(
+        mujoco, open_model, open_data, open_body_id, open_path.name)),
+        compare.RAY2D_MIN_DIST, compare.RAY2D_MAX_DIST)
+    if not np.allclose(open_labels, 6.0, atol=1e-6):
+        raise RuntimeError(f"open-scene labels are not all 6 m: {open_labels}")
+    side_path = check_dir / "check_open_forward_clear_side_items.xml"
+    side_path.write_text(scene_xml([box("left_side", 1.55, 1.45, .24, .25),
+                                    cyl("right_side", 1.55, -1.45, .14)]))
+    side_model = mujoco.MjModel.from_xml_path(str(side_path))
+    side_data = mujoco.MjData(side_model)
+    side_body_id = compare.find_body_id(mujoco, side_model)
+    compare.apply_sample(mujoco, side_model, side_data,
+                         compare.PoseSample(0, "side_open_check", 0., 0., float(BASE_Z_RANGE_M[0]), 0.))
+    side_labels = np.clip(np.exp2(compare.compute_geometric_ray_log(
+        mujoco, side_model, side_data, side_body_id, side_path.name)),
+        compare.RAY2D_MIN_DIST, compare.RAY2D_MAX_DIST)
+    if not (np.all(side_labels[3:8] >= 5.999) and
+            np.any(side_labels[[0, 1, 2, 8, 9, 10]] < 5.999)):
+        raise RuntimeError(f"side-only open scene did not leave central rays clear: {side_labels}")
+    entries.extend([
+        {"check": "wide_wall_analytic", "wall_front_x_m": 1.60,
+         "abs_ray_origin_x_m": compare.RAY2D_X0, "expected_zero_degree_label_m": 1.65,
+         "actual_zero_degree_label_m": float(wall_labels[5]),
+         "camera_center_forward_distance_m": 1.30, "passed": True},
+        {"check": "empty_open_scene", "ray_labels_m": open_labels.tolist(),
+         "all_beams_range_cap_6m": True},
+        {"check": "side_only_forward_clear", "ray_labels_m": side_labels.tolist(),
+         "central_minus18_to_plus18_clear": True, "outer_beam_hit": True},
+    ])
     (check_dir / "geometry_checks.json").write_text(json.dumps({
         "camera": {"housing_proxy_base_m": list(CAMERA.position_body_m),
                    "pitch_down_deg": float(sum(PITCH_RANGE_DEG) / 2.0),
@@ -648,6 +856,14 @@ def audit_generated_data(output, records, layouts, args):
         new_test_names = {layout["name"] for layout in layouts if layout["split"] == "test"}
         if not new_test_names or new_test_names & {"test_mixed", "test_open"}:
             raise RuntimeError("current-mount test layouts must be distinct from adaptation_v1 layouts")
+    if args.scene_coverage_v1:
+        families_by_split = {split: {layout["family"] for layout in layouts if layout["split"] == split}
+                             for split in splits}
+        if any("wall" not in families_by_split[s] or "furniture" not in families_by_split[s]
+               for s in ("train", "validation", "test")):
+            raise RuntimeError(f"wall/furniture layout coverage missing by split: {families_by_split}")
+        if len({layout["name"] for layout in layouts}) != len(layouts):
+            raise RuntimeError("scene-coverage layout names are not unique")
 
     split_audit = {}
     for split in splits:
@@ -684,6 +900,15 @@ def audit_generated_data(output, records, layouts, args):
                 raise RuntimeError(f"{key}: invalid or mismatched paired labels")
             if clean_label.min() < compare.RAY2D_MIN_DIST or clean_label.max() > compare.RAY2D_MAX_DIST:
                 raise RuntimeError(f"{key}: labels outside ABS range")
+            if args.scene_coverage_v1:
+                layout = next(item for item in layouts if item["name"] == records[key]["layout"])
+                acceptance = layout.get("acceptance")
+                if acceptance == "no_hit" and not np.all(clean_label >= 5.999):
+                    raise RuntimeError(f"{key}: no-hit layout contains a non-cap ray")
+                if acceptance == "forward_clear" and not (
+                        np.all(clean_label[3:8] >= 5.999) and
+                        np.any(clean_label[[0, 1, 2, 8, 9, 10]] < 5.999)):
+                    raise RuntimeError(f"{key}: forward-clear side-only label condition failed")
         split_audit[split] = {
             "poses": len(by_split[split]),
             "paired_images": 2 * len(by_split[split]),
@@ -694,10 +919,11 @@ def audit_generated_data(output, records, layouts, args):
         }
     return {"passed": True, "expected_pose_counts": expected_counts,
             "split_audit": split_audit,
-            "test_layout_set": None if args.coverage_supplement_probe else args.test_layout_set,
+        "test_layout_set": ("scene_coverage_v1" if args.scene_coverage_v1 else
+                            None if args.coverage_supplement_probe else args.test_layout_set),
             "test_split_generated": any(layout["split"] == "test" for layout in layouts),
             "test_layouts_new_relative_to_adaptation_v1": (
-                False if args.coverage_supplement_probe
+                True if args.scene_coverage_v1 else False if args.coverage_supplement_probe
                 else args.test_layout_set in ("current_mount_v2", "final_holdout_v1"))}
 
 
@@ -705,7 +931,7 @@ def summarize(output, all_rows, records, layout_stats, masks, elapsed_s, bytes_s
     splits = tuple(s for s in ("train", "validation", "test") if any(l["split"] == s for l in layouts))
     bin_counts = {s: {"below_0p45": 0, "near_045_1p5": 0, "mid_1p5_3": 0,
                       "far_3_6": 0, "cap_6": 0} for s in splits}
-    pose_classes = {s: {"near": 0, "mid": 0, "far": 0} for s in splits}
+    pose_classes = {s: {"near": 0, "mid": 0, "far": 0, "open": 0} for s in splits}
     for record in records.values():
         pose_classes[record["split"]][record["pose_class"]] += 1
     per_ray = {s: [{"count": 0, "near": 0, "cap": 0, "sum": 0., "min": 99., "max": 0.} for _ in RAY_ANGLES]
@@ -731,6 +957,8 @@ def summarize(output, all_rows, records, layout_stats, masks, elapsed_s, bytes_s
             stat["max"] = stat["max"] if stat["count"] else None
             stat.pop("sum", None)
     hit_rows = [r for r in all_rows if r["split"] in splits and r["hit_geom"] != "range_cap"]
+    body_height_disagreements = [r for r in hit_rows
+                                 if abs(float(r["base_height_3d_raycast_m"]) - float(r["label_m"])) > .02]
     outside = [r for r in hit_rows if not r["label_hitpoint_in_image"]]
     visibility = {
         "hit_label_count": len(hit_rows),
@@ -768,11 +996,31 @@ def summarize(output, all_rows, records, layout_stats, masks, elapsed_s, bytes_s
                 np.mean([r["model_input_unknown_fraction_after_fill"] for r in vals])),
         }
     total_rays = {s: sum(stat["count"] for stat in per_ray[s]) for s in splits}
+    category_counts = {}
+    for layout in layouts:
+        category_counts[layout.get("category", "unspecified")] = (
+            category_counts.get(layout.get("category", "unspecified"), 0) + layout["count"])
+    frontal_wall = []
+    for key, record in records.items():
+        if record["layout"] != "scv1_train_wall_front":
+            continue
+        pose = record["pose"]
+        yaw = float(pose["yaw_rad"])
+        camera_x = float(pose["x"]) + CAMERA.position_body_m[0] * math.cos(yaw) - CAMERA.position_body_m[1] * math.sin(yaw)
+        camera_distance = (1.60 - camera_x) / max(1e-9, math.cos(yaw))
+        image = np.load(output / "data" / record["split"] / f"{key}_clean.npy")
+        roi = image[20:70, 50:110]
+        center_median = float(np.median(roi))
+        frontal_wall.append({"sample": key, "camera_to_wall_horizontal_m": camera_distance,
+                             "center_roi_median_m": center_median,
+                             "center_roi_fraction_0p7_1p3m": float(np.mean((roi >= .7) & (roi <= 1.3))),
+                             "center_roi_fraction_within_0p05m_of_median": float(np.mean(np.abs(roi - center_median) <= .05))})
     summary = {
         "training_performed": False,
         "dataset_kind": "offline geometry/mask adaptation candidate for a later bounded training run",
         "seed": args.seed,
-        "layout_selection": ("independent_eval_v1" if args.independent_eval else
+        "layout_selection": ("scene_coverage_v1" if args.scene_coverage_v1 else
+                             "independent_eval_v1" if args.independent_eval else
                              "coverage_supplement_probe_v1" if args.coverage_supplement_probe
                              else args.test_layout_set),
         "test_layout_set": args.test_layout_set,
@@ -785,6 +1033,20 @@ def summarize(output, all_rows, records, layout_stats, masks, elapsed_s, bytes_s
         "images_total": 2 * len(records),
         "poses_by_split": {s: sum(1 for r in records.values() if r["split"] == s) for s in splits},
         "layout_stats": layout_stats,
+        "planned_poses_by_category": category_counts,
+        "layout_plan": [{"name": layout["name"], "split": layout["split"],
+                         "category": layout.get("category"), "family": layout.get("family"),
+                         "planned_poses": layout["count"], "acceptance": layout.get("acceptance", "near_mid_far_quota"),
+                         "pose_ranges": layout.get("pose_ranges", "global default"),
+                         "geometry_summary": layout.get("geometry_summary", "see scene XML")}
+                        for layout in layouts],
+        "frontal_wall_coverage": {
+            "layout": "scv1_train_wall_front", "front_face_x_m": 1.60,
+            "target_camera_distance_band_m": [0.7, 1.3],
+            "samples_in_band": sum(.7 <= r["camera_to_wall_horizontal_m"] <= 1.3 for r in frontal_wall),
+            "samples_total": len(frontal_wall), "samples": frontal_wall,
+            "center_roi_model_input_pixels": "rows 20:70, columns 50:110 (50x60 center region)",
+            "this_is_coverage_not_prediction_accuracy": True},
         "pose_class_counts": pose_classes,
         "label_bin_counts": bin_counts,
         "label_bin_fraction": {s: {k: v / max(1, total_rays[s]) for k, v in bin_counts[s].items()}
@@ -793,6 +1055,15 @@ def summarize(output, all_rows, records, layout_stats, masks, elapsed_s, bytes_s
         "near_fraction": {s: bin_counts[s]["near_045_1p5"] / max(1, total_rays[s]) for s in splits},
         "per_ray_label_stats": per_ray,
         "hitpoint_visibility": visibility,
+        "label_geometry_semantics": {
+            "labels": "existing ABS horizontal XY footprint rays, independent of obstacle geom height",
+            "visibility_cross_check": "label hitpoint is projected from the 2D XY intersection; base-height 3D MuJoCo ray is retained separately",
+            "hit_label_count_with_base_height_3d_difference_over_0p02m": len(body_height_disagreements),
+            "examples": [{"sample": r["sample"], "ray_deg": r["ray_angle_deg"],
+                          "label_xy_m": r["label_m"], "base_height_3d_raycast_m": r["base_height_3d_raycast_m"],
+                          "label_geom": r["hit_geom"], "base_height_3d_geom": r["base_height_3d_raycast_geom"]}
+                         for r in body_height_disagreements[:20]],
+        },
         "per_split_visibility": per_split_visibility,
         "mask_augmentation": mask_stats,
         "camera": {"housing_proxy_base_m": list(CAMERA.position_body_m),
@@ -804,8 +1075,8 @@ def summarize(output, all_rows, records, layout_stats, masks, elapsed_s, bytes_s
                                         CAMERA.ppx, CAMERA.ppy]},
         "contract": {"rays_deg": RAY_ANGLES, "ray_origin_base_m": [compare.RAY2D_X0, compare.RAY2D_Y0],
                      "label_range_m": [compare.RAY2D_MIN_DIST, compare.RAY2D_MAX_DIST],
-                     "pose_uniform_ranges": {"x": list(POSE_X_RANGE), "y": list(POSE_Y_RANGE),
-                                             "yaw_rad": list(POSE_YAW_RANGE)}},
+                     "pose_uniform_ranges_default": {"x": list(POSE_X_RANGE), "y": list(POSE_Y_RANGE),
+                                                     "yaw_rad": list(POSE_YAW_RANGE)}},
         "processing": {
             "training_and_inference_values": "native Z metres -> mm Z16 -> real zero mask -> librealsense 2.58.4 source-equivalent mode1 fill -> remaining zero to 6 m -> centre sample (3i+1,3j+1) -> clip 0.1-6 m -> log2 -> 3 channels",
             "field_candidate_equivalent": "depth mm * 0.001 -> device SDK mode1 fill -> centre sample -> residual zero to 6 m -> clip/log2/3 channels",
@@ -823,6 +1094,62 @@ def summarize(output, all_rows, records, layout_stats, masks, elapsed_s, bytes_s
     }
     (output / "summary.json").write_text(json.dumps(summary, indent=2))
     return summary
+
+
+def save_representative_inputs(output, records, layouts):
+    """Save a compact panel of the actual 160x90 clean training inputs."""
+    import matplotlib.pyplot as plt
+
+    desired = [layout["name"] for layout in layouts if layout["name"] in {
+        "scv1_train_wall_front", "scv1_train_wall_oblique_corner",
+        "scv1_train_furniture_cabinet_sofa_table", "scv1_train_posts_chairlegs_doorway",
+        "scv1_train_open_side_far_wall", "scv1_val_far_wall_unseen", "scv1_val_clear_no_hit",
+        "scv1_val_forward_clear_side_items", "scv1_test_wall_corner_unseen",
+        "scv1_test_far_wall_unseen", "scv1_test_furniture_staggered", "scv1_test_open_no_hit",
+    }]
+    selected = []
+    for layout_name in desired:
+        candidates = [(name, record) for name, record in records.items()
+                      if record["layout"] == layout_name]
+        if layout_name == "scv1_train_wall_front":
+            in_band = []
+            for name, record in candidates:
+                pose = record["pose"]
+                yaw = float(pose["yaw_rad"])
+                cam_x = (float(pose["x"]) + CAMERA.position_body_m[0] * math.cos(yaw)
+                         - CAMERA.position_body_m[1] * math.sin(yaw))
+                distance = (1.60 - cam_x) / max(1e-9, math.cos(yaw))
+                if .7 <= distance <= 1.3:
+                    in_band.append((abs(distance - 1.0), name, record))
+            key = min(in_band)[1] if in_band else (candidates[0][0] if candidates else None)
+            record = next((item for name, item in candidates if name == key), None)
+        else:
+            key, record = candidates[0] if candidates else (None, None)
+        if key and record:
+            selected.append((key, record))
+    if not selected:
+        raise RuntimeError("no representative clean inputs found")
+    fig, axes = plt.subplots(3, 4, figsize=(15, 9), constrained_layout=True)
+    for ax, (key, record) in zip(axes.flat, selected):
+        image = np.load(output / "data" / record["split"] / f"{key}_clean.npy")
+        with (output / "data" / record["split"] / "label.pkl").open("rb") as f:
+            labels = pickle.load(f)
+        label = np.asarray(labels[f"{key}_clean"], dtype=float)
+        im = ax.imshow(image, cmap="viridis", vmin=.1, vmax=6., interpolation="nearest")
+        ax.set_title(f"{record['layout']}\n0°={label[5]:.2f}m, {record['pose_class']}", fontsize=8)
+        ax.set_xticks([])
+        ax.set_yticks([])
+    for ax in axes.flat[len(selected):]:
+        ax.axis("off")
+    fig.colorbar(im, ax=axes.ravel().tolist(), label="sampled clean depth (m)", shrink=.78)
+    examples = output / "examples"
+    examples.mkdir(exist_ok=True)
+    fig.savefig(examples / "representative_clean_inputs.png", dpi=150)
+    plt.close(fig)
+    (examples / "representative_samples.json").write_text(json.dumps([
+        {"key": key, "layout": rec["layout"], "split": rec["split"],
+         "pose_class": rec["pose_class"]} for key, rec in selected
+    ], indent=2))
 
 
 def main(argv=None) -> int:
@@ -854,8 +1181,10 @@ def main(argv=None) -> int:
                         help="generate the new whole-layout near-coverage supplement; no test split")
     parser.add_argument("--independent-eval-v1", dest="independent_eval", action="store_true",
                         help="generate new eval-only whole layouts for one-shot checkpoint comparison; no train/test split")
+    parser.add_argument("--scene-coverage-v1", action="store_true",
+                        help="generate bounded front-D435i wall/furniture/narrow/open scene supplement, split by whole layout")
     args = parser.parse_args(argv)
-    if args.independent_eval and args.coverage_supplement_probe:
+    if sum((args.independent_eval, args.coverage_supplement_probe, args.scene_coverage_v1)) > 1:
         raise ValueError("choose exactly one new-layout mode")
     global CAMERA, PITCH_RANGE_DEG, BASE_Z_RANGE_M
     width_f, height_f, fx, fy, ppx, ppy = args.depth_intrinsics
@@ -896,15 +1225,46 @@ def main(argv=None) -> int:
     all_rows, records, layout_stats = [], {}, []
     import time
     t0 = time.time()
-    layouts = (build_independent_eval_layouts() if args.independent_eval
+    layouts = (build_scene_coverage_v1_layouts() if args.scene_coverage_v1 else
+               build_independent_eval_layouts() if args.independent_eval
                else build_coverage_supplement_probe_layouts() if args.coverage_supplement_probe
                else build_layouts(args.test_layout_set))
+    if args.scene_coverage_v1:
+        plan = {
+            "dataset": "front_d435i_scene_coverage_v1",
+            "seed": args.seed,
+            "planned_pose_count": sum(layout["count"] for layout in layouts),
+            "layouts": layouts,
+            "camera_candidate": {"position_base_m": list(CAMERA.position_body_m),
+                                 "pitch_range_deg": list(PITCH_RANGE_DEG),
+                                 "base_height_range_m": list(BASE_Z_RANGE_M),
+                                 "K": [CAMERA.width, CAMERA.height, CAMERA.fx, CAMERA.fy,
+                                       CAMERA.ppx, CAMERA.ppy],
+                                 "yaw_roll": "assumed zero; not measured",
+                                 "position_reference": "front glass proxy, not calibrated optical center"},
+            "abs_ray_contract": {"angles_deg": RAY_ANGLES,
+                                 "origin_base_m": [compare.RAY2D_X0, compare.RAY2D_Y0],
+                                 "range_m": [compare.RAY2D_MIN_DIST, compare.RAY2D_MAX_DIST]},
+            "preprocessing": "native clean depth -> centre sample (3i+1,3j+1) to 160x90; paired mask path uses existing mode1 augmentation and residual 6m candidate; model training contract clip 0.1-6m, log2, 3 channels",
+            "training": False,
+            "real_images_in_dataset": False,
+        }
+        (out / "dataset_plan.json").write_text(json.dumps(plan, indent=2))
+        with (out / "layout_splits.csv").open("w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=("layout", "split", "family", "category", "poses", "acceptance"))
+            writer.writeheader()
+            writer.writerows({"layout": item["name"], "split": item["split"],
+                              "family": item["family"], "category": item["category"],
+                              "poses": item["count"], "acceptance": item.get("acceptance", "near_mid_far_quota")}
+                             for item in layouts)
+        # Fail on the small geometry/sign/open checks before rendering the full data batch.
+        run_geometry_checks(out)
     for layout in layouts:
         stats = run_layout(mujoco, compare, generation, layout, out, masks, mask_counter,
                            rng, args.max_attempts, args.poses_per_layout, all_rows, records)
         layout_stats.append(stats)
     run_diagnostics(out)
-    if not args.skip_geometry_checks:
+    if not args.skip_geometry_checks and not args.scene_coverage_v1:
         run_geometry_checks(out)
     elapsed = time.time() - t0
     with (out / "ray_projection_visibility.csv").open("w", newline="", encoding="utf-8") as f:
@@ -914,6 +1274,9 @@ def main(argv=None) -> int:
     (out / "data_records.json").write_text(json.dumps(records, indent=2))
     bytes_saved = sum(p.stat().st_size for p in out.rglob("*") if p.is_file())
     audit = audit_generated_data(out, records, layouts, args)
+    if args.scene_coverage_v1:
+        save_representative_inputs(out, records, layouts)
+        bytes_saved = sum(p.stat().st_size for p in out.rglob("*") if p.is_file())
     summary = summarize(out, all_rows, records, layout_stats, masks, elapsed, bytes_saved,
                         args, layouts, audit)
     print(json.dumps({k: summary[k] for k in ("poses_total", "images_total", "poses_by_split",

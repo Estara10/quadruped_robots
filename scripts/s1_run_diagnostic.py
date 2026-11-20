@@ -2458,6 +2458,7 @@ def run(args: argparse.Namespace) -> int:
             raise RuntimeError(f"explicit ray prediction model is missing: {ray_model_path}")
         env["RAY_PRED_MODEL"] = str(ray_model_path)
         env["RAY_PRED_DEVICE"] = args.ray_device
+        env["MUJOCO_SCENE"] = scene_spec.filename
     if args.startup_gain_trace:
         env["ABS_S6_STARTUP_GAIN_TRACE"] = "1"
     if args.startup_recovery_observation_s > 0.0:
@@ -2792,6 +2793,7 @@ def run(args: argparse.Namespace) -> int:
             context["preflight"]["ray_prediction_source"] = {
                 "status": "STARTED", "pid": ray_predictor.pid,
                 "python": str(predictor_python), "model": str(ray_model_path),
+                "scene": str(scene_spec.path),
                 "device": args.ray_device,
                 "cpu_libtorch_path_excluded": True,
                 "writer": "scripts/ray_predictor.py", "geometry_writer_disabled": True}

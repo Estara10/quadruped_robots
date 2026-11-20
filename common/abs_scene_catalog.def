@@ -448,3 +448,11 @@ ABS_SCENE("new.xml", "demo01", 9, kNamedPptObstacles,
           "1c0c538352948e61f5a4220defdd8018e5e6acbb4a4b7769131fc1e3dafdfbe7",
           "6c5dc842630204bf887cf303a8d84e279f4933334765c1ebf19a40e8c253cb2f",
           "49a7e566dc6ad78ea759c6aef3697dd0857ae7fbbf15b377786cccc7178a615d")
+
+ABS_SCENE("scene_near250_right_box.xml", "near250rightbox", 1, kNamedPptObstacles,
+          "4e6e0b7d2d563e8d732ecb834ae5f26ad3d7c2ec07bf28ea671f8a0bb3148cfe", "486026f0202e25c7ad52ec33120e9f9c92f258aafe802ea0123ba87ff2f6935c",
+          "6a9cf4c306b683c967d1bdd9d7fe7970742d29ff7f86ca3d92f1bcc4731434bc")
+
+ABS_SCENE("scene_near250_close_right_box.xml", "near250closerightbox", 1, kNamedPptObstacles,
+          "44c1f7437e26b5b9062eb8345c0932ddbad847a80e3a4919b0e43251d174743c", "d36f80905340b73e6052d40f2cdfb0ca38031271d5f2cb7fe44e67100bf2ce52",
+          "55860afa2462071a80657052454786140af177c06660e50f7ccabe55b2f31bb9")

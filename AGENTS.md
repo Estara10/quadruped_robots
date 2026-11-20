@@ -16,6 +16,10 @@ Read only this lightweight set for current planning:
 
 The passed thesis proposal is the highest research authority. Code and direct repository evidence determine what is actually complete.
 
+## Go2 实机任务必读
+
+每次处理 Go2 实机相关请求前，先从仓库完整读取 [Go2 实机操作手册](docs/thesis_project/real_go2/FIELD_OPERATIONS.md)。这包括只读查询、现场操作、实机日志分析、续接规划和编写执行器提示词。涉及已做项目时，按手册入口打开对应的记录或结果，确认做过什么、还缺什么，再决定是否安排现场工作。实机工作与 R1 仿真任务分别管理。
+
 ## Legacy Boundary
 
 Old P1 tasks, gates, reviewers, exec plans, evidence bundles and top-level governance Markdown are `LEGACY`. Preserve them, but do not continue, repair or close them unless the current thesis task explicitly needs a reusable technical asset.

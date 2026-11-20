@@ -106,12 +106,29 @@ def main():
     if model.nq != QPOS_COUNT:
         raise RuntimeError("qpos contract mismatch: scene nq={}, expected {}".format(model.nq, QPOS_COUNT))
     data = mujoco.MjData(model)
-    model.vis.global_.fovy = mujoco_fovy_from_hfov(CAMERA_HFOV_DEG)
-    renderer = mujoco.Renderer(model, CAM_H, CAM_W)
-    renderer.enable_depth_rendering()
+    camera_summary = os.environ.get("RAY_PRED_CAMERA_SUMMARY")
+    camera_config = None
+    if camera_summary:
+        import compare_ray_pred as compare
+        from generate_mujoco_ray_dataset import render_depth
+        from go2_depth_ray_observer import vectorized_center_sample
 
-    cam = mujoco.MjvCamera()
-    cam.type = mujoco.mjtCamera.mjCAMERA_FREE
+        camera = json.loads(Path(camera_summary).read_text(encoding="utf-8"))["camera"]
+        pitch_min, pitch_max = camera["pitch_range_deg"]
+        if pitch_min != pitch_max:
+            raise ValueError("RAY_PRED_CAMERA_SUMMARY must describe a fixed pitch")
+        camera_config = compare.CameraRenderConfig(
+            tuple(camera["housing_proxy_base_m"]), float(pitch_min), *camera["depth_intrinsics"])
+        renderer = compare.make_depth_renderer(mujoco, model, camera_config)
+        camera_description = "{}x{} center-sampled to {}x{} using {}".format(
+            camera_config.width, camera_config.height, CAM_W, CAM_H, camera_summary)
+    else:
+        model.vis.global_.fovy = mujoco_fovy_from_hfov(CAMERA_HFOV_DEG)
+        renderer = mujoco.Renderer(model, CAM_H, CAM_W)
+        renderer.enable_depth_rendering()
+        cam = mujoco.MjvCamera()
+        cam.type = mujoco.mjtCamera.mjCAMERA_FREE
+        camera_description = "{}x{} hfov={}deg".format(CAM_W, CAM_H, CAMERA_HFOV_DEG)
     resnet = torch.jit.load(str(MODEL_PATH), map_location=device)
     resnet.eval()
     warmup_start_ns = time.monotonic_ns()
@@ -146,8 +163,8 @@ def main():
     print("[RayPredictorReady] device={} cuda_name={} torch_threads={} torch_interop_threads={} warmup_passes=3 warmup_ms={:.3f} renderer_backend={}".format(
         device, cuda_device_name, torch.get_num_threads(), torch.get_num_interop_threads(),
         warmup_ms, os.environ.get("MUJOCO_GL", "unknown")), flush=True)
-    print("[RayPredictor] camera={}x{} hfov={}deg depth=m clip=[{},{}] log2; output=11 log2 rays, order -45deg..+45deg".format(
-        CAM_W, CAM_H, CAMERA_HFOV_DEG, RAY_MIN_M, RAY_MAX_M), flush=True)
+    print("[RayPredictor] camera={} depth=m clip=[{},{}] log2; output=11 log2 rays, order -45deg..+45deg".format(
+        camera_description, RAY_MIN_M, RAY_MAX_M), flush=True)
     frame = 0
     previous_publish_complete_ns = None
     period = 1.0 / FPS
@@ -166,23 +183,28 @@ def main():
 
             data.qpos[:] = qpos
             mujoco.mj_forward(model, data)
-            body_xpos = data.xpos[body_id]
-            body_xmat = data.xmat[body_id].reshape(3, 3)
-            cam_world = body_xpos + body_xmat @ CAMERA_LOCAL_POS
-            look_world = body_xpos + body_xmat @ np.array([CAMERA_LOOKAHEAD_M, 0.0, 0.0])
-            diff = look_world - cam_world
-            distance = float(np.linalg.norm(diff))
-            cam.lookat[:] = look_world
-            cam.distance = distance
-            cam.azimuth = np.degrees(np.arctan2(diff[1], diff[0]))
-            cam.elevation = np.degrees(np.arcsin(diff[2] / max(distance, 0.001)))
-
             render_start = time.monotonic_ns()
-            renderer.update_scene(data, camera=cam)
-            depth_m = np.clip(renderer.render(), RAY_MIN_M, RAY_MAX_M)
+            if camera_config is not None:
+                depth_m = render_depth(mujoco, compare, model, data, renderer, body_id,
+                                       camera_config, return_native=True)
+            else:
+                body_xpos = data.xpos[body_id]
+                body_xmat = data.xmat[body_id].reshape(3, 3)
+                cam_world = body_xpos + body_xmat @ CAMERA_LOCAL_POS
+                look_world = body_xpos + body_xmat @ np.array([CAMERA_LOOKAHEAD_M, 0.0, 0.0])
+                diff = look_world - cam_world
+                distance = float(np.linalg.norm(diff))
+                cam.lookat[:] = look_world
+                cam.distance = distance
+                cam.azimuth = np.degrees(np.arctan2(diff[1], diff[0]))
+                cam.elevation = np.degrees(np.arcsin(diff[2] / max(distance, 0.001)))
+                renderer.update_scene(data, camera=cam)
+                depth_m = np.clip(renderer.render(), RAY_MIN_M, RAY_MAX_M)
             render_complete_ns = time.monotonic_ns()
             render_ns = render_complete_ns - render_start
             preprocess_start_ns = render_complete_ns
+            if camera_config is not None:
+                depth_m, _, _ = vectorized_center_sample(depth_m, np.ones(depth_m.shape, dtype=bool))
             depth_log = np.log2(depth_m).astype(np.float32)
             depth_tensor_cpu = torch.from_numpy(depth_log).unsqueeze(0).unsqueeze(0).repeat(1, 3, 1, 1)
             preprocess_complete_ns = time.monotonic_ns()
